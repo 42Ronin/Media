@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Client Search Simulation — HMIS Training Sandbox</title>
+<style>
+:root{
+  --brand:#0f5c6e; --brand-dk:#0a4351; --accent:#1a9ab0; --accent-soft:#e3f3f6;
+  --ink:#1b2a32; --muted:#5b7382; --line:#d9e2e8; --bg:#eef3f6; --card:#fff;
+  --ok:#1e7a4b; --ok-soft:#e6f4ec; --warn:#a35c00; --warn-soft:#fdf1de;
+  --err:#a5231c; --err-soft:#fbe9e8; --focus:#0b6fd4;
+  --radius:8px; --shadow:0 1px 3px rgba(16,40,52,.12),0 4px 14px rgba(16,40,52,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink); background:var(--bg); -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ---------- training banner ---------- */
+#simBanner{
+  background:repeating-linear-gradient(135deg,#7a2f00,#7a2f00 14px,#8f3a05 14px,#8f3a05 28px);
+  color:#fff;text-align:center;padding:7px 14px;font-size:12.5px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;
+}
+#simBanner span{font-weight:500;text-transform:none;letter-spacing:0;opacity:.92}
+
+/* ---------- app chrome ---------- */
+.appbar{background:var(--brand);color:#fff}
+.appbar-top{display:flex;align-items:center;gap:18px;padding:0 20px;height:56px;max-width:1280px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em;font-size:15px}
+.brand .mark{width:26px;height:26px;border-radius:6px;background:var(--accent);display:grid;place-items:center;font-size:13px;font-weight:800}
+.agency{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;background:rgba(255,255,255,.12);padding:6px 10px;border-radius:6px}
+.appbar-icons{display:flex;gap:4px;align-items:center}
+.iconbtn{background:transparent;border:0;color:#fff;width:34px;height:34px;border-radius:6px;display:grid;place-items:center;cursor:pointer}
+.iconbtn:hover{background:rgba(255,255,255,.15)}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:12px;font-weight:700}
+.tabs{background:var(--brand-dk);display:flex;padding:0 20px;max-width:1280px;margin:0 auto;gap:2px}
+.tab{background:transparent;border:0;border-bottom:3px solid transparent;color:rgba(255,255,255,.75);
+     padding:11px 16px;font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.tab:hover{color:#fff}
+.tab[aria-current="page"]{color:#fff;border-bottom-color:var(--accent)}
+.tabs-wrap{background:var(--brand-dk)}
+
+/* ---------- layout ---------- */
+.shell{max-width:1280px;margin:0 auto;padding:20px;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}
+@media (max-width:980px){.shell{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:18px}
+h1{font-size:21px;margin:0;font-weight:600}
+h2{font-size:15px;margin:0 0 10px;font-weight:700}
+h3{font-size:13px;margin:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.page-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+
+/* ---------- search bar ---------- */
+.searchrow{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.searchfield{flex:1 1 320px;display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);padding:0 10px}
+.searchfield:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.searchfield input{flex:1;border:0;outline:0;padding:12px 2px;font-size:15px;background:transparent;min-width:0}
+.btn{border:1px solid transparent;border-radius:var(--radius);padding:11px 16px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-dk)}
+.btn-ghost{background:#fff;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{background:#f4f8fa}
+.btn-ghost[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--brand-dk)}
+.btn-sm{padding:7px 11px;font-size:13px}
+.btn-danger{background:var(--err);color:#fff}
+.btn-warn{background:var(--warn);color:#fff}
+.hint{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+/* ---------- filters ---------- */
+.filters{margin-top:12px;border:1px solid var(--line);border-radius:var(--radius);background:#f8fbfc;padding:14px}
+.filters[hidden]{display:none}
+.filtergrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{width:100%;padding:9px 10px;border:1.5px solid var(--line);border-radius:6px;font:inherit;background:#fff}
+.field input:focus,.field select:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+/* ---------- results ---------- */
+.results-head{display:flex;align-items:center;gap:10px;margin:18px 0 8px;flex-wrap:wrap}
+.count{font-size:13px;color:var(--muted)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:14px;background:#fff}
+th{background:#f4f8fa;text-align:left;padding:10px 12px;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid #eef3f5;vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#f2fafb}
+tbody tr:last-child td{border-bottom:0}
+.cname{font-weight:600;color:var(--brand-dk)}
+.cid{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border-radius:999px;background:#eef3f6;color:var(--muted);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.hh{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--muted)}
+.empty{padding:34px 20px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+
+/* ---------- column selector ---------- */
+.colmenu{position:relative;margin-left:auto}
+.colpanel{position:absolute;right:0;top:calc(100% + 6px);width:262px;background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:0 10px 30px rgba(16,40,52,.18);padding:10px;z-index:30}
+.colpanel[hidden]{display:none}
+.collist{list-style:none;margin:0;padding:0;max-height:290px;overflow:auto}
+.collist li{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;cursor:grab;font-size:13.5px}
+.collist li:hover{background:#f4f8fa}
+.collist li.locked{opacity:.62;cursor:not-allowed}
+.collist li.dragover{background:var(--accent-soft);box-shadow:inset 0 2px 0 var(--accent)}
+.grip{color:#a9bcc6;font-size:14px;letter-spacing:-1px}
+
+/* ---------- recent ---------- */
+.recent{list-style:none;margin:0;padding:0}
+.recent li+li{border-top:1px solid #eef3f5}
+.recent button{width:100%;text-align:left;background:none;border:0;padding:9px 4px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.recent button:hover .cname{text-decoration:underline}
+
+/* ---------- coach panel ---------- */
+.coach{position:sticky;top:20px;display:grid;gap:14px}
+.modeswitch{display:flex;background:#e3ebef;border-radius:999px;padding:3px}
+.modeswitch button{flex:1;border:0;background:transparent;padding:8px 10px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted)}
+.modeswitch button[aria-pressed="true"]{background:#fff;color:var(--brand-dk);box-shadow:var(--shadow)}
+.progressbar{height:6px;background:#e3ebef;border-radius:999px;overflow:hidden;margin:10px 0 4px}
+.progressbar i{display:block;height:100%;background:var(--accent);width:0;transition:width .35s}
+.task{background:var(--accent-soft);border-left:4px solid var(--accent);padding:12px;border-radius:0 6px 6px 0;font-size:14px}
+.task p{margin:0 0 8px}
+.task p:last-child{margin:0}
+.quote{font-style:italic;color:var(--brand-dk)}
+.fb{padding:12px;border-radius:6px;font-size:13.5px;border-left:4px solid}
+.fb.ok{background:var(--ok-soft);border-color:var(--ok)}
+.fb.bad{background:var(--err-soft);border-color:var(--err)}
+.fb.info{background:var(--warn-soft);border-color:var(--warn)}
+.fb strong{display:block;margin-bottom:4px}
+.scenlist{list-style:none;margin:0;padding:0;font-size:13px}
+.scenlist li{display:flex;gap:8px;padding:5px 0;color:var(--muted);align-items:flex-start}
+.scenlist li.done{color:var(--ok)}
+.scenlist li.current{color:var(--ink);font-weight:600}
+.stat{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.stat b{font-variant-numeric:tabular-nums}
+
+/* ---------- modal ---------- */
+.backdrop{position:fixed;inset:0;background:rgba(12,28,36,.55);display:grid;place-items:center;padding:20px;z-index:100}
+.backdrop[hidden]{display:none}
+.modal{background:#fff;border-radius:10px;max-width:620px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.modal-head h2{margin:0;font-size:17px}
+.modal-body{padding:20px}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;background:#f8fbfc;border-radius:0 0 10px 10px}
+.close{margin-left:auto;background:none;border:0;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:8px 14px;font-size:14px}
+.kv dt{color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.kv dd{margin:0}
+.warnbox{background:var(--warn-soft);border:1px solid #f0d7a8;border-left:4px solid var(--warn);padding:14px;border-radius:6px;margin-bottom:16px}
+.warnbox h3{color:var(--warn);margin-bottom:6px}
+.matchlist{list-style:none;margin:10px 0 0;padding:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.matchlist li{padding:10px 12px;display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:13.5px}
+.matchlist li+li{border-top:1px solid #eef3f5}
+.roi{display:flex;align-items:center;gap:8px;font-size:13px;padding:9px 12px;border-radius:6px;background:var(--ok-soft);color:var(--ok);font-weight:600}
+.roi.no{background:var(--err-soft);color:var(--err)}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.formgrid,.kv{grid-template-columns:1fr}}
+.req{color:var(--err)}
+footer.legal{max-width:1280px;margin:0 auto;padding:18px 20px 40px;font-size:12px;color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+
+<div id="simBanner" role="note">
+  Training Simulation — Practice Environment Only
+  <span>· This is not a live HMIS. Every client record here is fictional.</span>
+</div>
+
+<header class="appbar">
+  <div class="appbar-top">
+    <div class="brand"><span class="mark" aria-hidden="true">HS</span> Human Services <span style="font-weight:400;opacity:.7">| Training Sandbox</span></div>
+    <div class="agency" aria-label="Active agency">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 21V9l8-6 8 6v12h-6v-6h-4v6H4z"/></svg>
+      Riverside Outreach Collective
+    </div>
+    <div class="appbar-icons">
+      <button class="iconbtn" type="button" title="Search" aria-label="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </button>
+      <button class="iconbtn" type="button" title="Help" aria-label="Help">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-.8.6-1.5 1.1-1.5 2M12 17h.01"/></svg>
+      </button>
+      <span class="avatar" title="Signed in as trainee" aria-label="Signed in as trainee">TR</span>
+    </div>
+  </div>
+  <div class="tabs-wrap">
+    <nav class="tabs" aria-label="Main">
+      <button class="tab" type="button" aria-current="page">Search</button>
+      <button class="tab" type="button" data-locked>Caseload</button>
+      <button class="tab" type="button" data-locked>Referrals</button>
+      <button class="tab" type="button" data-locked>Reports</button>
+    </nav>
+  </div>
+</header>
+
+<div class="shell">
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="card card-pad">
+      <div class="page-head">
+        <h1>Client Search</h1>
+        <button class="btn btn-primary" id="addClientBtn" type="button" style="margin-left:auto">+ Add Client</button>
+      </div>
+
+      <form class="searchrow" id="searchForm" role="search">
+        <div class="searchfield">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <label class="sr-only" for="q">Search for a client by name, date of birth, or year of birth</label>
+          <input id="q" name="q" type="text" autocomplete="off" placeholder="Search by name, date of birth, or year of birth…">
+          <button class="iconbtn" type="button" id="clearBtn" style="color:var(--muted)" title="Clear" aria-label="Clear search" hidden>×</button>
+        </div>
+        <button class="btn btn-ghost" type="button" id="filterBtn" aria-pressed="false" aria-controls="filters" title="Filters">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="vertical-align:-2px"><path d="M3 5h18l-7 8v6l-4 2v-8L3 5z"/></svg>
+          Filters
+        </button>
+        <button class="btn btn-primary" type="submit" title="Search" aria-label="Run search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true" style="vertical-align:-3px"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+      <p class="hint">Enter a full name or at least the first 3 letters. Dates accept <code>12/12/1985</code>, <code>12.12.1985</code>, or <code>12-12-1985</code>. A year alone (<code>1985</code>) also works.</p>
+
+      <div class="filters" id="filters" hidden>
+        <h3>Filter by</h3>
+        <div class="filtergrid">
+          <div class="field">
+            <label for="fId">Client ID</label>
+            <input id="fId" type="text" inputmode="numeric" placeholder="e.g. 100234">
+          </div>
+          <div class="field">
+            <label for="fSsn">Last 4 of SSN</label>
+            <input id="fSsn" type="text" inputmode="numeric" maxlength="4" placeholder="e.g. 4471">
+          </div>
+          <div class="field">
+            <label for="fDob">Date of Birth</label>
+            <input id="fDob" type="text" placeholder="MM/DD/YYYY">
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px">
+          <button class="btn btn-primary btn-sm" type="button" id="applyFilters">Apply Filters</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="clearFilters">Clear</button>
+        </div>
+      </div>
+
+      <div class="results-head">
+        <h2 id="resultsTitle" style="margin:0">Results</h2>
+        <span class="count" id="resultCount" aria-live="polite"></span>
+        <div class="colmenu">
+          <button class="btn btn-ghost btn-sm" type="button" id="colBtn" aria-expanded="false" aria-controls="colPanel">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="vertical-align:-2px"><path d="M3 4h4v16H3zM10 4h4v16h-4zM17 4h4v16h-4z"/></svg>
+            Columns
+          </button>
+          <div class="colpanel" id="colPanel" hidden>
+            <h3>Show columns</h3>
+            <ul class="collist" id="colList"></ul>
+            <p class="hint" style="margin:8px 4px 0">Drag to reorder. Your choice is saved in this browser.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tablewrap">
+        <table id="resultsTable">
+          <thead><tr id="theadRow"></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="empty" id="emptyState">
+          <strong>Start with a search</strong>
+          Search before you add anyone. Creating a second record for the same person breaks your CoC's unduplicated count.
+        </div>
+      </div>
+    </div>
+
+    <footer class="legal">
+      <strong>Independent training simulation.</strong> Not affiliated with, endorsed by, or connected to Bitfocus, Inc.
+      This sandbox imitates documented HMIS client-search behavior for instructional purposes only. All client names,
+      identifiers, dates of birth, and SSN fragments are invented. Never enter real client information here.
+      Screen layout, labels, and available fields in your live system are configured by your CoC and will differ.
+    </footer>
+  </main>
+
+  <!-- ================= COACH ================= -->
+  <aside class="coach" aria-label="Training panel">
+    <div class="card card-pad">
+      <div class="modeswitch" role="group" aria-label="Mode">
+        <button type="button" id="modeGuided" aria-pressed="true">Guided</button>
+        <button type="button" id="modeSandbox" aria-pressed="false">Sandbox</button>
+      </div>
+
+      <div id="guidedPane">
+        <div class="progressbar"><i id="progFill"></i></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:12px">
+          <span id="progLabel">Task 1 of 7</span><span id="scoreLabel">Score 0</span>
+        </div>
+        <div class="task" id="taskBox"></div>
+        <div id="feedback" style="margin-top:12px"></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" type="button" id="hintBtn">Show hint</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="skipBtn">Skip task</button>
+          <button class="btn btn-primary btn-sm" type="button" id="nextBtn" hidden>Next task →</button>
+        </div>
+      </div>
+
+      <div id="sandboxPane" hidden>
+        <p style="font-size:14px;margin:14px 0 0">
+          Free exploration. Search the fictional roster however you like — try partial names,
+          a bare year, the filter panel, and the column selector.
+        </p>
+        <p class="hint">Switch back to Guided any time; your task progress is kept.</p>
+      </div>
+    </div>
+
+    <div class="card card-pad" id="scenListCard">
+      <h3>Tasks</h3>
+      <ul class="scenlist" id="scenList"></ul>
+    </div>
+
+    <div class="card card-pad">
+      <h3>Recently accessed</h3>
+      <ul class="recent" id="recentList"><li style="color:var(--muted);font-size:13px;padding:6px 0">No clients opened yet.</li></ul>
+    </div>
+  </aside>
+</div>
+
+<!-- ================= MODALS ================= -->
+<div class="backdrop" id="clientModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
+    <div class="modal-head">
+      <h2 id="cmTitle">Client Profile</h2>
+      <button class="close" type="button" data-close aria-label="Close">×</button>
+    </div>
+    <div class="modal-body" id="cmBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" type="button" id="flagDupBtn">Flag possible duplicate</button>
+      <button class="btn btn-primary" type="button" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="dupModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dupTitle">
+    <div class="modal-head"><h2 id="dupTitle">Before you add a new client</h2>
+      <button class="close" type="button" data-close aria-label="Close">×</button></div>
+    <div class="modal-body" id="dupBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" type="button" data-close>Go back and search again</button>
+      <button class="btn btn-warn" type="button" id="proceedAdd">No match — continue to Add Client</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="addModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <div class="modal-head"><h2 id="addTitle">Add Client</h2>
+      <button class="close" type="button" data-close aria-label="Close">×</button></div>
+    <div class="modal-body">
+      <div class="warnbox">
+        <h3>Core data fields</h3>
+        A new record enters your CoC's unduplicated count permanently. Confirm you have already searched
+        by name, by date of birth, and by year of birth before saving.
+      </div>
+      <div class="formgrid">
+        <div class="field"><label for="aFirst">First name <span class="req">*</span></label><input id="aFirst" type="text"></div>
+        <div class="field"><label for="aLast">Last name <span class="req">*</span></label><input id="aLast" type="text"></div>
+        <div class="field"><label for="aDob">Date of birth <span class="req">*</span></label><input id="aDob" type="text" placeholder="MM/DD/YYYY"></div>
+        <div class="field"><label for="aSsn">Last 4 of SSN</label><input id="aSsn" type="text" maxlength="4" inputmode="numeric"></div>
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label for="aRoi">Release of Information <span class="req">*</span></label>
+        <select id="aRoi">
+          <option value="">— Select —</option>
+          <option value="yes">Signed — permission granted</option>
+          <option value="refused">Client refused</option>
+          <option value="na">Not applicable</option>
+        </select>
+      </div>
+      <p class="hint">In most live systems the ROI must be recorded before the record will save.</p>
+      <div id="addErr" style="margin-top:12px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="button" id="saveClient">Save client</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="doneModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="doneTitle">
+    <div class="modal-head"><h2 id="doneTitle">Simulation complete</h2></div>
+    <div class="modal-body" id="doneBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" type="button" id="restartBtn">Restart</button>
+      <button class="btn btn-primary" type="button" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   1. SCORM 1.2 adapter — silently no-ops when run standalone
+   ============================================================ */
+var SCORM=(function(){
+  var api=null,ready=false;
+  function find(win,depth){
+    while(win&&depth-->0){ if(win.API) return win.API; win=(win.parent!==win)?win.parent:null; }
+    return null;
+  }
+  function locate(){
+    var a=find(window,12);
+    if(!a&&window.opener) a=find(window.opener,12);
+    return a;
+  }
+  return {
+    init:function(){
+      try{ api=locate(); if(!api) return false;
+        ready=(api.LMSInitialize("")+""==="true");
+        if(ready){ api.LMSSetValue("cmi.core.lesson_status","incomplete"); api.LMSCommit(""); }
+        return ready;
+      }catch(e){ return false; }
+    },
+    set:function(k,v){ if(ready){ try{ api.LMSSetValue(k,String(v)); }catch(e){} } },
+    commit:function(){ if(ready){ try{ api.LMSCommit(""); }catch(e){} } },
+    finish:function(score,passed){
+      if(!ready) return;
+      try{
+        api.LMSSetValue("cmi.core.score.raw",String(score));
+        api.LMSSetValue("cmi.core.score.min","0");
+        api.LMSSetValue("cmi.core.score.max","100");
+        api.LMSSetValue("cmi.core.lesson_status",passed?"passed":"failed");
+        api.LMSCommit(""); api.LMSFinish("");
+      }catch(e){}
+      ready=false;
+    },
+    active:function(){ return ready; }
+  };
+})();
+SCORM.init();
+window.addEventListener("beforeunload",function(){ if(SCORM.active()) SCORM.finish(App.percent(),App.percent()>=80); });
+
+/* ============================================================
+   2. Fictional roster — engineered around duplicate traps
+   ============================================================ */
+var HOUSING={ES:["Emergency Shelter","#b26a00"],TH:["Transitional Housing","#5b7382"],
+  PH:["Permanent Housing","#1e7a4b"],SO:["Street Outreach","#a5231c"],UN:["Unknown","#8fa3ad"]};
+
+/* trap:  A=formal vs nickname   B=year-only DOB   C=date format
+          D=same name/two people E=true duplicate  F=surname token
+          G=transposed DOB       .=filler                          */
+var CLIENTS=[
+ {id:100234,first:"Michael",last:"Torres",alias:"",dob:"1979-03-14",ssn4:"8802",gender:"Man",hh:1,st:"ES",upd:"2026-06-30",trap:"A"},
+ {id:100418,first:"Katherine",last:"Morrison",alias:"",dob:"1985-07-22",ssn4:"3145",gender:"Woman",hh:3,st:"TH",upd:"2026-07-02",trap:"B"},
+ {id:100517,first:"Andre",last:"Whitfield",alias:"",dob:"1990-12-05",ssn4:"6690",gender:"Man",hh:1,st:"SO",upd:"2026-05-19",trap:"C"},
+ {id:100662,first:"James",last:"Wilson",alias:"",dob:"1968-09-02",ssn4:"4471",gender:"Man",hh:2,st:"PH",upd:"2026-06-11",trap:"D"},
+ {id:100663,first:"James",last:"Wilson",alias:"Jim",dob:"1991-04-17",ssn4:"9038",gender:"Man",hh:1,st:"ES",upd:"2026-07-08",trap:"D"},
+ {id:100701,first:"Shauna",last:"Beckett",alias:"",dob:"1993-04-30",ssn4:"2210",gender:"Woman",hh:1,st:"ES",upd:"2025-11-14",trap:"E",dup:100702},
+ {id:100702,first:"Shawna",last:"Beckett",alias:"",dob:"1993-04-30",ssn4:"2210",gender:"Woman",hh:1,st:"ES",upd:"2026-07-01",trap:"E",dup:100701},
+ {id:100845,first:"Maria",last:"de la Cruz",alias:"",dob:"1974-01-28",ssn4:"5527",gender:"Woman",hh:4,st:"PH",upd:"2026-04-22",trap:"F"},
+ {id:100910,first:"Robert",last:"Nakashima",alias:"Bobby",dob:"1982-11-09",ssn4:"7713",gender:"Man",hh:1,st:"TH",upd:"2026-06-25",trap:"G"},
+
+ {id:101002,first:"Denise",last:"Okonkwo",alias:"",dob:"1988-02-14",ssn4:"1190",gender:"Woman",hh:2,st:"PH",upd:"2026-07-05"},
+ {id:101044,first:"Tyrell",last:"Banks",alias:"Ty",dob:"1996-08-03",ssn4:"3378",gender:"Man",hh:1,st:"ES",upd:"2026-06-18"},
+ {id:101077,first:"Priya",last:"Raghavan",alias:"",dob:"1991-05-27",ssn4:"8845",gender:"Woman",hh:3,st:"TH",upd:"2026-05-30"},
+ {id:101126,first:"Gregory",last:"Halvorsen",alias:"Greg",dob:"1961-10-12",ssn4:"2064",gender:"Man",hh:1,st:"SO",upd:"2026-03-09"},
+ {id:101158,first:"Alicia",last:"Fontaine",alias:"",dob:"1979-06-06",ssn4:"5501",gender:"Woman",hh:2,st:"ES",upd:"2026-07-10"},
+ {id:101203,first:"Marcus",last:"Delgado",alias:"",dob:"1985-01-19",ssn4:"9927",gender:"Man",hh:1,st:"PH",upd:"2026-02-27"},
+ {id:101247,first:"Yvonne",last:"Chukwu",alias:"Bonnie",dob:"1970-09-25",ssn4:"4416",gender:"Woman",hh:5,st:"TH",upd:"2026-06-02"},
+ {id:101288,first:"Nathaniel",last:"Bergstrom",alias:"Nate",dob:"1994-03-31",ssn4:"7702",gender:"Man",hh:1,st:"ES",upd:"2026-07-12"},
+ {id:101315,first:"Camille",last:"Boudreaux",alias:"",dob:"1966-12-08",ssn4:"3390",gender:"Woman",hh:1,st:"PH",upd:"2026-01-15"},
+ {id:101360,first:"Devon",last:"Ashworth",alias:"",dob:"1989-07-04",ssn4:"6628",gender:"Non-binary",hh:1,st:"SO",upd:"2026-06-21"},
+ {id:101402,first:"Rosalind",last:"Vega",alias:"Roz",dob:"1983-04-11",ssn4:"1173",gender:"Woman",hh:3,st:"TH",upd:"2026-05-08"},
+ {id:101455,first:"Hector",last:"Marquez",alias:"",dob:"1977-02-23",ssn4:"8890",gender:"Man",hh:2,st:"ES",upd:"2026-07-09"},
+ {id:101489,first:"Simone",last:"Whitaker",alias:"",dob:"1992-10-30",ssn4:"2245",gender:"Woman",hh:1,st:"PH",upd:"2026-04-03"},
+ {id:101512,first:"Omar",last:"Haddad",alias:"",dob:"1986-06-17",ssn4:"5563",gender:"Man",hh:4,st:"TH",upd:"2026-06-14"},
+ {id:101547,first:"Beatrice",last:"Lindqvist",alias:"Bea",dob:"1959-08-21",ssn4:"9901",gender:"Woman",hh:1,st:"PH",upd:"2025-12-19"},
+ {id:101583,first:"Curtis",last:"Abernathy",alias:"",dob:"1998-01-07",ssn4:"3316",gender:"Man",hh:1,st:"ES",upd:"2026-07-11"},
+ {id:101620,first:"Naomi",last:"Sandoval",alias:"",dob:"1981-11-26",ssn4:"7748",gender:"Woman",hh:2,st:"SO",upd:"2026-05-23"},
+ {id:101664,first:"Terrence",last:"Okafor",alias:"Terry",dob:"1973-05-15",ssn4:"1128",gender:"Man",hh:1,st:"TH",upd:"2026-03-28"},
+ {id:101699,first:"Lorraine",last:"Petrosyan",alias:"",dob:"1964-09-09",ssn4:"6675",gender:"Woman",hh:1,st:"PH",upd:"2026-02-06"},
+ {id:101730,first:"Jamal",last:"Underwood",alias:"",dob:"1990-12-05",ssn4:"4402",gender:"Man",hh:1,st:"ES",upd:"2026-07-07"},
+ {id:101778,first:"Evelyn",last:"Castellanos",alias:"Evie",dob:"1987-03-02",ssn4:"8834",gender:"Woman",hh:3,st:"TH",upd:"2026-06-27"},
+ {id:101801,first:"Dwayne",last:"Fitzgerald",alias:"",dob:"1975-07-19",ssn4:"2257",gender:"Man",hh:1,st:"SO",upd:"2026-04-30"},
+ {id:101836,first:"Aisha",last:"Bennani",alias:"",dob:"1995-02-11",ssn4:"5590",gender:"Woman",hh:2,st:"ES",upd:"2026-07-03"},
+ {id:101872,first:"Vincent",last:"Kowalczyk",alias:"Vinny",dob:"1969-10-24",ssn4:"9963",gender:"Man",hh:1,st:"PH",upd:"2026-01-31"},
+ {id:101915,first:"Selena",last:"Moreau",alias:"",dob:"1984-08-16",ssn4:"3341",gender:"Woman",hh:1,st:"TH",upd:"2026-06-09"},
+ {id:101948,first:"Isaiah",last:"Thornbury",alias:"Zay",dob:"1997-04-28",ssn4:"7729",gender:"Man",hh:1,st:"ES",upd:"2026-07-06"},
+ {id:101983,first:"Gwendolyn",last:"Achebe",alias:"Gwen",dob:"1972-06-13",ssn4:"1104",gender:"Woman",hh:4,st:"PH",upd:"2026-05-02"},
+ {id:102016,first:"Rafael",last:"Ocampo",alias:"",dob:"1980-01-05",ssn4:"6651",gender:"Man",hh:2,st:"TH",upd:"2026-03-17"},
+ {id:102050,first:"Tamara",last:"Blackwell",alias:"Tammy",dob:"1993-09-20",ssn4:"4428",gender:"Woman",hh:1,st:"SO",upd:"2026-06-16"},
+ {id:102087,first:"Julian",last:"Mbeki",alias:"",dob:"1966-11-01",ssn4:"8816",gender:"Man",hh:1,st:"ES",upd:"2026-07-04"}
+];
+
+/* ============================================================
+   3. Search engine — mirrors documented Clarity behaviour
+   ============================================================ */
+function pad(n){ return (n<10?"0":"")+n; }
+function fmtDob(iso){ var p=iso.split("-"); return p[1]+"/"+p[2]+"/"+p[0]; }
+function ageOf(iso){
+  var b=new Date(iso+"T00:00:00"), n=new Date("2026-07-24T00:00:00");
+  var a=n.getFullYear()-b.getFullYear(), m=n.getMonth()-b.getMonth();
+  if(m<0||(m===0&&n.getDate()<b.getDate())) a--;
+  return a;
+}
+/* Accepts 12/12/1985, 12.12.1985, 12-12-1985, and 1-digit month/day */
+function parseDate(s){
+  var m=String(s).trim().match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+  if(!m) return null;
+  var mo=+m[1], d=+m[2], y=+m[3];
+  if(mo<1||mo>12||d<1||d>31) return null;
+  return y+"-"+pad(mo)+"-"+pad(d);
+}
+function nameTokens(c){
+  var t=[c.first,c.last].concat(c.last.split(/\s+/));
+  if(c.alias) t.push(c.alias);
+  return t.map(function(x){ return x.toLowerCase(); });
+}
+/* Returns {rows, error} */
+function runSearch(q,filters){
+  filters=filters||{};
+  var f=CLIENTS.slice(), used=false;
+  if(filters.id){ used=true; f=f.filter(function(c){ return String(c.id)===String(filters.id).trim(); }); }
+  if(filters.ssn4){ used=true; f=f.filter(function(c){ return c.ssn4===String(filters.ssn4).trim(); }); }
+  if(filters.dob){
+    used=true;
+    var iso=parseDate(filters.dob);
+    if(!iso) return {rows:[],error:"Enter the date of birth as MM/DD/YYYY, MM.DD.YYYY, or MM-DD-YYYY."};
+    f=f.filter(function(c){ return c.dob===iso; });
+  }
+  q=(q||"").trim();
+  if(q){
+    used=true;
+    if(/^\d{4}$/.test(q)){                                   // year of birth
+      f=f.filter(function(c){ return c.dob.slice(0,4)===q; });
+    } else if(/^\d{6}$/.test(q)){                            // client id
+      f=f.filter(function(c){ return String(c.id)===q; });
+    } else {
+      var iso=parseDate(q);
+      if(iso){ f=f.filter(function(c){ return c.dob===iso; }); }
+      else{
+        if(/[\/.\-]/.test(q)&&/\d/.test(q))
+          return {rows:[],error:"That looks like a date but isn't a valid one. Try MM/DD/YYYY, MM.DD.YYYY, or MM-DD-YYYY."};
+        if(q.length<3)
+          return {rows:[],error:"Enter a full name or at least the first 3 letters."};
+        var lq=q.toLowerCase(), parts=lq.split(/\s+/).filter(Boolean);
+        f=f.filter(function(c){
+          var toks=nameTokens(c);
+          return parts.every(function(p){
+            return toks.some(function(t){ return t.indexOf(p)===0; });
+          });
+        });
+      }
+    }
+  }
+  if(!used) return {rows:[],error:null,idle:true};
+  f.sort(function(a,b){ return a.last.localeCompare(b.last)||a.first.localeCompare(b.first); });
+  return {rows:f,error:null};
+}
+
+/* ============================================================
+   4. Columns — toggle + drag reorder, persisted per browser
+   ============================================================ */
+var ALL_COLS=[
+  {key:"client",label:"Client (Name and Unique Identifier)",locked:true},
+  {key:"dob",label:"Date of Birth",on:true},
+  {key:"age",label:"Age",on:false},
+  {key:"ssn4",label:"Last 4 SSN",on:true},
+  {key:"hh",label:"Household Members",on:true},
+  {key:"st",label:"Housing Status",on:true},
+  {key:"gender",label:"Gender",on:false},
+  {key:"alias",label:"Alias",on:false},
+  {key:"upd",label:"Last Updated",on:false}
+];
+var COLKEY="claritySim.columns.v1";
+function defaultCols(){ return ALL_COLS.map(function(c){ return {key:c.key,on:c.locked||!!c.on}; }); }
+function loadCols(){
+  try{
+    var raw=localStorage.getItem(COLKEY); if(!raw) return defaultCols();
+    var saved=JSON.parse(raw), known={}; ALL_COLS.forEach(function(c){ known[c.key]=1; });
+    var out=saved.filter(function(c){ return known[c.key]; });
+    ALL_COLS.forEach(function(c){ if(!out.some(function(o){ return o.key===c.key; })) out.push({key:c.key,on:!!c.on}); });
+    if(out[0].key!=="client"){ out=out.filter(function(c){ return c.key!=="client"; }); out.unshift({key:"client",on:true}); }
+    return out;
+  }catch(e){ return defaultCols(); }
+}
+function saveCols(){ try{ localStorage.setItem(COLKEY,JSON.stringify(App.cols)); }catch(e){} }
+function colMeta(k){ for(var i=0;i<ALL_COLS.length;i++) if(ALL_COLS[i].key===k) return ALL_COLS[i]; return null; }
+
+/* ============================================================
+   5. Scenarios
+   ============================================================ */
+var SCENARIOS=[
+{ id:"nickname", title:"The nickname problem",
+  brief:'A man at the front desk says: <span class="quote">"I\'m Mike Torres, I stayed here last winter."</span> You search <code>Mike</code> and get nothing back.',
+  ask:"Find his existing record and open it.",
+  hint:"Records are usually stored under a legal name, not a nickname. Try the last name instead — or just the first three letters of it.",
+  expect:{type:"open",id:100234},
+  teach:"His record is filed as <b>Michael</b> Torres, and no alias was ever recorded on it. A nickname search returning zero results is the single most common way duplicates get created — the user assumes the client is new and adds them again. Some records do carry an alias, most don't, so never treat an empty result as proof. Search the surname before you conclude someone is not in the system."
+},
+{ id:"year", title:"Year of birth only",
+  brief:'A woman says everyone calls her <span class="quote">"Kate."</span> She thinks her record may be under a former married name — she isn\'t sure which — but she knows she was born in <b>1985</b>.',
+  ask:"Find and open her record.",
+  hint:"When the surname is unreliable, search what you do know: a bare four-digit year is a valid search on its own. Try 1985 and read the short result list.",
+  expect:{type:"open",id:100418},
+  teach:"She is stored as <b>Katherine Morrison</b>, 07/22/1985. When a surname may have changed — marriage, divorce, or an inconsistent entry between agencies — year of birth is often the only stable handle you have. It narrows a large roster to a list short enough to scan by eye."
+},
+{ id:"format", title:"Date formats",
+  brief:'An intake form arrives with the date of birth handwritten as <code>12.05.1990</code> — with dots.',
+  ask:"Search that date as written and open the matching client named Whitfield.",
+  hint:"Dots, slashes, and dashes are all accepted. Note that two different people share this date of birth.",
+  expect:{type:"open",id:100517},
+  teach:"Slashes, dots, and dashes all work. Notice the search returned <b>two</b> people born 12/05/1990 — a shared birthday is not a match. Always confirm the name too."
+},
+{ id:"samename", title:"Same name, different people",
+  brief:'A client says he is <span class="quote">"James Wilson."</span> He confirms his date of birth is 09/02/1968 and the last four of his SSN are 4471.',
+  ask:"Open the correct James Wilson.",
+  hint:"Two James Wilsons exist. Use the filter panel — last 4 of SSN, or the date of birth — to tell them apart.",
+  expect:{type:"open",id:100662},
+  wrong:{100663:"That's the other James Wilson — born 1991, SSN ending 9038. Two records with the same name are not automatically duplicates."},
+  teach:"Two distinct people genuinely share this name. Merging them would be a serious data-integrity error. Identity must be confirmed on a second identifier — date of birth or SSN — never on name alone."
+},
+{ id:"duplicate", title:"A real duplicate",
+  brief:'You search <code>Beckett</code> and find two records: <b>Shauna Beckett</b> and <b>Shawna Beckett</b>. Both show the same date of birth (04/30/1993) and the same last four of SSN (2210).',
+  ask:"Open either record and flag it as a possible duplicate.",
+  hint:"Open one of the two Beckett records, then use 'Flag possible duplicate' at the bottom of the profile.",
+  expect:{type:"flag",ids:[100701,100702]},
+  teach:"Same date of birth plus same SSN fragment plus a one-letter name difference is a textbook duplicate. End users do <b>not</b> merge or delete records — you escalate to your HMIS administrator or help desk, who resolves it centrally."
+},
+{ id:"token", title:"Multi-word surnames",
+  brief:'A caseworker asks you to pull up <span class="quote">"Maria Cruz."</span> Searching <code>Cruz</code> as a last name feels obvious.',
+  ask:"Find and open her record.",
+  hint:"Her surname has several parts. Searching any word within it will reach her — try 'Cruz' or 'de la'.",
+  expect:{type:"open",id:100845},
+  teach:"She is filed as <b>Maria de la Cruz</b>. Compound and hyphenated surnames get entered inconsistently across agencies, so search on the distinctive fragment rather than the whole string."
+},
+{ id:"newclient", title:"Genuinely new",
+  brief:'A man named <span class="quote">Desmond Ellery</span>, born 06/18/1988, has never received services in this CoC before.',
+  ask:"Satisfy yourself that he has no record, then add him.",
+  hint:"Run at least two different searches — his surname, then his date of birth or year — before clicking Add Client.",
+  expect:{type:"add",minSearches:2},
+  teach:"Searching first is the gate, not a formality. Once you have genuinely checked name, date of birth, and year, adding the client is the correct action — and the Release of Information has to be recorded before the record will save."
+}];
+
+/* ============================================================
+   6. App state + rendering
+   ============================================================ */
+var App={
+  mode:"guided", cols:loadCols(), rows:[], idle:true, err:null,
+  recent:[], idx:0, results:[], attempts:0, hinted:false, searches:[], added:false,
+  percent:function(){
+    var max=SCENARIOS.length*10, got=0;
+    this.results.forEach(function(r){ got+=r.points; });
+    return Math.round(got/max*100);
+  }
+};
+var $=function(s){ return document.querySelector(s); };
+var $$=function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+function renderTable(){
+  var on=App.cols.filter(function(c){ return c.on; });
+  $("#theadRow").innerHTML=on.map(function(c){
+    var m=colMeta(c.key);
+    return "<th scope=\"col\">"+esc(m.key==="client"?"Client":m.label)+"</th>";
+  }).join("");
+
+  var empty=$("#emptyState"), tb=$("#tbody");
+  if(App.err){
+    tb.innerHTML=""; empty.hidden=false;
+    empty.innerHTML="<strong>Check your search</strong>"+esc(App.err);
+    $("#resultCount").textContent="";
+    return;
+  }
+  if(App.idle){
+    tb.innerHTML=""; empty.hidden=false;
+    empty.innerHTML="<strong>Start with a search</strong>Search before you add anyone. Creating a second record for the same person breaks your CoC's unduplicated count.";
+    $("#resultCount").textContent="";
+    return;
+  }
+  if(!App.rows.length){
+    tb.innerHTML=""; empty.hidden=false;
+    empty.innerHTML="<strong>No clients found</strong>Before you conclude this person is new, try a shorter fragment of the name, the surname instead of the first name, or the year of birth alone.";
+    $("#resultCount").textContent="0 results";
+    return;
+  }
+  empty.hidden=true;
+  $("#resultCount").textContent=App.rows.length+(App.rows.length===1?" result":" results");
+  tb.innerHTML=App.rows.map(function(c){
+    return "<tr tabindex=\"0\" data-id=\""+c.id+"\">"+on.map(function(col){
+      return "<td>"+cellHtml(c,col.key)+"</td>";
+    }).join("")+"</tr>";
+  }).join("");
+}
+function cellHtml(c,k){
+  switch(k){
+    case "client": return "<div class=\"cname\">"+esc(c.first+" "+c.last)+"</div><div class=\"cid\">ID "+c.id+"</div>";
+    case "dob": return fmtDob(c.dob);
+    case "age": return ageOf(c.dob);
+    case "ssn4": return "<span style=\"font-variant-numeric:tabular-nums\">xxx-xx-"+esc(c.ssn4)+"</span>";
+    case "hh": return "<span class=\"hh\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z\"/></svg>"+c.hh+"</span>";
+    case "st": var h=HOUSING[c.st]; return "<span class=\"pill\"><i class=\"dot\" style=\"background:"+h[1]+"\"></i>"+esc(h[0])+"</span>";
+    case "gender": return esc(c.gender);
+    case "alias": return c.alias?esc(c.alias):"<span style=\"color:#a9bcc6\">—</span>";
+    case "upd": return fmtDob(c.upd);
+  }
+  return "";
+}
+function renderCols(){
+  $("#colList").innerHTML=App.cols.map(function(c,i){
+    var m=colMeta(c.key), lock=m.locked;
+    return "<li class=\""+(lock?"locked":"")+"\" draggable=\""+(lock?"false":"true")+"\" data-i=\""+i+"\">"+
+      "<span class=\"grip\" aria-hidden=\"true\">⠿</span>"+
+      "<input type=\"checkbox\" id=\"col_"+c.key+"\" "+(c.on?"checked":"")+" "+(lock?"disabled":"")+">"+
+      "<label for=\"col_"+c.key+"\" style=\"flex:1;cursor:inherit\">"+esc(m.label)+"</label></li>";
+  }).join("");
+}
+function renderRecent(){
+  var el=$("#recentList");
+  if(!App.recent.length){ el.innerHTML="<li style=\"color:var(--muted);font-size:13px;padding:6px 0\">No clients opened yet.</li>"; return; }
+  el.innerHTML=App.recent.map(function(id){
+    var c=byId(id);
+    return "<li><button type=\"button\" data-recent=\""+c.id+"\"><span><span class=\"cname\">"+esc(c.first+" "+c.last)+
+      "</span><br><span class=\"cid\">ID "+c.id+"</span></span><span class=\"cid\">"+fmtDob(c.dob)+"</span></button></li>";
+  }).join("");
+}
+function byId(id){ for(var i=0;i<CLIENTS.length;i++) if(CLIENTS[i].id===+id) return CLIENTS[i]; return null; }
+
+/* ---------- guided panel ---------- */
+function scen(){ return SCENARIOS[App.idx]; }
+function renderCoach(){
+  $("#guidedPane").hidden=(App.mode!=="guided");
+  $("#sandboxPane").hidden=(App.mode==="guided");
+  $("#scenListCard").hidden=(App.mode!=="guided");
+  if(App.mode!=="guided") return;
+
+  var s=scen(), done=App.idx>=SCENARIOS.length;
+  $("#progFill").style.width=(App.results.length/SCENARIOS.length*100)+"%";
+  $("#progLabel").textContent=done?"All tasks complete":("Task "+(App.idx+1)+" of "+SCENARIOS.length);
+  $("#scoreLabel").textContent="Score "+App.percent()+"%";
+  $("#taskBox").innerHTML=done
+    ? "<p><b>Finished.</b> Reopen the summary or switch to Sandbox to keep exploring.</p>"
+    : "<p><b>"+esc(s.title)+"</b></p><p>"+s.brief+"</p><p><b>Your task:</b> "+esc(s.ask)+"</p>";
+
+  $("#scenList").innerHTML=SCENARIOS.map(function(x,i){
+    var r=App.results.filter(function(y){ return y.id===x.id; })[0];
+    var cls=r?"done":(i===App.idx?"current":"");
+    var mark=r?(r.points===10?"✔":(r.points>0?"◑":"✖")):"○";
+    return "<li class=\""+cls+"\"><span>"+mark+"</span><span>"+esc(x.title)+"</span></li>";
+  }).join("");
+
+  $("#hintBtn").hidden=done; $("#skipBtn").hidden=done;
+}
+function feedback(kind,title,body){
+  $("#feedback").innerHTML="<div class=\"fb "+kind+"\"><strong>"+esc(title)+"</strong>"+body+"</div>";
+}
+function completeScenario(points,title,body){
+  var s=scen();
+  App.results.push({id:s.id,points:points});
+  feedback(points>0?"ok":"bad",title,body+"<p style=\"margin:8px 0 0\">"+s.teach+"</p>");
+  $("#nextBtn").hidden=false;
+  $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+  SCORM.set("cmi.core.score.raw",App.percent()); SCORM.commit();
+  renderCoach();
+}
+function nextScenario(){
+  App.idx++; App.attempts=0; App.hinted=false; App.searches=[];
+  $("#feedback").innerHTML=""; $("#nextBtn").hidden=true;
+  if(App.idx>=SCENARIOS.length){ finish(); }
+  renderCoach();
+}
+function finish(){
+  var p=App.percent(), passed=p>=80;
+  var perfect=App.results.filter(function(r){ return r.points===10; }).length;
+  $("#doneBody").innerHTML=
+    "<p style=\"font-size:17px;margin-top:0\"><b>"+p+"%</b> — "+(passed?"passed":"not yet passing")+" (80% required)</p>"+
+    "<p>"+perfect+" of "+SCENARIOS.length+" tasks completed on the first attempt.</p>"+
+    "<div class=\"fb info\" style=\"margin-top:14px\"><strong>The habit that matters</strong>"+
+    "Every task here failed the same way if rushed: concluding a client is new when the record was filed under a different spelling, a legal name, or an unexpected date. "+
+    "Search the surname fragment, search the year of birth, and check a second identifier before you ever click Add Client.</div>";
+  $("#doneModal").hidden=false;
+  SCORM.finish(p,passed);
+}
+
+/* ---------- scenario evaluation ---------- */
+function evaluate(action,payload){
+  if(App.mode!=="guided"||App.idx>=SCENARIOS.length) return false;
+  var s=scen(), e=s.expect;
+  if(action==="search"){ App.searches.push(payload); return false; }
+
+  if(e.type==="open"&&action==="open"){
+    if(+payload===e.id){
+      completeScenario(App.attempts===0&&!App.hinted?10:5,"Correct","You opened the right record.");
+      return true;
+    }
+    App.attempts++;
+    var msg=(s.wrong&&s.wrong[payload])||"That isn't the client described in the task. Close the profile and refine your search.";
+    feedback("bad","Not this client",msg);
+    return true;
+  }
+  if(e.type==="flag"&&action==="flag"){
+    if(e.ids.indexOf(+payload)>-1){
+      completeScenario(App.attempts===0&&!App.hinted?10:5,"Correct","Flagged for the HMIS administrator.");
+      return true;
+    }
+    App.attempts++;
+    feedback("bad","Wrong record","That client isn't part of the duplicate pair described in the task.");
+    return true;
+  }
+  if(e.type==="add"){
+    if(action==="add-attempt"){
+      var distinct={}; App.searches.forEach(function(q){ if(q) distinct[q.toLowerCase()]=1; });
+      if(Object.keys(distinct).length<(e.minSearches||2)){
+        App.attempts++;
+        feedback("bad","Search first",
+          "You've run "+Object.keys(distinct).length+" search(es). Check the surname <i>and</i> the date or year of birth before creating a record — that is exactly the step that prevents duplicates.");
+        return true;
+      }
+      return false;
+    }
+    if(action==="add-saved"){
+      completeScenario(App.attempts===0&&!App.hinted?10:5,"Correct","Record created after a genuine duplicate check.");
+      return true;
+    }
+  }
+  /* adding a client while the task wants an existing record found */
+  if(action==="add-attempt"&&(e.type==="open"||e.type==="flag")){
+    App.attempts++;
+    feedback("bad","Stop — that would create a duplicate",
+      "The person in this task already has a record. Adding them again would double-count them in your CoC's HUD reporting. Close this and search differently.");
+    return true;
+  }
+  return false;
+}
+
+/* ============================================================
+   7. Wiring
+   ============================================================ */
+function doSearch(){
+  var q=$("#q").value;
+  var filters={ id:$("#fId").value, ssn4:$("#fSsn").value, dob:$("#fDob").value };
+  var r=runSearch(q,filters);
+  App.rows=r.rows; App.err=r.error||null; App.idle=!!r.idle;
+  renderTable();
+  if(!App.idle) evaluate("search",q||filters.id||filters.ssn4||filters.dob);
+}
+$("#searchForm").addEventListener("submit",function(e){ e.preventDefault(); doSearch(); });
+$("#q").addEventListener("input",function(){ $("#clearBtn").hidden=!this.value; });
+$("#clearBtn").addEventListener("click",function(){ $("#q").value=""; this.hidden=true; $("#q").focus(); });
+$("#filterBtn").addEventListener("click",function(){
+  var open=$("#filters").hidden;
+  $("#filters").hidden=!open; this.setAttribute("aria-pressed",String(open));
+});
+$("#applyFilters").addEventListener("click",doSearch);
+$("#clearFilters").addEventListener("click",function(){
+  $("#fId").value=""; $("#fSsn").value=""; $("#fDob").value=""; doSearch();
+});
+["fId","fSsn","fDob"].forEach(function(id){
+  $("#"+id).addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); doSearch(); } });
+});
+
+/* columns */
+$("#colBtn").addEventListener("click",function(){
+  var open=$("#colPanel").hidden;
+  $("#colPanel").hidden=!open; this.setAttribute("aria-expanded",String(open));
+});
+document.addEventListener("click",function(e){
+  if(!e.target.closest(".colmenu")){ $("#colPanel").hidden=true; $("#colBtn").setAttribute("aria-expanded","false"); }
+});
+$("#colList").addEventListener("change",function(e){
+  if(e.target.type!=="checkbox") return;
+  var key=e.target.id.replace("col_","");
+  App.cols.forEach(function(c){ if(c.key===key) c.on=e.target.checked; });
+  saveCols(); renderTable();
+});
+var dragI=null;
+$("#colList").addEventListener("dragstart",function(e){
+  var li=e.target.closest("li"); if(!li||li.classList.contains("locked")) return;
+  dragI=+li.dataset.i; e.dataTransfer.effectAllowed="move";
+  try{ e.dataTransfer.setData("text/plain",String(dragI)); }catch(err){}
+});
+$("#colList").addEventListener("dragover",function(e){
+  var li=e.target.closest("li"); if(!li||li.classList.contains("locked")) return;
+  e.preventDefault(); li.classList.add("dragover");
+});
+$("#colList").addEventListener("dragleave",function(e){
+  var li=e.target.closest("li"); if(li) li.classList.remove("dragover");
+});
+$("#colList").addEventListener("drop",function(e){
+  var li=e.target.closest("li"); if(!li||dragI===null||li.classList.contains("locked")) return;
+  e.preventDefault(); li.classList.remove("dragover");
+  var to=+li.dataset.i, moved=App.cols.splice(dragI,1)[0];
+  App.cols.splice(to,0,moved); dragI=null;
+  saveCols(); renderCols(); renderTable();
+});
+
+/* open client */
+function openClient(id){
+  var c=byId(id); if(!c) return;
+  App.recent=[c.id].concat(App.recent.filter(function(x){ return x!==c.id; })).slice(0,5);
+  renderRecent();
+  var roiOk=(c.id%3!==0);
+  $("#cmTitle").textContent=c.first+" "+c.last;
+  $("#cmBody").innerHTML=
+    "<div class=\""+(roiOk?"roi":"roi no")+"\" style=\"margin-bottom:16px\">"+
+      (roiOk?"Release of Information on file — data sharing permitted":"No active Release of Information — sharing restricted")+"</div>"+
+    "<dl class=\"kv\">"+
+      "<dt>Unique Identifier</dt><dd>"+c.id+"</dd>"+
+      "<dt>Name</dt><dd>"+esc(c.first+" "+c.last)+"</dd>"+
+      "<dt>Alias</dt><dd>"+(c.alias?esc(c.alias):"—")+"</dd>"+
+      "<dt>Date of Birth</dt><dd>"+fmtDob(c.dob)+" (age "+ageOf(c.dob)+")</dd>"+
+      "<dt>Last 4 SSN</dt><dd>xxx-xx-"+esc(c.ssn4)+"</dd>"+
+      "<dt>Gender</dt><dd>"+esc(c.gender)+"</dd>"+
+      "<dt>Household Members</dt><dd>"+c.hh+"</dd>"+
+      "<dt>Housing Status</dt><dd>"+esc(HOUSING[c.st][0])+"</dd>"+
+      "<dt>Last Updated</dt><dd>"+fmtDob(c.upd)+"</dd>"+
+    "</dl>"+
+    "<p class=\"hint\" style=\"margin-top:16px\">In the live system this profile carries tabs for enrollments, services, assessments, notes, and files. This sandbox covers search only.</p>";
+  $("#flagDupBtn").dataset.id=c.id;
+  $("#clientModal").hidden=false;
+  evaluate("open",c.id);
+}
+$("#tbody").addEventListener("click",function(e){
+  var tr=e.target.closest("tr"); if(tr) openClient(tr.dataset.id);
+});
+$("#tbody").addEventListener("keydown",function(e){
+  if(e.key!=="Enter"&&e.key!==" ") return;
+  var tr=e.target.closest("tr"); if(tr){ e.preventDefault(); openClient(tr.dataset.id); }
+});
+$("#recentList").addEventListener("click",function(e){
+  var b=e.target.closest("[data-recent]"); if(b) openClient(b.dataset.recent);
+});
+$("#flagDupBtn").addEventListener("click",function(){
+  var id=+this.dataset.id, c=byId(id);
+  $("#clientModal").hidden=true;
+  var handled=evaluate("flag",id);
+  if(!handled){
+    feedback("info","Flag submitted",
+      "Record "+id+" ("+esc(c.first+" "+c.last)+") was flagged for your HMIS administrator. End users never merge or delete records themselves.");
+  }
+});
+
+/* add client */
+$("#addClientBtn").addEventListener("click",function(){
+  if(evaluate("add-attempt")) return;
+  var near=App.rows.slice(0,4);
+  $("#dupBody").innerHTML=
+    "<div class=\"warnbox\"><h3>Duplicate check</h3>"+
+    "A new record is permanent and counts toward your CoC's unduplicated total. Confirm you have searched by surname fragment, by date of birth, and by year of birth.</div>"+
+    (near.length
+      ? "<p style=\"margin:0\"><b>Your current results still show "+near.length+" possible match"+(near.length>1?"es":"")+":</b></p><ul class=\"matchlist\">"+
+        near.map(function(c){ return "<li><span><b>"+esc(c.first+" "+c.last)+"</b> · ID "+c.id+"</span><span class=\"cid\">"+fmtDob(c.dob)+" · xxx-xx-"+esc(c.ssn4)+"</span></li>"; }).join("")+"</ul>"
+      : "<p style=\"margin:0\">Your last search returned no matches.</p>");
+  $("#dupModal").hidden=false;
+});
+$("#proceedAdd").addEventListener("click",function(){
+  $("#dupModal").hidden=true; $("#addErr").innerHTML=""; $("#addModal").hidden=false;
+});
+$("#saveClient").addEventListener("click",function(){
+  var f=$("#aFirst").value.trim(), l=$("#aLast").value.trim(), d=$("#aDob").value.trim(), roi=$("#aRoi").value;
+  var errs=[];
+  if(!f) errs.push("First name is required.");
+  if(!l) errs.push("Last name is required.");
+  if(!d) errs.push("Date of birth is required.");
+  else if(!parseDate(d)) errs.push("Date of birth must be MM/DD/YYYY, MM.DD.YYYY, or MM-DD-YYYY.");
+  if(!roi) errs.push("A Release of Information response is required before the record can save.");
+  if(errs.length){
+    $("#addErr").innerHTML="<div class=\"fb bad\"><strong>Cannot save</strong>"+errs.map(esc).join("<br>")+"</div>";
+    return;
+  }
+  var id=102100+Math.floor(CLIENTS.length);
+  CLIENTS.push({id:id,first:f,last:l,alias:"",dob:parseDate(d),ssn4:($("#aSsn").value.trim()||"0000"),
+    gender:"Unknown",hh:1,st:"UN",upd:"2026-07-24"});
+  $("#addModal").hidden=true;
+  ["aFirst","aLast","aDob","aSsn"].forEach(function(x){ $("#"+x).value=""; }); $("#aRoi").value="";
+  App.added=true;
+  var handled=evaluate("add-saved");
+  if(!handled) feedback("info","Client created","New record ID "+id+" added to the sandbox roster. You can now search for it.");
+  doSearch();
+});
+
+/* modal plumbing */
+$$("[data-close]").forEach(function(b){
+  b.addEventListener("click",function(){ this.closest(".backdrop").hidden=true; });
+});
+$$(".backdrop").forEach(function(bd){
+  bd.addEventListener("mousedown",function(e){ if(e.target===bd) bd.hidden=true; });
+});
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape") $$(".backdrop").forEach(function(b){ b.hidden=true; });
+});
+
+/* coach controls */
+$("#modeGuided").addEventListener("click",function(){ App.mode="guided"; syncMode(); });
+$("#modeSandbox").addEventListener("click",function(){ App.mode="sandbox"; syncMode(); });
+function syncMode(){
+  $("#modeGuided").setAttribute("aria-pressed",String(App.mode==="guided"));
+  $("#modeSandbox").setAttribute("aria-pressed",String(App.mode==="sandbox"));
+  renderCoach();
+}
+$("#hintBtn").addEventListener("click",function(){
+  App.hinted=true; feedback("info","Hint",scen().hint);
+});
+$("#skipBtn").addEventListener("click",function(){
+  completeScenario(0,"Task skipped","No points awarded for this task.");
+});
+$("#nextBtn").addEventListener("click",nextScenario);
+$("#restartBtn").addEventListener("click",function(){
+  App.idx=0; App.results=[]; App.attempts=0; App.hinted=false; App.searches=[];
+  $("#feedback").innerHTML=""; $("#nextBtn").hidden=true; $("#doneModal").hidden=true;
+  $("#q").value=""; $("#fId").value=""; $("#fSsn").value=""; $("#fDob").value="";
+  App.idle=true; App.rows=[]; renderTable(); renderCoach();
+});
+$$(".tab[data-locked]").forEach(function(t){
+  t.addEventListener("click",function(){
+    feedback("info","Not in this sandbox","This simulation covers Client Search only. "+this.textContent.trim()+" is disabled.");
+  });
+});
+
+/* boot */
+renderCols(); renderTable(); renderRecent(); renderCoach();
+</script>
+</body>
+</html>
