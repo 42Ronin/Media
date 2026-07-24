@@ -111,8 +111,18 @@ ok('exactly two Becketts', uniq.beckett.length === 2);
 ok('exactly three Delgados', uniq.delgado.length === 3);
 ok('exactly two Nakashimas', uniq.naka.length === 2);
 ok('exactly one Cruz', uniq.cruz.length === 1);
-ok('every SSN is in the never-issued 900-999 range',
-   await p.evaluate(() => CLIENTS.every(c => !c.s || /^9\d\d-\d\d-\d{4}$/.test(c.s))));
+ok('every SSN area is either 9xx or a placeholder — none can be real',
+   await p.evaluate(() => CLIENTS.every(c => {
+     if (!c.s) return true;
+     const a = c.s.split('-')[0];
+     return /^9\d\d$/.test(a) || a === 'XXX' || a === '000';
+   })));
+ok('partial SSNs exist, X- and 0-filled',
+   await p.evaluate(() => {
+     const s = CLIENTS.filter(c => c.s).map(c => c.s);
+     return s.some(x => x.includes('XXX') || x.includes('XX')) &&
+            s.some(x => /(^000|-00-|0000$)/.test(x));
+   }));
 ok('roster is 300 clients', await p.evaluate(() => CLIENTS.length) === 300);
 ok('SSN data-quality codes present (refused records exist)',
    await p.evaluate(() => CLIENTS.filter(c => c.q === 'refused').length) > 5);
@@ -143,6 +153,31 @@ const nk = await p.evaluate(() => {
   return [...document.querySelectorAll('#tb tr[data-row]')].map(r => r.children[col].textContent.trim());
 });
 ok('one Nakashima shows (No value) for SSN', nk.some(t => t.includes('No value')), JSON.stringify(nk));
+
+console.log('\n— partial SSNs (X / 0 filled) —');
+const pssn = await p.evaluate(() => {
+  const c = CLIENTS.find(x => x.s && x.s.startsWith('XXX'));
+  return c ? { id: c.i, ssn: c.s, last4: c.s.slice(-4), q: c.q } : null;
+});
+ok('a client exists whose area segment is XXX', !!pssn, JSON.stringify(pssn));
+if (pssn) {
+  ok('partial SSN carries the approximate/partial quality code', pssn.q === 'approx');
+  ok('the known digits are still searchable',
+     await p.evaluate(id => search(CLIENTS.find(c => c.i === id).s.slice(-4), []).rows.some(c => c.i === id), pssn.id));
+  ok('searching the placeholder itself finds nobody by accident',
+     await p.evaluate(() => search('xxx', []).rows.length === 0));
+}
+ok('a search cannot match across a masked segment', await p.evaluate(() => {
+  const c = CLIENTS.find(x => x.s && /^9\d\d-(XX|00)-\d{4}$/.test(x.s));
+  if (!c) return true;
+  const straddle = c.s.slice(1, 3) + c.s.slice(7, 9);   // last 2 of area + first 2 of serial
+  return !search(straddle, []).rows.some(r => r.i === c.i) ||
+         ssnPlain(c.s).indexOf(straddle) === -1;
+}));
+ok('zero-filled segments remain searchable as digits', await p.evaluate(() => {
+  const c = CLIENTS.find(x => x.s && x.s.split('-')[0] === '000');
+  return !c || search('000', []).rows.some(r => r.i === c.i);
+}));
 
 console.log('\n— recents, pagination, sorting —');
 await type('Torres');

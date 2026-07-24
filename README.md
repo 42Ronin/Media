@@ -63,7 +63,12 @@ Modelled on screenshots of the current interface:
   Michael Torres. Enter and the magnifier still work.
 - A token matches a **name prefix**, a **date-of-birth fragment**, or an **SSN fragment**:
   - dates: `1977`, `77`, `3/14`, `3/14/79`, `03/14/1979`, with `/`, `.` or `-`
-  - SSN: any run of digits inside it — `4471`, `941` and `33` all hit `941-33-4471`
+  - SSN: any run of digits inside it — `4471`, `941` and `33` all hit `941-33-4471`.
+    Partial SSNs are stored HMIS-style, with segments the client couldn't recall filled
+    as **X or 0 at the segment's width** (`XXX`/`000` area, `XX`/`00` group,
+    `XXXX`/`0000` serial). The digits they *do* remember stay searchable; a masked
+    segment blocks matching across the gap, so `1447` will not hit `941-XX-4471`.
+    Zero-filled segments are real stored digits and remain searchable as such.
   - combine freely: `wilson 4471`
 - Names render **"Last, First (Pronouns)"** with an **alphanumeric client ID** beneath
 - **Filter chips inside the search bar** — First Name, Last Name, Alias — each with a
@@ -95,12 +100,14 @@ Modelled on screenshots of the current interface:
 `tools/gen_roster.py` generates 300 fictional clients deterministically (fixed seed), so
 Lesson 2 will show the same people with the same IDs. Regenerate with `./build.sh`.
 
-**Every SSN is in the 900–999 area range.** The SSA has never issued numbers in that range,
-so no generated SSN can collide with a real person's even though the sim displays them unmasked.
+**Every SSN area segment is either 900–999 or a placeholder.** The SSA has never issued
+numbers in the 900–999 range, so no generated SSN can collide with a real person's even
+though the sim displays them unmasked.
 
 Records carry HMIS SSN **data-quality codes** — full, approximate, client refused, client
-doesn't know, data not collected — because records with a refused or missing SSN are exactly
-where duplicates breed.
+doesn't know, data not collected — because records with a refused or partial SSN are exactly
+where duplicates breed. Records coded approximate carry a genuinely partial SSN, X- or
+0-filled per HMIS convention.
 
 Seeded traps: `Michael Torres` (presents as "Mike", no alias recorded), `Katherine Morrison`
 (goes by Kate, possible former married name), two different `James Wilson`s, the
@@ -119,7 +126,7 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-103 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+110 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three

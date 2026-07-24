@@ -498,11 +498,20 @@ function matchesName(c, tok){
   for(var i=0;i<names.length;i++) if(names[i].indexOf(tok)===0) return true;
   return false;
 }
-/* any run of digits appearing in the SSN — "4471", "941", "33" all hit 941-33-4471 */
+/* Any run of digits appearing in the SSN — "4471", "941", "33" all hit 941-33-4471.
+
+   Partial SSNs store the unrecalled segments as X's or 0's at the segment's own
+   width (XXX/000 area, XX/00 group, XXXX/0000 serial). A masked segment collapses
+   to a marker rather than being deleted, so a search can't match across the gap:
+   "1447" must not hit 941-XX-4471. Zero-filled segments are real digits and stay
+   searchable, because that is what the record actually holds.                  */
+function ssnPlain(s){
+  return s.split("-").map(function(seg){ return /^\d+$/.test(seg) ? seg : "·"; }).join("");
+}
 function matchesSsn(c, tok){
   var dg=digitsOnly(tok);
   if(dg.length<2 || !c.s) return false;
-  return digitsOnly(c.s).indexOf(dg)>-1;
+  return ssnPlain(c.s).indexOf(dg)>-1;
 }
 /* whole or partial dates: 1977, 77, 3/14, 3/14/79, 03/14/1979, dots or dashes */
 function matchesDob(c, tok){

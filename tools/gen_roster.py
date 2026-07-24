@@ -5,9 +5,13 @@ Generates the shared fictional client roster used by every lesson in this course
 Deterministic: same seed -> same 300 people, so Lesson 1 and Lesson 2 show
 identical records and IDs.
 
-SAFETY: every SSN is generated in the 900-999 area range. The Social Security
-Administration has never issued numbers in that range, so no generated SSN can
-collide with a real person's number even though the sim displays them unmasked.
+SAFETY: every generated SSN area segment is either 900-999 -- a range the Social
+Security Administration has never issued -- or a placeholder (XXX / 000). So no
+generated SSN can collide with a real person's, even displayed unmasked.
+
+Partial SSNs follow HMIS convention: segments the client cannot recall are filled
+with X or 0 at that segment's width, and carry the "approximate or partial"
+data-quality code.
 
 Scenario answers are pinned first, then generated records are rejected if they
 would make a scenario answer ambiguous (see GUARDS).
@@ -67,6 +71,24 @@ COLORS = 8
 
 def ssn():
     return "9%02d-%02d-%04d" % (rnd.randint(0, 99), rnd.randint(1, 99), rnd.randint(1, 9999))
+
+def partial_ssn():
+    """A client who can recall only part of their SSN.
+
+    The unknown segments are filled with X or 0 at the segment's own width:
+    XXX / 000 for the area, XX / 00 for the group, XXXX / 0000 for the serial.
+    Never all three — a client who recalls nothing is 'client doesn't know',
+    not a partial report.
+    """
+    area = "9%02d" % rnd.randint(0, 99)
+    group = "%02d" % rnd.randint(1, 99)
+    serial = "%04d" % rnd.randint(1, 9999)
+    fill = rnd.choice("X0")
+    masked = rnd.choice(["area", "area+group", "group", "serial", "group+serial"])
+    if "area" in masked:   area = fill * 3
+    if "group" in masked:  group = fill * 2
+    if "serial" in masked: serial = fill * 4
+    return "%s-%s-%s" % (area, group, serial)
 
 def iso(y, m, d):
     return "%04d-%02d-%02d" % (y, m, d)
@@ -184,7 +206,7 @@ while len(clients) < TOTAL:
         "a": rnd.choice(["", "", "", "", first[:3], first[:4]]),
         "p": rnd.choice(PRONOUNS) if rnd.random() < .15 else "",
         "d": rand_dob(),
-        "s": ssn() if has_ssn else None,
+        "s": (ssn() if q == "full" else partial_ssn()) if has_ssn else None,
         "q": q,
         "r": weighted([("Yes", .68), ("Missing", .24), ("No", .08)]),
         "h": weighted([(1, .60), (2, .18), (3, .12), (4, .07), (5, .03)]),
@@ -236,8 +258,16 @@ with open(OUT, "w") as fh:
     json.dump({"clients": clients, "recent": recent}, fh, separators=(",", ":"))
 
 no_ssn = sum(1 for c in clients if not c["s"])
+partial = sum(1 for c in clients if c["s"] and not c["s"].replace("-", "").isdigit())
+zeros = sum(1 for c in clients if c["s"] and c["s"].split("-")[0] == "000")
 print(f"wrote {len(clients)} clients -> {os.path.relpath(OUT)}")
 print(f"  guard rejections : {guard_rejects}")
 print(f"  no SSN on file   : {no_ssn}")
 print(f"  ROI Missing/No   : {sum(1 for c in clients if c['r'] != 'Yes')}")
-print(f"  all SSNs in 9xx  : {all(c['s'] is None or c['s'][0] == '9' for c in clients)}")
+print(f"  partial (X-masked): {partial}")
+print(f"  partial (0-masked): {zeros}")
+def area_safe(c):
+    if not c["s"]: return True
+    a = c["s"].split("-")[0]
+    return a.startswith("9") or a in ("XXX", "000")
+print(f"  all areas safe   : {all(area_safe(c) for c in clients)}")
