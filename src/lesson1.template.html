@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1: Client Search — HMIS Training Simulation</title>
+<style>
+:root{
+  --rail:#e9e8fa; --rail-ink:#4a44a8; --canvas:#eeedfb; --card:#fdfdff;
+  --ink:#2a2a3c; --muted:#6b6b85; --line:#e4e3f2; --line-2:#efeefa;
+  --indigo:#4f46b8; --indigo-dk:#3d3593; --indigo-soft:#eceafb;
+  --green:#1a7a4a; --green-soft:#e8f5ee; --red:#b3261e; --red-soft:#fbeae9;
+  --amber:#8a5a00;
+  --coach:#1b2430; --coach-2:#243040; --coach-ink:#e8eef5; --coach-mut:#93a4b8;
+  --ok:#3fb984; --bad:#ff7a70; --tip:#f5c26b;
+  --focus:#0b6fd4;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font:14px/1.5 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink); background:var(--canvas); -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit}
+:focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+#simBanner{
+  position:fixed;top:0;left:0;right:0;height:26px;z-index:200;
+  background:#6b2d00;color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px}
+#simBanner em{font-style:normal;font-weight:400;text-transform:none;letter-spacing:0;opacity:.9}
+
+.app{position:fixed;top:26px;left:0;right:360px;bottom:0;display:flex;overflow:hidden}
+@media(max-width:1180px){.app{right:0;bottom:44%}}
+
+/* ---------------- left rail ---------------- */
+.rail{width:70px;flex:none;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;gap:4px;overflow:hidden}
+.logo{width:34px;height:34px;margin-bottom:14px;flex:none}
+.railbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--rail-ink);opacity:.72}
+.railbtn:hover{background:rgba(255,255,255,.6);opacity:1}
+.railbtn[aria-current="page"]{background:#fff;opacity:1;box-shadow:0 1px 3px rgba(60,50,140,.18)}
+.railspacer{flex:1}
+
+/* ---------------- app body ---------------- */
+.body{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 20px}
+.tb{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--indigo)}
+.tb:hover{background:rgba(255,255,255,.7)}
+.who{display:flex;align-items:center;gap:10px;padding-left:8px}
+.who .av{width:38px;height:38px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.who .nm{line-height:1.25}
+.who .nm b{display:block;font-size:14px;font-weight:600}
+.who .nm span{font-size:12px;color:var(--muted)}
+
+.content{flex:1;overflow:auto;padding:0 22px 26px;display:flex;gap:18px;align-items:flex-start}
+.card{flex:1;min-width:0;background:var(--card);border-radius:16px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 8px 26px rgba(60,50,140,.07);padding:20px 0 0}
+.cardhead{display:flex;align-items:flex-start;padding:0 22px 4px}
+.cardhead h1{margin:0;font-size:23px;font-weight:600;color:var(--indigo);line-height:1.15}
+.cardhead p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.addbtn{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1.6px solid var(--indigo);color:var(--indigo);display:grid;place-items:center}
+.addbtn:hover{background:var(--indigo-soft)}
+
+/* search */
+.searchrow{display:flex;align-items:center;gap:12px;padding:14px 22px 0}
+.pill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  border:1.4px solid #cfcde8;border-radius:26px;padding:8px 14px;background:#fff;min-height:48px;position:relative}
+.pill.focus{border-color:var(--indigo);box-shadow:0 0 0 3px var(--indigo-soft)}
+.pill .lab{position:absolute;top:-8px;left:16px;background:var(--card);padding:0 5px;font-size:11px;color:var(--indigo);display:none}
+.pill.has .lab{display:block}
+.pill input{flex:1;min-width:110px;border:0;outline:0;font-size:15px;background:transparent;padding:3px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfcde8;border-radius:20px;padding:4px 8px 4px 6px;font-size:13px;background:#fff;white-space:nowrap}
+.chip .cv{font-weight:600}
+.chip button{color:var(--muted);display:grid;place-items:center;width:18px;height:18px;border-radius:50%}
+.chip button:hover{background:var(--line-2);color:var(--ink)}
+.pill .act{display:flex;align-items:center;gap:4px;margin-left:auto}
+.pill .act button{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.pill .act button:hover{background:var(--line-2);color:var(--ink)}
+.tool{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;color:var(--indigo);flex:none;position:relative}
+.tool:hover{background:var(--indigo-soft)}
+.tool[aria-expanded="true"]{background:var(--indigo-soft)}
+
+.hintrow{display:flex;align-items:center;gap:10px;padding:14px 22px 2px;color:var(--ink);font-size:13.5px}
+.hintrow[hidden]{display:none}   /* display:flex would otherwise beat the [hidden] default */
+.hintrow svg{color:var(--indigo);flex:none}
+
+/* table */
+.tablewrap{margin-top:10px;overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+thead th{background:#faf9ff;text-align:left;font-size:13px;font-weight:600;color:var(--muted);
+  padding:12px 10px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);white-space:nowrap;user-select:none}
+thead th.sortable{cursor:pointer}
+thead th:first-child{padding-left:22px;width:44px}
+tbody td{padding:10px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+tbody td:first-child{padding-left:22px}
+tbody tr:hover{background:#faf9ff}
+tbody tr.open{background:var(--indigo-soft)}
+.rowbtn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.rowbtn:hover{background:var(--line-2);color:var(--ink)}
+.cwrap{display:flex;align-items:center;gap:11px;cursor:pointer;min-width:210px}
+.av2{width:34px;height:34px;border-radius:7px;color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;flex:none}
+.cname{display:block;font-weight:600;font-size:14px}
+.cid{display:block;font-size:12.5px;color:var(--muted)}
+.pron{font-weight:400;color:var(--muted)}
+.ssn{display:flex;align-items:center;gap:9px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ssn svg{color:var(--indigo);flex:none}
+.roi{display:inline-block;min-width:74px;text-align:center;border-radius:18px;padding:6px 12px;font-size:13px;font-weight:500;border:1px solid}
+.roi.yes{color:var(--green);border-color:#b9dcc8;background:#fff}
+.roi.missing{color:var(--indigo);border-color:#cfcde8;background:#fff}
+.roi.no{color:var(--red);border-color:#e8b7b3;background:#fff}
+.dob{display:flex;align-items:center;gap:9px;white-space:nowrap}
+.dob svg{color:var(--indigo);flex:none}
+.dob b{font-weight:500;font-size:13.5px}
+.dob span{display:block;font-size:11.5px;color:var(--muted)}
+.novalue{color:#9a9ab0;font-size:13px}
+.iconcell{display:flex;align-items:center;gap:12px;justify-content:flex-end;color:var(--muted);padding-right:12px}
+.expand td{background:#faf9ff;padding:0}
+.expand .inner{padding:14px 22px 16px 100px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.expand .f{font-size:13px}
+.expand .f b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-bottom:2px}
+.pager{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:12px 22px 16px;font-size:13px;color:var(--muted)}
+.pager button{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--indigo)}
+.pager button:disabled{color:#c3c2d6;cursor:default}
+.pager button:not(:disabled):hover{background:var(--indigo-soft)}
+.zero{padding:34px 22px 40px;text-align:center}
+.zero b{display:block;font-size:16px;margin-bottom:6px}
+.zero span{color:var(--muted);font-size:13.5px;display:block;max-width:520px;margin:0 auto}
+
+/* stat tiles */
+.tiles{width:170px;flex:none;display:flex;flex-direction:column;gap:14px;padding-top:2px}
+@media(max-width:1080px){.tiles{display:none}}
+.tile{background:var(--card);border-radius:14px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 6px 18px rgba(60,50,140,.06);
+  padding:16px 10px;text-align:center}
+.tile b{display:block;font-size:30px;font-weight:500;color:var(--indigo);line-height:1.1}
+.tile span{font-size:13px;color:var(--ink)}
+.tile i{display:block;margin-top:6px;color:var(--muted)}
+
+/* popovers */
+.pop{position:absolute;z-index:60;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(40,30,90,.24);
+  border:1px solid var(--line);padding:8px;min-width:210px}
+.pop[hidden]{display:none}
+.pop .ph{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 10px 6px;background:#f7f6fd;border-radius:7px;margin:4px 0}
+.menuitem{display:flex;align-items:center;gap:11px;width:100%;padding:11px 12px;border-radius:8px;font-size:14px;text-align:left}
+.menuitem:hover{background:var(--indigo-soft)}
+.menuitem svg{color:var(--indigo);flex:none}
+.colsearch{display:flex;align-items:center;gap:8px;border:1.4px solid #cfcde8;border-radius:8px;padding:9px 11px;margin:4px}
+.colsearch input{flex:1;border:0;outline:0;font-size:14px;background:transparent;min-width:0}
+.collist{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
+.collist li{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;font-size:14px}
+.collist li:not(.locked){cursor:grab}
+.collist li:hover{background:#faf9ff}
+.collist li.locked{color:#9a9ab0}
+.collist li.dragover{box-shadow:inset 0 2px 0 var(--indigo);background:var(--indigo-soft)}
+.collist input[type=checkbox]{width:17px;height:17px;accent-color:var(--indigo);flex:none}
+.collist .grip{margin-left:auto;color:#b9b8cc;letter-spacing:-2px;font-size:15px}
+.collist .badge{margin-left:auto;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 7px;color:var(--muted)}
+.chipedit{display:flex;flex-direction:column;gap:8px;padding:6px}
+.chipedit label{font-size:12px;color:var(--muted);font-weight:600}
+.chipedit .r{display:flex;gap:6px}
+.chipedit input{flex:1;border:1.4px solid #cfcde8;border-radius:8px;padding:9px 11px;outline:0;min-width:0}
+.chipedit input:focus{border-color:var(--indigo)}
+.chipedit button.go{width:38px;border-radius:8px;background:var(--indigo);color:#fff;display:grid;place-items:center}
+
+/* modal */
+.backdrop{position:fixed;inset:0;background:rgba(24,20,50,.5);z-index:150;display:grid;place-items:center;padding:24px}
+.backdrop[hidden]{display:none}
+.modal{background:#fff;border-radius:16px;width:min(660px,100%);max-height:86vh;overflow:auto;box-shadow:0 30px 70px rgba(0,0,0,.32)}
+.mhead{display:flex;align-items:center;gap:14px;padding:20px 22px 16px;border-bottom:1px solid var(--line-2)}
+.mhead h2{margin:0;font-size:19px;font-weight:600}
+.mbody{padding:20px 22px}
+.mfoot{display:flex;gap:10px;justify-content:flex-end;padding:14px 22px;background:#faf9ff;border-top:1px solid var(--line-2);flex-wrap:wrap}
+.x{margin-left:auto;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:20px}
+.x:hover{background:var(--line-2)}
+.btn{border-radius:9px;padding:10px 16px;font-size:14px;font-weight:600}
+.btn.primary{background:var(--indigo);color:#fff}
+.btn.primary:hover{background:var(--indigo-dk)}
+.btn.ghost{border:1px solid var(--line);background:#fff}
+.btn.ghost:hover{background:#faf9ff}
+.banner{display:flex;gap:11px;padding:13px 15px;border-radius:10px;font-size:13.5px;margin-bottom:18px;border-left:4px solid}
+.banner.ok{background:var(--green-soft);border-color:var(--green);color:#14603a}
+.banner.warn{background:#fdf3e2;border-color:var(--amber);color:#6d4700}
+.banner.bad{background:var(--red-soft);border-color:var(--red);color:#8c1c16}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:10px 16px;font-size:14px}
+.kv dt{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding-top:2px}
+.kv dd{margin:0}
+
+/* ---------------- coach drawer ---------------- */
+.coach{position:fixed;top:26px;right:0;bottom:0;width:360px;background:var(--coach);color:var(--coach-ink);
+  display:flex;flex-direction:column;z-index:120;box-shadow:-6px 0 24px rgba(20,16,40,.18)}
+@media(max-width:1180px){.coach{top:auto;left:0;width:auto;height:44%}}
+.chead{padding:16px 18px 12px;border-bottom:1px solid #2c3a4b;flex:none}
+.chead .lz{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--coach-mut);font-weight:700}
+.chead h2{margin:3px 0 0;font-size:16px;font-weight:600}
+.bar{height:5px;background:#2c3a4b;border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .4s}
+.cmeta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--coach-mut)}
+.cbody{flex:1;overflow:auto;padding:16px 18px}
+.tasktitle{font-size:15px;font-weight:700;margin:0 0 8px}
+.taskbrief{font-size:13.5px;color:#cbd6e2;margin:0 0 12px}
+.taskbrief .q{color:#fff;font-style:italic}
+.taskbrief code{background:#2c3a4b;padding:1px 6px;border-radius:4px;font-size:12.5px}
+.taskask{background:var(--coach-2);border-left:3px solid var(--ok);padding:11px 13px;border-radius:0 8px 8px 0;font-size:13.5px}
+.fb{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;border-left:3px solid;background:var(--coach-2)}
+.fb.good{border-color:var(--ok)} .fb.bad{border-color:var(--bad)} .fb.tip{border-color:var(--tip)}
+.fb b{display:block;margin-bottom:5px;font-size:13.5px}
+.fb .teach{margin-top:9px;padding-top:9px;border-top:1px solid #35455a;color:#c3d0de}
+.cfoot{padding:12px 18px 16px;border-top:1px solid #2c3a4b;display:flex;gap:8px;flex-wrap:wrap;flex:none}
+.cbtn{border:1px solid #3a4a5e;border-radius:8px;padding:9px 13px;font-size:13px;font-weight:600;color:var(--coach-ink)}
+.cbtn:hover{background:var(--coach-2)}
+.cbtn.go{background:var(--ok);border-color:var(--ok);color:#08281a}
+.cbtn.go:hover{background:#54cd97}
+.tasklist{list-style:none;margin:16px 0 0;padding:0;font-size:12.5px}
+.tasklist li{display:flex;gap:9px;padding:5px 0;color:var(--coach-mut)}
+.tasklist li.cur{color:#fff;font-weight:600}
+.tasklist li.done{color:var(--ok)}
+.legal{padding:12px 18px 18px;font-size:11px;color:#7a8ba0;line-height:1.5;border-top:1px solid #2c3a4b}
+</style>
+</head>
+<body>
+
+<div id="simBanner">Training Simulation <em>· Practice environment. Not a live HMIS. All records fictional.</em></div>
+
+<!-- ============================ APP ============================ -->
+<div class="app">
+  <nav class="rail" aria-label="Main">
+    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M20 4 34 12 20 20 6 12z" fill="#8fd3ee"/><path d="M20 14 34 22 20 30 6 22z" fill="#c9b6f5"/>
+      <circle cx="30" cy="30" r="8" fill="#6ee7c4"/><path d="M26.5 30l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <button class="railbtn" aria-current="page" title="Clients" aria-label="Clients">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.2"/><path d="M4 20c0-3.3 2.7-5.5 6-5.5"/><circle cx="16.5" cy="16.5" r="3.6"/><path d="M19.3 19.3L22 22"/></svg>
+    </button>
+    <button class="railbtn" data-locked title="Reports" aria-label="Reports"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="4" height="9" rx="1"/><rect x="10" y="5" width="4" height="15" rx="1"/><rect x="17" y="8" width="4" height="12" rx="1"/></svg></button>
+    <button class="railbtn" data-locked title="Calendar" aria-label="Calendar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3M9 14.5l2 2 4-4"/></svg></button>
+    <button class="railbtn" data-locked title="Referrals" aria-label="Referrals"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12H8M12 7l-5 5 5 5M3 4v16"/></svg></button>
+    <button class="railbtn" data-locked title="Inbox" aria-label="Inbox"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 13h4l1.5 3h6l1.5-3h4"/></svg></button>
+    <button class="railbtn" data-locked title="Locations" aria-label="Locations"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="10" r="2.2"/><path d="M12 12.5V17"/></svg></button>
+    <button class="railbtn" data-locked title="Housing" aria-label="Housing"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-5h6v5"/></svg></button>
+    <button class="railbtn" data-locked title="Setup" aria-label="Setup"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.5 6.5a3.5 3.5 0 01-4.6 4.6L5 16l3 3 4.9-4.9a3.5 3.5 0 004.6-4.6l-2.3 2.3-2.1-2.1z"/></svg></button>
+    <button class="railbtn" data-locked title="Settings" aria-label="Settings"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></button>
+    <div class="railspacer"></div>
+    <button class="railbtn" data-locked title="Expand menu" aria-label="Expand menu"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 6l6 6-6 6M13 6l6 6-6 6"/></svg></button>
+  </nav>
+
+  <div class="body">
+    <div class="topbar">
+      <button class="tb" data-locked title="Dark mode" aria-label="Dark mode"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg></button>
+      <button class="tb" data-locked title="Global search" aria-label="Global search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
+      <button class="tb" data-locked title="Open in new window" aria-label="Open in new window"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
+      <div class="who"><span class="av">TR</span><span class="nm"><b>Trainee</b><span>Riverside Outreach Collective</span></span></div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="cardhead">
+          <div><h1>Clients</h1><p>Search for a client</p></div>
+          <button class="addbtn" id="addBtn" title="Add Client" aria-label="Add Client">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 6v12M6 12h12"/></svg>
+          </button>
+        </div>
+
+        <div class="searchrow">
+          <div class="pill" id="pill">
+            <span class="lab">Search</span>
+            <span id="chips"></span>
+            <label class="sr-only" for="q">Search for a client by name, date of birth, or year of birth</label>
+            <input id="q" type="text" autocomplete="off" placeholder="Search" aria-describedby="resultCount">
+            <span class="act">
+              <button id="clearBtn" title="Clear search" aria-label="Clear search" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+              <button id="goBtn" title="Search" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
+            </span>
+          </div>
+          <button class="tool" id="filterBtn" title="Add a filter" aria-label="Add a filter" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
+          </button>
+          <button class="tool" id="colBtn" title="Choose columns" aria-label="Choose columns" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5v15M15 4.5v15"/></svg>
+          </button>
+        </div>
+
+        <div class="hintrow" id="hintRow">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8"/><path d="M3 4v4h4M12 7.5V12l3 2"/></svg>
+          <span>Showing recently accessed clients. Use the search bar above to find other clients.</span>
+        </div>
+
+        <div class="tablewrap">
+          <table id="tbl"><thead><tr id="thr"></tr></thead><tbody id="tb"></tbody></table>
+        </div>
+        <div class="zero" id="zero" hidden></div>
+        <div class="pager" id="pager" hidden>
+          <span id="resultCount" aria-live="polite"></span>
+          <button id="prevBtn" aria-label="Previous page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 6l-6 6 6 6"/></svg></button>
+          <button id="nextBtn2" aria-label="Next page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+
+      <div class="tiles" aria-hidden="true">
+        <div class="tile"><b>5</b><span>Active enrollments</span><i>ⓘ</i></div>
+        <div class="tile"><b>0</b><span>Status due</span><i>ⓘ</i></div>
+        <div class="tile"><b>0</b><span>Case manager</span><i>ⓘ</i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- popovers -->
+<div class="pop" id="filterPop" hidden role="menu" aria-label="Add a filter"></div>
+<div class="pop" id="chipPop" hidden></div>
+<div class="pop" id="colPop" hidden aria-label="Choose columns">
+  <div class="colsearch">
+    <label class="sr-only" for="colQ">Search fields</label>
+    <input id="colQ" type="text" placeholder="Search fields...">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+  </div>
+  <div class="ph">Visible Fields</div>
+  <ul class="collist" id="colVisible"></ul>
+  <div class="ph">Collapsed Fields</div>
+  <ul class="collist" id="colCollapsed"></ul>
+</div>
+
+<!-- client profile -->
+<div class="backdrop" id="profile" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+    <div class="mhead"><h2 id="pfTitle"></h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="mbody" id="pfBody"></div>
+    <div class="mfoot">
+      <button class="btn ghost" id="flagBtn">Flag possible duplicate</button>
+      <button class="btn primary" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- generic notice -->
+<div class="backdrop" id="notice" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ntTitle" style="width:min(520px,100%)">
+    <div class="mhead"><h2 id="ntTitle"></h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="mbody" id="ntBody"></div>
+    <div class="mfoot"><button class="btn primary" data-close>Got it</button></div>
+  </div>
+</div>
+
+<!-- completion -->
+<div class="backdrop" id="done" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dnTitle">
+    <div class="mhead"><h2 id="dnTitle">Lesson 1 complete</h2></div>
+    <div class="mbody" id="dnBody"></div>
+    <div class="mfoot">
+      <button class="btn ghost" id="restartBtn">Restart lesson</button>
+      <button class="btn primary" data-close>Continue exploring</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ COACH ============================ -->
+<aside class="coach" aria-label="Training panel">
+  <div class="chead">
+    <div class="lz">Lesson 1 of 2</div>
+    <h2>Finding a client</h2>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="cmeta"><span id="taskNo"></span><span id="scoreLbl"></span></div>
+  </div>
+  <div class="cbody">
+    <h3 class="tasktitle" id="tTitle"></h3>
+    <p class="taskbrief" id="tBrief"></p>
+    <div class="taskask" id="tAsk"></div>
+    <div id="fb"></div>
+    <ul class="tasklist" id="tList"></ul>
+  </div>
+  <div class="cfoot">
+    <button class="cbtn" id="hintBtn">Show hint</button>
+    <button class="cbtn" id="skipBtn">Skip</button>
+    <button class="cbtn go" id="nextBtn" hidden>Next task →</button>
+  </div>
+  <div class="legal">
+    Independent training simulation. Not affiliated with, endorsed by, or connected to Bitfocus, Inc.
+    All clients are fictional and all SSNs use the 900–999 range, which is never issued to real people.
+    Your live system's screens and required fields are configured by your CoC and will differ.
+  </div>
+</aside>
+
+<script>
+"use strict";
+/* ============================================================
+   SHARED LAYER — reused by Lesson 2 (chrome, roster, search)
+   ============================================================ */
+var DATA = /*__ROSTER__*/;
+var CLIENTS = DATA.clients;
+var TODAY = new Date("2026-07-24T00:00:00");
+var PALETTE = ["#3f3d9e","#1a7a4a","#0f6f8c","#7a3b9e","#b06a00","#a3324a","#2f6f3f","#4a4a6a"];
+var QUALITY = {
+  full:"Full SSN reported", approx:"Approximate or partial SSN reported",
+  refused:"Client refused", unknown:"Client doesn't know", notcollected:"Data not collected"
+};
+
+var $ = function(s){ return document.querySelector(s); };
+var $$ = function(s){ return [].slice.call(document.querySelectorAll(s)); };
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function byId(id){ for(var i=0;i<CLIENTS.length;i++) if(CLIENTS[i].i===id) return CLIENTS[i]; return null; }
+function initials(c){ return (c.l[0]+c.f[0]).toUpperCase(); }
+function fullName(c){ return c.l+", "+c.f; }
+function dobShort(iso){ var p=iso.split("-"); return (+p[1])+"/"+(+p[2])+"/"+p[0].slice(2); }
+function age(iso){
+  var b=new Date(iso+"T00:00:00"), a=TODAY.getFullYear()-b.getFullYear(), m=TODAY.getMonth()-b.getMonth();
+  if(m<0||(m===0&&TODAY.getDate()<b.getDate())) a--;
+  return a;
+}
+function last4(c){ return c.s ? c.s.slice(-4) : null; }
+function pad(n){ return (n<10?"0":"")+n; }
+function parseDate(s){
+  var m=String(s).trim().match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+  if(!m) return null;
+  var mo=+m[1], d=+m[2], y=+m[3];
+  if(mo<1||mo>12||d<1||d>31) return null;
+  return y+"-"+pad(mo)+"-"+pad(d);
+}
+
+/* ---------------- search engine ----------------
+   Mirrors documented behaviour: the search bar takes names, a date of birth in
+   several formats, or a bare year. It deliberately does NOT search SSN — in the
+   real product SSN is a column you read, not a field you query, which is what
+   makes identity confirmation a judgment rather than a lookup.              */
+function tokenMatch(c, tok){
+  if(/^\d{4}$/.test(tok)) return c.d.slice(0,4)===tok;
+  var iso=parseDate(tok);
+  if(iso) return c.d===iso;
+  var names=[c.f.toLowerCase(), c.l.toLowerCase()]
+      .concat(c.l.toLowerCase().split(/\s+/));
+  if(c.a) names.push(c.a.toLowerCase());
+  for(var i=0;i<names.length;i++) if(names[i].indexOf(tok)===0) return true;
+  return false;
+}
+function search(query, chips){
+  var raw=(query||"").trim().toLowerCase();
+  var toks=raw?raw.split(/\s+/):[];
+  var active=toks.length>0 || chips.length>0;
+  if(!active) return {rows:null, note:"recent"};
+
+  for(var i=0;i<toks.length;i++){
+    var t=toks[i];
+    if(!/^\d/.test(t) && t.length<3) return {rows:[], note:"short"};
+    if(/[\/.\-]/.test(t) && /\d/.test(t) && !parseDate(t)) return {rows:[], note:"baddate"};
+  }
+  var out=CLIENTS.filter(function(c){
+    for(var i=0;i<toks.length;i++) if(!tokenMatch(c,toks[i])) return false;
+    for(var j=0;j<chips.length;j++){
+      var ch=chips[j], v=(ch.value||"").toLowerCase();
+      if(!v) continue;
+      var field = ch.key==="first" ? c.f : ch.key==="last" ? c.l : (c.a||"");
+      if(field.toLowerCase().indexOf(v)!==0) return false;
+    }
+    return true;
+  });
+  return {rows:out, note:null};
+}
+
+/* ---------------- columns ---------------- */
+var FIELDS = [
+  {k:"client", label:"Client", locked:true, vis:true},
+  {k:"ssn",    label:"SSN",    vis:true},
+  {k:"roi",    label:"ROI",    vis:true},
+  {k:"dob",    label:"DOB",    vis:true},
+  {k:"alias",  label:"Alias",  vis:false},
+  {k:"hh",     label:"Household Members", vis:false},
+  {k:"vet",    label:"Veteran Status", vis:false}
+];
+var COLLAPSED = [
+  {k:"cid", label:"Client ID", locked:true},
+  {k:"upd", label:"Updated by"}
+];
+var CKEY="hmisSim.l1.columns.v2";
+function loadCols(){
+  try{
+    var saved=JSON.parse(localStorage.getItem(CKEY)||"null");
+    if(!saved) throw 0;
+    var known={}; FIELDS.forEach(function(f){ known[f.k]=f; });
+    var out=saved.filter(function(s){ return known[s.k]; })
+                 .map(function(s){ return {k:s.k, label:known[s.k].label, locked:known[s.k].locked, vis:!!s.vis}; });
+    FIELDS.forEach(function(f){ if(!out.some(function(o){return o.k===f.k;})) out.push(Object.assign({},f)); });
+    if(out[0].k!=="client"){ out=out.filter(function(o){return o.k!=="client";}); out.unshift(Object.assign({},FIELDS[0])); }
+    out[0].vis=true;
+    return out;
+  }catch(e){ return FIELDS.map(function(f){ return Object.assign({},f); }); }
+}
+function saveCols(){
+  try{ localStorage.setItem(CKEY, JSON.stringify(S.cols.map(function(c){return {k:c.k,vis:c.vis};}))); }catch(e){}
+}
+
+/* ============================================================
+   LESSON 1 — tasks
+   ============================================================ */
+var TASKS=[
+{ id:"nickname", title:"The nickname problem",
+  brief:'A man at the front desk says <span class="q">"I\'m Mike Torres — I stayed here last winter."</span> You type <code>Mike</code> and the list comes back empty.',
+  ask:"Find his existing record and open it.",
+  hint:"Records are filed under a legal name, and this one has no alias recorded. Search the surname instead — the first three letters are enough.",
+  expect:{type:"open", id:"357BF6714"},
+  teach:"He is filed as <b>Michael Torres</b> with no alias on the record. An empty result is the moment duplicates get created: the user assumes the client is new. Always try the surname before you conclude someone isn't in the system."
+},
+{ id:"year", title:"Year of birth only",
+  brief:'A woman says everyone calls her <span class="q">"Kate."</span> She thinks her record may be under a former married name, but she is sure she was born in <b>1985</b>.',
+  ask:"Find and open her record.",
+  hint:"When the surname is unreliable, search what you trust. A bare four-digit year is a valid search on its own.",
+  expect:{type:"open", id:"F565C146B"},
+  teach:"She is stored as <b>Katherine Morrison</b>, 7/22/1985. When a surname may have changed, year of birth is often the only stable handle you have, and it narrows 300 records to a list you can read by eye."
+},
+{ id:"formats", title:"Date formats",
+  brief:'An intake form arrives with the date of birth handwritten as <code>12.05.1990</code> — with dots.',
+  ask:"Search that date exactly as written, then open the client whose surname is Whitfield.",
+  hint:"Dots, slashes, and dashes all parse. Note how many people come back.",
+  expect:{type:"open", id:"AD63C3FF2"},
+  teach:"All three separators work. Notice the search returned <b>two</b> people born 12/5/1990. A shared birthday is not a match — you still have to confirm the name."
+},
+{ id:"samename", title:"Same name, different people",
+  brief:'A client says he is <span class="q">"James Wilson."</span> He gives his date of birth as 9/2/1968 and the last four of his SSN as 4471.',
+  ask:"Open the correct James Wilson.",
+  hint:"Two James Wilsons exist. You can't filter by SSN or date of birth — read the SSN and DOB columns in the results and compare.",
+  expect:{type:"open", id:"3DF1DF674"},
+  wrong:{"8C7A8F2D2":"That's the other James Wilson — born 4/17/1991, SSN ending 9038. Two records sharing a name are not automatically duplicates."},
+  teach:"These are two genuinely different people. Merging them would be a serious data-integrity error. Confirm identity on a second identifier — date of birth or SSN — never on the name alone."
+},
+{ id:"roi", title:"Reading the ROI column",
+  brief:'Before you share any client data with a partner agency, you need to know who has a signed Release of Information. Your supervisor asks about the <b>Delgado</b> records.',
+  ask:"Search Delgado and open the one client whose ROI is not on file.",
+  hint:"The ROI column shows Yes, Missing, or No right in the results — you can see consent status before you ever open a record.",
+  expect:{type:"open", id:"4F80C6E93"},
+  wrong:{"9E4C21A70":"Marcus Delgado's ROI reads Yes — his consent is on file.","B72D0F118":"Rosa Delgado's ROI reads Yes — her consent is on file."},
+  teach:"<b>Elena Delgado</b> shows ROI <b>Missing</b>. Because ROI is a results column, you can see whose data may be shared before opening anything. A missing ROI doesn't mean you can't serve the client — it means their data can't be shared outside your agency."
+},
+{ id:"noSsn", title:"When the SSN is refused",
+  brief:'A man says he is <span class="q">Robert Nakashima.</span> He gives his date of birth as 11/9/1982. He declined to give his Social Security Number when he first enrolled.',
+  ask:"Open the correct Robert Nakashima.",
+  hint:"Two records share this name. One has no SSN on file — but you were given a date of birth. Compare the DOB column.",
+  expect:{type:"open", id:"7A1E93C55"},
+  wrong:{"1C6B4D802":"That record is born 3/22/1977 and has an SSN on file — but the man in front of you gave 11/9/1982. Don't pick a record just because it has more data in it."},
+  teach:"His record shows <b>Client refused</b> for SSN, so the usual tiebreaker is gone and date of birth is the only handle left. The record with more data filled in is not automatically the right one — that instinct is exactly how the wrong client gets served."
+},
+{ id:"surname", title:"Multi-word surnames",
+  brief:'A caseworker asks you to pull up <span class="q">"Maria Cruz."</span>',
+  ask:"Find and open her record.",
+  hint:"Her surname has several parts. Any word within it will match — try Cruz on its own.",
+  expect:{type:"open", id:"2A8189B34"},
+  teach:"She is filed as <b>Maria de la Cruz</b>. Compound and hyphenated surnames get entered inconsistently between agencies, so search the distinctive fragment rather than the whole string."
+},
+{ id:"duplicate", title:"A real duplicate",
+  brief:'Search <code>Beckett</code>. Two records come back: <b>Shauna Beckett</b> and <b>Shawna Beckett</b>. Both show 4/30/1993 and both SSNs end 2210.',
+  ask:"Open either record and flag it as a possible duplicate.",
+  hint:"Open one of the two, then use 'Flag possible duplicate' at the bottom of the profile.",
+  expect:{type:"flag", ids:["5BB517588","6381E5405"]},
+  teach:"Same date of birth, same SSN, one letter apart — a textbook duplicate. End users never merge or delete records themselves. You escalate to your HMIS administrator or help desk, who resolves it centrally so the CoC's unduplicated count stays accurate."
+}];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+var S = {
+  q:"", chips:[], cols:loadCols(), sort:{k:"client",dir:1}, page:0, per:10,
+  rows:null, note:"recent", expanded:{},
+  recent:DATA.recent.slice(),
+  idx:0, results:[], attempts:0, hinted:false, finished:false
+};
+var PAGE_JUMP = null;
+
+function pct(){
+  var got=0; S.results.forEach(function(r){ got+=r.p; });
+  return Math.round(got/(TASKS.length*10)*100);
+}
+function task(){ return TASKS[S.idx]; }
+function liveRows(){
+  if(S.rows===null) return S.recent.map(byId).filter(Boolean);
+  return S.rows;
+}
+
+/* ============================================================
+   SCORM 1.2
+   ============================================================ */
+var SCORM=(function(){
+  var api=null, on=false;
+  function walk(w,d){ while(w&&d-->0){ if(w.API) return w.API; w=(w.parent!==w)?w.parent:null; } return null; }
+  return {
+    init:function(){
+      try{
+        api=walk(window,12)||(window.opener?walk(window.opener,12):null);
+        if(!api) return false;
+        on=(api.LMSInitialize("")+""==="true");
+        if(on){ api.LMSSetValue("cmi.core.lesson_status","incomplete"); api.LMSCommit(""); }
+      }catch(e){ on=false; }
+      return on;
+    },
+    score:function(v){ if(on){ try{ api.LMSSetValue("cmi.core.score.raw",String(v)); api.LMSCommit(""); }catch(e){} } },
+    finish:function(v,pass){
+      if(!on) return;
+      try{
+        api.LMSSetValue("cmi.core.score.raw",String(v));
+        api.LMSSetValue("cmi.core.score.min","0");
+        api.LMSSetValue("cmi.core.score.max","100");
+        api.LMSSetValue("cmi.core.lesson_status",pass?"passed":"failed");
+        api.LMSCommit(""); api.LMSFinish("");
+      }catch(e){}
+      on=false;
+    },
+    on:function(){ return on; }
+  };
+})();
+SCORM.init();
+window.addEventListener("beforeunload",function(){ if(SCORM.on()) SCORM.finish(pct(),pct()>=80); });
+
+/* ============================================================
+   RENDER — table
+   ============================================================ */
+function cellHTML(c,k){
+  switch(k){
+    case "client":
+      return '<div class="cwrap" data-open="'+c.i+'">'+
+        '<span class="av2" style="background:'+PALETTE[c.c%PALETTE.length]+'">'+esc(initials(c))+'</span>'+
+        '<span><span class="cname">'+esc(fullName(c))+
+        (c.p?' <span class="pron">('+esc(c.p)+')</span>':'')+'</span>'+
+        '<span class="cid">'+esc(c.i)+'</span></span></div>';
+    case "ssn":
+      return c.s
+        ? '<span class="ssn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l-1 16M14 4l-1 16M4 9h16M3 15h16"/></svg>'+esc(last4(c))+'</span>'
+        : '<span class="novalue">(No value)</span>';
+    case "roi":
+      var cl=c.r==="Yes"?"yes":c.r==="Missing"?"missing":"no";
+      return '<span class="roi '+cl+'">'+esc(c.r)+'</span>';
+    case "dob":
+      return '<span class="dob"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>'+
+        '<span><b>'+dobShort(c.d)+'</b><span>Age: '+age(c.d)+'</span></span></span>';
+    case "alias": return c.a?esc(c.a):'<span class="novalue">(No value)</span>';
+    case "hh": return String(c.h);
+    case "vet": return c.v?esc(c.v):'<span class="novalue">(No value)</span>';
+  }
+  return "";
+}
+function sortRows(rows){
+  var k=S.sort.k, d=S.sort.dir;
+  return rows.slice().sort(function(a,b){
+    var x,y;
+    if(k==="client"){ x=fullName(a).toLowerCase(); y=fullName(b).toLowerCase(); }
+    else if(k==="dob"){ x=a.d; y=b.d; }
+    else if(k==="ssn"){ x=last4(a)||"~"; y=last4(b)||"~"; }
+    else if(k==="roi"){ x=a.r; y=b.r; }
+    else if(k==="alias"){ x=(a.a||"~").toLowerCase(); y=(b.a||"~").toLowerCase(); }
+    else if(k==="hh"){ x=a.h; y=b.h; }
+    else if(k==="vet"){ x=a.v||"~"; y=b.v||"~"; }
+    else return 0;
+    return x<y?-1*d : x>y?1*d : 0;
+  });
+}
+function renderTable(){
+  var vis=S.cols.filter(function(c){ return c.vis; });
+  $("#thr").innerHTML='<th></th>'+vis.map(function(c){
+    var arrow = S.sort.k===c.k ? (S.sort.dir===1?" ↑":" ↓") : "";
+    return '<th class="sortable" data-sort="'+c.k+'" title="Sort by '+esc(c.label)+'">'+esc(c.label)+arrow+'</th>';
+  }).join("")+'<th></th>';
+
+  var all=liveRows();
+  var zero=$("#zero"), pager=$("#pager");
+  $("#hintRow").hidden = (S.rows!==null);
+
+  if(S.note==="short"||S.note==="baddate"){
+    $("#tb").innerHTML=""; pager.hidden=true; zero.hidden=false;
+    zero.innerHTML = S.note==="short"
+      ? '<b>Keep typing</b><span>Enter a full name or at least the first 3 letters.</span>'
+      : '<b>That date isn\'t valid</b><span>Try MM/DD/YYYY, MM.DD.YYYY, or MM-DD-YYYY.</span>';
+    return;
+  }
+  if(S.rows!==null && all.length===0){
+    $("#tb").innerHTML=""; pager.hidden=true; zero.hidden=false;
+    zero.innerHTML='<b>No clients found</b><span>Before deciding this person is new, try a shorter fragment of the name, '+
+      'the surname instead of the first name, or the year of birth on its own. An empty result is not proof that a client has no record.</span>';
+    return;
+  }
+  zero.hidden=true;
+
+  var sorted=sortRows(all);
+  var pages=Math.max(1,Math.ceil(sorted.length/S.per));
+  if(S.page>=pages) S.page=pages-1;
+  var start=S.page*S.per, slice=sorted.slice(start,start+S.per);
+
+  $("#tb").innerHTML=slice.map(function(c){
+    var open=!!S.expanded[c.i];
+    var main='<tr class="'+(open?"open":"")+'" data-row="'+c.i+'">'+
+      '<td><button class="rowbtn" data-exp="'+c.i+'" aria-expanded="'+open+'" aria-label="Show more fields for '+esc(fullName(c))+'">'+
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate('+(open?180:0)+'deg)"><path d="M7 10l5 5 5-5"/></svg></button></td>'+
+      vis.map(function(col){ return "<td>"+cellHTML(c,col.k)+"</td>"; }).join("")+
+      '<td><span class="iconcell">'+
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" title="Household"><circle cx="9" cy="9" r="3"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/><path d="M16 7.5a3 3 0 010 5.5M18 19c0-2-.6-3.4-1.6-4.4"/></svg>'+
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>'+
+      '</span></td></tr>';
+    if(!open) return main;
+    return main+'<tr class="expand"><td colspan="'+(vis.length+2)+'"><div class="inner">'+
+      '<div class="f"><b>Client ID</b>'+esc(c.i)+'</div>'+
+      '<div class="f"><b>Updated by</b>'+esc(c.u)+'</div>'+
+      '<div class="f"><b>Last updated</b>'+dobShort(c.t)+'</div>'+
+      '</div></td></tr>';
+  }).join("");
+
+  pager.hidden=false;
+  $("#resultCount").textContent=(start+1)+" – "+Math.min(start+S.per,sorted.length)+" of "+sorted.length;
+  $("#prevBtn").disabled=(S.page===0);
+  $("#nextBtn2").disabled=(S.page>=pages-1);
+}
+
+/* ---------------- chips ---------------- */
+var FILTER_FIELDS=[{k:"first",label:"First Name"},{k:"last",label:"Last Name"},{k:"alias",label:"Alias"}];
+function renderChips(){
+  $("#chips").innerHTML=S.chips.map(function(ch,i){
+    var f=FILTER_FIELDS.filter(function(x){return x.k===ch.key;})[0];
+    return '<span class="chip"><button data-chipedit="'+i+'" title="Edit filter" aria-label="Edit '+esc(f.label)+' filter">'+
+      '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 9l6 6 6-6z"/></svg></button>'+
+      esc(f.label)+': <span class="cv">'+esc(ch.value||"Any")+'</span>'+
+      '<button data-chipdel="'+i+'" title="Remove filter" aria-label="Remove '+esc(f.label)+' filter">'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></button></span>';
+  }).join("");
+  $("#pill").classList.toggle("has", S.chips.length>0 || !!S.q);
+}
+
+/* ---------------- columns panel ---------------- */
+function renderColPanel(){
+  var f=($("#colQ").value||"").toLowerCase();
+  $("#colVisible").innerHTML=S.cols.filter(function(c){ return !f||c.label.toLowerCase().indexOf(f)>-1; })
+    .map(function(c){
+      var i=S.cols.indexOf(c);
+      return '<li class="'+(c.locked?"locked":"")+'" draggable="'+(!c.locked)+'" data-ci="'+i+'">'+
+        '<input type="checkbox" id="cb_'+c.k+'" '+(c.vis?"checked":"")+' '+(c.locked?"disabled":"")+'>'+
+        '<label for="cb_'+c.k+'">'+esc(c.label)+'</label>'+
+        (c.locked
+          ? '<span class="grip" title="Locked">🔒</span>'
+          : '<span class="grip" aria-hidden="true">⠿</span>')+
+        '</li>';
+    }).join("");
+  $("#colCollapsed").innerHTML=COLLAPSED.filter(function(c){ return !f||c.label.toLowerCase().indexOf(f)>-1; })
+    .map(function(c){
+      return '<li class="locked"><input type="checkbox" checked disabled>'+
+        '<label>'+esc(c.label)+'</label><span class="badge">Collapsed</span></li>';
+    }).join("");
+}
+
+/* ============================================================
+   COACH
+   ============================================================ */
+function renderCoach(){
+  var done=S.idx>=TASKS.length;
+  $("#barFill").style.width=(S.results.length/TASKS.length*100)+"%";
+  $("#taskNo").textContent=done?"All tasks complete":("Task "+(S.idx+1)+" of "+TASKS.length);
+  $("#scoreLbl").textContent="Score "+pct()+"%";
+  if(done){
+    $("#tTitle").textContent="Lesson complete";
+    $("#tBrief").innerHTML="You can keep searching the roster freely. Nothing you do now affects your score.";
+    $("#tAsk").innerHTML="Try the column selector, the filter chips, and a few searches of your own.";
+    $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+  }else{
+    var t=task();
+    $("#tTitle").textContent=t.title;
+    $("#tBrief").innerHTML=t.brief;
+    $("#tAsk").innerHTML="<b>Your task:</b> "+esc(t.ask);
+    $("#hintBtn").hidden=false; $("#skipBtn").hidden=false;
+  }
+  $("#tList").innerHTML=TASKS.map(function(t,i){
+    var r=S.results.filter(function(x){return x.id===t.id;})[0];
+    var mark=r?(r.p===10?"✔":r.p>0?"◑":"✖"):"○";
+    return '<li class="'+(r?"done":(i===S.idx?"cur":""))+'"><span>'+mark+"</span><span>"+esc(t.title)+"</span></li>";
+  }).join("");
+}
+function say(kind,title,body,teach){
+  $("#fb").innerHTML='<div class="fb '+kind+'"><b>'+esc(title)+"</b>"+body+
+    (teach?'<div class="teach">'+teach+"</div>":"")+"</div>";
+}
+function pass(){
+  var t=task(), p=(S.attempts===0&&!S.hinted)?10:5;
+  S.results.push({id:t.id,p:p});
+  say("good", p===10?"Correct":"Correct — partial credit", "You found the right record.", t.teach);
+  $("#nextBtn").hidden=false; $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+  SCORM.score(pct()); renderCoach();
+}
+function nextTask(){
+  S.idx++; S.attempts=0; S.hinted=false;
+  $("#fb").innerHTML=""; $("#nextBtn").hidden=true;
+  if(S.idx>=TASKS.length) finish();
+  renderCoach();
+}
+function finish(){
+  S.finished=true;
+  var p=pct(), passed=p>=80, clean=S.results.filter(function(r){return r.p===10;}).length;
+  $("#dnBody").innerHTML=
+    '<p style="margin:0 0 10px;font-size:17px"><b>'+p+'%</b> — '+(passed?"passed":"not yet passing")+' (80% required)</p>'+
+    '<p style="margin:0 0 16px">'+clean+' of '+TASKS.length+' tasks completed on the first attempt.</p>'+
+    '<div class="banner warn"><div><b>The habit that carries into Lesson 2</b><br>'+
+    'Every task here could be failed the same way — by treating an empty or partial result as proof the client is new. '+
+    'Search the surname fragment, search the year of birth, and confirm on a second identifier before you ever create a record. '+
+    'Lesson 2 covers adding a client, where that habit is the only thing standing between you and a duplicate.</div></div>';
+  $("#done").hidden=false;
+  SCORM.finish(p,passed);
+}
+
+/* ---------------- task evaluation ---------------- */
+function evaluate(action,payload){
+  if(S.idx>=TASKS.length) return false;
+  var t=task(), e=t.expect;
+  if(e.type==="open"&&action==="open"){
+    if(payload===e.id){ pass(); return true; }
+    S.attempts++;
+    say("bad","Not this client",(t.wrong&&t.wrong[payload])||"That isn't the client described in the task. Close the profile and refine your search.");
+    return true;
+  }
+  if(e.type==="flag"&&action==="flag"){
+    if(e.ids.indexOf(payload)>-1){ pass(); return true; }
+    S.attempts++;
+    say("bad","Wrong record","That client isn't part of the duplicate pair described in this task.");
+    return true;
+  }
+  if(action==="flag"&&e.type==="open"){
+    S.attempts++;
+    say("bad","Not a duplicate","Flagging is for records that appear to describe the same person twice. This task asks you to find and open one specific client.");
+    return true;
+  }
+  return false;
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+function rerun(resetPage){
+  var r=search(S.q,S.chips);
+  S.rows=r.rows; S.note=r.note;
+  if(resetPage!==false) S.page=0;
+  renderTable();
+}
+var deb=null;
+$("#q").addEventListener("input",function(){
+  S.q=this.value;
+  $("#clearBtn").hidden=!this.value && S.chips.length===0;
+  $("#pill").classList.toggle("has", S.chips.length>0 || !!this.value);
+  clearTimeout(deb);
+  deb=setTimeout(rerun,220);
+});
+$("#q").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){ e.preventDefault(); clearTimeout(deb); rerun(); }
+  if(e.key==="Backspace" && !this.value && S.chips.length){ S.chips.pop(); renderChips(); rerun(); }
+});
+$("#q").addEventListener("focus",function(){ $("#pill").classList.add("focus"); });
+$("#q").addEventListener("blur",function(){ $("#pill").classList.remove("focus"); });
+$("#goBtn").addEventListener("click",function(){ clearTimeout(deb); rerun(); });
+$("#clearBtn").addEventListener("click",function(){
+  S.q=""; S.chips=[]; $("#q").value=""; this.hidden=true;
+  renderChips(); rerun(); $("#q").focus();
+});
+
+/* filter menu */
+$("#filterBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  var p=$("#filterPop"), open=p.hidden;
+  closePops();
+  if(!open) return;
+  p.innerHTML=FILTER_FIELDS.map(function(f){
+    return '<button class="menuitem" data-ff="'+f.k+'" role="menuitem">'+
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M7 12h10M10 17h4"/></svg>'+esc(f.label)+'</button>';
+  }).join("");
+  place(p,this); p.hidden=false; this.setAttribute("aria-expanded","true");
+});
+$("#filterPop").addEventListener("click",function(e){
+  e.stopPropagation();               /* keep the document handler from closing what we open next */
+  var b=e.target.closest("[data-ff]"); if(!b) return;
+  var k=b.dataset.ff;
+  if(!S.chips.some(function(c){return c.key===k;})) S.chips.push({key:k,value:""});
+  closePops(); renderChips(); rerun();
+  var i=S.chips.length-1;
+  openChipEditor(i, $('#chips [data-chipedit="'+i+'"]'));
+});
+$("#chips").addEventListener("click",function(e){
+  var del=e.target.closest("[data-chipdel]");
+  if(del){ S.chips.splice(+del.dataset.chipdel,1); renderChips(); rerun(); return; }
+  var ed=e.target.closest("[data-chipedit]");
+  if(ed){ e.stopPropagation(); openChipEditor(+ed.dataset.chipedit, ed); }
+});
+function openChipEditor(i,anchor){
+  var ch=S.chips[i]; if(!ch||!anchor) return;
+  var f=FILTER_FIELDS.filter(function(x){return x.k===ch.key;})[0];
+  var p=$("#chipPop"); closePops();
+  p.innerHTML='<div class="chipedit"><label for="chipVal">Search by '+esc(f.label)+'</label>'+
+    '<div class="r"><input id="chipVal" type="text" value="'+esc(ch.value)+'">'+
+    '<button class="go" id="chipGo" aria-label="Apply filter"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></div></div>';
+  place(p,anchor); p.hidden=false;
+  var inp=$("#chipVal"); inp.focus(); inp.select();
+  function apply(){ ch.value=inp.value.trim(); closePops(); renderChips(); rerun(); }
+  $("#chipGo").addEventListener("click",apply);
+  inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); apply(); } });
+}
+
+/* columns */
+$("#colBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  var p=$("#colPop"), open=p.hidden;
+  closePops(); if(!open) return;
+  $("#colQ").value=""; renderColPanel(); place(p,this,300); p.hidden=false;
+  this.setAttribute("aria-expanded","true");
+});
+$("#colQ").addEventListener("input",renderColPanel);
+$("#colPop").addEventListener("click",function(e){ e.stopPropagation(); });
+$("#chipPop").addEventListener("click",function(e){ e.stopPropagation(); });
+$("#colVisible").addEventListener("change",function(e){
+  if(e.target.type!=="checkbox") return;
+  var k=e.target.id.replace("cb_","");
+  S.cols.forEach(function(c){ if(c.k===k&&!c.locked) c.vis=e.target.checked; });
+  saveCols(); renderTable();
+});
+var dragFrom=null;
+$("#colVisible").addEventListener("dragstart",function(e){
+  var li=e.target.closest("li"); if(!li||li.classList.contains("locked")) return;
+  dragFrom=+li.dataset.ci; e.dataTransfer.effectAllowed="move";
+  try{ e.dataTransfer.setData("text/plain",""+dragFrom); }catch(err){}
+});
+$("#colVisible").addEventListener("dragover",function(e){
+  var li=e.target.closest("li"); if(!li||li.classList.contains("locked")) return;
+  e.preventDefault(); li.classList.add("dragover");
+});
+$("#colVisible").addEventListener("dragleave",function(e){
+  var li=e.target.closest("li"); if(li) li.classList.remove("dragover");
+});
+$("#colVisible").addEventListener("drop",function(e){
+  var li=e.target.closest("li"); if(!li||dragFrom===null||li.classList.contains("locked")) return;
+  e.preventDefault(); li.classList.remove("dragover");
+  var to=+li.dataset.ci, moved=S.cols.splice(dragFrom,1)[0];
+  S.cols.splice(to,0,moved); dragFrom=null;
+  saveCols(); renderColPanel(); renderTable();
+});
+
+/* table interactions */
+$("#tb").addEventListener("click",function(e){
+  var exp=e.target.closest("[data-exp]");
+  if(exp){ var id=exp.dataset.exp; S.expanded[id]=!S.expanded[id]; renderTable(); return; }
+  var op=e.target.closest("[data-open]");
+  if(op){ openProfile(op.dataset.open); return; }
+  var tr=e.target.closest("[data-row]");
+  if(tr) openProfile(tr.dataset.row);
+});
+$("#thr").addEventListener("click",function(e){
+  var th=e.target.closest("[data-sort]"); if(!th) return;
+  var k=th.dataset.sort;
+  if(S.sort.k===k) S.sort.dir*=-1; else { S.sort.k=k; S.sort.dir=1; }
+  renderTable();
+});
+$("#prevBtn").addEventListener("click",function(){ if(S.page>0){ S.page--; renderTable(); } });
+$("#nextBtn2").addEventListener("click",function(){ S.page++; renderTable(); });
+
+/* profile */
+function openProfile(id){
+  var c=byId(id); if(!c) return;
+  S.recent=[id].concat(S.recent.filter(function(x){return x!==id;})).slice(0,5);
+  var roiBanner = c.r==="Yes"
+    ? '<div class="banner ok"><div><b>Release of Information on file.</b> This client\'s data may be shared with partner agencies in your CoC.</div></div>'
+    : c.r==="Missing"
+      ? '<div class="banner warn"><div><b>No Release of Information on file.</b> You may still serve this client, but their data cannot be shared outside your agency until an ROI is recorded.</div></div>'
+      : '<div class="banner bad"><div><b>Release of Information declined.</b> This client refused consent. Their data must not be shared outside your agency.</div></div>';
+  $("#pfTitle").textContent=fullName(c)+(c.p?" ("+c.p+")":"");
+  $("#pfBody").innerHTML=roiBanner+
+    '<dl class="kv">'+
+      '<dt>Client ID</dt><dd>'+esc(c.i)+'</dd>'+
+      '<dt>Name</dt><dd>'+esc(c.f+" "+c.l)+'</dd>'+
+      '<dt>Alias</dt><dd>'+(c.a?esc(c.a):'<span class="novalue">(No value)</span>')+'</dd>'+
+      '<dt>Date of Birth</dt><dd>'+dobShort(c.d)+' &nbsp;<span class="novalue">Age '+age(c.d)+'</span></dd>'+
+      '<dt>Social Security Number</dt><dd>'+(c.s?esc(c.s):'<span class="novalue">(No value)</span>')+'</dd>'+
+      '<dt>SSN Data Quality</dt><dd>'+esc(QUALITY[c.q])+'</dd>'+
+      '<dt>Household Members</dt><dd>'+c.h+'</dd>'+
+      '<dt>Veteran Status</dt><dd>'+(c.v?esc(c.v):'<span class="novalue">(No value)</span>')+'</dd>'+
+      '<dt>Updated by</dt><dd>'+esc(c.u)+' on '+dobShort(c.t)+'</dd>'+
+    '</dl>'+
+    '<p style="margin:16px 0 0;font-size:12.5px;color:var(--muted)">In the live system this record also carries enrollments, '+
+    'services, assessments, notes, and files. Lesson 1 covers search only.</p>';
+  $("#flagBtn").dataset.id=id;
+  $("#profile").hidden=false;
+  renderTable();
+  evaluate("open",id);
+}
+$("#flagBtn").addEventListener("click",function(){
+  var id=this.dataset.id, c=byId(id);
+  $("#profile").hidden=true;
+  if(!evaluate("flag",id)){
+    notice("Flagged for your HMIS administrator",
+      "<p>Record <b>"+esc(id)+"</b> ("+esc(fullName(c))+") has been flagged for review.</p>"+
+      "<p style='margin-bottom:0'>End users never merge or delete client records. Your HMIS administrator resolves confirmed duplicates centrally so the CoC's unduplicated count stays accurate.</p>");
+  }
+});
+
+/* add client — out of scope for Lesson 1 */
+$("#addBtn").addEventListener("click",function(){
+  var extra="";
+  if(S.idx<TASKS.length){
+    var e=task().expect;
+    var ids = e.type==="open" ? [e.id] : (e.ids||[]);
+    if(ids.length) extra="<p style='margin-bottom:0'><b>Worth noticing:</b> the person in this task already has a record. "+
+      "Adding them again would double-count them in your CoC's HUD reporting — which is exactly what careful searching prevents.</p>";
+  }
+  notice("Adding clients is Lesson 2",
+    "<p>Lesson 1 covers search only. In the live system this button opens the new client form, "+
+    "which you'll work through in Lesson 2.</p>"+extra);
+});
+
+function notice(title,html){
+  $("#ntTitle").textContent=title; $("#ntBody").innerHTML=html; $("#notice").hidden=false;
+}
+$$("[data-locked]").forEach(function(b){
+  b.addEventListener("click",function(){
+    notice("Not part of this simulation","<p style='margin-bottom:0'>Lesson 1 covers the Clients search screen only. Other areas of the system are disabled here.</p>");
+  });
+});
+
+/* coach buttons */
+$("#hintBtn").addEventListener("click",function(){ S.hinted=true; say("tip","Hint",task().hint); });
+$("#skipBtn").addEventListener("click",function(){
+  var t=task(); S.results.push({id:t.id,p:0});
+  say("bad","Task skipped","No points for this one.",t.teach);
+  $("#nextBtn").hidden=false; $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+  renderCoach();
+});
+$("#nextBtn").addEventListener("click",nextTask);
+$("#restartBtn").addEventListener("click",function(){
+  S.idx=0; S.results=[]; S.attempts=0; S.hinted=false; S.finished=false;
+  S.q=""; S.chips=[]; $("#q").value=""; S.rows=null; S.note="recent"; S.page=0; S.expanded={};
+  $("#fb").innerHTML=""; $("#nextBtn").hidden=true; $("#done").hidden=true;
+  renderChips(); renderTable(); renderCoach();
+});
+
+/* popover plumbing */
+function place(pop,anchor,w){
+  var r=anchor.getBoundingClientRect();
+  pop.style.width=(w||"")?w+"px":"";
+  pop.style.visibility="hidden"; pop.hidden=false;
+  var pw=pop.offsetWidth, ph=pop.offsetHeight;
+  pop.hidden=true; pop.style.visibility="";
+  var left=Math.min(r.left, window.innerWidth-pw-12);
+  var top=r.bottom+6;
+  if(top+ph>window.innerHeight-8) top=Math.max(8,r.top-ph-6);
+  pop.style.left=Math.max(8,left)+"px"; pop.style.top=top+"px";
+}
+function closePops(){
+  ["#filterPop","#chipPop","#colPop"].forEach(function(s){ $(s).hidden=true; });
+  $("#filterBtn").setAttribute("aria-expanded","false");
+  $("#colBtn").setAttribute("aria-expanded","false");
+}
+document.addEventListener("click",closePops);
+$$("[data-close]").forEach(function(b){ b.addEventListener("click",function(){ this.closest(".backdrop").hidden=true; }); });
+$$(".backdrop").forEach(function(bd){ bd.addEventListener("mousedown",function(e){ if(e.target===bd) bd.hidden=true; }); });
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"){ closePops(); $$(".backdrop").forEach(function(b){ b.hidden=true; }); }
+});
+
+/* boot */
+renderChips(); renderTable(); renderCoach();
+</script>
+</body>
+</html>

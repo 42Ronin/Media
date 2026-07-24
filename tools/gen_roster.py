@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+"""
+Generates the shared fictional client roster used by every lesson in this course.
+
+Deterministic: same seed -> same 300 people, so Lesson 1 and Lesson 2 show
+identical records and IDs.
+
+SAFETY: every SSN is generated in the 900-999 area range. The Social Security
+Administration has never issued numbers in that range, so no generated SSN can
+collide with a real person's number even though the sim displays them unmasked.
+
+Scenario answers are pinned first, then generated records are rejected if they
+would make a scenario answer ambiguous (see GUARDS).
+"""
+import json, random, os
+
+SEED = 20260724
+TOTAL = 300
+OUT = os.path.join(os.path.dirname(__file__), "..", "src", "roster.json")
+
+rnd = random.Random(SEED)
+
+# ---------------------------------------------------------------- name pools
+FIRST_F = """Denise Priya Alicia Yvonne Camille Rosalind Simone Beatrice Naomi Lorraine
+Evelyn Aisha Selena Gwendolyn Tamara Adaeze Marisol Ingrid Carmen Delphine Harriet Josephine
+Kalinda Leona Mabel Nadia Ofelia Paloma Quiana Rhoda Saoirse Thandiwe Ursula Valentina Winona
+Xiomara Yolanda Zora Annika Bernadette Clarissa Dorothea Esperanza Fatima Genevieve Hilda
+Imani Jacinta Katarina Lucinda Magdalena Noor Octavia Perpetua Rosalie Sunniva Tabitha
+Ulrike Vashti Wilhelmina Yuki Zainab Amara Brigid Colette Dagny Elspeth Freya Greta Hana""".split()
+
+FIRST_M = """Tyrell Gregory Marcus Nathaniel Devon Hector Omar Curtis Terrence Dwayne Vincent
+Isaiah Rafael Julian Abelardo Bartholomew Cornelius Demetrius Ezekiel Fitzgerald Gideon Horace
+Ignatius Jarrod Kwame Leopold Mordecai Nikolai Osvaldo Percival Quentin Roscoe Solomon Thaddeus
+Ulysses Virgil Wendell Xavier Yusuf Zachariah Amias Boaz Caspian Dashiell Emmerich Ferdinand
+Gaspard Hendrik Ilias Jorunn Kazimir Lorcan Matthias Nestor Obadiah Piotr Rasmus Soren Tobias
+Ulrich Vasili Wilfred Yannick Zoltan Anselm Broderick Cyprian""".split()
+
+FIRST_N = "Devon Rowan Sage Quinn Ellis Marlowe Aubrey Lennox Emerson Auden Kit Rene".split()
+
+LAST = """Okonkwo Banks Raghavan Halvorsen Fontaine Chukwu Bergstrom Boudreaux Ashworth Vega
+Marquez Whitaker Haddad Lindqvist Abernathy Sandoval Okafor Petrosyan Castellanos Fitzgerald
+Bennani Kowalczyk Moreau Thornbury Achebe Ocampo Blackwell Mbeki Arrington Balogun Castellano
+Dziedzic Eastwood Fairweather Gallagher Hollingsworth Ivanenko Jankowski Kirkpatrick Lindstrom
+Montenegro Nwachukwu Oyelaran Pemberton Quarshie Rasmussen Stankovic Tremblay Ueda Vasquez
+Wojciechowski Yamamoto Zielinski Achterberg Brennan Cavanaugh Delacroix Engelhardt Farrugia
+Grimaldi Haverford Isaksson Jimenez Kaczmarek Larkspur Mendelsohn Nakagawa Osterman Pahlavi
+Quintanilla Rothschild Svendsen Thibodeaux Ulrich Verhoeven Wickersham Yildirim Zabala
+Ainsworth Bordelon Chaudhry Dunkerley Escalante Fitzwilliam Ghorbani Huntington Ilyushin
+Jaramillo Kensington Lombardi Mwangi Novotny Oyelowo Prendergast Rutherford Sorensen Tanaka
+Underhill Villanueva Waterhouse Zamora Adeyemi Bellweather Cortazar Drummond""".split()
+
+PRONOUNS = ["She/Her/Hers", "He/Him/His", "They/Them/Theirs"]
+STAFF = ["S. Ramirez", "T. Okoye", "M. Lindgren", "J. Whitfield", "A. Barnes",
+         "K. Nakamura", "D. Ferreira", "L. Mbatha", "C. Yoon", "R. Delacroix"]
+COLORS = 8
+
+def ssn():
+    return "9%02d-%02d-%04d" % (rnd.randint(0, 99), rnd.randint(1, 99), rnd.randint(1, 9999))
+
+def iso(y, m, d):
+    return "%04d-%02d-%02d" % (y, m, d)
+
+def rand_dob(lo=18, hi=78):
+    age = rnd.randint(lo, hi)
+    y = 2026 - age
+    m = rnd.randint(1, 12)
+    d = rnd.randint(1, 28)
+    return iso(y, m, d)
+
+def rand_updated():
+    return iso(rnd.choice([2025, 2026]), rnd.randint(1, 12), rnd.randint(1, 28))
+
+# ------------------------------------------------------------ scenario cast
+# q: ssn data-quality code. full | approx | refused | unknown | notcollected
+def C(i, f, l, d, s, q="full", roi="Yes", a="", p="", h=1, vet="No"):
+    return {"i": i, "f": f, "l": l, "a": a, "p": p, "d": d, "s": s, "q": q,
+            "r": roi, "h": h, "v": vet, "u": rnd.choice(STAFF), "t": rand_updated(),
+            "c": rnd.randrange(COLORS)}
+
+SCRIPTED = [
+    # 1 nickname: filed under legal name, NO alias recorded
+    C("357BF6714", "Michael", "Torres", "1979-03-14", "912-45-8802", roi="Yes", h=1),
+    # 2 year of birth: goes by Kate, surname may have changed
+    C("F565C146B", "Katherine", "Morrison", "1985-07-22", "934-17-3145", roi="Yes",
+      p="She/Her/Hers", h=3),
+    # 3 date formats: two people share this DOB
+    C("AD63C3FF2", "Andre", "Whitfield", "1990-12-05", "907-62-6690", roi="Missing"),
+    C("C967BF20E", "Jamal", "Underwood", "1990-12-05", "955-08-4402", roi="Yes"),
+    # 4 same name, different people
+    C("3DF1DF674", "James", "Wilson", "1968-09-02", "941-33-4471", roi="Yes", h=2),
+    C("8C7A8F2D2", "James", "Wilson", "1991-04-17", "968-20-9038", roi="Missing", a="Jim"),
+    # 5 true duplicate pair: same DOB, same SSN, one-letter name difference
+    C("5BB517588", "Shauna", "Beckett", "1993-04-30", "926-71-2210", roi="Missing",
+      p="She/Her/Hers"),
+    C("6381E5405", "Shawna", "Beckett", "1993-04-30", "926-71-2210", roi="Yes",
+      p="She/Her/Hers"),
+    # 6 multi-word surname
+    C("2A8189B34", "Maria", "de la Cruz", "1974-01-28", "918-54-5527", roi="Yes", h=4),
+    # 7 ROI column: exactly three Delgados, exactly one Missing
+    C("9E4C21A70", "Marcus", "Delgado", "1985-01-19", "903-88-9927", roi="Yes"),
+    C("B72D0F118", "Rosa", "Delgado", "1979-06-06", "947-12-5501", roi="Yes",
+      p="She/Her/Hers", h=2),
+    C("4F80C6E93", "Elena", "Delgado", "1996-08-03", "930-45-3378", roi="Missing",
+      p="She/Her/Hers"),
+    # 8 SSN refused: identity must be confirmed on DOB alone
+    C("7A1E93C55", "Robert", "Nakashima", "1982-11-09", None, q="refused", roi="Yes"),
+    C("1C6B4D802", "Robert", "Nakashima", "1977-03-22", "961-29-7713", roi="Yes", a="Bobby"),
+]
+
+# ------------------------------------------------------------------- GUARDS
+# A generated record is rejected if it would make any scenario answer ambiguous.
+def violates(c):
+    f, l, d = c["f"], c["l"], c["d"]
+    lo_l, lo_f = l.lower(), f.lower()
+    # 1: no second Torres reachable by "Tor"
+    if lo_l.startswith("tor"): return True
+    # 2: no other 1985-born Kat*/Kate
+    if d[:4] == "1985" and (lo_f.startswith("kat") or c["a"].lower().startswith("kat")): return True
+    # 2: no other Morrison
+    if lo_l.startswith("morr"): return True
+    # 3: no third person on that date
+    if d == "1990-12-05": return True
+    # 3: no other Whitfield / Underwood
+    if lo_l in ("whitfield", "underwood"): return True
+    # 4: no third James Wilson (other Wilsons are welcome noise)
+    if lo_l == "wilson" and lo_f == "james": return True
+    # 5: no third Beckett
+    if lo_l.startswith("beckett"): return True
+    # 6: no other Cruz at all, keeps "Cruz" unambiguous
+    if "cruz" in lo_l: return True
+    # 7: exactly three Delgados
+    if lo_l == "delgado": return True
+    # 8: exactly two Nakashimas
+    if lo_l.startswith("nakashima"): return True
+    return False
+
+# --------------------------------------------------------------- generation
+used_ids = {c["i"] for c in SCRIPTED}
+used_names = {(c["f"], c["l"]) for c in SCRIPTED}
+clients = list(SCRIPTED)
+
+def new_id():
+    while True:
+        v = "".join(rnd.choice("0123456789ABCDEF") for _ in range(9))
+        if v not in used_ids:
+            used_ids.add(v)
+            return v
+
+def weighted(pairs):
+    r, acc = rnd.random(), 0.0
+    for val, w in pairs:
+        acc += w
+        if r < acc:
+            return val
+    return pairs[-1][0]
+
+guard_rejects = 0
+while len(clients) < TOTAL:
+    bucket = weighted([("f", .47), ("m", .47), ("n", .06)])
+    first = rnd.choice(FIRST_F if bucket == "f" else FIRST_M if bucket == "m" else FIRST_N)
+    last = rnd.choice(LAST)
+    if (first, last) in used_names:
+        continue
+
+    q = weighted([("full", .80), ("approx", .05), ("refused", .07),
+                  ("unknown", .04), ("notcollected", .04)])
+    has_ssn = q in ("full", "approx")
+
+    c = {
+        "i": new_id(),
+        "f": first,
+        "l": last,
+        "a": rnd.choice(["", "", "", "", first[:3], first[:4]]),
+        "p": rnd.choice(PRONOUNS) if rnd.random() < .15 else "",
+        "d": rand_dob(),
+        "s": ssn() if has_ssn else None,
+        "q": q,
+        "r": weighted([("Yes", .68), ("Missing", .24), ("No", .08)]),
+        "h": weighted([(1, .60), (2, .18), (3, .12), (4, .07), (5, .03)]),
+        "v": weighted([("No", .85), ("Yes", .07), ("", .08)]),
+        "u": rnd.choice(STAFF),
+        "t": rand_updated(),
+        "c": rnd.randrange(COLORS),
+    }
+    if violates(c):
+        guard_rejects += 1
+        continue
+    used_names.add((first, last))
+    clients.append(c)
+
+clients.sort(key=lambda c: (c["l"], c["f"]))
+
+# five records pre-seeded as "recently accessed" so the landing state matches
+# the real product, which never opens on a blank table
+recent = [SCRIPTED[0]["i"], SCRIPTED[4]["i"], SCRIPTED[9]["i"],
+          SCRIPTED[2]["i"], SCRIPTED[13]["i"]]
+
+os.makedirs(os.path.dirname(OUT), exist_ok=True)
+with open(OUT, "w") as fh:
+    json.dump({"clients": clients, "recent": recent}, fh, separators=(",", ":"))
+
+no_ssn = sum(1 for c in clients if not c["s"])
+print(f"wrote {len(clients)} clients -> {os.path.relpath(OUT)}")
+print(f"  guard rejections : {guard_rejects}")
+print(f"  no SSN on file   : {no_ssn}")
+print(f"  ROI Missing/No   : {sum(1 for c in clients if c['r'] != 'Yes')}")
+print(f"  all SSNs in 9xx  : {all(c['s'] is None or c['s'][0] == '9' for c in clients)}")

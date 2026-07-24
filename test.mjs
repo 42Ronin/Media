@@ -1,166 +1,250 @@
+/**
+ * Browser tests for Lesson 1: Finding a Client.
+ *   npm i playwright && node test.mjs
+ */
 import { chromium } from 'playwright';
-const FILE = 'file:///home/user/Media/clarity-client-search-sim/dist/hmis-client-search-sim.html';
 
+const FILE = 'file://' + new URL('./dist/lesson1-client-search.html', import.meta.url).pathname;
 let pass = 0, fail = 0;
-const ok  = (n, c, extra='') => { c ? (pass++, console.log('  PASS  ' + n)) : (fail++, console.log('  FAIL  ' + n + (extra ? '  -> ' + extra : ''))); };
+const ok = (n, c, extra = '') => {
+  c ? (pass++, console.log('  PASS  ' + n))
+    : (fail++, console.log('  FAIL  ' + n + (extra ? '  -> ' + extra : '')));
+};
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
-const p = await b.newPage();
+const p = await b.newPage({ viewport: { width: 1500, height: 950 } });
 const errs = [];
 p.on('pageerror', e => errs.push(String(e)));
 p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
 await p.goto(FILE);
 
-const search = async (q) => {
-  await p.fill('#q', q);
-  await p.click('button[type=submit]');
-  await p.waitForTimeout(60);
-};
-const names = () => p.$$eval('#tbody tr .cname', els => els.map(e => e.textContent.trim()));
-const emptyTxt = () => p.$eval('#emptyState', e => e.hidden ? '' : e.textContent.trim());
-const closeClient = async () => { if (!(await p.$eval('#clientModal', e => e.hidden))) { await p.click('#clientModal [data-close]'); await p.waitForTimeout(40); } };
+// type into the search bar and wait out the debounce — never press Enter
+const type = async (q) => { await p.fill('#q', q); await p.waitForTimeout(330); };
+// strip the inline pronouns span so assertions compare on the name itself
+const names = () => p.$$eval('#tb tr[data-row] .cname', els => els.map(e => e.textContent.replace(/\s*\(.*?\)\s*$/, '').trim()));
+const zero = () => p.$eval('#zero', e => e.hidden ? '' : e.textContent.trim());
+const closeAll = () => p.keyboard.press('Escape');
 
-console.log('\n— search engine —');
-await search('Mike');
-ok('nickname "Mike" returns nothing (the trap)', (await names()).length === 0);
-ok('no-results state coaches the user', (await emptyTxt()).includes('No clients found'));
+console.log('\n— live search (no Enter key pressed) —');
+await type('Mike');
+ok('nickname "Mike" returns nothing — the trap holds', (await names()).length === 0);
+ok('empty state warns against assuming the client is new', (await zero()).includes('not proof'));
 
-await search('Tor');
-ok('3-letter surname fragment "Tor" finds Michael Torres', (await names()).includes('Michael Torres'), JSON.stringify(await names()));
+await type('Tor');
+ok('3-letter surname fragment finds Michael Torres',
+   (await names()).includes('Torres, Michael'), JSON.stringify(await names()));
 
-await search('ab');
-ok('2 characters rejected with min-length message', (await emptyTxt()).includes('at least the first 3 letters'));
+await type('To');
+ok('2 characters is rejected as too short', (await zero()).includes('at least the first 3 letters'));
 
-await search('1985');
-ok('bare year 1985 finds Katherine Morrison', (await names()).includes('Katherine Morrison'));
-ok('bare year returns only 1985 births', await p.$$eval('#tbody tr', (rs) => rs.length > 0));
+await type('1985');
+ok('bare year finds Katherine Morrison', (await names()).includes('Morrison, Katherine'));
+ok('year search returns only 1985 births',
+   await p.evaluate(() => S.rows.every(c => c.d.slice(0, 4) === '1985')));
 
 for (const d of ['12/05/1990', '12.05.1990', '12-05-1990']) {
-  await search(d);
+  await type(d);
   const n = await names();
-  ok(`date format ${d} -> 2 people share that DOB`, n.length === 2 && n.includes('Andre Whitfield'), JSON.stringify(n));
+  ok(`date format ${d} returns the same 2 people`,
+     n.length === 2 && n.includes('Whitfield, Andre') && n.includes('Underwood, Jamal'), JSON.stringify(n));
+}
+await type('13/45/1990');
+ok('invalid date is rejected', (await zero()).includes("isn't valid"));
+
+await type('Cruz');
+ok('surname token "Cruz" finds Maria de la Cruz',
+   (await names()).includes('de la Cruz, Maria'), JSON.stringify(await names()));
+
+const multi = await p.evaluate(() => search('mar del', []).rows.map(c => c.l + ', ' + c.f));
+ok('two fragments match across first AND last name', multi.includes('Delgado, Marcus'), JSON.stringify(multi));
+
+console.log('\n— scenario data integrity (guards) —');
+const uniq = await p.evaluate(() => {
+  const grab = q => search(q, []).rows.map(c => c.i);
+  return {
+    torres: grab('Tor'),
+    kate: grab('1985').filter(i => CLIENTS.find(c => c.i === i).f === 'Katherine'),
+    dec5: grab('12/05/1990'), wilson: grab('Wilson'), beckett: grab('Beckett'),
+    delgado: grab('Delgado'), naka: grab('Nakashima'), cruz: grab('Cruz')
+  };
+});
+ok('exactly one Torres reachable by "Tor"', uniq.torres.length === 1, JSON.stringify(uniq.torres));
+ok('exactly one Katherine born 1985', uniq.kate.length === 1);
+ok('exactly two people born 12/05/1990', uniq.dec5.length === 2);
+ok('exactly two James Wilsons', uniq.wilson.length === 2);
+ok('exactly two Becketts', uniq.beckett.length === 2);
+ok('exactly three Delgados', uniq.delgado.length === 3);
+ok('exactly two Nakashimas', uniq.naka.length === 2);
+ok('exactly one Cruz', uniq.cruz.length === 1);
+ok('every SSN is in the never-issued 900-999 range',
+   await p.evaluate(() => CLIENTS.every(c => !c.s || /^9\d\d-\d\d-\d{4}$/.test(c.s))));
+ok('roster is 300 clients', await p.evaluate(() => CLIENTS.length) === 300);
+ok('SSN data-quality codes present (refused records exist)',
+   await p.evaluate(() => CLIENTS.filter(c => c.q === 'refused').length) > 5);
+
+console.log('\n— ROI + SSN columns —');
+await type('Delgado');
+ok('recently-accessed hint disappears once a search is active',
+   await p.$eval('#hintRow', e => getComputedStyle(e).display === 'none'));
+ok('client ID renders on its own line under the name',
+   await p.$eval('#tb .cid', e => getComputedStyle(e).display === 'block'));
+const roi = await p.$$eval('#tb tr[data-row]', rs => rs.map(r => ({
+  name: r.querySelector('.cname').textContent.trim(),
+  roi: r.querySelector('.roi') ? r.querySelector('.roi').textContent.trim() : null
+})));
+ok('three Delgados, exactly one ROI Missing',
+   roi.length === 3 && roi.filter(r => r.roi === 'Missing').length === 1, JSON.stringify(roi));
+
+await type('Nakashima');
+const nk = await p.$$eval('#tb tr[data-row]', rs => rs.map(r => r.children[2].textContent.trim()));
+ok('one Nakashima shows (No value) for SSN', nk.some(t => t.includes('No value')), JSON.stringify(nk));
+
+console.log('\n— recents, pagination, sorting —');
+await type('');
+ok('empty search shows the recently-accessed hint', !(await p.$eval('#hintRow', e => e.hidden)));
+ok('recents list is seeded, not blank', (await names()).length === 5);
+
+// ask the page's own engine which 3-letter prefix returns the most rows
+const prefix = await p.evaluate(() => {
+  const seen = new Set(); let best = null;
+  CLIENTS.forEach(c => {
+    const k = c.l.slice(0, 3).toLowerCase();
+    if (seen.has(k)) return;
+    seen.add(k);
+    const n = search(k, []).rows.length;
+    if (!best || n > best[1]) best = [k, n];
+  });
+  return best;
+});
+await type(prefix[0]);
+const cnt = await p.textContent('#resultCount');
+ok(`pagination caps at 10 rows ("${prefix[0]}" -> ${prefix[1]} matches)`,
+   (await names()).length <= 10 && cnt.includes('of ' + prefix[1]), cnt);
+if (prefix[1] > 10) {
+  await p.click('#nextBtn2'); await p.waitForTimeout(100);
+  ok('next page advances', (await p.textContent('#resultCount')).trim().startsWith('11'));
 }
 
-await search('13/45/1990');
-ok('invalid date is rejected', (await emptyTxt()).includes("isn't a valid one"));
+await type('1990');
+const before = (await names())[0];
+await p.click('#thr th[data-sort="dob"]'); await p.waitForTimeout(100);
+ok('clicking a column header sorts',
+   (await names())[0] !== before || (await p.textContent('#thr')).includes('↑'));
 
-await search('Wilson');
-ok('"Wilson" returns two distinct people', (await names()).length === 2);
+console.log('\n— filter chips —');
+await type('');
+await p.click('#filterBtn'); await p.waitForTimeout(150);
+const ff = await p.$$eval('#filterPop [data-ff]', bs => bs.map(x => x.textContent.trim()));
+ok('filter menu offers exactly First Name, Last Name, Alias',
+   JSON.stringify(ff) === JSON.stringify(['First Name', 'Last Name', 'Alias']), JSON.stringify(ff));
+await p.click('#filterPop [data-ff="last"]'); await p.waitForTimeout(200);
+ok('choosing a field creates a chip', (await p.textContent('#chips')).includes('Last Name'));
+await p.fill('#chipVal', 'Delgado');
+await p.click('#chipGo'); await p.waitForTimeout(250);
+ok('chip value narrows the results', (await names()).length === 3, JSON.stringify(await names()));
+ok('chip displays its applied value', (await p.textContent('#chips')).includes('Delgado'));
+await p.click('#chips [data-chipdel="0"]'); await p.waitForTimeout(250);
+ok('removing the chip restores recents', (await names()).length === 5);
 
-await search('Cruz');
-ok('surname token "Cruz" finds Maria de la Cruz', (await names()).includes('Maria de la Cruz'), JSON.stringify(await names()));
+console.log('\n— column selector —');
+await p.click('#colBtn'); await p.waitForTimeout(150);
+ok('Client column is locked', await p.$eval('#cb_client', e => e.disabled));
+const collapsed = await p.textContent('#colCollapsed');
+ok('Collapsed Fields lists Client ID and Updated by',
+   collapsed.includes('Client ID') && collapsed.includes('Updated by'));
+const cols0 = await p.$$eval('#thr th', t => t.length);
+await p.click('#cb_alias'); await p.waitForTimeout(150);
+ok('toggling Alias adds a column', (await p.$$eval('#thr th', t => t.length)) === cols0 + 1);
+await p.fill('#colQ', 'vet'); await p.waitForTimeout(120);
+ok('field search filters the selector list', (await p.$$eval('#colVisible li', l => l.length)) === 1);
+await p.fill('#colQ', ''); await p.waitForTimeout(100);
+await p.click('#cb_alias'); await p.waitForTimeout(150);
+ok('column choice persists to localStorage',
+   await p.evaluate(() => !!localStorage.getItem('hmisSim.l1.columns.v2')));
+await closeAll();
 
-await search('Beckett');
-ok('"Beckett" surfaces the duplicate pair', (await names()).length === 2);
+console.log('\n— row expand —');
+await type('Torres');
+await p.click('#tb [data-exp]'); await p.waitForTimeout(150);
+const exp = await p.textContent('.expand');
+ok('chevron reveals the collapsed fields',
+   exp.includes('Client ID') && exp.includes('Updated by'), exp.slice(0, 60));
+await p.click('#tb [data-exp]');
 
-await search('100234');
-ok('6-digit client ID search works', (await names()).length === 1);
+console.log('\n— guided flow —');
+await p.reload(); await p.waitForTimeout(200);
+ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('nickname'));
+ok('progress reads task 1 of 8', (await p.textContent('#taskNo')).includes('1 of 8'));
 
-console.log('\n— filters —');
-await p.fill('#q', '');
-await p.click('#filterBtn');
-await p.fill('#fSsn', '4471');
-await p.click('#applyFilters');
-await p.waitForTimeout(60);
-let n = await names();
-ok('SSN-last-4 filter isolates the right James Wilson', n.length === 1 && n[0] === 'James Wilson', JSON.stringify(n));
-ok('filter result is ID 100662', await p.$eval('#tbody tr', r => r.dataset.id) === '100662');
-await p.click('#clearFilters');
+await p.click('#addBtn'); await p.waitForTimeout(150);
+const nt = await p.textContent('#ntBody');
+ok('Add Client defers to Lesson 2', nt.includes('Lesson 2'));
+ok('...and still flags the duplicate risk', nt.includes('already has a record'));
+await closeAll();
 
-console.log('\n— columns —');
-await p.click('#colBtn');
-const before = await p.$$eval('#theadRow th', t => t.length);
-await p.click('#col_age');
-await p.waitForTimeout(60);
-ok('toggling Age adds a column', (await p.$$eval('#theadRow th', t => t.length)) === before + 1);
-ok('locked Client column cannot be unchecked', await p.$eval('#col_client', e => e.disabled));
-ok('column choice persisted to localStorage', await p.evaluate(() => !!localStorage.getItem('claritySim.columns.v1')));
-await p.click('#col_age');
-await p.click('#colBtn');
+await type('Tor');
+await p.click('#tb tr[data-row]'); await p.waitForTimeout(200);
+ok('opening Michael Torres passes task 1', (await p.textContent('#fb')).includes('Correct'));
+ok('teaching point appears', (await p.textContent('#fb')).includes('no alias'));
+ok('score is no longer zero', !(await p.textContent('#scoreLbl')).includes('0%'));
+await closeAll();
+await p.click('#nextBtn'); await p.waitForTimeout(150);
+ok('advances to task 2', (await p.textContent('#taskNo')).includes('2 of 8'));
 
-console.log('\n— guided scenario flow —');
-await p.reload();
-ok('task 1 is the nickname problem', (await p.textContent('#taskBox')).includes('nickname'));
+await p.evaluate(() => { S.idx = 3; S.attempts = 0; S.hinted = false; renderCoach(); });
+await type('Wilson');
+await p.click('#tb tr[data-row]:has-text("4/17/91")'); await p.waitForTimeout(200);
+ok('wrong James Wilson rejected with a specific reason',
+   (await p.textContent('#fb')).includes('other James Wilson'));
+await closeAll();
+await p.click('#tb tr[data-row]:has-text("9/2/68")'); await p.waitForTimeout(200);
+ok('correct James Wilson passes (partial credit)', (await p.textContent('#fb')).includes('Correct'));
+await closeAll();
 
-// wrong move: try to Add Client while an existing record is the answer
-await p.click('#addClientBtn');
-await p.waitForTimeout(60);
-ok('Add Client during a find-task is blocked as a duplicate risk',
-   (await p.textContent('#feedback')).includes('would create a duplicate'));
+await p.evaluate(() => { S.idx = 4; S.attempts = 0; S.hinted = false; renderCoach(); });
+await type('Delgado');
+await p.click('#tb tr[data-row]:has-text("Marcus")'); await p.waitForTimeout(200);
+ok('a Delgado with ROI Yes is rejected', (await p.textContent('#fb')).includes('consent is on file'));
+await closeAll();
+await p.click('#tb tr[data-row]:has-text("Elena")'); await p.waitForTimeout(200);
+ok('the ROI-Missing Delgado passes', (await p.textContent('#fb')).includes('Correct'));
+await closeAll();
 
-await search('Tor');
-await p.click('#tbody tr');
-await p.waitForTimeout(80);
-ok('opening Michael Torres passes task 1', (await p.textContent('#feedback')).includes('Correct'));
-ok('teaching point shown after success', (await p.textContent('#feedback')).includes('Michael'));
-ok('score registered', (await p.textContent('#scoreLabel')) !== 'Score 0%');
-ok('client opened appears in Recently accessed', (await p.textContent('#recentList')).includes('Michael Torres'));
+await p.evaluate(() => { S.idx = 5; S.attempts = 0; S.hinted = false; renderCoach(); });
+await type('Nakashima');
+await p.click('#tb tr[data-row]:has-text("3/22/77")'); await p.waitForTimeout(200);
+ok('record with an SSN but the wrong DOB is rejected',
+   (await p.textContent('#fb')).includes("Don't pick a record"));
+await closeAll();
+await p.click('#tb tr[data-row]:has-text("11/9/82")'); await p.waitForTimeout(200);
+ok('SSN-refused record with the right DOB passes', (await p.textContent('#fb')).includes('Correct'));
+ok('its profile shows the SSN data-quality reason',
+   (await p.evaluate(() => document.getElementById('pfBody').textContent)).includes('Client refused'));
+await closeAll();
 
-await closeClient();
-await p.click('#nextBtn');
-await p.waitForTimeout(60);
-ok('advances to task 2', (await p.textContent('#progLabel')).includes('Task 2'));
-
-// task 2 — wrong client first, then right one
-await search('1985');
-await p.click('#tbody tr:has-text("Marcus Delgado")').catch(() => {});
-await p.waitForTimeout(80);
-const fb2 = await p.textContent('#feedback');
-ok('opening the wrong client is marked incorrect', fb2.includes('Not this client') || fb2.includes("isn't the client"), fb2.slice(0, 80));
-await closeClient();
-await search('Morr');
-await p.click('#tbody tr');
-await p.waitForTimeout(80);
-ok('opening Katherine Morrison passes task 2 (partial credit)', (await p.textContent('#feedback')).includes('Correct'));
-
-await closeClient();
-
-console.log('\n— duplicate flag path —');
-await p.evaluate(() => { App.idx = 4; App.attempts = 0; App.hinted = false; renderCoach(); });
-await search('Beckett');
-await p.click('#tbody tr');
-await p.waitForTimeout(60);
-await p.click('#flagDupBtn');
-await p.waitForTimeout(80);
-ok('flagging a Beckett record passes the duplicate task', (await p.textContent('#feedback')).includes('Correct'));
-
-await closeClient();
-
-console.log('\n— add-client path (task 7) —');
-await p.evaluate(() => { App.idx = 6; App.attempts = 0; App.hinted = false; App.searches = []; App.results = []; renderCoach(); });
-await p.click('#addClientBtn');
-await p.waitForTimeout(60);
-ok('Add Client blocked before searching enough', (await p.textContent('#feedback')).includes('Search first'));
-
-await search('Ellery');
-await search('06/18/1988');
-await p.click('#addClientBtn');
-await p.waitForTimeout(60);
-ok('duplicate-check interstitial appears after real searching', !(await p.$eval('#dupModal', e => e.hidden)));
-await p.click('#proceedAdd');
-await p.fill('#aFirst', 'Desmond');
-await p.fill('#aLast', 'Ellery');
-await p.click('#saveClient');
-await p.waitForTimeout(60);
-ok('save blocked without DOB and ROI', (await p.textContent('#addErr')).includes('required'));
-await p.fill('#aDob', '06/18/1988');
-await p.click('#saveClient');
-await p.waitForTimeout(60);
-ok('save still blocked without ROI', (await p.textContent('#addErr')).includes('Release of Information'));
-await p.selectOption('#aRoi', 'yes');
-await p.click('#saveClient');
-await p.waitForTimeout(80);
-ok('client saves once ROI recorded', await p.$eval('#addModal', e => e.hidden));
-ok('add-client task passes', (await p.textContent('#feedback')).includes('Correct'));
-await search('Ellery');
-ok('newly added client is now searchable', (await names()).includes('Desmond Ellery'));
+await p.evaluate(() => { S.idx = 7; S.attempts = 0; S.hinted = false; renderCoach(); });
+await type('Beckett');
+await p.click('#tb tr[data-row]'); await p.waitForTimeout(150);
+await p.click('#flagBtn'); await p.waitForTimeout(200);
+ok('flagging a Beckett passes the duplicate task', (await p.textContent('#fb')).includes('Correct'));
+ok('teaching point says escalate, never merge', (await p.textContent('#fb')).includes('never merge'));
+await p.click('#nextBtn'); await p.waitForTimeout(250);
+ok('completion modal appears after the final task', !(await p.$eval('#done', e => e.hidden)));
+ok('completion reports a percentage', (await p.textContent('#dnBody')).includes('%'));
+ok('completion points forward to Lesson 2', (await p.textContent('#dnBody')).includes('Lesson 2'));
+await closeAll();
+ok('free exploration unlocks after the last task', (await p.textContent('#tTitle')).includes('complete'));
 
 console.log('\n— accessibility / integrity —');
-ok('results table has an aria-live count', await p.$eval('#resultCount', e => e.getAttribute('aria-live') === 'polite'));
-ok('search input has a label', await p.$$eval('label[for=q]', e => e.length === 1));
-ok('training banner present', (await p.textContent('#simBanner')).includes('Training Simulation'));
-ok('non-affiliation disclaimer present', (await p.textContent('footer.legal')).includes('Not affiliated'));
-ok('no JS errors during the whole run', errs.length === 0, errs.join(' | '));
+ok('result count is an aria-live region',
+   await p.$eval('#resultCount', e => e.getAttribute('aria-live') === 'polite'));
+ok('search input is labelled', await p.$$eval('label[for=q]', e => e.length === 1));
+ok('training banner is present', (await p.textContent('#simBanner')).includes('Training Simulation'));
+ok('non-affiliation disclaimer is present', (await p.textContent('.legal')).includes('Not affiliated'));
+ok('SSN safety note is shown to the learner', (await p.textContent('.legal')).includes('900'));
+ok('every rail button has an accessible name',
+   await p.$$eval('.railbtn', bs => bs.every(x => x.getAttribute('aria-label'))));
+ok('no JS errors during the entire run', errs.length === 0, errs.join(' | '));
 
 await b.close();
 console.log(`\n${pass} passed, ${fail} failed\n`);

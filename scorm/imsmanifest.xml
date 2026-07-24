@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<manifest identifier="RONIN-HMIS-CLIENT-SEARCH-SIM" version="1.2"
+<manifest identifier="RONIN-HMIS-L1-CLIENT-SEARCH" version="1.2"
   xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
   xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -12,18 +12,18 @@
     <schemaversion>1.2</schemaversion>
   </metadata>
 
-  <organizations default="ORG-CLIENT-SEARCH">
-    <organization identifier="ORG-CLIENT-SEARCH">
-      <title>HMIS Client Search Simulation</title>
-      <item identifier="ITEM-CLIENT-SEARCH" identifierref="RES-CLIENT-SEARCH" isvisible="true">
-        <title>Client Search Simulation</title>
+  <organizations default="ORG-L1">
+    <organization identifier="ORG-L1">
+      <title>HMIS Training — Lesson 1: Finding a Client</title>
+      <item identifier="ITEM-L1" identifierref="RES-L1" isvisible="true">
+        <title>Lesson 1: Finding a Client</title>
         <adlcp:masteryscore>80</adlcp:masteryscore>
       </item>
     </organization>
   </organizations>
 
   <resources>
-    <resource identifier="RES-CLIENT-SEARCH" type="webcontent" adlcp:scormtype="sco" href="index.html">
+    <resource identifier="RES-L1" type="webcontent" adlcp:scormtype="sco" href="index.html">
       <file href="index.html"/>
     </resource>
   </resources>

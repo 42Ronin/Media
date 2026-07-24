@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1: Client Search — HMIS Training Simulation</title>
+<style>
+:root{
+  --rail:#e9e8fa; --rail-ink:#4a44a8; --canvas:#eeedfb; --card:#fdfdff;
+  --ink:#2a2a3c; --muted:#6b6b85; --line:#e4e3f2; --line-2:#efeefa;
+  --indigo:#4f46b8; --indigo-dk:#3d3593; --indigo-soft:#eceafb;
+  --green:#1a7a4a; --green-soft:#e8f5ee; --red:#b3261e; --red-soft:#fbeae9;
+  --amber:#8a5a00;
+  --coach:#1b2430; --coach-2:#243040; --coach-ink:#e8eef5; --coach-mut:#93a4b8;
+  --ok:#3fb984; --bad:#ff7a70; --tip:#f5c26b;
+  --focus:#0b6fd4;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font:14px/1.5 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink); background:var(--canvas); -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit}
+:focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+#simBanner{
+  position:fixed;top:0;left:0;right:0;height:26px;z-index:200;
+  background:#6b2d00;color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px}
+#simBanner em{font-style:normal;font-weight:400;text-transform:none;letter-spacing:0;opacity:.9}
+
+.app{position:fixed;top:26px;left:0;right:360px;bottom:0;display:flex;overflow:hidden}
+@media(max-width:1180px){.app{right:0;bottom:44%}}
+
+/* ---------------- left rail ---------------- */
+.rail{width:70px;flex:none;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;gap:4px;overflow:hidden}
+.logo{width:34px;height:34px;margin-bottom:14px;flex:none}
+.railbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--rail-ink);opacity:.72}
+.railbtn:hover{background:rgba(255,255,255,.6);opacity:1}
+.railbtn[aria-current="page"]{background:#fff;opacity:1;box-shadow:0 1px 3px rgba(60,50,140,.18)}
+.railspacer{flex:1}
+
+/* ---------------- app body ---------------- */
+.body{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 20px}
+.tb{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--indigo)}
+.tb:hover{background:rgba(255,255,255,.7)}
+.who{display:flex;align-items:center;gap:10px;padding-left:8px}
+.who .av{width:38px;height:38px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.who .nm{line-height:1.25}
+.who .nm b{display:block;font-size:14px;font-weight:600}
+.who .nm span{font-size:12px;color:var(--muted)}
+
+.content{flex:1;overflow:auto;padding:0 22px 26px;display:flex;gap:18px;align-items:flex-start}
+.card{flex:1;min-width:0;background:var(--card);border-radius:16px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 8px 26px rgba(60,50,140,.07);padding:20px 0 0}
+.cardhead{display:flex;align-items:flex-start;padding:0 22px 4px}
+.cardhead h1{margin:0;font-size:23px;font-weight:600;color:var(--indigo);line-height:1.15}
+.cardhead p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.addbtn{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1.6px solid var(--indigo);color:var(--indigo);display:grid;place-items:center}
+.addbtn:hover{background:var(--indigo-soft)}
+
+/* search */
+.searchrow{display:flex;align-items:center;gap:12px;padding:14px 22px 0}
+.pill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  border:1.4px solid #cfcde8;border-radius:26px;padding:8px 14px;background:#fff;min-height:48px;position:relative}
+.pill.focus{border-color:var(--indigo);box-shadow:0 0 0 3px var(--indigo-soft)}
+.pill .lab{position:absolute;top:-8px;left:16px;background:var(--card);padding:0 5px;font-size:11px;color:var(--indigo);display:none}
+.pill.has .lab{display:block}
+.pill input{flex:1;min-width:110px;border:0;outline:0;font-size:15px;background:transparent;padding:3px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfcde8;border-radius:20px;padding:4px 8px 4px 6px;font-size:13px;background:#fff;white-space:nowrap}
+.chip .cv{font-weight:600}
+.chip button{color:var(--muted);display:grid;place-items:center;width:18px;height:18px;border-radius:50%}
+.chip button:hover{background:var(--line-2);color:var(--ink)}
+.pill .act{display:flex;align-items:center;gap:4px;margin-left:auto}
+.pill .act button{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.pill .act button:hover{background:var(--line-2);color:var(--ink)}
+.tool{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;color:var(--indigo);flex:none;position:relative}
+.tool:hover{background:var(--indigo-soft)}
+.tool[aria-expanded="true"]{background:var(--indigo-soft)}
+
+.hintrow{display:flex;align-items:center;gap:10px;padding:14px 22px 2px;color:var(--ink);font-size:13.5px}
+.hintrow[hidden]{display:none}   /* display:flex would otherwise beat the [hidden] default */
+.hintrow svg{color:var(--indigo);flex:none}
+
+/* table */
+.tablewrap{margin-top:10px;overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+thead th{background:#faf9ff;text-align:left;font-size:13px;font-weight:600;color:var(--muted);
+  padding:12px 10px;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2);white-space:nowrap;user-select:none}
+thead th.sortable{cursor:pointer}
+thead th:first-child{padding-left:22px;width:44px}
+tbody td{padding:10px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+tbody td:first-child{padding-left:22px}
+tbody tr:hover{background:#faf9ff}
+tbody tr.open{background:var(--indigo-soft)}
+.rowbtn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.rowbtn:hover{background:var(--line-2);color:var(--ink)}
+.cwrap{display:flex;align-items:center;gap:11px;cursor:pointer;min-width:210px}
+.av2{width:34px;height:34px;border-radius:7px;color:#fff;display:grid;place-items:center;font-size:12.5px;font-weight:700;flex:none}
+.cname{display:block;font-weight:600;font-size:14px}
+.cid{display:block;font-size:12.5px;color:var(--muted)}
+.pron{font-weight:400;color:var(--muted)}
+.ssn{display:flex;align-items:center;gap:9px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ssn svg{color:var(--indigo);flex:none}
+.roi{display:inline-block;min-width:74px;text-align:center;border-radius:18px;padding:6px 12px;font-size:13px;font-weight:500;border:1px solid}
+.roi.yes{color:var(--green);border-color:#b9dcc8;background:#fff}
+.roi.missing{color:var(--indigo);border-color:#cfcde8;background:#fff}
+.roi.no{color:var(--red);border-color:#e8b7b3;background:#fff}
+.dob{display:flex;align-items:center;gap:9px;white-space:nowrap}
+.dob svg{color:var(--indigo);flex:none}
+.dob b{font-weight:500;font-size:13.5px}
+.dob span{display:block;font-size:11.5px;color:var(--muted)}
+.novalue{color:#9a9ab0;font-size:13px}
+.iconcell{display:flex;align-items:center;gap:12px;justify-content:flex-end;color:var(--muted);padding-right:12px}
+.expand td{background:#faf9ff;padding:0}
+.expand .inner{padding:14px 22px 16px 100px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.expand .f{font-size:13px}
+.expand .f b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-bottom:2px}
+.pager{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:12px 22px 16px;font-size:13px;color:var(--muted)}
+.pager button{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--indigo)}
+.pager button:disabled{color:#c3c2d6;cursor:default}
+.pager button:not(:disabled):hover{background:var(--indigo-soft)}
+.zero{padding:34px 22px 40px;text-align:center}
+.zero b{display:block;font-size:16px;margin-bottom:6px}
+.zero span{color:var(--muted);font-size:13.5px;display:block;max-width:520px;margin:0 auto}
+
+/* stat tiles */
+.tiles{width:170px;flex:none;display:flex;flex-direction:column;gap:14px;padding-top:2px}
+@media(max-width:1080px){.tiles{display:none}}
+.tile{background:var(--card);border-radius:14px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 6px 18px rgba(60,50,140,.06);
+  padding:16px 10px;text-align:center}
+.tile b{display:block;font-size:30px;font-weight:500;color:var(--indigo);line-height:1.1}
+.tile span{font-size:13px;color:var(--ink)}
+.tile i{display:block;margin-top:6px;color:var(--muted)}
+
+/* popovers */
+.pop{position:absolute;z-index:60;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(40,30,90,.24);
+  border:1px solid var(--line);padding:8px;min-width:210px}
+.pop[hidden]{display:none}
+.pop .ph{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 10px 6px;background:#f7f6fd;border-radius:7px;margin:4px 0}
+.menuitem{display:flex;align-items:center;gap:11px;width:100%;padding:11px 12px;border-radius:8px;font-size:14px;text-align:left}
+.menuitem:hover{background:var(--indigo-soft)}
+.menuitem svg{color:var(--indigo);flex:none}
+.colsearch{display:flex;align-items:center;gap:8px;border:1.4px solid #cfcde8;border-radius:8px;padding:9px 11px;margin:4px}
+.colsearch input{flex:1;border:0;outline:0;font-size:14px;background:transparent;min-width:0}
+.collist{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
+.collist li{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;font-size:14px}
+.collist li:not(.locked){cursor:grab}
+.collist li:hover{background:#faf9ff}
+.collist li.locked{color:#9a9ab0}
+.collist li.dragover{box-shadow:inset 0 2px 0 var(--indigo);background:var(--indigo-soft)}
+.collist input[type=checkbox]{width:17px;height:17px;accent-color:var(--indigo);flex:none}
+.collist .grip{margin-left:auto;color:#b9b8cc;letter-spacing:-2px;font-size:15px}
+.collist .badge{margin-left:auto;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 7px;color:var(--muted)}
+.chipedit{display:flex;flex-direction:column;gap:8px;padding:6px}
+.chipedit label{font-size:12px;color:var(--muted);font-weight:600}
+.chipedit .r{display:flex;gap:6px}
+.chipedit input{flex:1;border:1.4px solid #cfcde8;border-radius:8px;padding:9px 11px;outline:0;min-width:0}
+.chipedit input:focus{border-color:var(--indigo)}
+.chipedit button.go{width:38px;border-radius:8px;background:var(--indigo);color:#fff;display:grid;place-items:center}
+
+/* modal */
+.backdrop{position:fixed;inset:0;background:rgba(24,20,50,.5);z-index:150;display:grid;place-items:center;padding:24px}
+.backdrop[hidden]{display:none}
+.modal{background:#fff;border-radius:16px;width:min(660px,100%);max-height:86vh;overflow:auto;box-shadow:0 30px 70px rgba(0,0,0,.32)}
+.mhead{display:flex;align-items:center;gap:14px;padding:20px 22px 16px;border-bottom:1px solid var(--line-2)}
+.mhead h2{margin:0;font-size:19px;font-weight:600}
+.mbody{padding:20px 22px}
+.mfoot{display:flex;gap:10px;justify-content:flex-end;padding:14px 22px;background:#faf9ff;border-top:1px solid var(--line-2);flex-wrap:wrap}
+.x{margin-left:auto;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:20px}
+.x:hover{background:var(--line-2)}
+.btn{border-radius:9px;padding:10px 16px;font-size:14px;font-weight:600}
+.btn.primary{background:var(--indigo);color:#fff}
+.btn.primary:hover{background:var(--indigo-dk)}
+.btn.ghost{border:1px solid var(--line);background:#fff}
+.btn.ghost:hover{background:#faf9ff}
+.banner{display:flex;gap:11px;padding:13px 15px;border-radius:10px;font-size:13.5px;margin-bottom:18px;border-left:4px solid}
+.banner.ok{background:var(--green-soft);border-color:var(--green);color:#14603a}
+.banner.warn{background:#fdf3e2;border-color:var(--amber);color:#6d4700}
+.banner.bad{background:var(--red-soft);border-color:var(--red);color:#8c1c16}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:10px 16px;font-size:14px}
+.kv dt{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding-top:2px}
+.kv dd{margin:0}
+
+/* ---------------- coach drawer ---------------- */
+.coach{position:fixed;top:26px;right:0;bottom:0;width:360px;background:var(--coach);color:var(--coach-ink);
+  display:flex;flex-direction:column;z-index:120;box-shadow:-6px 0 24px rgba(20,16,40,.18)}
+@media(max-width:1180px){.coach{top:auto;left:0;width:auto;height:44%}}
+.chead{padding:16px 18px 12px;border-bottom:1px solid #2c3a4b;flex:none}
+.chead .lz{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--coach-mut);font-weight:700}
+.chead h2{margin:3px 0 0;font-size:16px;font-weight:600}
+.bar{height:5px;background:#2c3a4b;border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .4s}
+.cmeta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--coach-mut)}
+.cbody{flex:1;overflow:auto;padding:16px 18px}
+.tasktitle{font-size:15px;font-weight:700;margin:0 0 8px}
+.taskbrief{font-size:13.5px;color:#cbd6e2;margin:0 0 12px}
+.taskbrief .q{color:#fff;font-style:italic}
+.taskbrief code{background:#2c3a4b;padding:1px 6px;border-radius:4px;font-size:12.5px}
+.taskask{background:var(--coach-2);border-left:3px solid var(--ok);padding:11px 13px;border-radius:0 8px 8px 0;font-size:13.5px}
+.fb{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;border-left:3px solid;background:var(--coach-2)}
+.fb.good{border-color:var(--ok)} .fb.bad{border-color:var(--bad)} .fb.tip{border-color:var(--tip)}
+.fb b{display:block;margin-bottom:5px;font-size:13.5px}
+.fb .teach{margin-top:9px;padding-top:9px;border-top:1px solid #35455a;color:#c3d0de}
+.cfoot{padding:12px 18px 16px;border-top:1px solid #2c3a4b;display:flex;gap:8px;flex-wrap:wrap;flex:none}
+.cbtn{border:1px solid #3a4a5e;border-radius:8px;padding:9px 13px;font-size:13px;font-weight:600;color:var(--coach-ink)}
+.cbtn:hover{background:var(--coach-2)}
+.cbtn.go{background:var(--ok);border-color:var(--ok);color:#08281a}
+.cbtn.go:hover{background:#54cd97}
+.tasklist{list-style:none;margin:16px 0 0;padding:0;font-size:12.5px}
+.tasklist li{display:flex;gap:9px;padding:5px 0;color:var(--coach-mut)}
+.tasklist li.cur{color:#fff;font-weight:600}
+.tasklist li.done{color:var(--ok)}
+.legal{padding:12px 18px 18px;font-size:11px;color:#7a8ba0;line-height:1.5;border-top:1px solid #2c3a4b}
+</style>
+</head>
+<body>
+
+<div id="simBanner">Training Simulation <em>· Practice environment. Not a live HMIS. All records fictional.</em></div>
+
+<!-- ============================ APP ============================ -->
+<div class="app">
+  <nav class="rail" aria-label="Main">
+    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M20 4 34 12 20 20 6 12z" fill="#8fd3ee"/><path d="M20 14 34 22 20 30 6 22z" fill="#c9b6f5"/>
+      <circle cx="30" cy="30" r="8" fill="#6ee7c4"/><path d="M26.5 30l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <button class="railbtn" aria-current="page" title="Clients" aria-label="Clients">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.2"/><path d="M4 20c0-3.3 2.7-5.5 6-5.5"/><circle cx="16.5" cy="16.5" r="3.6"/><path d="M19.3 19.3L22 22"/></svg>
+    </button>
+    <button class="railbtn" data-locked title="Reports" aria-label="Reports"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="4" height="9" rx="1"/><rect x="10" y="5" width="4" height="15" rx="1"/><rect x="17" y="8" width="4" height="12" rx="1"/></svg></button>
+    <button class="railbtn" data-locked title="Calendar" aria-label="Calendar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3M9 14.5l2 2 4-4"/></svg></button>
+    <button class="railbtn" data-locked title="Referrals" aria-label="Referrals"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12H8M12 7l-5 5 5 5M3 4v16"/></svg></button>
+    <button class="railbtn" data-locked title="Inbox" aria-label="Inbox"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 13h4l1.5 3h6l1.5-3h4"/></svg></button>
+    <button class="railbtn" data-locked title="Locations" aria-label="Locations"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="10" r="2.2"/><path d="M12 12.5V17"/></svg></button>
+    <button class="railbtn" data-locked title="Housing" aria-label="Housing"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-5h6v5"/></svg></button>
+    <button class="railbtn" data-locked title="Setup" aria-label="Setup"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.5 6.5a3.5 3.5 0 01-4.6 4.6L5 16l3 3 4.9-4.9a3.5 3.5 0 004.6-4.6l-2.3 2.3-2.1-2.1z"/></svg></button>
+    <button class="railbtn" data-locked title="Settings" aria-label="Settings"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></button>
+    <div class="railspacer"></div>
+    <button class="railbtn" data-locked title="Expand menu" aria-label="Expand menu"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 6l6 6-6 6M13 6l6 6-6 6"/></svg></button>
+  </nav>
+
+  <div class="body">
+    <div class="topbar">
+      <button class="tb" data-locked title="Dark mode" aria-label="Dark mode"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg></button>
+      <button class="tb" data-locked title="Global search" aria-label="Global search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
+      <button class="tb" data-locked title="Open in new window" aria-label="Open in new window"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
+      <div class="who"><span class="av">TR</span><span class="nm"><b>Trainee</b><span>Riverside Outreach Collective</span></span></div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="cardhead">
+          <div><h1>Clients</h1><p>Search for a client</p></div>
+          <button class="addbtn" id="addBtn" title="Add Client" aria-label="Add Client">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 6v12M6 12h12"/></svg>
+          </button>
+        </div>
+
+        <div class="searchrow">
+          <div class="pill" id="pill">
+            <span class="lab">Search</span>
+            <span id="chips"></span>
+            <label class="sr-only" for="q">Search for a client by name, date of birth, or year of birth</label>
+            <input id="q" type="text" autocomplete="off" placeholder="Search" aria-describedby="resultCount">
+            <span class="act">
+              <button id="clearBtn" title="Clear search" aria-label="Clear search" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+              <button id="goBtn" title="Search" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
+            </span>
+          </div>
+          <button class="tool" id="filterBtn" title="Add a filter" aria-label="Add a filter" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
+          </button>
+          <button class="tool" id="colBtn" title="Choose columns" aria-label="Choose columns" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5v15M15 4.5v15"/></svg>
+          </button>
+        </div>
+
+        <div class="hintrow" id="hintRow">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8"/><path d="M3 4v4h4M12 7.5V12l3 2"/></svg>
+          <span>Showing recently accessed clients. Use the search bar above to find other clients.</span>
+        </div>
+
+        <div class="tablewrap">
+          <table id="tbl"><thead><tr id="thr"></tr></thead><tbody id="tb"></tbody></table>
+        </div>
+        <div class="zero" id="zero" hidden></div>
+        <div class="pager" id="pager" hidden>
+          <span id="resultCount" aria-live="polite"></span>
+          <button id="prevBtn" aria-label="Previous page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 6l-6 6 6 6"/></svg></button>
+          <button id="nextBtn2" aria-label="Next page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+
+      <div class="tiles" aria-hidden="true">
+        <div class="tile"><b>5</b><span>Active enrollments</span><i>ⓘ</i></div>
+        <div class="tile"><b>0</b><span>Status due</span><i>ⓘ</i></div>
+        <div class="tile"><b>0</b><span>Case manager</span><i>ⓘ</i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- popovers -->
+<div class="pop" id="filterPop" hidden role="menu" aria-label="Add a filter"></div>
+<div class="pop" id="chipPop" hidden></div>
+<div class="pop" id="colPop" hidden aria-label="Choose columns">
+  <div class="colsearch">
+    <label class="sr-only" for="colQ">Search fields</label>
+    <input id="colQ" type="text" placeholder="Search fields...">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+  </div>
+  <div class="ph">Visible Fields</div>
+  <ul class="collist" id="colVisible"></ul>
+  <div class="ph">Collapsed Fields</div>
+  <ul class="collist" id="colCollapsed"></ul>
+</div>
+
+<!-- client profile -->
+<div class="backdrop" id="profile" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+    <div class="mhead"><h2 id="pfTitle"></h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="mbody" id="pfBody"></div>
+    <div class="mfoot">
+      <button class="btn ghost" id="flagBtn">Flag possible duplicate</button>
+      <button class="btn primary" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- generic notice -->
+<div class="backdrop" id="notice" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ntTitle" style="width:min(520px,100%)">
+    <div class="mhead"><h2 id="ntTitle"></h2><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="mbody" id="ntBody"></div>
+    <div class="mfoot"><button class="btn primary" data-close>Got it</button></div>
+  </div>
+</div>
+
+<!-- completion -->
+<div class="backdrop" id="done" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dnTitle">
+    <div class="mhead"><h2 id="dnTitle">Lesson 1 complete</h2></div>
+    <div class="mbody" id="dnBody"></div>
+    <div class="mfoot">
+      <button class="btn ghost" id="restartBtn">Restart lesson</button>
+      <button class="btn primary" data-close>Continue exploring</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ COACH ============================ -->
+<aside class="coach" aria-label="Training panel">
+  <div class="chead">
+    <div class="lz">Lesson 1 of 2</div>
+    <h2>Finding a client</h2>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="cmeta"><span id="taskNo"></span><span id="scoreLbl"></span></div>
+  </div>
+  <div class="cbody">
+    <h3 class="tasktitle" id="tTitle"></h3>
+    <p class="taskbrief" id="tBrief"></p>
+    <div class="taskask" id="tAsk"></div>
+    <div id="fb"></div>
+    <ul class="tasklist" id="tList"></ul>
+  </div>
+  <div class="cfoot">
+    <button class="cbtn" id="hintBtn">Show hint</button>
+    <button class="cbtn" id="skipBtn">Skip</button>
+    <button class="cbtn go" id="nextBtn" hidden>Next task →</button>
+  </div>
+  <div class="legal">
+    Independent training simulation. Not affiliated with, endorsed by, or connected to Bitfocus, Inc.
+    All clients are fictional and all SSNs use the 900–999 range, which is never issued to real people.
+    Your live system's screens and required fields are configured by your CoC and will differ.
+  </div>
+</aside>
+
+<script>
+"use strict";
+/* ============================================================
+   SHARED LAYER — reused by Lesson 2 (chrome, roster, search)
+   ============================================================ */
+var DATA = {"clients":[{"i":"DEE9E202D","f":"Rene","l":"Abernathy","a":"","p":"","d":"2003-04-18","s":"963-47-1320","q":"full","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2025-04-12","c":1},{"i":"B59C0EECC","f":"Matthias","l":"Achebe","a":"Matt","p":"","d":"1977-01-19","s":null,"q":"refused","r":"Yes","h":2,"v":"","u":"J. Whitfield","t":"2026-06-13","c":2},{"i":"1D2A3DE1D","f":"Tamara","l":"Achebe","a":"","p":"","d":"1979-01-08","s":null,"q":"refused","r":"Missing","h":1,"v":"No","u":"M. Lindgren","t":"2026-01-18","c":7},{"i":"2C8579C83","f":"Perpetua","l":"Achterberg","a":"Per","p":"He/Him/His","d":"2005-01-20","s":null,"q":"refused","r":"Yes","h":1,"v":"Yes","u":"D. Ferreira","t":"2026-07-04","c":7},{"i":"1BFCBC60F","f":"Beatrice","l":"Adeyemi","a":"","p":"","d":"1965-11-16","s":"909-58-2706","q":"full","r":"Missing","h":2,"v":"No","u":"T. Okoye","t":"2026-01-02","c":2},{"i":"82D5D60E1","f":"Gideon","l":"Adeyemi","a":"","p":"He/Him/His","d":"1957-05-19","s":"900-46-6845","q":"full","r":"Yes","h":2,"v":"Yes","u":"K. Nakamura","t":"2026-11-08","c":4},{"i":"2D0DE2F76","f":"Marlowe","l":"Adeyemi","a":"","p":"","d":"2003-08-19","s":"952-83-1764","q":"full","r":"Yes","h":4,"v":"No","u":"C. Yoon","t":"2026-08-28","c":6},{"i":"680E2C38C","f":"Ulrich","l":"Arrington","a":"Ulri","p":"She/Her/Hers","d":"1996-09-01","s":null,"q":"unknown","r":"Missing","h":1,"v":"No","u":"J. Whitfield","t":"2026-11-25","c":6},{"i":"D0954CF66","f":"Aisha","l":"Ashworth","a":"Aish","p":"They/Them/Theirs","d":"1973-04-24","s":"953-36-3621","q":"full","r":"Yes","h":2,"v":"No","u":"D. Ferreira","t":"2026-05-26","c":5},{"i":"F14219821","f":"Piotr","l":"Ashworth","a":"","p":"","d":"1985-10-01","s":"938-39-8088","q":"full","r":"No","h":4,"v":"Yes","u":"M. Lindgren","t":"2025-06-16","c":6},{"i":"48769679E","f":"Delphine","l":"Balogun","a":"","p":"She/Her/Hers","d":"1994-10-14","s":"981-88-7575","q":"full","r":"Yes","h":1,"v":"No","u":"T. Okoye","t":"2026-05-13","c":6},{"i":"6EDBB67F0","f":"Leopold","l":"Balogun","a":"","p":"","d":"1954-11-02","s":"900-78-1000","q":"full","r":"No","h":1,"v":"Yes","u":"M. Lindgren","t":"2026-12-06","c":7},{"i":"32A4B5D2F","f":"Amara","l":"Banks","a":"","p":"They/Them/Theirs","d":"1968-12-25","s":"958-52-4436","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-04-17","c":0},{"i":"77C85E56A","f":"Magdalena","l":"Banks","a":"Mag","p":"","d":"1950-11-25","s":"909-32-0733","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2025-11-13","c":2},{"i":"5BB517588","f":"Shauna","l":"Beckett","a":"","p":"She/Her/Hers","d":"1993-04-30","s":"926-71-2210","q":"full","r":"Missing","h":1,"v":"No","u":"A. Barnes","t":"2026-08-13","c":0},{"i":"6381E5405","f":"Shawna","l":"Beckett","a":"","p":"She/Her/Hers","d":"1993-04-30","s":"926-71-2210","q":"full","r":"Yes","h":1,"v":"No","u":"T. Okoye","t":"2026-09-25","c":6},{"i":"51D54C5BC","f":"Thaddeus","l":"Bellweather","a":"Tha","p":"","d":"1972-08-24","s":"927-95-8773","q":"full","r":"Missing","h":1,"v":"No","u":"C. Yoon","t":"2026-01-03","c":5},{"i":"CC6B46F2C","f":"Vasili","l":"Bellweather","a":"","p":"They/Them/Theirs","d":"1998-01-18","s":"955-84-9514","q":"full","r":"Missing","h":1,"v":"No","u":"L. Mbatha","t":"2026-04-11","c":3},{"i":"57DD72015","f":"Auden","l":"Bennani","a":"Aude","p":"","d":"1954-05-22","s":"962-39-5990","q":"full","r":"Yes","h":2,"v":"No","u":"M. Lindgren","t":"2026-06-25","c":6},{"i":"03E6DE054","f":"Matthias","l":"Bennani","a":"","p":"","d":"1968-01-26","s":"996-20-2005","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2025-12-27","c":0},{"i":"8E37C9F4E","f":"Vashti","l":"Bergstrom","a":"Vas","p":"She/Her/Hers","d":"1980-10-21","s":"976-53-9800","q":"full","r":"Missing","h":1,"v":"No","u":"T. Okoye","t":"2026-12-12","c":0},{"i":"E96FAC5A9","f":"Cyprian","l":"Blackwell","a":"","p":"","d":"2000-10-21","s":"902-67-0963","q":"approx","r":"No","h":1,"v":"No","u":"R. Delacroix","t":"2026-03-22","c":4},{"i":"A5371565E","f":"Leona","l":"Blackwell","a":"Leo","p":"","d":"1957-08-11","s":"949-16-1068","q":"full","r":"No","h":1,"v":"No","u":"M. Lindgren","t":"2025-04-08","c":2},{"i":"2A4122BEE","f":"Auden","l":"Bordelon","a":"","p":"","d":"1982-05-16","s":null,"q":"notcollected","r":"No","h":1,"v":"No","u":"L. Mbatha","t":"2026-06-01","c":7},{"i":"B5BEFD34B","f":"Caspian","l":"Bordelon","a":"","p":"","d":"2008-04-27","s":null,"q":"unknown","r":"Yes","h":1,"v":"No","u":"S. Ramirez","t":"2026-02-05","c":7},{"i":"791DF3671","f":"Lorraine","l":"Bordelon","a":"Lor","p":"","d":"1960-06-05","s":"949-87-5851","q":"full","r":"Yes","h":1,"v":"","u":"A. Barnes","t":"2026-12-01","c":4},{"i":"7B6113561","f":"Percival","l":"Bordelon","a":"Per","p":"He/Him/His","d":"1952-03-10","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2025-05-25","c":0},{"i":"9D3916BED","f":"Alicia","l":"Boudreaux","a":"","p":"","d":"1984-04-04","s":"950-68-9050","q":"full","r":"Yes","h":2,"v":"No","u":"R. Delacroix","t":"2026-04-14","c":3},{"i":"E6834D18D","f":"Dagny","l":"Brennan","a":"","p":"","d":"1969-05-16","s":"900-58-3485","q":"full","r":"Yes","h":4,"v":"No","u":"S. Ramirez","t":"2025-08-18","c":5},{"i":"7E077EDFF","f":"Priya","l":"Brennan","a":"","p":"","d":"1960-09-02","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2025-12-08","c":6},{"i":"C689DED1C","f":"Rhoda","l":"Brennan","a":"","p":"","d":"1961-01-22","s":"921-18-8510","q":"full","r":"Missing","h":1,"v":"No","u":"R. Delacroix","t":"2025-06-16","c":6},{"i":"FDAD61847","f":"Tabitha","l":"Brennan","a":"Tab","p":"","d":"1964-02-20","s":"973-54-7755","q":"full","r":"Missing","h":1,"v":"No","u":"C. Yoon","t":"2025-03-16","c":4},{"i":"DDDA1CC74","f":"Zoltan","l":"Castellano","a":"Zol","p":"She/Her/Hers","d":"1979-03-26","s":"918-85-9276","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2025-11-11","c":4},{"i":"67A2831ED","f":"Esperanza","l":"Castellanos","a":"Esp","p":"He/Him/His","d":"1972-03-18","s":"937-44-8717","q":"full","r":"Missing","h":1,"v":"No","u":"D. Ferreira","t":"2026-08-08","c":0},{"i":"2D5F02B35","f":"Aisha","l":"Cavanaugh","a":"","p":"","d":"2006-02-25","s":null,"q":"unknown","r":"No","h":2,"v":"No","u":"S. Ramirez","t":"2026-08-27","c":0},{"i":"5E93662C4","f":"Fitzgerald","l":"Cavanaugh","a":"","p":"","d":"1958-06-19","s":"918-51-2194","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2026-04-20","c":7},{"i":"613BE87EB","f":"Amias","l":"Chaudhry","a":"","p":"","d":"1964-05-23","s":"924-60-6639","q":"full","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2025-10-21","c":6},{"i":"94A50E6E2","f":"Colette","l":"Chaudhry","a":"","p":"","d":"1964-11-10","s":"949-44-7475","q":"full","r":"Missing","h":1,"v":"No","u":"J. Whitfield","t":"2026-11-06","c":4},{"i":"B78330BFF","f":"Emmerich","l":"Chaudhry","a":"Emme","p":"","d":"1958-09-09","s":null,"q":"unknown","r":"Missing","h":1,"v":"No","u":"R. Delacroix","t":"2026-02-02","c":0},{"i":"829BA2881","f":"Zachariah","l":"Chaudhry","a":"","p":"","d":"1949-07-27","s":"918-64-1238","q":"full","r":"Missing","h":1,"v":"No","u":"K. Nakamura","t":"2026-07-23","c":4},{"i":"657A3A223","f":"Dagny","l":"Chukwu","a":"","p":"","d":"1980-11-28","s":"993-46-2499","q":"approx","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-07-14","c":0},{"i":"DEC3DAFE3","f":"Delphine","l":"Chukwu","a":"","p":"","d":"1954-09-12","s":"941-97-8531","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2026-02-17","c":5},{"i":"EE3F30546","f":"Devon","l":"Chukwu","a":"","p":"","d":"1989-07-06","s":"945-77-5588","q":"full","r":"Yes","h":1,"v":"No","u":"S. Ramirez","t":"2025-11-02","c":2},{"i":"74C5AE383","f":"Thandiwe","l":"Chukwu","a":"","p":"He/Him/His","d":"1969-02-17","s":"945-03-5635","q":"approx","r":"Missing","h":1,"v":"No","u":"M. Lindgren","t":"2025-12-11","c":7},{"i":"AC4658EC2","f":"Denise","l":"Cortazar","a":"","p":"","d":"1995-05-18","s":"922-91-1963","q":"full","r":"Yes","h":2,"v":"Yes","u":"M. Lindgren","t":"2025-05-10","c":6},{"i":"919CBD829","f":"Harriet","l":"Cortazar","a":"Har","p":"","d":"1988-12-19","s":"950-13-1586","q":"full","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2026-07-04","c":7},{"i":"30F91B05B","f":"Hector","l":"Cortazar","a":"","p":"They/Them/Theirs","d":"2005-07-25","s":null,"q":"notcollected","r":"Yes","h":2,"v":"No","u":"D. Ferreira","t":"2026-04-04","c":2},{"i":"536F36074","f":"Genevieve","l":"Delacroix","a":"","p":"","d":"1963-03-09","s":"983-70-8667","q":"full","r":"Yes","h":3,"v":"No","u":"C. Yoon","t":"2026-06-08","c":4},{"i":"9D7784211","f":"Nathaniel","l":"Delacroix","a":"Nat","p":"","d":"1959-11-08","s":"918-17-2931","q":"full","r":"Missing","h":1,"v":"No","u":"K. Nakamura","t":"2026-05-07","c":6},{"i":"E24DA330F","f":"Winona","l":"Delacroix","a":"","p":"They/Them/Theirs","d":"1959-01-19","s":null,"q":"notcollected","r":"Missing","h":4,"v":"No","u":"R. Delacroix","t":"2025-03-09","c":3},{"i":"4F80C6E93","f":"Elena","l":"Delgado","a":"","p":"She/Her/Hers","d":"1996-08-03","s":"930-45-3378","q":"full","r":"Missing","h":1,"v":"No","u":"D. Ferreira","t":"2026-09-18","c":1},{"i":"9E4C21A70","f":"Marcus","l":"Delgado","a":"","p":"","d":"1985-01-19","s":"903-88-9927","q":"full","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2026-10-21","c":1},{"i":"B72D0F118","f":"Rosa","l":"Delgado","a":"","p":"She/Her/Hers","d":"1979-06-06","s":"947-12-5501","q":"full","r":"Yes","h":2,"v":"No","u":"C. Yoon","t":"2025-01-28","c":4},{"i":"1CA0A608D","f":"Delphine","l":"Drummond","a":"","p":"","d":"1957-07-14","s":"906-79-3473","q":"full","r":"No","h":1,"v":"No","u":"R. Delacroix","t":"2025-02-06","c":3},{"i":"175E68C87","f":"Kwame","l":"Drummond","a":"","p":"","d":"1973-12-06","s":"965-14-5925","q":"full","r":"Yes","h":1,"v":"No","u":"T. Okoye","t":"2025-03-18","c":4},{"i":"1C6EAC20D","f":"Katarina","l":"Dunkerley","a":"","p":"","d":"1998-05-05","s":"995-93-6152","q":"full","r":"Yes","h":1,"v":"","u":"R. Delacroix","t":"2026-04-14","c":2},{"i":"B4585B593","f":"Devon","l":"Dziedzic","a":"","p":"","d":"1990-10-20","s":"959-50-3654","q":"approx","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2026-04-05","c":2},{"i":"6877DAFA3","f":"Dorothea","l":"Dziedzic","a":"","p":"","d":"1991-12-09","s":null,"q":"unknown","r":"Yes","h":2,"v":"No","u":"S. Ramirez","t":"2026-06-09","c":3},{"i":"2E17C2693","f":"Quinn","l":"Dziedzic","a":"","p":"","d":"1968-02-14","s":"969-32-7608","q":"full","r":"No","h":1,"v":"No","u":"D. Ferreira","t":"2026-02-18","c":2},{"i":"DF12B06AD","f":"Roscoe","l":"Dziedzic","a":"","p":"","d":"1973-06-25","s":"958-91-4708","q":"full","r":"Yes","h":4,"v":"No","u":"M. Lindgren","t":"2026-11-07","c":5},{"i":"3CAB7463F","f":"Denise","l":"Eastwood","a":"","p":"She/Her/Hers","d":"1962-01-06","s":"993-40-4239","q":"full","r":"Yes","h":3,"v":"No","u":"D. Ferreira","t":"2026-10-12","c":1},{"i":"803523F09","f":"Saoirse","l":"Eastwood","a":"Saoi","p":"","d":"1980-05-12","s":"946-45-2935","q":"full","r":"Missing","h":3,"v":"","u":"K. Nakamura","t":"2025-05-13","c":5},{"i":"D6D668C17","f":"Solomon","l":"Eastwood","a":"Solo","p":"","d":"2002-05-25","s":"954-72-8335","q":"full","r":"Yes","h":2,"v":"No","u":"L. Mbatha","t":"2025-06-27","c":1},{"i":"228E4FC84","f":"Fitzgerald","l":"Engelhardt","a":"","p":"They/Them/Theirs","d":"1994-11-24","s":"907-71-4084","q":"full","r":"Missing","h":3,"v":"No","u":"L. Mbatha","t":"2025-02-20","c":0},{"i":"FC9B83475","f":"Josephine","l":"Engelhardt","a":"","p":"","d":"1984-01-01","s":"901-31-3087","q":"full","r":"Yes","h":3,"v":"","u":"M. Lindgren","t":"2025-11-02","c":6},{"i":"21ED875CD","f":"Lucinda","l":"Engelhardt","a":"Luc","p":"","d":"1969-03-23","s":"947-64-9205","q":"full","r":"Yes","h":2,"v":"No","u":"A. Barnes","t":"2025-10-08","c":6},{"i":"EC2D2A920","f":"Magdalena","l":"Engelhardt","a":"Magd","p":"","d":"2001-01-04","s":"910-14-6746","q":"full","r":"Yes","h":2,"v":"No","u":"C. Yoon","t":"2026-01-09","c":0},{"i":"6EB352D44","f":"Bartholomew","l":"Escalante","a":"","p":"","d":"1999-08-23","s":null,"q":"unknown","r":"Missing","h":2,"v":"Yes","u":"C. Yoon","t":"2026-06-20","c":0},{"i":"E86753593","f":"Cyprian","l":"Escalante","a":"","p":"They/Them/Theirs","d":"1950-08-14","s":"983-11-6290","q":"full","r":"Yes","h":1,"v":"No","u":"S. Ramirez","t":"2025-03-04","c":1},{"i":"5B589FCFF","f":"Dashiell","l":"Escalante","a":"Das","p":"","d":"1972-06-12","s":null,"q":"unknown","r":"Yes","h":1,"v":"Yes","u":"T. Okoye","t":"2026-02-02","c":6},{"i":"9940AD694","f":"Devon","l":"Escalante","a":"","p":"","d":"1973-08-02","s":"952-38-3797","q":"full","r":"Missing","h":3,"v":"","u":"M. Lindgren","t":"2025-10-06","c":5},{"i":"CB65B484D","f":"Kalinda","l":"Escalante","a":"","p":"","d":"1977-12-13","s":"957-02-6905","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-10-08","c":1},{"i":"5D9A77851","f":"Leopold","l":"Fairweather","a":"Leo","p":"He/Him/His","d":"1984-10-02","s":"976-58-7766","q":"full","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2025-09-10","c":6},{"i":"AAC3DB256","f":"Marisol","l":"Fairweather","a":"","p":"","d":"1954-06-10","s":"996-89-1024","q":"full","r":"Missing","h":3,"v":"No","u":"J. Whitfield","t":"2025-03-10","c":4},{"i":"2854468F1","f":"Simone","l":"Fairweather","a":"","p":"","d":"1995-01-05","s":"988-45-1541","q":"full","r":"Missing","h":2,"v":"No","u":"M. Lindgren","t":"2025-02-17","c":0},{"i":"802E2F341","f":"Fatima","l":"Farrugia","a":"Fat","p":"","d":"1992-05-19","s":"902-47-2393","q":"full","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2026-08-14","c":5},{"i":"38767AA4A","f":"Imani","l":"Farrugia","a":"","p":"","d":"1961-12-12","s":"995-06-4132","q":"approx","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2026-02-05","c":1},{"i":"47A10076B","f":"Simone","l":"Farrugia","a":"","p":"","d":"2002-05-11","s":"901-30-2204","q":"full","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2025-12-12","c":6},{"i":"C7BE8A292","f":"Ilias","l":"Fitzgerald","a":"Ili","p":"","d":"1955-10-08","s":"962-55-1736","q":"full","r":"No","h":2,"v":"Yes","u":"S. Ramirez","t":"2026-08-27","c":1},{"i":"FD25BDFB7","f":"Obadiah","l":"Fitzgerald","a":"","p":"","d":"1987-03-22","s":"968-07-2167","q":"full","r":"No","h":2,"v":"No","u":"T. Okoye","t":"2025-11-09","c":2},{"i":"F78891788","f":"Sunniva","l":"Fitzgerald","a":"Sun","p":"","d":"1971-11-23","s":"936-59-0833","q":"full","r":"Yes","h":1,"v":"No","u":"T. Okoye","t":"2026-02-15","c":7},{"i":"20F9527DE","f":"Devon","l":"Fitzwilliam","a":"","p":"","d":"1993-03-22","s":null,"q":"notcollected","r":"Yes","h":3,"v":"","u":"A. Barnes","t":"2026-05-03","c":5},{"i":"1BD730CEC","f":"Kwame","l":"Fitzwilliam","a":"Kwam","p":"","d":"1999-12-23","s":"948-48-0303","q":"full","r":"Missing","h":1,"v":"No","u":"L. Mbatha","t":"2025-05-26","c":3},{"i":"CE6653123","f":"Rosalind","l":"Fitzwilliam","a":"Rosa","p":"","d":"1956-05-25","s":"950-20-1034","q":"full","r":"Missing","h":3,"v":"No","u":"C. Yoon","t":"2026-08-27","c":3},{"i":"88CB754AF","f":"Yvonne","l":"Fitzwilliam","a":"Yvon","p":"","d":"1993-08-22","s":"963-54-6594","q":"full","r":"Yes","h":1,"v":"","u":"S. Ramirez","t":"2026-11-10","c":2},{"i":"E4912FEBF","f":"Aisha","l":"Fontaine","a":"","p":"","d":"1972-05-14","s":null,"q":"notcollected","r":"No","h":1,"v":"No","u":"M. Lindgren","t":"2025-01-13","c":6},{"i":"3BEC007D1","f":"Denise","l":"Fontaine","a":"Den","p":"","d":"1965-08-04","s":null,"q":"refused","r":"Missing","h":1,"v":"No","u":"K. Nakamura","t":"2025-01-20","c":1},{"i":"3B157915E","f":"Esperanza","l":"Fontaine","a":"Espe","p":"","d":"1966-02-06","s":"960-89-6490","q":"full","r":"Yes","h":2,"v":"","u":"A. Barnes","t":"2026-09-09","c":3},{"i":"F4F05CD2E","f":"Rasmus","l":"Fontaine","a":"","p":"","d":"1990-09-21","s":null,"q":"refused","r":"Yes","h":3,"v":"No","u":"M. Lindgren","t":"2025-11-11","c":1},{"i":"9BD97F062","f":"Alicia","l":"Gallagher","a":"","p":"","d":"1955-09-02","s":"956-79-4452","q":"full","r":"Yes","h":1,"v":"Yes","u":"S. Ramirez","t":"2025-08-20","c":1},{"i":"44EC36991","f":"Quinn","l":"Gallagher","a":"","p":"","d":"2005-05-11","s":"934-22-5045","q":"full","r":"Yes","h":3,"v":"No","u":"S. Ramirez","t":"2025-11-16","c":6},{"i":"741BD0041","f":"Thandiwe","l":"Gallagher","a":"","p":"","d":"1965-02-24","s":"983-94-7823","q":"full","r":"Yes","h":3,"v":"No","u":"L. Mbatha","t":"2025-06-05","c":6},{"i":"3D7564F32","f":"Marcus","l":"Ghorbani","a":"","p":"She/Her/Hers","d":"1989-05-19","s":"992-21-9814","q":"full","r":"Missing","h":3,"v":"Yes","u":"L. Mbatha","t":"2025-01-07","c":0},{"i":"D1782644F","f":"Jorunn","l":"Grimaldi","a":"Joru","p":"","d":"1980-04-18","s":"991-74-2906","q":"full","r":"Missing","h":3,"v":"No","u":"A. Barnes","t":"2026-02-28","c":6},{"i":"2C3B21FE3","f":"Zora","l":"Grimaldi","a":"Zor","p":"","d":"1994-12-06","s":"952-18-3481","q":"full","r":"Missing","h":2,"v":"No","u":"L. Mbatha","t":"2026-06-10","c":6},{"i":"25E3E5F75","f":"Bernadette","l":"Haddad","a":"","p":"","d":"1994-12-28","s":"916-58-6609","q":"full","r":"Yes","h":3,"v":"No","u":"D. Ferreira","t":"2025-05-22","c":4},{"i":"3D00DEF35","f":"Amias","l":"Halvorsen","a":"","p":"","d":"1982-11-25","s":"953-21-4302","q":"full","r":"Yes","h":2,"v":"No","u":"S. Ramirez","t":"2025-07-22","c":5},{"i":"D64C5E360","f":"Simone","l":"Halvorsen","a":"Sim","p":"","d":"2002-11-03","s":null,"q":"unknown","r":"No","h":1,"v":"No","u":"K. Nakamura","t":"2025-11-15","c":2},{"i":"0AF9D054D","f":"Ulrich","l":"Halvorsen","a":"","p":"","d":"1992-04-19","s":"920-30-2902","q":"full","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2026-02-06","c":5},{"i":"259D5E254","f":"Zoltan","l":"Haverford","a":"","p":"","d":"1960-01-12","s":"991-12-6253","q":"full","r":"Missing","h":1,"v":"No","u":"J. Whitfield","t":"2025-03-25","c":0},{"i":"6A82486ED","f":"Boaz","l":"Hollingsworth","a":"","p":"","d":"1983-02-03","s":"933-52-0439","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-04-15","c":1},{"i":"55746AA26","f":"Dorothea","l":"Hollingsworth","a":"","p":"","d":"1990-01-05","s":"940-31-3631","q":"full","r":"Yes","h":1,"v":"Yes","u":"T. Okoye","t":"2026-04-02","c":2},{"i":"C741C8F19","f":"Ferdinand","l":"Hollingsworth","a":"","p":"","d":"1970-12-22","s":"933-23-5549","q":"full","r":"Missing","h":3,"v":"","u":"M. Lindgren","t":"2025-12-03","c":5},{"i":"7223ECD08","f":"Clarissa","l":"Huntington","a":"","p":"","d":"1978-12-13","s":"946-33-6242","q":"full","r":"Missing","h":1,"v":"","u":"K. Nakamura","t":"2025-08-23","c":4},{"i":"A92AA007B","f":"Hendrik","l":"Huntington","a":"","p":"","d":"1991-12-18","s":"977-91-9182","q":"full","r":"Yes","h":2,"v":"No","u":"K. Nakamura","t":"2026-05-28","c":3},{"i":"CC91ED9E5","f":"Mordecai","l":"Huntington","a":"","p":"","d":"1970-07-11","s":"908-97-0502","q":"full","r":"Missing","h":4,"v":"Yes","u":"K. Nakamura","t":"2026-04-03","c":6},{"i":"E1A5BB519","f":"Nikolai","l":"Huntington","a":"Niko","p":"","d":"1969-10-10","s":"962-24-0149","q":"full","r":"No","h":1,"v":"No","u":"L. Mbatha","t":"2025-04-25","c":3},{"i":"805BE4494","f":"Esperanza","l":"Ilyushin","a":"","p":"He/Him/His","d":"2006-07-25","s":"988-40-9608","q":"full","r":"Missing","h":2,"v":"No","u":"J. Whitfield","t":"2026-12-04","c":0},{"i":"80E40B5A9","f":"Gwendolyn","l":"Isaksson","a":"","p":"He/Him/His","d":"1982-02-25","s":"916-73-1266","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-08-21","c":7},{"i":"EF1434164","f":"Magdalena","l":"Isaksson","a":"Magd","p":"","d":"1991-04-21","s":"958-51-7452","q":"full","r":"Missing","h":1,"v":"No","u":"R. Delacroix","t":"2026-06-11","c":7},{"i":"710C8067A","f":"Beatrice","l":"Ivanenko","a":"","p":"","d":"1960-08-19","s":"920-70-1068","q":"full","r":"Yes","h":3,"v":"Yes","u":"A. Barnes","t":"2025-02-11","c":6},{"i":"AAEE0FEE6","f":"Julian","l":"Ivanenko","a":"Jul","p":"","d":"1949-10-01","s":null,"q":"notcollected","r":"Yes","h":4,"v":"No","u":"M. Lindgren","t":"2025-10-11","c":3},{"i":"32BD188F4","f":"Marcus","l":"Jaramillo","a":"","p":"","d":"2006-09-25","s":"952-42-1150","q":"full","r":"No","h":1,"v":"No","u":"C. Yoon","t":"2025-07-26","c":0},{"i":"3CF2627E4","f":"Wendell","l":"Jaramillo","a":"","p":"He/Him/His","d":"2001-01-28","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2026-09-18","c":0},{"i":"D3669DC67","f":"Demetrius","l":"Jimenez","a":"Dem","p":"","d":"1977-07-17","s":"920-12-8831","q":"full","r":"Yes","h":1,"v":"","u":"L. Mbatha","t":"2025-01-03","c":2},{"i":"D21968E60","f":"Hilda","l":"Jimenez","a":"","p":"","d":"1980-01-27","s":"917-54-5023","q":"full","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2025-12-18","c":2},{"i":"B847FCA1C","f":"Lorraine","l":"Jimenez","a":"Lorr","p":"","d":"1992-09-15","s":null,"q":"unknown","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2026-01-23","c":2},{"i":"B0BBD9DC6","f":"Ingrid","l":"Kaczmarek","a":"","p":"","d":"1967-11-22","s":"966-12-8610","q":"full","r":"Yes","h":2,"v":"Yes","u":"A. Barnes","t":"2026-02-18","c":3},{"i":"D2BB5B38B","f":"Amias","l":"Kirkpatrick","a":"Amia","p":"","d":"1987-10-06","s":"907-96-4659","q":"approx","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2025-07-03","c":1},{"i":"8E8B48C9D","f":"Evelyn","l":"Kirkpatrick","a":"","p":"They/Them/Theirs","d":"1994-07-16","s":null,"q":"unknown","r":"Missing","h":2,"v":"No","u":"L. Mbatha","t":"2025-11-27","c":3},{"i":"CEF595627","f":"Gideon","l":"Kirkpatrick","a":"Gid","p":"He/Him/His","d":"1956-03-24","s":"945-38-7994","q":"full","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2025-01-24","c":3},{"i":"B32C64460","f":"Harriet","l":"Kirkpatrick","a":"Harr","p":"","d":"1981-04-21","s":"987-40-8083","q":"full","r":"Missing","h":2,"v":"No","u":"C. Yoon","t":"2026-05-06","c":0},{"i":"120FF1396","f":"Josephine","l":"Kirkpatrick","a":"Jose","p":"","d":"1999-10-03","s":"939-66-8275","q":"full","r":"Missing","h":2,"v":"No","u":"T. Okoye","t":"2025-04-10","c":2},{"i":"F8CDE792A","f":"Marlowe","l":"Kirkpatrick","a":"Mar","p":"","d":"2006-09-03","s":"926-68-4695","q":"full","r":"Missing","h":1,"v":"No","u":"L. Mbatha","t":"2026-10-08","c":7},{"i":"A04A55A1C","f":"Gwendolyn","l":"Kowalczyk","a":"Gwe","p":"","d":"1959-08-26","s":"943-10-5607","q":"full","r":"Yes","h":1,"v":"Yes","u":"D. Ferreira","t":"2026-11-06","c":0},{"i":"5D8986773","f":"Wendell","l":"Kowalczyk","a":"","p":"","d":"2005-10-18","s":"956-46-9001","q":"full","r":"Yes","h":4,"v":"No","u":"L. Mbatha","t":"2025-02-03","c":2},{"i":"C222680E7","f":"Dagny","l":"Larkspur","a":"Dagn","p":"","d":"1996-03-17","s":"996-04-9789","q":"full","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2025-08-01","c":6},{"i":"11D9406B3","f":"Terrence","l":"Lindqvist","a":"","p":"He/Him/His","d":"1969-02-21","s":"937-88-0562","q":"full","r":"Missing","h":1,"v":"No","u":"S. Ramirez","t":"2025-12-01","c":4},{"i":"BEFE945BD","f":"Yuki","l":"Lindqvist","a":"","p":"","d":"2006-07-23","s":"927-18-0358","q":"full","r":"Yes","h":1,"v":"No","u":"T. Okoye","t":"2026-10-28","c":7},{"i":"DC1F17990","f":"Gregory","l":"Lindstrom","a":"","p":"","d":"1949-10-15","s":"990-27-0910","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-08-17","c":4},{"i":"AD2E5EFFC","f":"Abelardo","l":"Lombardi","a":"","p":"","d":"1993-04-12","s":"980-34-4434","q":"full","r":"Missing","h":3,"v":"Yes","u":"D. Ferreira","t":"2026-09-14","c":6},{"i":"2956C67E4","f":"Adaeze","l":"Lombardi","a":"","p":"She/Her/Hers","d":"1959-12-26","s":"978-31-3903","q":"full","r":"Missing","h":1,"v":"No","u":"J. Whitfield","t":"2025-03-13","c":1},{"i":"3758D7379","f":"Elspeth","l":"Lombardi","a":"Els","p":"","d":"1949-03-23","s":"960-96-4615","q":"full","r":"Yes","h":2,"v":"No","u":"R. Delacroix","t":"2026-05-03","c":0},{"i":"ECF905A99","f":"Lucinda","l":"Lombardi","a":"","p":"","d":"1996-03-12","s":"986-99-6003","q":"full","r":"Missing","h":3,"v":"No","u":"L. Mbatha","t":"2025-12-13","c":1},{"i":"126EBF613","f":"Ulrike","l":"Lombardi","a":"Ulr","p":"","d":"1951-01-21","s":"969-29-7249","q":"full","r":"No","h":2,"v":"No","u":"T. Okoye","t":"2025-11-21","c":3},{"i":"300E66C00","f":"Carmen","l":"Marquez","a":"","p":"They/Them/Theirs","d":"1977-02-13","s":"996-64-8421","q":"full","r":"Missing","h":1,"v":"No","u":"C. Yoon","t":"2025-03-13","c":5},{"i":"A206772BF","f":"Perpetua","l":"Marquez","a":"Per","p":"","d":"1951-08-10","s":"901-77-3476","q":"full","r":"Yes","h":1,"v":"Yes","u":"C. Yoon","t":"2025-03-02","c":6},{"i":"B699D3647","f":"Wendell","l":"Marquez","a":"Wend","p":"","d":"2007-11-28","s":null,"q":"notcollected","r":"Missing","h":4,"v":"","u":"T. Okoye","t":"2025-04-13","c":3},{"i":"5DE4828FF","f":"Aisha","l":"Mendelsohn","a":"","p":"","d":"1986-05-22","s":"936-34-6340","q":"full","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2026-09-28","c":6},{"i":"0E8F44510","f":"Anselm","l":"Mendelsohn","a":"","p":"","d":"2000-01-05","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-10-22","c":7},{"i":"4B8D9BD5B","f":"Aubrey","l":"Mendelsohn","a":"","p":"","d":"2001-03-25","s":"994-37-4485","q":"full","r":"Missing","h":2,"v":"Yes","u":"T. Okoye","t":"2026-04-01","c":5},{"i":"B696CF0E5","f":"Dorothea","l":"Mendelsohn","a":"","p":"","d":"1981-11-06","s":"990-63-3754","q":"full","r":"Yes","h":2,"v":"Yes","u":"S. Ramirez","t":"2025-10-25","c":6},{"i":"EBB5FEA14","f":"Omar","l":"Mendelsohn","a":"","p":"","d":"2000-03-12","s":"985-34-1290","q":"full","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2026-08-12","c":0},{"i":"9A25AF957","f":"Thaddeus","l":"Mendelsohn","a":"","p":"","d":"1992-10-16","s":null,"q":"refused","r":"Yes","h":2,"v":"No","u":"K. Nakamura","t":"2025-06-07","c":7},{"i":"10C5DA9FD","f":"Percival","l":"Moreau","a":"","p":"She/Her/Hers","d":"2006-04-16","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2026-01-10","c":2},{"i":"F565C146B","f":"Katherine","l":"Morrison","a":"","p":"She/Her/Hers","d":"1985-07-22","s":"934-17-3145","q":"full","r":"Yes","h":3,"v":"No","u":"M. Lindgren","t":"2026-04-26","c":4},{"i":"079596BB5","f":"Brigid","l":"Mwangi","a":"Bri","p":"","d":"1993-07-09","s":"998-38-1422","q":"full","r":"Yes","h":1,"v":"No","u":"M. Lindgren","t":"2025-02-24","c":1},{"i":"37D423B35","f":"Hector","l":"Mwangi","a":"Hect","p":"","d":"1967-09-11","s":"939-49-5637","q":"full","r":"Yes","h":1,"v":"","u":"D. Ferreira","t":"2025-10-10","c":7},{"i":"7E3BD1B6D","f":"Winona","l":"Mwangi","a":"","p":"He/Him/His","d":"2004-10-02","s":"919-27-9670","q":"full","r":"Missing","h":1,"v":"No","u":"D. Ferreira","t":"2026-09-07","c":3},{"i":"E1EBA4E0A","f":"Aisha","l":"Nakagawa","a":"","p":"","d":"1993-02-26","s":"990-69-0134","q":"full","r":"Yes","h":4,"v":"No","u":"D. Ferreira","t":"2026-11-13","c":2},{"i":"7A1E93C55","f":"Robert","l":"Nakashima","a":"","p":"","d":"1982-11-09","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2025-11-19","c":5},{"i":"1C6B4D802","f":"Robert","l":"Nakashima","a":"Bobby","p":"","d":"1977-03-22","s":"961-29-7713","q":"full","r":"Yes","h":1,"v":"No","u":"M. Lindgren","t":"2025-11-02","c":2},{"i":"A797C8280","f":"Cyprian","l":"Novotny","a":"Cyp","p":"","d":"2008-02-07","s":"920-98-7010","q":"full","r":"Missing","h":3,"v":"No","u":"M. Lindgren","t":"2025-02-02","c":3},{"i":"89BE9337D","f":"Dagny","l":"Novotny","a":"","p":"","d":"1968-08-12","s":"943-73-8970","q":"full","r":"Missing","h":1,"v":"No","u":"S. Ramirez","t":"2026-04-09","c":7},{"i":"1D2AD6BD3","f":"Kalinda","l":"Novotny","a":"","p":"","d":"1952-09-05","s":"965-97-3769","q":"full","r":"Yes","h":1,"v":"","u":"S. Ramirez","t":"2026-07-06","c":4},{"i":"A4B6CC013","f":"Sage","l":"Novotny","a":"","p":"","d":"1962-09-21","s":"940-24-7219","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-08-24","c":2},{"i":"4517E35C7","f":"Tyrell","l":"Novotny","a":"Tyre","p":"","d":"1977-11-04","s":"950-64-9938","q":"full","r":"Yes","h":1,"v":"","u":"S. Ramirez","t":"2025-06-16","c":1},{"i":"44BA75FF4","f":"Zainab","l":"Novotny","a":"","p":"","d":"1958-08-28","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"T. Okoye","t":"2026-07-13","c":7},{"i":"1FC0193E1","f":"Cornelius","l":"Nwachukwu","a":"","p":"","d":"1980-01-05","s":"914-27-7380","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-11-18","c":0},{"i":"7E550EBA3","f":"Percival","l":"Nwachukwu","a":"","p":"","d":"1975-06-25","s":"903-02-4138","q":"full","r":"Yes","h":2,"v":"No","u":"A. Barnes","t":"2026-06-13","c":4},{"i":"502E75E87","f":"Cornelius","l":"Ocampo","a":"","p":"","d":"2004-10-14","s":"995-64-4342","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-01-15","c":6},{"i":"A6BBC763D","f":"Hana","l":"Ocampo","a":"Han","p":"They/Them/Theirs","d":"1961-10-03","s":"988-14-5143","q":"full","r":"No","h":1,"v":"No","u":"K. Nakamura","t":"2026-02-09","c":3},{"i":"C713E18CC","f":"Ilias","l":"Ocampo","a":"","p":"","d":"1981-02-21","s":"954-64-7537","q":"full","r":"Missing","h":3,"v":"No","u":"T. Okoye","t":"2025-07-04","c":5},{"i":"C64516D36","f":"Kazimir","l":"Ocampo","a":"","p":"","d":"1992-06-25","s":null,"q":"unknown","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2025-04-09","c":4},{"i":"ACA9BD8D4","f":"Piotr","l":"Ocampo","a":"","p":"","d":"1989-11-21","s":"944-75-2222","q":"full","r":"Yes","h":5,"v":"No","u":"S. Ramirez","t":"2026-02-08","c":2},{"i":"E5A2B5E73","f":"Rowan","l":"Ocampo","a":"","p":"","d":"1950-03-05","s":"956-07-5435","q":"approx","r":"Yes","h":4,"v":"No","u":"A. Barnes","t":"2026-11-10","c":6},{"i":"0114357FA","f":"Yannick","l":"Ocampo","a":"","p":"","d":"1951-03-06","s":"924-84-8387","q":"full","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2025-05-19","c":0},{"i":"5EAE096BD","f":"Delphine","l":"Okafor","a":"","p":"","d":"1954-05-07","s":"947-96-9732","q":"full","r":"Missing","h":3,"v":"No","u":"C. Yoon","t":"2025-12-26","c":1},{"i":"73F11CE15","f":"Kit","l":"Okafor","a":"","p":"She/Her/Hers","d":"1996-11-24","s":null,"q":"unknown","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2026-06-14","c":3},{"i":"7425316AE","f":"Lorraine","l":"Okafor","a":"","p":"","d":"1989-05-24","s":"954-54-4952","q":"full","r":"Yes","h":2,"v":"Yes","u":"J. Whitfield","t":"2026-04-04","c":5},{"i":"E6CB7EE9A","f":"Fatima","l":"Okonkwo","a":"Fat","p":"","d":"1967-05-28","s":"982-01-4738","q":"approx","r":"Yes","h":2,"v":"No","u":"R. Delacroix","t":"2026-12-11","c":1},{"i":"585AC11F2","f":"Thaddeus","l":"Okonkwo","a":"","p":"","d":"1951-02-18","s":null,"q":"unknown","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2025-08-18","c":4},{"i":"6EDD11C41","f":"Virgil","l":"Okonkwo","a":"","p":"","d":"2002-04-23","s":"916-68-5165","q":"full","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2026-10-24","c":3},{"i":"7E0B98CA4","f":"Ellis","l":"Osterman","a":"Ell","p":"","d":"1975-09-24","s":"937-45-5854","q":"full","r":"Missing","h":1,"v":"No","u":"R. Delacroix","t":"2026-05-25","c":5},{"i":"9D4D4E0DE","f":"Ilias","l":"Osterman","a":"","p":"","d":"1996-09-03","s":"979-12-5262","q":"full","r":"Yes","h":5,"v":"Yes","u":"M. Lindgren","t":"2025-07-01","c":2},{"i":"3561379F5","f":"Matthias","l":"Osterman","a":"","p":"","d":"1959-01-18","s":"980-19-9291","q":"full","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2025-12-16","c":3},{"i":"E5EBB12DF","f":"Thandiwe","l":"Osterman","a":"","p":"","d":"1996-08-28","s":"948-95-3209","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-08-03","c":1},{"i":"458523369","f":"Yolanda","l":"Osterman","a":"","p":"","d":"1953-12-08","s":"967-46-1322","q":"full","r":"Yes","h":5,"v":"No","u":"T. Okoye","t":"2026-05-01","c":5},{"i":"D61ED3B5D","f":"Caspian","l":"Oyelaran","a":"Casp","p":"He/Him/His","d":"1972-03-06","s":"945-43-8456","q":"full","r":"Yes","h":4,"v":"No","u":"D. Ferreira","t":"2026-03-24","c":4},{"i":"182EA19EE","f":"Dagny","l":"Oyelaran","a":"","p":"","d":"1956-12-04","s":"919-08-3415","q":"full","r":"Yes","h":1,"v":"Yes","u":"J. Whitfield","t":"2025-09-16","c":1},{"i":"84AD73E8D","f":"Rasmus","l":"Oyelaran","a":"","p":"","d":"1987-02-20","s":"955-44-0929","q":"full","r":"Missing","h":1,"v":"Yes","u":"A. Barnes","t":"2026-06-21","c":6},{"i":"6B18A532B","f":"Selena","l":"Oyelaran","a":"","p":"","d":"1951-03-27","s":"980-16-3508","q":"full","r":"Yes","h":3,"v":"","u":"J. Whitfield","t":"2026-01-09","c":2},{"i":"13EC970B2","f":"Terrence","l":"Oyelowo","a":"","p":"","d":"1984-12-04","s":"966-77-9638","q":"full","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2025-12-15","c":3},{"i":"DB07AB529","f":"Xiomara","l":"Oyelowo","a":"","p":"","d":"1973-05-01","s":"900-91-1398","q":"full","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2025-09-15","c":4},{"i":"43F1F6407","f":"Emmerich","l":"Pahlavi","a":"","p":"","d":"2008-01-20","s":"916-96-0990","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-05-07","c":0},{"i":"E1FFC126E","f":"Fatima","l":"Pahlavi","a":"","p":"","d":"1949-01-14","s":"993-34-0044","q":"full","r":"Yes","h":1,"v":"No","u":"S. Ramirez","t":"2025-10-27","c":4},{"i":"E5411D282","f":"Hendrik","l":"Pahlavi","a":"","p":"","d":"1954-05-19","s":"978-64-9389","q":"full","r":"Yes","h":3,"v":"No","u":"T. Okoye","t":"2025-02-05","c":6},{"i":"87D1EEAD1","f":"Paloma","l":"Pahlavi","a":"","p":"","d":"1999-11-23","s":"988-47-3189","q":"full","r":"Yes","h":2,"v":"No","u":"D. Ferreira","t":"2026-04-11","c":7},{"i":"922DE0985","f":"Thandiwe","l":"Pahlavi","a":"Tha","p":"He/Him/His","d":"1981-05-28","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2026-11-18","c":7},{"i":"BA48B9522","f":"Emmerich","l":"Pemberton","a":"","p":"She/Her/Hers","d":"1992-08-18","s":null,"q":"unknown","r":"Missing","h":3,"v":"No","u":"J. Whitfield","t":"2026-07-09","c":1},{"i":"FA9C9B37B","f":"Elspeth","l":"Petrosyan","a":"Elsp","p":"","d":"1965-03-12","s":"962-74-2405","q":"full","r":"Yes","h":4,"v":"No","u":"R. Delacroix","t":"2025-04-16","c":3},{"i":"B1AB77EB5","f":"Bernadette","l":"Prendergast","a":"Bern","p":"","d":"1994-09-04","s":"965-05-8711","q":"full","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2025-09-12","c":2},{"i":"24FC96F58","f":"Boaz","l":"Prendergast","a":"Boa","p":"","d":"1973-02-01","s":"990-18-7957","q":"full","r":"Missing","h":2,"v":"No","u":"D. Ferreira","t":"2026-04-05","c":6},{"i":"ED51121F3","f":"Hilda","l":"Prendergast","a":"Hild","p":"","d":"1950-03-23","s":"987-93-7992","q":"full","r":"Yes","h":1,"v":"No","u":"S. Ramirez","t":"2025-04-17","c":6},{"i":"C15D92881","f":"Priya","l":"Prendergast","a":"Priy","p":"","d":"1985-12-01","s":"990-06-2509","q":"approx","r":"Yes","h":2,"v":"No","u":"M. Lindgren","t":"2026-10-13","c":6},{"i":"CA4E27EAC","f":"Wilfred","l":"Prendergast","a":"","p":"","d":"1997-08-25","s":null,"q":"unknown","r":"No","h":3,"v":"No","u":"D. Ferreira","t":"2026-12-05","c":6},{"i":"A5AEB24B5","f":"Wilhelmina","l":"Prendergast","a":"Wil","p":"","d":"1967-10-19","s":null,"q":"unknown","r":"Yes","h":4,"v":"No","u":"J. Whitfield","t":"2026-02-06","c":7},{"i":"FECC08C1A","f":"Solomon","l":"Quarshie","a":"Sol","p":"","d":"1984-11-03","s":"932-03-6169","q":"full","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2026-11-23","c":2},{"i":"7F9D369CB","f":"Thaddeus","l":"Quarshie","a":"","p":"","d":"1996-09-27","s":"965-46-9042","q":"full","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2026-08-01","c":3},{"i":"B78DB1AE4","f":"Yuki","l":"Quarshie","a":"","p":"","d":"1965-05-02","s":"945-55-4361","q":"full","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2025-11-07","c":7},{"i":"8977CF593","f":"Horace","l":"Quintanilla","a":"","p":"","d":"1979-09-24","s":"901-83-0858","q":"full","r":"Yes","h":3,"v":"No","u":"L. Mbatha","t":"2025-03-07","c":7},{"i":"A25B1AA2C","f":"Osvaldo","l":"Quintanilla","a":"Osva","p":"","d":"1959-07-04","s":"930-86-6498","q":"full","r":"Yes","h":4,"v":"No","u":"A. Barnes","t":"2025-08-16","c":7},{"i":"3DD65A444","f":"Freya","l":"Raghavan","a":"","p":"","d":"1956-08-03","s":"956-84-0288","q":"approx","r":"Yes","h":2,"v":"No","u":"K. Nakamura","t":"2026-11-03","c":5},{"i":"5D7925119","f":"Nestor","l":"Raghavan","a":"Nes","p":"","d":"1962-11-07","s":"938-43-8255","q":"full","r":"Missing","h":1,"v":"No","u":"L. Mbatha","t":"2026-08-04","c":0},{"i":"4273CBC26","f":"Paloma","l":"Raghavan","a":"","p":"","d":"1975-12-28","s":"907-18-2832","q":"approx","r":"Missing","h":2,"v":"No","u":"D. Ferreira","t":"2026-04-18","c":3},{"i":"533BD562E","f":"Winona","l":"Raghavan","a":"","p":"","d":"1994-10-28","s":null,"q":"notcollected","r":"Yes","h":3,"v":"No","u":"M. Lindgren","t":"2025-08-20","c":0},{"i":"5AEC95A41","f":"Elspeth","l":"Rasmussen","a":"","p":"","d":"2000-07-21","s":"918-63-1554","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-11-06","c":0},{"i":"A0DA311D2","f":"Jacinta","l":"Rasmussen","a":"Jac","p":"They/Them/Theirs","d":"2005-11-25","s":"958-62-3337","q":"full","r":"Missing","h":4,"v":"No","u":"S. Ramirez","t":"2026-02-25","c":6},{"i":"5002175EB","f":"Rasmus","l":"Rasmussen","a":"","p":"","d":"1950-12-09","s":"935-41-4438","q":"full","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2025-01-25","c":0},{"i":"B7BAE1E61","f":"Ulrike","l":"Rasmussen","a":"","p":"","d":"1975-09-21","s":"934-17-7808","q":"full","r":"Yes","h":1,"v":"No","u":"M. Lindgren","t":"2026-07-18","c":4},{"i":"6D704F81A","f":"Yvonne","l":"Rasmussen","a":"Yvo","p":"","d":"1950-10-14","s":null,"q":"refused","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2025-08-12","c":0},{"i":"E1AD30328","f":"Abelardo","l":"Rothschild","a":"","p":"","d":"1983-04-10","s":"964-93-3534","q":"full","r":"Yes","h":2,"v":"","u":"T. Okoye","t":"2025-01-05","c":7},{"i":"B3A917451","f":"Jacinta","l":"Rothschild","a":"Jac","p":"","d":"1977-01-07","s":"998-08-8090","q":"full","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2025-02-02","c":6},{"i":"ACF172B54","f":"Solomon","l":"Rothschild","a":"","p":"","d":"1974-07-14","s":"940-39-4242","q":"full","r":"Yes","h":4,"v":"Yes","u":"T. Okoye","t":"2025-03-27","c":6},{"i":"49D47302B","f":"Percival","l":"Rutherford","a":"","p":"","d":"1966-11-08","s":"905-55-4205","q":"full","r":"Yes","h":1,"v":"","u":"J. Whitfield","t":"2026-09-13","c":3},{"i":"C211F0FEF","f":"Terrence","l":"Rutherford","a":"","p":"","d":"1958-03-05","s":"929-92-9251","q":"full","r":"Missing","h":1,"v":"No","u":"C. Yoon","t":"2025-08-19","c":0},{"i":"2369EC942","f":"Yolanda","l":"Rutherford","a":"","p":"","d":"1954-10-04","s":"938-75-6071","q":"full","r":"Yes","h":1,"v":"","u":"L. Mbatha","t":"2025-07-27","c":0},{"i":"6B262C4C8","f":"Yusuf","l":"Rutherford","a":"","p":"","d":"1999-04-09","s":"969-71-3461","q":"full","r":"Yes","h":4,"v":"No","u":"R. Delacroix","t":"2025-07-11","c":0},{"i":"4815E1E64","f":"Esperanza","l":"Sandoval","a":"","p":"","d":"1990-07-22","s":null,"q":"notcollected","r":"Missing","h":1,"v":"No","u":"M. Lindgren","t":"2025-05-17","c":0},{"i":"4BE4218E4","f":"Mordecai","l":"Sandoval","a":"Mor","p":"","d":"1955-08-09","s":"917-46-2372","q":"full","r":"Yes","h":2,"v":"No","u":"K. Nakamura","t":"2026-08-27","c":0},{"i":"C2BB24EE3","f":"Dagny","l":"Sorensen","a":"","p":"","d":"2003-07-17","s":"971-63-1381","q":"full","r":"Yes","h":1,"v":"No","u":"S. Ramirez","t":"2025-09-28","c":7},{"i":"BB0135FA7","f":"Horace","l":"Sorensen","a":"","p":"","d":"2005-08-05","s":"986-24-1830","q":"full","r":"Missing","h":2,"v":"No","u":"J. Whitfield","t":"2026-11-10","c":3},{"i":"AA2AFB59A","f":"Nadia","l":"Sorensen","a":"Nad","p":"","d":"1986-07-10","s":"951-84-0476","q":"approx","r":"Missing","h":1,"v":"No","u":"L. Mbatha","t":"2026-02-17","c":6},{"i":"8B7DA9BC9","f":"Piotr","l":"Sorensen","a":"","p":"","d":"1976-11-23","s":null,"q":"notcollected","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2025-07-16","c":2},{"i":"8337CDB6E","f":"Beatrice","l":"Stankovic","a":"Beat","p":"","d":"1989-06-09","s":"978-91-7925","q":"full","r":"Yes","h":2,"v":"No","u":"L. Mbatha","t":"2025-09-06","c":7},{"i":"B3AE4CBA2","f":"Kalinda","l":"Stankovic","a":"Kali","p":"He/Him/His","d":"1952-08-06","s":"942-54-6852","q":"full","r":"Yes","h":1,"v":"No","u":"S. Ramirez","t":"2025-07-25","c":7},{"i":"641211B29","f":"Yuki","l":"Stankovic","a":"Yuk","p":"She/Her/Hers","d":"1998-01-02","s":"954-89-4575","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2025-08-20","c":6},{"i":"DC3DD6FBB","f":"Aisha","l":"Svendsen","a":"","p":"","d":"1991-04-16","s":"994-27-4304","q":"full","r":"Missing","h":1,"v":"No","u":"C. Yoon","t":"2025-04-20","c":7},{"i":"4052AAE18","f":"Boaz","l":"Svendsen","a":"","p":"","d":"1971-06-02","s":"933-52-6945","q":"full","r":"Yes","h":4,"v":"No","u":"J. Whitfield","t":"2025-11-02","c":3},{"i":"012CFB09C","f":"Broderick","l":"Svendsen","a":"","p":"He/Him/His","d":"1996-02-21","s":"917-04-0895","q":"full","r":"No","h":1,"v":"No","u":"L. Mbatha","t":"2026-04-05","c":2},{"i":"9C9117C69","f":"Gwendolyn","l":"Svendsen","a":"","p":"","d":"1956-05-12","s":"935-82-8317","q":"full","r":"Yes","h":1,"v":"No","u":"A. Barnes","t":"2025-03-19","c":3},{"i":"A052A6DB3","f":"Kalinda","l":"Svendsen","a":"","p":"","d":"1960-08-19","s":"926-72-2312","q":"full","r":"Yes","h":1,"v":"No","u":"M. Lindgren","t":"2025-12-02","c":0},{"i":"2F7B5C297","f":"Ulysses","l":"Svendsen","a":"Uly","p":"","d":"1994-12-03","s":"937-73-1025","q":"full","r":"Missing","h":1,"v":"","u":"D. Ferreira","t":"2025-02-24","c":5},{"i":"773A446E6","f":"Priya","l":"Tanaka","a":"Priy","p":"","d":"1996-10-25","s":"914-87-2655","q":"full","r":"Missing","h":1,"v":"No","u":"J. Whitfield","t":"2026-04-06","c":2},{"i":"37D2720F4","f":"Ulysses","l":"Tanaka","a":"Uly","p":"","d":"1970-02-21","s":"924-77-3699","q":"full","r":"Yes","h":2,"v":"No","u":"L. Mbatha","t":"2026-06-18","c":5},{"i":"686B68626","f":"Wendell","l":"Tanaka","a":"","p":"","d":"1987-10-06","s":"989-47-9717","q":"full","r":"Yes","h":1,"v":"No","u":"S. Ramirez","t":"2026-12-14","c":7},{"i":"11F25348A","f":"Adaeze","l":"Thibodeaux","a":"Adae","p":"","d":"1964-08-17","s":"906-27-0365","q":"full","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2026-10-20","c":2},{"i":"B5FF82315","f":"Camille","l":"Thibodeaux","a":"Cam","p":"","d":"1964-09-19","s":"946-43-7817","q":"full","r":"No","h":1,"v":"No","u":"T. Okoye","t":"2026-01-15","c":3},{"i":"E5B41AFA1","f":"Omar","l":"Thibodeaux","a":"","p":"She/Her/Hers","d":"1952-04-17","s":"912-69-5041","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2026-04-22","c":4},{"i":"55CE6DB94","f":"Adaeze","l":"Thornbury","a":"Adae","p":"He/Him/His","d":"1994-10-26","s":"958-68-1717","q":"full","r":"Yes","h":1,"v":"","u":"C. Yoon","t":"2025-11-13","c":4},{"i":"B78C81B33","f":"Terrence","l":"Thornbury","a":"","p":"","d":"2005-12-02","s":"933-04-6710","q":"full","r":"Missing","h":1,"v":"No","u":"T. Okoye","t":"2026-03-27","c":4},{"i":"6DD4112EE","f":"Thaddeus","l":"Thornbury","a":"","p":"","d":"1971-08-05","s":"942-18-2204","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-01-09","c":1},{"i":"357BF6714","f":"Michael","l":"Torres","a":"","p":"","d":"1979-03-14","s":"912-45-8802","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2025-11-13","c":6},{"i":"CC78A8F40","f":"Kwame","l":"Tremblay","a":"","p":"","d":"1971-05-05","s":"939-32-4495","q":"full","r":"Yes","h":2,"v":"No","u":"D. Ferreira","t":"2026-01-26","c":7},{"i":"3455B7E71","f":"Leopold","l":"Tremblay","a":"","p":"","d":"1993-03-04","s":"923-45-3691","q":"full","r":"Yes","h":2,"v":"No","u":"J. Whitfield","t":"2026-10-12","c":6},{"i":"4CD2F48EC","f":"Roscoe","l":"Tremblay","a":"","p":"","d":"1968-05-09","s":"976-21-0744","q":"full","r":"Missing","h":2,"v":"No","u":"K. Nakamura","t":"2025-08-06","c":0},{"i":"5E7AB66A2","f":"Selena","l":"Tremblay","a":"","p":"","d":"1980-01-14","s":"988-13-0194","q":"full","r":"Yes","h":3,"v":"No","u":"R. Delacroix","t":"2026-02-15","c":2},{"i":"903F8017E","f":"Hana","l":"Ueda","a":"","p":"","d":"2002-03-21","s":"917-60-2156","q":"full","r":"Missing","h":2,"v":"No","u":"L. Mbatha","t":"2026-05-20","c":6},{"i":"4642EA926","f":"Vasili","l":"Ueda","a":"","p":"","d":"1969-08-22","s":"975-96-1672","q":"full","r":"Missing","h":1,"v":"No","u":"R. Delacroix","t":"2025-10-26","c":7},{"i":"976324F13","f":"Zainab","l":"Ueda","a":"Zai","p":"","d":"1986-07-05","s":"993-25-0613","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2025-06-26","c":6},{"i":"D87C82CFA","f":"Jarrod","l":"Ulrich","a":"","p":"","d":"1957-11-06","s":"953-70-5193","q":"full","r":"Yes","h":1,"v":"","u":"K. Nakamura","t":"2026-02-16","c":5},{"i":"A0717476C","f":"Kit","l":"Ulrich","a":"Kit","p":"","d":"1950-04-05","s":null,"q":"notcollected","r":"Yes","h":1,"v":"","u":"R. Delacroix","t":"2025-02-24","c":5},{"i":"4B2412F09","f":"Solomon","l":"Ulrich","a":"","p":"","d":"1982-09-09","s":"939-44-6587","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-05-24","c":1},{"i":"2638FC439","f":"Quentin","l":"Underhill","a":"","p":"","d":"1967-03-26","s":"911-55-9367","q":"full","r":"Yes","h":1,"v":"","u":"S. Ramirez","t":"2025-09-12","c":7},{"i":"C967BF20E","f":"Jamal","l":"Underwood","a":"","p":"","d":"1990-12-05","s":"955-08-4402","q":"full","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2025-12-23","c":5},{"i":"4E336487A","f":"Genevieve","l":"Vasquez","a":"","p":"","d":"1987-04-22","s":"926-48-3899","q":"full","r":"Missing","h":1,"v":"No","u":"K. Nakamura","t":"2025-11-21","c":6},{"i":"0C2AB33D9","f":"Kit","l":"Vasquez","a":"","p":"","d":"1994-12-16","s":"994-76-5295","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2026-09-01","c":1},{"i":"6E9E8A01A","f":"Quinn","l":"Vasquez","a":"","p":"","d":"2001-03-08","s":"919-71-2007","q":"full","r":"Yes","h":1,"v":"No","u":"C. Yoon","t":"2026-07-25","c":6},{"i":"0CD6FEF5E","f":"Sunniva","l":"Vasquez","a":"","p":"","d":"1956-07-14","s":"976-48-0805","q":"full","r":"Yes","h":2,"v":"No","u":"A. Barnes","t":"2025-07-04","c":1},{"i":"28807197A","f":"Dwayne","l":"Vega","a":"","p":"","d":"1987-05-25","s":null,"q":"refused","r":"Yes","h":2,"v":"No","u":"T. Okoye","t":"2026-05-01","c":0},{"i":"6A345D50A","f":"Matthias","l":"Vega","a":"","p":"","d":"2008-07-01","s":"974-74-9519","q":"approx","r":"Missing","h":1,"v":"No","u":"T. Okoye","t":"2025-11-17","c":6},{"i":"86549BAB7","f":"Marisol","l":"Verhoeven","a":"Mari","p":"","d":"1996-03-01","s":"969-17-7087","q":"full","r":"Yes","h":1,"v":"No","u":"J. Whitfield","t":"2025-09-24","c":4},{"i":"A6086FC0D","f":"Wilhelmina","l":"Verhoeven","a":"","p":"","d":"1994-12-22","s":"914-29-1759","q":"full","r":"Missing","h":2,"v":"No","u":"T. Okoye","t":"2025-08-14","c":3},{"i":"65A137B25","f":"Amara","l":"Villanueva","a":"","p":"","d":"1952-12-06","s":"973-03-7867","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2025-11-06","c":6},{"i":"F6F67C818","f":"Hendrik","l":"Villanueva","a":"","p":"","d":"2004-01-02","s":"980-97-8452","q":"full","r":"Yes","h":1,"v":"Yes","u":"R. Delacroix","t":"2025-08-24","c":0},{"i":"E7F656739","f":"Dagny","l":"Waterhouse","a":"","p":"","d":"1988-05-05","s":"987-08-4198","q":"full","r":"Yes","h":1,"v":"No","u":"T. Okoye","t":"2025-06-03","c":4},{"i":"0030F17B3","f":"Emerson","l":"Waterhouse","a":"","p":"","d":"1969-01-11","s":null,"q":"refused","r":"Yes","h":3,"v":"","u":"A. Barnes","t":"2025-12-16","c":3},{"i":"634948BC7","f":"Fitzgerald","l":"Waterhouse","a":"","p":"She/Her/Hers","d":"1967-12-02","s":"985-48-3235","q":"full","r":"Yes","h":1,"v":"No","u":"M. Lindgren","t":"2026-09-24","c":0},{"i":"F26DDE7CB","f":"Gaspard","l":"Whitaker","a":"Gas","p":"","d":"1998-02-14","s":"946-05-5775","q":"full","r":"Missing","h":1,"v":"No","u":"L. Mbatha","t":"2025-11-27","c":1},{"i":"B64E8511A","f":"Marcus","l":"Whitaker","a":"Marc","p":"","d":"1967-10-08","s":"918-24-4498","q":"full","r":"Yes","h":3,"v":"No","u":"R. Delacroix","t":"2025-02-25","c":6},{"i":"AD63C3FF2","f":"Andre","l":"Whitfield","a":"","p":"","d":"1990-12-05","s":"907-62-6690","q":"full","r":"Missing","h":1,"v":"No","u":"S. Ramirez","t":"2025-10-20","c":5},{"i":"EBC2F5B3B","f":"Marisol","l":"Wickersham","a":"","p":"They/Them/Theirs","d":"1954-09-07","s":null,"q":"refused","r":"Yes","h":2,"v":"No","u":"M. Lindgren","t":"2025-03-04","c":0},{"i":"3B0E7805A","f":"Wilfred","l":"Wickersham","a":"","p":"She/Her/Hers","d":"1978-06-25","s":"980-56-5377","q":"full","r":"Yes","h":4,"v":"No","u":"J. Whitfield","t":"2026-08-09","c":5},{"i":"BCFFA1690","f":"Zachariah","l":"Wickersham","a":"Zach","p":"They/Them/Theirs","d":"1967-03-10","s":"996-01-6708","q":"full","r":"Yes","h":4,"v":"No","u":"R. Delacroix","t":"2026-06-01","c":7},{"i":"3DF1DF674","f":"James","l":"Wilson","a":"","p":"","d":"1968-09-02","s":"941-33-4471","q":"full","r":"Yes","h":2,"v":"No","u":"M. Lindgren","t":"2025-07-09","c":2},{"i":"8C7A8F2D2","f":"James","l":"Wilson","a":"Jim","p":"","d":"1991-04-17","s":"968-20-9038","q":"full","r":"Missing","h":1,"v":"No","u":"A. Barnes","t":"2025-02-22","c":0},{"i":"E21D183F2","f":"Emmerich","l":"Wojciechowski","a":"","p":"They/Them/Theirs","d":"2001-10-03","s":"942-14-2430","q":"full","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2025-09-14","c":6},{"i":"92351A33C","f":"Freya","l":"Wojciechowski","a":"","p":"He/Him/His","d":"2003-02-08","s":"954-59-9745","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-10-22","c":6},{"i":"0799E6416","f":"Dwayne","l":"Yamamoto","a":"","p":"","d":"1955-08-25","s":"910-66-5080","q":"full","r":"Missing","h":1,"v":"No","u":"A. Barnes","t":"2026-04-01","c":4},{"i":"3970FB97E","f":"Ingrid","l":"Yamamoto","a":"","p":"","d":"1979-01-07","s":"948-70-0995","q":"approx","r":"Yes","h":4,"v":"Yes","u":"L. Mbatha","t":"2025-03-04","c":1},{"i":"81A4A8A92","f":"Ulrich","l":"Yamamoto","a":"","p":"They/Them/Theirs","d":"1989-01-22","s":"900-06-9936","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2025-09-21","c":4},{"i":"02EEB9773","f":"Vasili","l":"Yamamoto","a":"","p":"","d":"1978-02-18","s":null,"q":"refused","r":"Yes","h":3,"v":"No","u":"M. Lindgren","t":"2025-02-12","c":2},{"i":"49CE00584","f":"Amara","l":"Yildirim","a":"","p":"","d":"1997-11-17","s":"908-62-6275","q":"full","r":"Yes","h":4,"v":"No","u":"T. Okoye","t":"2025-05-10","c":5},{"i":"2C8E26CA0","f":"Auden","l":"Yildirim","a":"","p":"","d":"1972-05-28","s":"964-59-0990","q":"full","r":"Yes","h":2,"v":"","u":"K. Nakamura","t":"2025-11-26","c":6},{"i":"867927AA4","f":"Devon","l":"Yildirim","a":"Dev","p":"","d":"1971-12-01","s":"926-39-1766","q":"full","r":"Missing","h":4,"v":"No","u":"D. Ferreira","t":"2026-05-17","c":2},{"i":"14F69164D","f":"Zachariah","l":"Yildirim","a":"","p":"","d":"1955-12-10","s":"911-99-8385","q":"full","r":"Missing","h":2,"v":"No","u":"S. Ramirez","t":"2026-03-02","c":0},{"i":"AB5E097F4","f":"Emmerich","l":"Zabala","a":"Emme","p":"","d":"1949-07-09","s":"983-95-5901","q":"full","r":"Missing","h":3,"v":"No","u":"M. Lindgren","t":"2026-02-02","c":5},{"i":"0D3754DF0","f":"Osvaldo","l":"Zabala","a":"Osv","p":"She/Her/Hers","d":"1980-09-20","s":"990-06-2047","q":"full","r":"Yes","h":1,"v":"Yes","u":"R. Delacroix","t":"2026-11-13","c":2},{"i":"6040EBFED","f":"Quiana","l":"Zabala","a":"Qui","p":"","d":"1950-06-09","s":"969-67-6931","q":"full","r":"Yes","h":1,"v":"No","u":"M. Lindgren","t":"2025-07-25","c":7},{"i":"C49A89DAA","f":"Solomon","l":"Zabala","a":"","p":"","d":"1978-02-28","s":"992-20-7780","q":"full","r":"Yes","h":2,"v":"No","u":"J. Whitfield","t":"2025-02-15","c":7},{"i":"882C3E9E0","f":"Aisha","l":"Zamora","a":"","p":"","d":"1959-12-21","s":"995-45-8536","q":"full","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2026-03-02","c":4},{"i":"FA45AE0F1","f":"Cyprian","l":"Zamora","a":"","p":"","d":"1956-05-14","s":"981-90-0839","q":"full","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2026-02-24","c":5},{"i":"52C18E796","f":"Elspeth","l":"Zamora","a":"","p":"","d":"1973-10-16","s":"946-61-5724","q":"full","r":"Yes","h":1,"v":"No","u":"L. Mbatha","t":"2026-02-25","c":7},{"i":"01FECC3E1","f":"Katarina","l":"Zamora","a":"Kata","p":"They/Them/Theirs","d":"1997-02-21","s":"976-83-4624","q":"full","r":"Missing","h":1,"v":"No","u":"L. Mbatha","t":"2026-04-05","c":4},{"i":"8CD4FB404","f":"Yusuf","l":"Zamora","a":"","p":"She/Her/Hers","d":"1948-10-02","s":"988-91-0120","q":"full","r":"Yes","h":1,"v":"No","u":"D. Ferreira","t":"2025-09-02","c":1},{"i":"5A9A992A3","f":"Cyprian","l":"Zielinski","a":"Cyp","p":"They/Them/Theirs","d":"1972-06-22","s":"987-04-0716","q":"full","r":"Missing","h":2,"v":"No","u":"C. Yoon","t":"2026-05-11","c":3},{"i":"126BA0946","f":"Demetrius","l":"Zielinski","a":"Dem","p":"","d":"1949-10-25","s":"928-72-8941","q":"full","r":"Yes","h":1,"v":"No","u":"R. Delacroix","t":"2025-06-16","c":3},{"i":"FDCC7D488","f":"Devon","l":"Zielinski","a":"","p":"She/Her/Hers","d":"1981-06-22","s":"970-04-2509","q":"full","r":"Yes","h":1,"v":"No","u":"K. Nakamura","t":"2025-04-03","c":4},{"i":"57A3EC11B","f":"Leopold","l":"Zielinski","a":"","p":"","d":"1976-03-07","s":null,"q":"refused","r":"Yes","h":2,"v":"No","u":"L. Mbatha","t":"2026-03-06","c":7},{"i":"2A8189B34","f":"Maria","l":"de la Cruz","a":"","p":"","d":"1974-01-28","s":"918-54-5527","q":"full","r":"Yes","h":4,"v":"No","u":"R. Delacroix","t":"2025-02-10","c":3}],"recent":["357BF6714","3DF1DF674","9E4C21A70","AD63C3FF2","1C6B4D802"]};
+var CLIENTS = DATA.clients;
+var TODAY = new Date("2026-07-24T00:00:00");
+var PALETTE = ["#3f3d9e","#1a7a4a","#0f6f8c","#7a3b9e","#b06a00","#a3324a","#2f6f3f","#4a4a6a"];
+var QUALITY = {
+  full:"Full SSN reported", approx:"Approximate or partial SSN reported",
+  refused:"Client refused", unknown:"Client doesn't know", notcollected:"Data not collected"
+};
+
+var $ = function(s){ return document.querySelector(s); };
+var $$ = function(s){ return [].slice.call(document.querySelectorAll(s)); };
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function byId(id){ for(var i=0;i<CLIENTS.length;i++) if(CLIENTS[i].i===id) return CLIENTS[i]; return null; }
+function initials(c){ return (c.l[0]+c.f[0]).toUpperCase(); }
+function fullName(c){ return c.l+", "+c.f; }
+function dobShort(iso){ var p=iso.split("-"); return (+p[1])+"/"+(+p[2])+"/"+p[0].slice(2); }
+function age(iso){
+  var b=new Date(iso+"T00:00:00"), a=TODAY.getFullYear()-b.getFullYear(), m=TODAY.getMonth()-b.getMonth();
+  if(m<0||(m===0&&TODAY.getDate()<b.getDate())) a--;
+  return a;
+}
+function last4(c){ return c.s ? c.s.slice(-4) : null; }
+function pad(n){ return (n<10?"0":"")+n; }
+function parseDate(s){
+  var m=String(s).trim().match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+  if(!m) return null;
+  var mo=+m[1], d=+m[2], y=+m[3];
+  if(mo<1||mo>12||d<1||d>31) return null;
+  return y+"-"+pad(mo)+"-"+pad(d);
+}
+
+/* ---------------- search engine ----------------
+   Mirrors documented behaviour: the search bar takes names, a date of birth in
+   several formats, or a bare year. It deliberately does NOT search SSN — in the
+   real product SSN is a column you read, not a field you query, which is what
+   makes identity confirmation a judgment rather than a lookup.              */
+function tokenMatch(c, tok){
+  if(/^\d{4}$/.test(tok)) return c.d.slice(0,4)===tok;
+  var iso=parseDate(tok);
+  if(iso) return c.d===iso;
+  var names=[c.f.toLowerCase(), c.l.toLowerCase()]
+      .concat(c.l.toLowerCase().split(/\s+/));
+  if(c.a) names.push(c.a.toLowerCase());
+  for(var i=0;i<names.length;i++) if(names[i].indexOf(tok)===0) return true;
+  return false;
+}
+function search(query, chips){
+  var raw=(query||"").trim().toLowerCase();
+  var toks=raw?raw.split(/\s+/):[];
+  var active=toks.length>0 || chips.length>0;
+  if(!active) return {rows:null, note:"recent"};
+
+  for(var i=0;i<toks.length;i++){
+    var t=toks[i];
+    if(!/^\d/.test(t) && t.length<3) return {rows:[], note:"short"};
+    if(/[\/.\-]/.test(t) && /\d/.test(t) && !parseDate(t)) return {rows:[], note:"baddate"};
+  }
+  var out=CLIENTS.filter(function(c){
+    for(var i=0;i<toks.length;i++) if(!tokenMatch(c,toks[i])) return false;
+    for(var j=0;j<chips.length;j++){
+      var ch=chips[j], v=(ch.value||"").toLowerCase();
+      if(!v) continue;
+      var field = ch.key==="first" ? c.f : ch.key==="last" ? c.l : (c.a||"");
+      if(field.toLowerCase().indexOf(v)!==0) return false;
+    }
+    return true;
+  });
+  return {rows:out, note:null};
+}
+
+/* ---------------- columns ---------------- */
+var FIELDS = [
+  {k:"client", label:"Client", locked:true, vis:true},
+  {k:"ssn",    label:"SSN",    vis:true},
+  {k:"roi",    label:"ROI",    vis:true},
+  {k:"dob",    label:"DOB",    vis:true},
+  {k:"alias",  label:"Alias",  vis:false},
+  {k:"hh",     label:"Household Members", vis:false},
+  {k:"vet",    label:"Veteran Status", vis:false}
+];
+var COLLAPSED = [
+  {k:"cid", label:"Client ID", locked:true},
+  {k:"upd", label:"Updated by"}
+];
+var CKEY="hmisSim.l1.columns.v2";
+function loadCols(){
+  try{
+    var saved=JSON.parse(localStorage.getItem(CKEY)||"null");
+    if(!saved) throw 0;
+    var known={}; FIELDS.forEach(function(f){ known[f.k]=f; });
+    var out=saved.filter(function(s){ return known[s.k]; })
+                 .map(function(s){ return {k:s.k, label:known[s.k].label, locked:known[s.k].locked, vis:!!s.vis}; });
+    FIELDS.forEach(function(f){ if(!out.some(function(o){return o.k===f.k;})) out.push(Object.assign({},f)); });
+    if(out[0].k!=="client"){ out=out.filter(function(o){return o.k!=="client";}); out.unshift(Object.assign({},FIELDS[0])); }
+    out[0].vis=true;
+    return out;
+  }catch(e){ return FIELDS.map(function(f){ return Object.assign({},f); }); }
+}
+function saveCols(){
+  try{ localStorage.setItem(CKEY, JSON.stringify(S.cols.map(function(c){return {k:c.k,vis:c.vis};}))); }catch(e){}
+}
+
+/* ============================================================
+   LESSON 1 — tasks
+   ============================================================ */
+var TASKS=[
+{ id:"nickname", title:"The nickname problem",
+  brief:'A man at the front desk says <span class="q">"I\'m Mike Torres — I stayed here last winter."</span> You type <code>Mike</code> and the list comes back empty.',
+  ask:"Find his existing record and open it.",
+  hint:"Records are filed under a legal name, and this one has no alias recorded. Search the surname instead — the first three letters are enough.",
+  expect:{type:"open", id:"357BF6714"},
+  teach:"He is filed as <b>Michael Torres</b> with no alias on the record. An empty result is the moment duplicates get created: the user assumes the client is new. Always try the surname before you conclude someone isn't in the system."
+},
+{ id:"year", title:"Year of birth only",
+  brief:'A woman says everyone calls her <span class="q">"Kate."</span> She thinks her record may be under a former married name, but she is sure she was born in <b>1985</b>.',
+  ask:"Find and open her record.",
+  hint:"When the surname is unreliable, search what you trust. A bare four-digit year is a valid search on its own.",
+  expect:{type:"open", id:"F565C146B"},
+  teach:"She is stored as <b>Katherine Morrison</b>, 7/22/1985. When a surname may have changed, year of birth is often the only stable handle you have, and it narrows 300 records to a list you can read by eye."
+},
+{ id:"formats", title:"Date formats",
+  brief:'An intake form arrives with the date of birth handwritten as <code>12.05.1990</code> — with dots.',
+  ask:"Search that date exactly as written, then open the client whose surname is Whitfield.",
+  hint:"Dots, slashes, and dashes all parse. Note how many people come back.",
+  expect:{type:"open", id:"AD63C3FF2"},
+  teach:"All three separators work. Notice the search returned <b>two</b> people born 12/5/1990. A shared birthday is not a match — you still have to confirm the name."
+},
+{ id:"samename", title:"Same name, different people",
+  brief:'A client says he is <span class="q">"James Wilson."</span> He gives his date of birth as 9/2/1968 and the last four of his SSN as 4471.',
+  ask:"Open the correct James Wilson.",
+  hint:"Two James Wilsons exist. You can't filter by SSN or date of birth — read the SSN and DOB columns in the results and compare.",
+  expect:{type:"open", id:"3DF1DF674"},
+  wrong:{"8C7A8F2D2":"That's the other James Wilson — born 4/17/1991, SSN ending 9038. Two records sharing a name are not automatically duplicates."},
+  teach:"These are two genuinely different people. Merging them would be a serious data-integrity error. Confirm identity on a second identifier — date of birth or SSN — never on the name alone."
+},
+{ id:"roi", title:"Reading the ROI column",
+  brief:'Before you share any client data with a partner agency, you need to know who has a signed Release of Information. Your supervisor asks about the <b>Delgado</b> records.',
+  ask:"Search Delgado and open the one client whose ROI is not on file.",
+  hint:"The ROI column shows Yes, Missing, or No right in the results — you can see consent status before you ever open a record.",
+  expect:{type:"open", id:"4F80C6E93"},
+  wrong:{"9E4C21A70":"Marcus Delgado's ROI reads Yes — his consent is on file.","B72D0F118":"Rosa Delgado's ROI reads Yes — her consent is on file."},
+  teach:"<b>Elena Delgado</b> shows ROI <b>Missing</b>. Because ROI is a results column, you can see whose data may be shared before opening anything. A missing ROI doesn't mean you can't serve the client — it means their data can't be shared outside your agency."
+},
+{ id:"noSsn", title:"When the SSN is refused",
+  brief:'A man says he is <span class="q">Robert Nakashima.</span> He gives his date of birth as 11/9/1982. He declined to give his Social Security Number when he first enrolled.',
+  ask:"Open the correct Robert Nakashima.",
+  hint:"Two records share this name. One has no SSN on file — but you were given a date of birth. Compare the DOB column.",
+  expect:{type:"open", id:"7A1E93C55"},
+  wrong:{"1C6B4D802":"That record is born 3/22/1977 and has an SSN on file — but the man in front of you gave 11/9/1982. Don't pick a record just because it has more data in it."},
+  teach:"His record shows <b>Client refused</b> for SSN, so the usual tiebreaker is gone and date of birth is the only handle left. The record with more data filled in is not automatically the right one — that instinct is exactly how the wrong client gets served."
+},
+{ id:"surname", title:"Multi-word surnames",
+  brief:'A caseworker asks you to pull up <span class="q">"Maria Cruz."</span>',
+  ask:"Find and open her record.",
+  hint:"Her surname has several parts. Any word within it will match — try Cruz on its own.",
+  expect:{type:"open", id:"2A8189B34"},
+  teach:"She is filed as <b>Maria de la Cruz</b>. Compound and hyphenated surnames get entered inconsistently between agencies, so search the distinctive fragment rather than the whole string."
+},
+{ id:"duplicate", title:"A real duplicate",
+  brief:'Search <code>Beckett</code>. Two records come back: <b>Shauna Beckett</b> and <b>Shawna Beckett</b>. Both show 4/30/1993 and both SSNs end 2210.',
+  ask:"Open either record and flag it as a possible duplicate.",
+  hint:"Open one of the two, then use 'Flag possible duplicate' at the bottom of the profile.",
+  expect:{type:"flag", ids:["5BB517588","6381E5405"]},
+  teach:"Same date of birth, same SSN, one letter apart — a textbook duplicate. End users never merge or delete records themselves. You escalate to your HMIS administrator or help desk, who resolves it centrally so the CoC's unduplicated count stays accurate."
+}];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+var S = {
+  q:"", chips:[], cols:loadCols(), sort:{k:"client",dir:1}, page:0, per:10,
+  rows:null, note:"recent", expanded:{},
+  recent:DATA.recent.slice(),
+  idx:0, results:[], attempts:0, hinted:false, finished:false
+};
+var PAGE_JUMP = null;
+
+function pct(){
+  var got=0; S.results.forEach(function(r){ got+=r.p; });
+  return Math.round(got/(TASKS.length*10)*100);
+}
+function task(){ return TASKS[S.idx]; }
+function liveRows(){
+  if(S.rows===null) return S.recent.map(byId).filter(Boolean);
+  return S.rows;
+}
+
+/* ============================================================
+   SCORM 1.2
+   ============================================================ */
+var SCORM=(function(){
+  var api=null, on=false;
+  function walk(w,d){ while(w&&d-->0){ if(w.API) return w.API; w=(w.parent!==w)?w.parent:null; } return null; }
+  return {
+    init:function(){
+      try{
+        api=walk(window,12)||(window.opener?walk(window.opener,12):null);
+        if(!api) return false;
+        on=(api.LMSInitialize("")+""==="true");
+        if(on){ api.LMSSetValue("cmi.core.lesson_status","incomplete"); api.LMSCommit(""); }
+      }catch(e){ on=false; }
+      return on;
+    },
+    score:function(v){ if(on){ try{ api.LMSSetValue("cmi.core.score.raw",String(v)); api.LMSCommit(""); }catch(e){} } },
+    finish:function(v,pass){
+      if(!on) return;
+      try{
+        api.LMSSetValue("cmi.core.score.raw",String(v));
+        api.LMSSetValue("cmi.core.score.min","0");
+        api.LMSSetValue("cmi.core.score.max","100");
+        api.LMSSetValue("cmi.core.lesson_status",pass?"passed":"failed");
+        api.LMSCommit(""); api.LMSFinish("");
+      }catch(e){}
+      on=false;
+    },
+    on:function(){ return on; }
+  };
+})();
+SCORM.init();
+window.addEventListener("beforeunload",function(){ if(SCORM.on()) SCORM.finish(pct(),pct()>=80); });
+
+/* ============================================================
+   RENDER — table
+   ============================================================ */
+function cellHTML(c,k){
+  switch(k){
+    case "client":
+      return '<div class="cwrap" data-open="'+c.i+'">'+
+        '<span class="av2" style="background:'+PALETTE[c.c%PALETTE.length]+'">'+esc(initials(c))+'</span>'+
+        '<span><span class="cname">'+esc(fullName(c))+
+        (c.p?' <span class="pron">('+esc(c.p)+')</span>':'')+'</span>'+
+        '<span class="cid">'+esc(c.i)+'</span></span></div>';
+    case "ssn":
+      return c.s
+        ? '<span class="ssn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l-1 16M14 4l-1 16M4 9h16M3 15h16"/></svg>'+esc(last4(c))+'</span>'
+        : '<span class="novalue">(No value)</span>';
+    case "roi":
+      var cl=c.r==="Yes"?"yes":c.r==="Missing"?"missing":"no";
+      return '<span class="roi '+cl+'">'+esc(c.r)+'</span>';
+    case "dob":
+      return '<span class="dob"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>'+
+        '<span><b>'+dobShort(c.d)+'</b><span>Age: '+age(c.d)+'</span></span></span>';
+    case "alias": return c.a?esc(c.a):'<span class="novalue">(No value)</span>';
+    case "hh": return String(c.h);
+    case "vet": return c.v?esc(c.v):'<span class="novalue">(No value)</span>';
+  }
+  return "";
+}
+function sortRows(rows){
+  var k=S.sort.k, d=S.sort.dir;
+  return rows.slice().sort(function(a,b){
+    var x,y;
+    if(k==="client"){ x=fullName(a).toLowerCase(); y=fullName(b).toLowerCase(); }
+    else if(k==="dob"){ x=a.d; y=b.d; }
+    else if(k==="ssn"){ x=last4(a)||"~"; y=last4(b)||"~"; }
+    else if(k==="roi"){ x=a.r; y=b.r; }
+    else if(k==="alias"){ x=(a.a||"~").toLowerCase(); y=(b.a||"~").toLowerCase(); }
+    else if(k==="hh"){ x=a.h; y=b.h; }
+    else if(k==="vet"){ x=a.v||"~"; y=b.v||"~"; }
+    else return 0;
+    return x<y?-1*d : x>y?1*d : 0;
+  });
+}
+function renderTable(){
+  var vis=S.cols.filter(function(c){ return c.vis; });
+  $("#thr").innerHTML='<th></th>'+vis.map(function(c){
+    var arrow = S.sort.k===c.k ? (S.sort.dir===1?" ↑":" ↓") : "";
+    return '<th class="sortable" data-sort="'+c.k+'" title="Sort by '+esc(c.label)+'">'+esc(c.label)+arrow+'</th>';
+  }).join("")+'<th></th>';
+
+  var all=liveRows();
+  var zero=$("#zero"), pager=$("#pager");
+  $("#hintRow").hidden = (S.rows!==null);
+
+  if(S.note==="short"||S.note==="baddate"){
+    $("#tb").innerHTML=""; pager.hidden=true; zero.hidden=false;
+    zero.innerHTML = S.note==="short"
+      ? '<b>Keep typing</b><span>Enter a full name or at least the first 3 letters.</span>'
+      : '<b>That date isn\'t valid</b><span>Try MM/DD/YYYY, MM.DD.YYYY, or MM-DD-YYYY.</span>';
+    return;
+  }
+  if(S.rows!==null && all.length===0){
+    $("#tb").innerHTML=""; pager.hidden=true; zero.hidden=false;
+    zero.innerHTML='<b>No clients found</b><span>Before deciding this person is new, try a shorter fragment of the name, '+
+      'the surname instead of the first name, or the year of birth on its own. An empty result is not proof that a client has no record.</span>';
+    return;
+  }
+  zero.hidden=true;
+
+  var sorted=sortRows(all);
+  var pages=Math.max(1,Math.ceil(sorted.length/S.per));
+  if(S.page>=pages) S.page=pages-1;
+  var start=S.page*S.per, slice=sorted.slice(start,start+S.per);
+
+  $("#tb").innerHTML=slice.map(function(c){
+    var open=!!S.expanded[c.i];
+    var main='<tr class="'+(open?"open":"")+'" data-row="'+c.i+'">'+
+      '<td><button class="rowbtn" data-exp="'+c.i+'" aria-expanded="'+open+'" aria-label="Show more fields for '+esc(fullName(c))+'">'+
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate('+(open?180:0)+'deg)"><path d="M7 10l5 5 5-5"/></svg></button></td>'+
+      vis.map(function(col){ return "<td>"+cellHTML(c,col.k)+"</td>"; }).join("")+
+      '<td><span class="iconcell">'+
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" title="Household"><circle cx="9" cy="9" r="3"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/><path d="M16 7.5a3 3 0 010 5.5M18 19c0-2-.6-3.4-1.6-4.4"/></svg>'+
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>'+
+      '</span></td></tr>';
+    if(!open) return main;
+    return main+'<tr class="expand"><td colspan="'+(vis.length+2)+'"><div class="inner">'+
+      '<div class="f"><b>Client ID</b>'+esc(c.i)+'</div>'+
+      '<div class="f"><b>Updated by</b>'+esc(c.u)+'</div>'+
+      '<div class="f"><b>Last updated</b>'+dobShort(c.t)+'</div>'+
+      '</div></td></tr>';
+  }).join("");
+
+  pager.hidden=false;
+  $("#resultCount").textContent=(start+1)+" – "+Math.min(start+S.per,sorted.length)+" of "+sorted.length;
+  $("#prevBtn").disabled=(S.page===0);
+  $("#nextBtn2").disabled=(S.page>=pages-1);
+}
+
+/* ---------------- chips ---------------- */
+var FILTER_FIELDS=[{k:"first",label:"First Name"},{k:"last",label:"Last Name"},{k:"alias",label:"Alias"}];
+function renderChips(){
+  $("#chips").innerHTML=S.chips.map(function(ch,i){
+    var f=FILTER_FIELDS.filter(function(x){return x.k===ch.key;})[0];
+    return '<span class="chip"><button data-chipedit="'+i+'" title="Edit filter" aria-label="Edit '+esc(f.label)+' filter">'+
+      '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 9l6 6 6-6z"/></svg></button>'+
+      esc(f.label)+': <span class="cv">'+esc(ch.value||"Any")+'</span>'+
+      '<button data-chipdel="'+i+'" title="Remove filter" aria-label="Remove '+esc(f.label)+' filter">'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></button></span>';
+  }).join("");
+  $("#pill").classList.toggle("has", S.chips.length>0 || !!S.q);
+}
+
+/* ---------------- columns panel ---------------- */
+function renderColPanel(){
+  var f=($("#colQ").value||"").toLowerCase();
+  $("#colVisible").innerHTML=S.cols.filter(function(c){ return !f||c.label.toLowerCase().indexOf(f)>-1; })
+    .map(function(c){
+      var i=S.cols.indexOf(c);
+      return '<li class="'+(c.locked?"locked":"")+'" draggable="'+(!c.locked)+'" data-ci="'+i+'">'+
+        '<input type="checkbox" id="cb_'+c.k+'" '+(c.vis?"checked":"")+' '+(c.locked?"disabled":"")+'>'+
+        '<label for="cb_'+c.k+'">'+esc(c.label)+'</label>'+
+        (c.locked
+          ? '<span class="grip" title="Locked">🔒</span>'
+          : '<span class="grip" aria-hidden="true">⠿</span>')+
+        '</li>';
+    }).join("");
+  $("#colCollapsed").innerHTML=COLLAPSED.filter(function(c){ return !f||c.label.toLowerCase().indexOf(f)>-1; })
+    .map(function(c){
+      return '<li class="locked"><input type="checkbox" checked disabled>'+
+        '<label>'+esc(c.label)+'</label><span class="badge">Collapsed</span></li>';
+    }).join("");
+}
+
+/* ============================================================
+   COACH
+   ============================================================ */
+function renderCoach(){
+  var done=S.idx>=TASKS.length;
+  $("#barFill").style.width=(S.results.length/TASKS.length*100)+"%";
+  $("#taskNo").textContent=done?"All tasks complete":("Task "+(S.idx+1)+" of "+TASKS.length);
+  $("#scoreLbl").textContent="Score "+pct()+"%";
+  if(done){
+    $("#tTitle").textContent="Lesson complete";
+    $("#tBrief").innerHTML="You can keep searching the roster freely. Nothing you do now affects your score.";
+    $("#tAsk").innerHTML="Try the column selector, the filter chips, and a few searches of your own.";
+    $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+  }else{
+    var t=task();
+    $("#tTitle").textContent=t.title;
+    $("#tBrief").innerHTML=t.brief;
+    $("#tAsk").innerHTML="<b>Your task:</b> "+esc(t.ask);
+    $("#hintBtn").hidden=false; $("#skipBtn").hidden=false;
+  }
+  $("#tList").innerHTML=TASKS.map(function(t,i){
+    var r=S.results.filter(function(x){return x.id===t.id;})[0];
+    var mark=r?(r.p===10?"✔":r.p>0?"◑":"✖"):"○";
+    return '<li class="'+(r?"done":(i===S.idx?"cur":""))+'"><span>'+mark+"</span><span>"+esc(t.title)+"</span></li>";
+  }).join("");
+}
+function say(kind,title,body,teach){
+  $("#fb").innerHTML='<div class="fb '+kind+'"><b>'+esc(title)+"</b>"+body+
+    (teach?'<div class="teach">'+teach+"</div>":"")+"</div>";
+}
+function pass(){
+  var t=task(), p=(S.attempts===0&&!S.hinted)?10:5;
+  S.results.push({id:t.id,p:p});
+  say("good", p===10?"Correct":"Correct — partial credit", "You found the right record.", t.teach);
+  $("#nextBtn").hidden=false; $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+  SCORM.score(pct()); renderCoach();
+}
+function nextTask(){
+  S.idx++; S.attempts=0; S.hinted=false;
+  $("#fb").innerHTML=""; $("#nextBtn").hidden=true;
+  if(S.idx>=TASKS.length) finish();
+  renderCoach();
+}
+function finish(){
+  S.finished=true;
+  var p=pct(), passed=p>=80, clean=S.results.filter(function(r){return r.p===10;}).length;
+  $("#dnBody").innerHTML=
+    '<p style="margin:0 0 10px;font-size:17px"><b>'+p+'%</b> — '+(passed?"passed":"not yet passing")+' (80% required)</p>'+
+    '<p style="margin:0 0 16px">'+clean+' of '+TASKS.length+' tasks completed on the first attempt.</p>'+
+    '<div class="banner warn"><div><b>The habit that carries into Lesson 2</b><br>'+
+    'Every task here could be failed the same way — by treating an empty or partial result as proof the client is new. '+
+    'Search the surname fragment, search the year of birth, and confirm on a second identifier before you ever create a record. '+
+    'Lesson 2 covers adding a client, where that habit is the only thing standing between you and a duplicate.</div></div>';
+  $("#done").hidden=false;
+  SCORM.finish(p,passed);
+}
+
+/* ---------------- task evaluation ---------------- */
+function evaluate(action,payload){
+  if(S.idx>=TASKS.length) return false;
+  var t=task(), e=t.expect;
+  if(e.type==="open"&&action==="open"){
+    if(payload===e.id){ pass(); return true; }
+    S.attempts++;
+    say("bad","Not this client",(t.wrong&&t.wrong[payload])||"That isn't the client described in the task. Close the profile and refine your search.");
+    return true;
+  }
+  if(e.type==="flag"&&action==="flag"){
+    if(e.ids.indexOf(payload)>-1){ pass(); return true; }
+    S.attempts++;
+    say("bad","Wrong record","That client isn't part of the duplicate pair described in this task.");
+    return true;
+  }
+  if(action==="flag"&&e.type==="open"){
+    S.attempts++;
+    say("bad","Not a duplicate","Flagging is for records that appear to describe the same person twice. This task asks you to find and open one specific client.");
+    return true;
+  }
+  return false;
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+function rerun(resetPage){
+  var r=search(S.q,S.chips);
+  S.rows=r.rows; S.note=r.note;
+  if(resetPage!==false) S.page=0;
+  renderTable();
+}
+var deb=null;
+$("#q").addEventListener("input",function(){
+  S.q=this.value;
+  $("#clearBtn").hidden=!this.value && S.chips.length===0;
+  $("#pill").classList.toggle("has", S.chips.length>0 || !!this.value);
+  clearTimeout(deb);
+  deb=setTimeout(rerun,220);
+});
+$("#q").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){ e.preventDefault(); clearTimeout(deb); rerun(); }
+  if(e.key==="Backspace" && !this.value && S.chips.length){ S.chips.pop(); renderChips(); rerun(); }
+});
+$("#q").addEventListener("focus",function(){ $("#pill").classList.add("focus"); });
+$("#q").addEventListener("blur",function(){ $("#pill").classList.remove("focus"); });
+$("#goBtn").addEventListener("click",function(){ clearTimeout(deb); rerun(); });
+$("#clearBtn").addEventListener("click",function(){
+  S.q=""; S.chips=[]; $("#q").value=""; this.hidden=true;
+  renderChips(); rerun(); $("#q").focus();
+});
+
+/* filter menu */
+$("#filterBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  var p=$("#filterPop"), open=p.hidden;
+  closePops();
+  if(!open) return;
+  p.innerHTML=FILTER_FIELDS.map(function(f){
+    return '<button class="menuitem" data-ff="'+f.k+'" role="menuitem">'+
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M7 12h10M10 17h4"/></svg>'+esc(f.label)+'</button>';
+  }).join("");
+  place(p,this); p.hidden=false; this.setAttribute("aria-expanded","true");
+});
+$("#filterPop").addEventListener("click",function(e){
+  e.stopPropagation();               /* keep the document handler from closing what we open next */
+  var b=e.target.closest("[data-ff]"); if(!b) return;
+  var k=b.dataset.ff;
+  if(!S.chips.some(function(c){return c.key===k;})) S.chips.push({key:k,value:""});
+  closePops(); renderChips(); rerun();
+  var i=S.chips.length-1;
+  openChipEditor(i, $('#chips [data-chipedit="'+i+'"]'));
+});
+$("#chips").addEventListener("click",function(e){
+  var del=e.target.closest("[data-chipdel]");
+  if(del){ S.chips.splice(+del.dataset.chipdel,1); renderChips(); rerun(); return; }
+  var ed=e.target.closest("[data-chipedit]");
+  if(ed){ e.stopPropagation(); openChipEditor(+ed.dataset.chipedit, ed); }
+});
+function openChipEditor(i,anchor){
+  var ch=S.chips[i]; if(!ch||!anchor) return;
+  var f=FILTER_FIELDS.filter(function(x){return x.k===ch.key;})[0];
+  var p=$("#chipPop"); closePops();
+  p.innerHTML='<div class="chipedit"><label for="chipVal">Search by '+esc(f.label)+'</label>'+
+    '<div class="r"><input id="chipVal" type="text" value="'+esc(ch.value)+'">'+
+    '<button class="go" id="chipGo" aria-label="Apply filter"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></div></div>';
+  place(p,anchor); p.hidden=false;
+  var inp=$("#chipVal"); inp.focus(); inp.select();
+  function apply(){ ch.value=inp.value.trim(); closePops(); renderChips(); rerun(); }
+  $("#chipGo").addEventListener("click",apply);
+  inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); apply(); } });
+}
+
+/* columns */
+$("#colBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  var p=$("#colPop"), open=p.hidden;
+  closePops(); if(!open) return;
+  $("#colQ").value=""; renderColPanel(); place(p,this,300); p.hidden=false;
+  this.setAttribute("aria-expanded","true");
+});
+$("#colQ").addEventListener("input",renderColPanel);
+$("#colPop").addEventListener("click",function(e){ e.stopPropagation(); });
+$("#chipPop").addEventListener("click",function(e){ e.stopPropagation(); });
+$("#colVisible").addEventListener("change",function(e){
+  if(e.target.type!=="checkbox") return;
+  var k=e.target.id.replace("cb_","");
+  S.cols.forEach(function(c){ if(c.k===k&&!c.locked) c.vis=e.target.checked; });
+  saveCols(); renderTable();
+});
+var dragFrom=null;
+$("#colVisible").addEventListener("dragstart",function(e){
+  var li=e.target.closest("li"); if(!li||li.classList.contains("locked")) return;
+  dragFrom=+li.dataset.ci; e.dataTransfer.effectAllowed="move";
+  try{ e.dataTransfer.setData("text/plain",""+dragFrom); }catch(err){}
+});
+$("#colVisible").addEventListener("dragover",function(e){
+  var li=e.target.closest("li"); if(!li||li.classList.contains("locked")) return;
+  e.preventDefault(); li.classList.add("dragover");
+});
+$("#colVisible").addEventListener("dragleave",function(e){
+  var li=e.target.closest("li"); if(li) li.classList.remove("dragover");
+});
+$("#colVisible").addEventListener("drop",function(e){
+  var li=e.target.closest("li"); if(!li||dragFrom===null||li.classList.contains("locked")) return;
+  e.preventDefault(); li.classList.remove("dragover");
+  var to=+li.dataset.ci, moved=S.cols.splice(dragFrom,1)[0];
+  S.cols.splice(to,0,moved); dragFrom=null;
+  saveCols(); renderColPanel(); renderTable();
+});
+
+/* table interactions */
+$("#tb").addEventListener("click",function(e){
+  var exp=e.target.closest("[data-exp]");
+  if(exp){ var id=exp.dataset.exp; S.expanded[id]=!S.expanded[id]; renderTable(); return; }
+  var op=e.target.closest("[data-open]");
+  if(op){ openProfile(op.dataset.open); return; }
+  var tr=e.target.closest("[data-row]");
+  if(tr) openProfile(tr.dataset.row);
+});
+$("#thr").addEventListener("click",function(e){
+  var th=e.target.closest("[data-sort]"); if(!th) return;
+  var k=th.dataset.sort;
+  if(S.sort.k===k) S.sort.dir*=-1; else { S.sort.k=k; S.sort.dir=1; }
+  renderTable();
+});
+$("#prevBtn").addEventListener("click",function(){ if(S.page>0){ S.page--; renderTable(); } });
+$("#nextBtn2").addEventListener("click",function(){ S.page++; renderTable(); });
+
+/* profile */
+function openProfile(id){
+  var c=byId(id); if(!c) return;
+  S.recent=[id].concat(S.recent.filter(function(x){return x!==id;})).slice(0,5);
+  var roiBanner = c.r==="Yes"
+    ? '<div class="banner ok"><div><b>Release of Information on file.</b> This client\'s data may be shared with partner agencies in your CoC.</div></div>'
+    : c.r==="Missing"
+      ? '<div class="banner warn"><div><b>No Release of Information on file.</b> You may still serve this client, but their data cannot be shared outside your agency until an ROI is recorded.</div></div>'
+      : '<div class="banner bad"><div><b>Release of Information declined.</b> This client refused consent. Their data must not be shared outside your agency.</div></div>';
+  $("#pfTitle").textContent=fullName(c)+(c.p?" ("+c.p+")":"");
+  $("#pfBody").innerHTML=roiBanner+
+    '<dl class="kv">'+
+      '<dt>Client ID</dt><dd>'+esc(c.i)+'</dd>'+
+      '<dt>Name</dt><dd>'+esc(c.f+" "+c.l)+'</dd>'+
+      '<dt>Alias</dt><dd>'+(c.a?esc(c.a):'<span class="novalue">(No value)</span>')+'</dd>'+
+      '<dt>Date of Birth</dt><dd>'+dobShort(c.d)+' &nbsp;<span class="novalue">Age '+age(c.d)+'</span></dd>'+
+      '<dt>Social Security Number</dt><dd>'+(c.s?esc(c.s):'<span class="novalue">(No value)</span>')+'</dd>'+
+      '<dt>SSN Data Quality</dt><dd>'+esc(QUALITY[c.q])+'</dd>'+
+      '<dt>Household Members</dt><dd>'+c.h+'</dd>'+
+      '<dt>Veteran Status</dt><dd>'+(c.v?esc(c.v):'<span class="novalue">(No value)</span>')+'</dd>'+
+      '<dt>Updated by</dt><dd>'+esc(c.u)+' on '+dobShort(c.t)+'</dd>'+
+    '</dl>'+
+    '<p style="margin:16px 0 0;font-size:12.5px;color:var(--muted)">In the live system this record also carries enrollments, '+
+    'services, assessments, notes, and files. Lesson 1 covers search only.</p>';
+  $("#flagBtn").dataset.id=id;
+  $("#profile").hidden=false;
+  renderTable();
+  evaluate("open",id);
+}
+$("#flagBtn").addEventListener("click",function(){
+  var id=this.dataset.id, c=byId(id);
+  $("#profile").hidden=true;
+  if(!evaluate("flag",id)){
+    notice("Flagged for your HMIS administrator",
+      "<p>Record <b>"+esc(id)+"</b> ("+esc(fullName(c))+") has been flagged for review.</p>"+
+      "<p style='margin-bottom:0'>End users never merge or delete client records. Your HMIS administrator resolves confirmed duplicates centrally so the CoC's unduplicated count stays accurate.</p>");
+  }
+});
+
+/* add client — out of scope for Lesson 1 */
+$("#addBtn").addEventListener("click",function(){
+  var extra="";
+  if(S.idx<TASKS.length){
+    var e=task().expect;
+    var ids = e.type==="open" ? [e.id] : (e.ids||[]);
+    if(ids.length) extra="<p style='margin-bottom:0'><b>Worth noticing:</b> the person in this task already has a record. "+
+      "Adding them again would double-count them in your CoC's HUD reporting — which is exactly what careful searching prevents.</p>";
+  }
+  notice("Adding clients is Lesson 2",
+    "<p>Lesson 1 covers search only. In the live system this button opens the new client form, "+
+    "which you'll work through in Lesson 2.</p>"+extra);
+});
+
+function notice(title,html){
+  $("#ntTitle").textContent=title; $("#ntBody").innerHTML=html; $("#notice").hidden=false;
+}
+$$("[data-locked]").forEach(function(b){
+  b.addEventListener("click",function(){
+    notice("Not part of this simulation","<p style='margin-bottom:0'>Lesson 1 covers the Clients search screen only. Other areas of the system are disabled here.</p>");
+  });
+});
+
+/* coach buttons */
+$("#hintBtn").addEventListener("click",function(){ S.hinted=true; say("tip","Hint",task().hint); });
+$("#skipBtn").addEventListener("click",function(){
+  var t=task(); S.results.push({id:t.id,p:0});
+  say("bad","Task skipped","No points for this one.",t.teach);
+  $("#nextBtn").hidden=false; $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+  renderCoach();
+});
+$("#nextBtn").addEventListener("click",nextTask);
+$("#restartBtn").addEventListener("click",function(){
+  S.idx=0; S.results=[]; S.attempts=0; S.hinted=false; S.finished=false;
+  S.q=""; S.chips=[]; $("#q").value=""; S.rows=null; S.note="recent"; S.page=0; S.expanded={};
+  $("#fb").innerHTML=""; $("#nextBtn").hidden=true; $("#done").hidden=true;
+  renderChips(); renderTable(); renderCoach();
+});
+
+/* popover plumbing */
+function place(pop,anchor,w){
+  var r=anchor.getBoundingClientRect();
+  pop.style.width=(w||"")?w+"px":"";
+  pop.style.visibility="hidden"; pop.hidden=false;
+  var pw=pop.offsetWidth, ph=pop.offsetHeight;
+  pop.hidden=true; pop.style.visibility="";
+  var left=Math.min(r.left, window.innerWidth-pw-12);
+  var top=r.bottom+6;
+  if(top+ph>window.innerHeight-8) top=Math.max(8,r.top-ph-6);
+  pop.style.left=Math.max(8,left)+"px"; pop.style.top=top+"px";
+}
+function closePops(){
+  ["#filterPop","#chipPop","#colPop"].forEach(function(s){ $(s).hidden=true; });
+  $("#filterBtn").setAttribute("aria-expanded","false");
+  $("#colBtn").setAttribute("aria-expanded","false");
+}
+document.addEventListener("click",closePops);
+$$("[data-close]").forEach(function(b){ b.addEventListener("click",function(){ this.closest(".backdrop").hidden=true; }); });
+$$(".backdrop").forEach(function(bd){ bd.addEventListener("mousedown",function(e){ if(e.target===bd) bd.hidden=true; }); });
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"){ closePops(); $$(".backdrop").forEach(function(b){ b.hidden=true; }); }
+});
+
+/* boot */
+renderChips(); renderTable(); renderCoach();
+</script>
+</body>
+</html>
