@@ -227,6 +227,46 @@ while len(clients) < TOTAL:
 
 clients.sort(key=lambda c: (c["l"], c["f"]))
 
+# ---- numeric Client ID -----------------------------------------------------
+# Distinct from the alphanumeric unique identifier shown under the name in
+# search results; the record page and the expanded row show this one.
+cids = rnd.sample(range(10000, 99999), len(clients))
+for c, n in zip(clients, cids):
+    c["cid"] = n
+
+# ---- households ------------------------------------------------------------
+# Members are real clients from this same roster, so opening any member shows a
+# household that actually resolves. Surnames often but not always match.
+def relationship(member, head):
+    if member is head:
+        return "Parent"
+    gap = int(member["d"][:4]) - int(head["d"][:4])
+    if gap >= 16:
+        p = member.get("p", "")
+        return "Daughter" if p.startswith("She") else "Son" if p.startswith("He") else "Child"
+    return "Spouse" if gap <= 8 else "Other relative"
+
+order = clients[:]
+rnd.shuffle(order)
+for head in order:
+    if "hm" in head:
+        continue
+    size = weighted([(1, .58), (2, .18), (3, .13), (4, .08), (5, .03)])
+    if size == 1:
+        head["hm"], head["h"] = [], 1
+        continue
+    members = [head]
+    while len(members) < size:
+        free = [c for c in order if "hm" not in c and c not in members]
+        if not free:
+            break
+        kin = [c for c in free if c["l"] == head["l"]]
+        members.append(rnd.choice(kin) if (kin and rnd.random() < .6) else rnd.choice(free))
+    members.sort(key=lambda c: c["d"])           # oldest first becomes the head
+    roll = [{"i": m["i"], "rel": relationship(m, members[0])} for m in members]
+    for m in members:
+        m["hm"], m["h"] = roll, len(members)
+
 # ---- client-record page fields -------------------------------------------
 # Added after the sort so the assignment stays deterministic for a given seed.
 QUALITY_LABEL = {

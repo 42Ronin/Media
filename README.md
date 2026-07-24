@@ -80,8 +80,15 @@ Modelled on screenshots of the current interface:
 - **ROI as a results column**: `Yes` / `Missing` / `No` pills
 - **SSN** shows last 4 in results and the full number on the profile
 - **Column selector** with a field search, checkboxes, drag-to-reorder, a locked **Client**
-  column, and a **Collapsed Fields** section (Client ID, Updated by) that the row chevron reveals
+  column, and a **Collapsed Fields** section revealed by the row chevron: **Client ID**,
+  **Veteran Status**, **Household Members**, **Updated by**
+- **Household Members** expand into the real people in that household — avatar, name with
+  pronouns, and relationship to the head of household. Members are other clients from the
+  same roster, so every household resolves and membership is reciprocal.
+- Two identifiers, as in the product: the **unique identifier** (`AD63C3FF2`) under the name
+  in search results, and the numeric **Client ID** (`17248`) on the record and expanded row
 - **Pagination** (`1 – 10 of 34`) and sortable headers
+- No stat tiles on the search page — out of scope for this lesson
 - **Recently accessed** clients, which start empty — the screen shows nothing until the
   learner searches, and records accumulate as they are opened
 - **Client Record page** — opening a row navigates to the record, as it does live. Client
@@ -136,7 +143,7 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-129 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+137 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three
@@ -158,9 +165,8 @@ The no-results state is deliberately plain — **No clients found** — so the a
 The coaching that belongs with an empty result ("no results is not an answer") is raised once
 per task in the training drawer instead, where coaching belongs.
 
-**Unverified** — no screenshot was available, so these are designed rather than copied: the
-exact no-results wording and the contents of the expanded search row beyond Client ID and
-Updated by.
+**Unverified** — no screenshot was available, so this is designed rather than copied: the
+exact no-results wording.
 
 **Known divergence:** the captured record page masks the SSN as `***-**-####`. This sim shows
 it in full, per the course decision to display SSNs unmasked. Every SSN is in the never-issued

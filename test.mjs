@@ -281,13 +281,39 @@ ok('column choice persists to localStorage',
    await p.evaluate(() => !!localStorage.getItem('hmisSim.l1.columns.v3')));
 await closeAll();
 
-console.log('\n— row expand —');
-await type('Torres');
-await p.click('#tb [data-exp]'); await p.waitForTimeout(150);
+console.log('\n— row expand + household —');
+const hoh = await p.evaluate(() => {
+  const c = CLIENTS.find(x => x.hm && x.hm.length >= 3);
+  return { id: c.i, q: c.f, cid: c.cid, size: c.hm.length };
+});
+await type(hoh.q);
+await p.click(`#tb tr[data-row="${hoh.id}"] [data-exp]`); await p.waitForTimeout(200);
 const exp = await p.textContent('.expand');
 ok('chevron reveals the collapsed fields',
-   exp.includes('Client ID') && exp.includes('Updated by'), exp.slice(0, 60));
-await p.click('#tb [data-exp]');
+   exp.includes('Client ID') && exp.includes('Veteran Status') &&
+   exp.includes('Household Members') && exp.includes('Updated by'), exp.slice(0, 80));
+ok('expanded row shows the NUMERIC client id, not the unique identifier',
+   exp.includes(String(hoh.cid)) && !exp.includes(hoh.id));
+const mem = await p.$$eval('.expand .hm', hs => hs.map(h => ({
+  name: h.querySelector('b').textContent.replace(/\s*\(.*?\)\s*$/, '').trim(),
+  rel: h.querySelector('.nm > span').textContent.trim()
+})));
+ok('household members render with names and relationships',
+   mem.length === hoh.size && mem.every(m => m.name && m.rel), JSON.stringify(mem));
+ok('exactly one member is the head of household',
+   mem.filter(m => m.rel === 'Parent').length === 1, JSON.stringify(mem.map(m => m.rel)));
+ok('the client themselves appears in their own household',
+   await p.evaluate(id => byId(id).hm.some(m => m.i === id), hoh.id));
+ok('every household member resolves to a real client in the roster',
+   await p.evaluate(() => CLIENTS.every(c => (c.hm || []).every(m => !!byId(m.i)))));
+ok('the Household Members count matches the household size',
+   await p.evaluate(() => CLIENTS.every(c => c.h === (c.hm && c.hm.length ? c.hm.length : 1))));
+ok('household membership is reciprocal', await p.evaluate(() =>
+   CLIENTS.filter(c => c.hm && c.hm.length).every(c =>
+     c.hm.every(m => { const o = byId(m.i); return o.hm && o.hm.some(x => x.i === c.i); }))));
+await p.click(`#tb tr[data-row="${hoh.id}"] [data-exp]`);
+
+ok('the search page carries no stat tiles', await p.$$eval('.tile', t => t.length === 0));
 
 console.log('\n— client record page —');
 await type('Delgado');

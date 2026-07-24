@@ -118,10 +118,16 @@ tbody tr.open{background:var(--indigo-soft)}
 .dob span{display:block;font-size:11.5px;color:var(--muted)}
 .novalue{color:#9a9ab0;font-size:13px}
 .iconcell{display:flex;align-items:center;gap:12px;justify-content:flex-end;color:var(--muted);padding-right:12px}
-.expand td{background:#faf9ff;padding:0}
-.expand .inner{padding:14px 22px 16px 100px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
-.expand .f{font-size:13px}
-.expand .f b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-bottom:2px}
+.expand td{background:#fff;padding:0;border-left:3px solid var(--indigo-soft)}
+.expand .inner{padding:14px 22px 18px 74px}
+.xf{margin-bottom:14px}
+.xf:last-child{margin-bottom:4px}
+.xf > b{display:block;font-size:13px;color:var(--ink);font-weight:600;margin-bottom:2px}
+.xf > span{font-size:13.5px;color:var(--muted)}
+.hm{display:flex;align-items:center;gap:9px;margin-top:8px}
+.av3{width:30px;height:30px;border-radius:7px;color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:700;flex:none}
+.hm .nm b{display:block;font-size:13.5px;font-weight:600;color:var(--ink)}
+.hm .nm > span{font-size:12.5px;color:var(--muted)}
 .pager{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:12px 22px 16px;font-size:13px;color:var(--muted)}
 .pager button{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--indigo)}
 .pager button:disabled{color:#c3c2d6;cursor:default}
@@ -129,15 +135,6 @@ tbody tr.open{background:var(--indigo-soft)}
 .zero{padding:34px 22px 40px;text-align:center}
 .zero b{display:block;font-size:16px;margin-bottom:6px}
 .zero span{color:var(--muted);font-size:13.5px;display:block;max-width:520px;margin:0 auto}
-
-/* stat tiles */
-.tiles{width:170px;flex:none;display:flex;flex-direction:column;gap:14px;padding-top:2px}
-@media(max-width:1080px){.tiles{display:none}}
-.tile{background:var(--card);border-radius:14px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 6px 18px rgba(60,50,140,.06);
-  padding:16px 10px;text-align:center}
-.tile b{display:block;font-size:30px;font-weight:500;color:var(--indigo);line-height:1.1}
-.tile span{font-size:13px;color:var(--ink)}
-.tile i{display:block;margin-top:6px;color:var(--muted)}
 
 /* popovers */
 .pop{position:absolute;z-index:60;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(40,30,90,.24);
@@ -372,11 +369,6 @@ tbody tr.open{background:var(--indigo-soft)}
         </div>
       </div>
 
-      <div class="tiles" aria-hidden="true">
-        <div class="tile"><b>5</b><span>Active enrollments</span><i>ⓘ</i></div>
-        <div class="tile"><b>0</b><span>Status due</span><i>ⓘ</i></div>
-        <div class="tile"><b>0</b><span>Case manager</span><i>ⓘ</i></div>
-      </div>
     </div>
   </div>
 </div>
@@ -566,8 +558,11 @@ var FIELDS = [
   {k:"hh",     label:"Household Members", vis:false},
   {k:"vet",    label:"Veteran Status", vis:false}
 ];
+/* shown when the row chevron is opened, not as columns */
 var COLLAPSED = [
   {k:"cid", label:"Client ID", locked:true},
+  {k:"vet", label:"Veteran Status"},
+  {k:"hhm", label:"Household Members"},
   {k:"upd", label:"Updated by"}
 ];
 /* key is versioned: bumping it retires a saved order when the shipped default changes,
@@ -738,6 +733,20 @@ function cellHTML(c,k){
   }
   return "";
 }
+function xf(label, val){
+  return '<div class="xf"><b>'+esc(label)+'</b><span>'+val+'</span></div>';
+}
+/* Household members are real clients from the same roster, each with their
+   relationship to the head of household. */
+function householdHTML(c){
+  if(!c.hm || !c.hm.length) return '<span class="novalue">No value</span>';
+  return c.hm.map(function(m){
+    var p=byId(m.i); if(!p) return "";
+    return '<span class="hm"><span class="av3" style="background:'+PALETTE[p.c%PALETTE.length]+'">'+
+      esc(initials(p))+'</span><span class="nm"><b>'+esc(p.f+" "+p.l)+
+      (p.p?' <span class="pron">('+esc(p.p)+')</span>':'')+'</b><span>'+esc(m.rel)+'</span></span></span>';
+  }).join("");
+}
 function sortRows(rows){
   var k=S.sort.k, d=S.sort.dir;
   return rows.slice().sort(function(a,b){
@@ -796,9 +805,10 @@ function renderTable(){
       '</span></td></tr>';
     if(!open) return main;
     return main+'<tr class="expand"><td colspan="'+(vis.length+2)+'"><div class="inner">'+
-      '<div class="f"><b>Client ID</b>'+esc(c.i)+'</div>'+
-      '<div class="f"><b>Updated by</b>'+esc(c.u)+'</div>'+
-      '<div class="f"><b>Last updated</b>'+dobShort(c.t)+'</div>'+
+      xf("Client ID", String(c.cid))+
+      xf("Veteran Status", c.v?esc(c.v):'<span class="novalue">No value</span>')+
+      xf("Household Members", householdHTML(c))+
+      xf("Updated by", esc(c.u)+' <span class="novalue">· '+dobShort(c.t)+'</span>')+
       '</div></td></tr>';
   }).join("");
 
@@ -1132,7 +1142,8 @@ function openProfile(id){
     field("Race and Ethnicity", esc(c.rc))+
     field("Additional Race and Ethnicity Detail", c.rd?esc(c.rd):'No value', !c.rd)+
     field("Veteran Status", c.v?esc(c.v):'No value', !c.v)+
-    field("Client ID", esc(c.i));
+    field("Client ID", String(c.cid))+
+    field("Unique Identifier", esc(c.i));
 
   $("#recRail").innerHTML=RAIL.map(function(r){
     var n = r[0]==="hh" ? c.h : (c.n&&c.n[r[0]])||0;
