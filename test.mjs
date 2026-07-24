@@ -288,6 +288,20 @@ ok('count pills stay circular (no class collision with the empty state)',
 await p.click('.railbtn[aria-current]'); await p.waitForTimeout(200);
 ok('the global Clients button returns to search', !(await p.$eval('#searchView', e => e.hidden)));
 
+// the top-bar magnifier is the documented way back
+await p.click('#tb tr[data-row]:has-text("Rosa")'); await p.waitForTimeout(250);
+ok('back on a record page', !(await p.$eval('#recordView', e => e.hidden)));
+await p.click('#globalSearchBtn'); await p.waitForTimeout(250);
+ok('the top-bar magnifier returns to client search from a record',
+   !(await p.$eval('#searchView', e => e.hidden)) && await p.$eval('#recordView', e => e.hidden));
+ok('and it puts the cursor in the search box',
+   await p.evaluate(() => document.activeElement && document.activeElement.id === 'q'));
+await p.click('#globalSearchBtn'); await p.waitForTimeout(200);
+ok('clicking it on the search page explains what it is for',
+   (await p.textContent('#ntTitle')).includes('back to Client Search'));
+ok('...and says you are already there', (await p.textContent('#ntBody')).includes('already on'));
+await closeAll();
+
 console.log('\n— guided flow —');
 await p.reload(); await p.waitForTimeout(200);
 ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('nickname'));

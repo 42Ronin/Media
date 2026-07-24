@@ -92,6 +92,9 @@ Modelled on screenshots of the current interface:
   cards with counts (Program referrals, Community queues, Household, Active programs, Active
   services, Recent Services and Events, Active Contacts, Care Team). The profile kebab carries
   **Flag possible duplicate**. Everything past Profile is out of scope and says so.
+- The top-bar **magnifying glass** returns to Client Search from anywhere and focuses the
+  search box. Clicked while already on Client Search, it explains that that's what it's for —
+  a navigation habit worth teaching, since it saves backing out of a record.
 
 ---
 
@@ -126,7 +129,7 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-110 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+115 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three
