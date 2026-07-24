@@ -23,7 +23,7 @@ const type = async (q) => { await p.fill('#q', q); await p.waitForTimeout(330); 
 // strip the inline pronouns span so assertions compare on the name itself
 const names = () => p.$$eval('#tb tr[data-row] .cname', els => els.map(e => e.textContent.replace(/\s*\(.*?\)\s*$/, '').trim()));
 const zero = () => p.$eval('#zero', e => e.hidden ? '' : e.textContent.trim());
-const closeAll = () => p.keyboard.press('Escape');
+const closeAll = async () => { await p.keyboard.press('Escape'); await p.waitForTimeout(120); };
 
 console.log('\n— initial state —');
 ok('nothing is shown before the first search', (await names()).length === 0);
@@ -220,6 +220,39 @@ ok('chevron reveals the collapsed fields',
    exp.includes('Client ID') && exp.includes('Updated by'), exp.slice(0, 60));
 await p.click('#tb [data-exp]');
 
+console.log('\n— client record page —');
+await type('Delgado');
+await p.click('#tb tr[data-row]:has-text("Rosa")'); await p.waitForTimeout(250);
+ok('opening a row navigates to the record page', !(await p.$eval('#recordView', e => e.hidden)));
+ok('the search screen is replaced, not overlaid',
+   await p.$eval('#searchView', e => getComputedStyle(e).display === 'none'));
+ok('Public Alert is not shown for a client with no alert',
+   await p.$eval('#alertBtn', e => getComputedStyle(e).display === 'none'));
+ok('header names the client', (await p.textContent('#recName')).includes('Rosa Delgado'));
+ok('header carries the "viewing the Client Record pages" line',
+   (await p.textContent('#recSub')).includes('Client Record pages'));
+const nav = await p.$$eval('#recNav button', bs => bs.map(x => x.textContent.trim()));
+ok('client nav has all 16 sections with Profile active',
+   nav.length === 16 && nav[0] === 'Profile' &&
+   await p.$eval('#recNav button', e => e.getAttribute('aria-current') === 'page'), JSON.stringify(nav));
+const grid = await p.textContent('#profGrid');
+ok('profile shows the three data-quality fields',
+   grid.includes('Quality of SSN') && grid.includes('Quality of Name') && grid.includes('Quality of DOB'));
+ok('profile shows Consent Refused and Race and Ethnicity',
+   grid.includes('Consent Refused') && grid.includes('Race and Ethnicity'));
+ok('missing values read "No value"', grid.includes('No value'));
+const rail = await p.$$eval('#recRail .rc b', bs => bs.map(x => x.textContent.trim()));
+ok('right rail lists all eight record sections',
+   rail.length === 8 && rail[0] === 'Program referrals' && rail.includes('Care Team'), JSON.stringify(rail));
+const pill = await p.$eval('#recRail .pillnum', e => {
+  const r = e.getBoundingClientRect();
+  return { w: Math.round(r.width), h: Math.round(r.height) };
+});
+ok('count pills stay circular (no class collision with the empty state)',
+   pill.w === pill.h && pill.w < 30, JSON.stringify(pill));
+await p.click('.railbtn[aria-current]'); await p.waitForTimeout(200);
+ok('the global Clients button returns to search', !(await p.$eval('#searchView', e => e.hidden)));
+
 console.log('\n— guided flow —');
 await p.reload(); await p.waitForTimeout(200);
 ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('nickname'));
@@ -267,13 +300,14 @@ ok('record with an SSN but the wrong DOB is rejected',
 await closeAll();
 await p.click('#tb tr[data-row]:has-text("11/9/82")'); await p.waitForTimeout(200);
 ok('SSN-refused record with the right DOB passes', (await p.textContent('#fb')).includes('Correct'));
-ok('its profile shows the SSN data-quality reason',
-   (await p.evaluate(() => document.getElementById('pfBody').textContent)).includes('Client refused'));
+ok('its record page shows the SSN data-quality reason',
+   (await p.textContent('#profGrid')).includes('Client refused'));
 await closeAll();
 
 await p.evaluate(() => { S.idx = 7; S.attempts = 0; S.hinted = false; renderCoach(); });
 await type('Beckett');
-await p.click('#tb tr[data-row]'); await p.waitForTimeout(150);
+await p.click('#tb tr[data-row]'); await p.waitForTimeout(200);
+await p.click('#kebabBtn'); await p.waitForTimeout(150);
 await p.click('#flagBtn'); await p.waitForTimeout(200);
 ok('flagging a Beckett passes the duplicate task', (await p.textContent('#fb')).includes('Correct'));
 ok('teaching point says escalate, never merge', (await p.textContent('#fb')).includes('never merge'));

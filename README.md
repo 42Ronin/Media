@@ -79,7 +79,14 @@ Modelled on screenshots of the current interface:
 - **Pagination** (`1 – 10 of 34`) and sortable headers
 - **Recently accessed** clients, which start empty — the screen shows nothing until the
   learner searches, and records accumulate as they are opened
-- Client profile with ROI banner and **SSN Data Quality**
+- **Client Record page** — opening a row navigates to the record, as it does live. Client
+  header with the *"You are currently viewing the Client Record pages for…"* line and a
+  **Public Alert** pill; the 16-item client nav (Profile … Restrictions) with Profile active;
+  the profile card's two-column grid including **Quality of SSN / Name / DOB**, Consent
+  Refused, Race and Ethnicity, Additional Detail, Veteran Status; and the eight right-rail
+  cards with counts (Program referrals, Community queues, Household, Active programs, Active
+  services, Recent Services and Events, Active Contacts, Care Team). The profile kebab carries
+  **Flag possible duplicate**. Everything past Profile is out of scope and says so.
 
 ---
 
@@ -112,11 +119,12 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-91 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+103 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three
-date separators, and SSN fragments at the start, middle and end.
+date separators, and SSN fragments at the start, middle and end. The record page is covered too: navigation
+in and back out, all 16 nav sections, the data-quality fields, and the eight rail cards.
 
 Accessibility: labelled controls, `aria-live` result count, accessible names on every icon
 button, focus-visible outlines, `role="dialog"` modals, Escape to close. The real product's
@@ -134,8 +142,12 @@ The coaching that belongs with an empty result ("no results is not an answer") i
 per task in the training drawer instead, where coaching belongs.
 
 **Unverified** — no screenshot was available, so these are designed rather than copied: the
-exact no-results wording, the client profile screen, and the contents of the expanded row
-beyond Client ID and Updated by.
+exact no-results wording and the contents of the expanded search row beyond Client ID and
+Updated by.
+
+**Known divergence:** the captured record page masks the SSN as `***-**-####`. This sim shows
+it in full, per the course decision to display SSNs unmasked. Every SSN is in the never-issued
+900-999 range, so nothing real is exposed either way — but say the word and masking goes back in.
 
 ---
 

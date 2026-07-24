@@ -16,6 +16,9 @@
   --focus:#0b6fd4;
 }
 *{box-sizing:border-box}
+/* any display: value beats the [hidden] default, and most things here are flex/grid.
+   One rule so hiding an element always actually hides it. */
+[hidden]{display:none !important}
 html,body{margin:0;padding:0;height:100%}
 body{
   font:14px/1.5 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -162,6 +165,42 @@ tbody tr.open{background:var(--indigo-soft)}
 .chipedit input:focus{border-color:var(--indigo)}
 .chipedit button.go{width:38px;border-radius:8px;background:var(--indigo);color:#fff;display:grid;place-items:center}
 
+/* ---------------- client record page ---------------- */
+.content.record{display:block;padding-top:4px}
+.content.record[hidden]{display:none}
+.recwrap{max-width:1180px}
+.rechead{display:flex;align-items:center;gap:14px;padding:2px 4px 16px}
+.recav{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;flex:none}
+.recname h1{margin:0;font-size:21px;font-weight:600}
+.recname p{margin:1px 0 0;font-size:12.5px;color:var(--muted)}
+.recacts{margin-left:auto;display:flex;align-items:center;gap:6px}
+.alertpill{display:flex;align-items:center;gap:7px;border:1px solid #e0b9b5;color:var(--red);background:#fff;
+  border-radius:20px;padding:7px 13px;font-size:13.5px;font-weight:600}
+.badge2{background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;display:grid;place-items:center;font-size:11px}
+.recbody{display:grid;grid-template-columns:186px minmax(0,1fr) 250px;gap:16px;align-items:start}
+@media(max-width:1240px){.recbody{grid-template-columns:170px minmax(0,1fr)}.recrail{grid-column:1/-1}}
+.recnav{background:var(--card);border-radius:14px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 6px 18px rgba(60,50,140,.06);padding:8px;display:flex;flex-direction:column;gap:1px}
+.recnav button{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;font-size:13.5px;text-align:left;color:var(--ink)}
+.recnav button:hover{background:#f5f4fd}
+.recnav button[aria-current="page"]{background:var(--indigo-soft);color:var(--indigo-dk);font-weight:600}
+.recnav svg{color:var(--indigo);flex:none;opacity:.85}
+.reccard{padding:20px 0 6px}
+.profgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px;padding:16px 22px 22px}
+@media(max-width:620px){.profgrid{grid-template-columns:1fr}}
+.pf b{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:3px}
+.pf span{font-size:14px}
+.recrail{display:flex;flex-direction:column;gap:10px}
+.railcard{background:var(--card);border-radius:12px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 6px 18px rgba(60,50,140,.06);
+  padding:12px 13px;display:flex;align-items:center;gap:10px}
+.railcard .rc{flex:1;min-width:0}
+.railcard .rc b{display:block;font-size:13px;font-weight:600;color:var(--indigo)}
+.railcard .rc span{display:block;font-size:11px;color:var(--muted);line-height:1.35}
+.pillnum{background:var(--indigo);color:#fff;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:12px;font-weight:600;flex:none}
+.pillnum.is-zero{background:#c9c7e0}
+.railcard .cv2{color:var(--muted);flex:none}
+.backlink{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--indigo);font-weight:600;padding:6px 2px 4px}
+.backlink:hover{text-decoration:underline}
+
 /* modal */
 .backdrop{position:fixed;inset:0;background:rgba(24,20,50,.5);z-index:150;display:grid;place-items:center;padding:24px}
 .backdrop[hidden]{display:none}
@@ -251,7 +290,45 @@ tbody tr.open{background:var(--indigo-soft)}
       <div class="who"><span class="av">TR</span><span class="nm"><b>Trainee</b><span>Riverside Outreach Collective</span></span></div>
     </div>
 
-    <div class="content">
+    <!-- ---------- client record page ---------- -->
+    <div class="content record" id="recordView" hidden>
+      <div class="recwrap">
+        <div class="rechead">
+          <span class="recav" id="recAv"></span>
+          <div class="recname">
+            <h1 id="recName"></h1>
+            <p id="recSub"></p>
+          </div>
+          <div class="recacts">
+            <button class="alertpill" id="alertBtn" hidden>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-2 8-2 8h16s-2-1-2-8M13.7 21a2 2 0 01-3.4 0"/></svg>
+              Public Alert <span class="badge2" id="alertCount"></span>
+            </button>
+            <button class="tb" data-locked title="Privacy" aria-label="Privacy"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8.5 10.5V7a3.5 3.5 0 017 0v3.5"/></svg></button>
+            <button class="tb" data-locked title="About this record" aria-label="About this record"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button>
+          </div>
+        </div>
+
+        <div class="recbody">
+          <nav class="recnav" id="recNav" aria-label="Client record"></nav>
+
+          <div class="card reccard">
+            <div class="cardhead">
+              <div><h1 id="recCardName"></h1><p>Client profile information</p></div>
+              <div style="margin-left:auto;display:flex;gap:4px">
+                <button class="tb" data-locked title="Edit" aria-label="Edit profile"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
+                <button class="tb" id="kebabBtn" title="More actions" aria-label="More actions" aria-expanded="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+              </div>
+            </div>
+            <div class="profgrid" id="profGrid"></div>
+          </div>
+
+          <div class="recrail" id="recRail"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content" id="searchView">
       <div class="card">
         <div class="cardhead">
           <div><h1>Clients</h1><p>Search for a client</p></div>
@@ -319,17 +396,7 @@ tbody tr.open{background:var(--indigo-soft)}
   <ul class="collist" id="colCollapsed"></ul>
 </div>
 
-<!-- client profile -->
-<div class="backdrop" id="profile" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
-    <div class="mhead"><h2 id="pfTitle"></h2><button class="x" data-close aria-label="Close">×</button></div>
-    <div class="mbody" id="pfBody"></div>
-    <div class="mfoot">
-      <button class="btn ghost" id="flagBtn">Flag possible duplicate</button>
-      <button class="btn primary" data-close>Close</button>
-    </div>
-  </div>
-</div>
+<!-- client record page (rendered into .content, replacing the search card) -->
 
 <!-- generic notice -->
 <div class="backdrop" id="notice" hidden>
@@ -585,7 +652,7 @@ var S = {
   q:"", chips:[], cols:loadCols(), sort:{k:"client",dir:1}, page:0, per:10,
   rows:null, note:"recent", expanded:{},
   recent:[],   /* starts empty: nothing is shown until the learner searches */
-  idx:0, results:[], attempts:0, hinted:false, finished:false, nudged:null
+  idx:0, results:[], attempts:0, hinted:false, finished:false, nudged:null, open:null
 };
 var PAGE_JUMP = null;
 
@@ -986,43 +1053,114 @@ $("#thr").addEventListener("click",function(e){
 $("#prevBtn").addEventListener("click",function(){ if(S.page>0){ S.page--; renderTable(); } });
 $("#nextBtn2").addEventListener("click",function(){ S.page++; renderTable(); });
 
-/* profile */
+/* ---------------- client record page ----------------
+   Opening a row navigates to the record, as it does in the live system, rather than
+   raising a dialog. Only the Profile tab is populated; Lesson 1 stops at search.  */
+var REC_NAV=[
+  ["Profile","M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-7 2-7 4.5V20h14v-1.5c0-2.5-3-4.5-7-4.5z"],
+  ["Privacy","M6 10.5V7a6 6 0 1112 0v3.5M5 10.5h14v9.5H5z"],
+  ["Household","M4 20v-9l8-6 8 6v9M9.5 20v-5h5v5"],
+  ["History","M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8M3 4v4h4M12 7.5V12l3 2"],
+  ["Programs","M4 5.5h16v13H4zM4 9.5h16M8 5.5v13"],
+  ["Services","M12 4l2.3 4.7 5.2.7-3.8 3.6.9 5.1-4.6-2.4-4.6 2.4.9-5.1L4.5 9.4l5.2-.7z"],
+  ["Assessments","M7 3.5h10v17H7zM10 8h4M10 12h4M10 16h2"],
+  ["Care Team","M9 11a3 3 0 100-6 3 3 0 000 6zm7 0a3 3 0 100-6 3 3 0 000 6zM3 19c0-2.8 2.7-4.5 6-4.5s6 1.7 6 4.5M17 14.6c2.4.4 4 1.9 4 4.4"],
+  ["Notes","M5 4.5h14v15H5zM8 9h8M8 13h8M8 17h5"],
+  ["Alerts","M18 8a6 6 0 10-12 0c0 7-2 8-2 8h16s-2-1-2-8M13.7 20a2 2 0 01-3.4 0"],
+  ["Files","M6 3.5h8l4 4v13H6zM14 3.5v4h4"],
+  ["Forms","M4 5h16v14H4zM8 9h8M8 13h8"],
+  ["Contact","M5 5h14v14H5zM5 9h14M9 13h6"],
+  ["Location","M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z M12 10a2 2 0 100 .01"],
+  ["Referrals","M21 12H8M12 7l-5 5 5 5M3 4v16"],
+  ["Restrictions","M12 3a9 9 0 109 9 9 9 0 00-9-9zM5.6 5.6l12.8 12.8"]
+];
+var RAIL=[
+  ["pr","Program referrals","View programs that the client is currently referred to"],
+  ["cq","Community queues","View community queues that the client is currently referred to"],
+  ["hh","Household","View clients that are currently in the same household"],
+  ["ap","Active programs","View programs that the client is currently enrolled in"],
+  ["as","Active services","View services that the client is currently receiving"],
+  ["rs","Recent Services and Events","View services and events that the client has recently received"],
+  ["ac","Active Contacts","View active contacts for this client"],
+  ["ct","Care Team","View care team for this client"]
+];
+function field(label,val,muted){
+  return '<div class="pf"><b>'+esc(label)+'</b><span'+(muted?' class="novalue"':'')+'>'+val+'</span></div>';
+}
 function openProfile(id){
   var c=byId(id); if(!c) return;
+  S.open=id;
   S.recent=[id].concat(S.recent.filter(function(x){return x!==id;})).slice(0,5);
-  var roiBanner = c.r==="Yes"
-    ? '<div class="banner ok"><div><b>Release of Information on file.</b> This client\'s data may be shared with partner agencies in your CoC.</div></div>'
-    : c.r==="Missing"
-      ? '<div class="banner warn"><div><b>No Release of Information on file.</b> You may still serve this client, but their data cannot be shared outside your agency until an ROI is recorded.</div></div>'
-      : '<div class="banner bad"><div><b>Release of Information declined.</b> This client refused consent. Their data must not be shared outside your agency.</div></div>';
-  $("#pfTitle").textContent=fullName(c)+(c.p?" ("+c.p+")":"");
-  $("#pfBody").innerHTML=roiBanner+
-    '<dl class="kv">'+
-      '<dt>Client ID</dt><dd>'+esc(c.i)+'</dd>'+
-      '<dt>Name</dt><dd>'+esc(c.f+" "+c.l)+'</dd>'+
-      '<dt>Alias</dt><dd>'+(c.a?esc(c.a):'<span class="novalue">(No value)</span>')+'</dd>'+
-      '<dt>Date of Birth</dt><dd>'+dobShort(c.d)+' &nbsp;<span class="novalue">Age '+age(c.d)+'</span></dd>'+
-      '<dt>Social Security Number</dt><dd>'+(c.s?esc(c.s):'<span class="novalue">(No value)</span>')+'</dd>'+
-      '<dt>SSN Data Quality</dt><dd>'+esc(QUALITY[c.q])+'</dd>'+
-      '<dt>Household Members</dt><dd>'+c.h+'</dd>'+
-      '<dt>Veteran Status</dt><dd>'+(c.v?esc(c.v):'<span class="novalue">(No value)</span>')+'</dd>'+
-      '<dt>Updated by</dt><dd>'+esc(c.u)+' on '+dobShort(c.t)+'</dd>'+
-    '</dl>'+
-    '<p style="margin:16px 0 0;font-size:12.5px;color:var(--muted)">In the live system this record also carries enrollments, '+
-    'services, assessments, notes, and files. Lesson 1 covers search only.</p>';
-  $("#flagBtn").dataset.id=id;
-  $("#profile").hidden=false;
-  renderTable();
+
+  $("#recAv").textContent=initials(c);
+  $("#recAv").style.background=PALETTE[c.c%PALETTE.length];
+  $("#recName").textContent=c.f+" "+c.l;
+  $("#recSub").textContent="You are currently viewing the Client Record pages for "+c.f+" "+c.l+".";
+  $("#recCardName").textContent=c.f+" "+c.l;
+
+  var alerts=(c.r!=="Yes")?1:0;
+  $("#alertBtn").hidden=!alerts;
+  $("#alertCount").textContent=alerts;
+
+  $("#recNav").innerHTML=REC_NAV.map(function(n,i){
+    return '<button type="button" '+(i===0?'aria-current="page"':'data-locked')+'>'+
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="'+n[1]+'"/></svg>'+esc(n[0])+'</button>';
+  }).join("");
+
+  $("#profGrid").innerHTML=
+    field("Social Security Number", c.s?esc(c.s):'(No value)', !c.s)+
+    field("Quality of SSN", esc(c.ql))+
+    field("First name", esc(c.f))+
+    field("Last name", esc(c.l))+
+    field("Alias", c.a?esc(c.a):'No value', !c.a)+
+    field("Date of Birth", dobShort(c.d)+' <span class="novalue">· Age '+age(c.d)+'</span>')+
+    field("Quality of Name", esc(c.qn))+
+    field("Quality of DOB", esc(c.qd))+
+    field("Consent Refused", esc(c.cr))+
+    field("Release of Information", esc(c.r))+
+    field("Race and Ethnicity", esc(c.rc))+
+    field("Additional Race and Ethnicity Detail", c.rd?esc(c.rd):'No value', !c.rd)+
+    field("Veteran Status", c.v?esc(c.v):'No value', !c.v)+
+    field("Client ID", esc(c.i));
+
+  $("#recRail").innerHTML=RAIL.map(function(r){
+    var n = r[0]==="hh" ? c.h : (c.n&&c.n[r[0]])||0;
+    return '<div class="railcard"><div class="rc"><b>'+esc(r[1])+'</b><span>'+esc(r[2])+'</span></div>'+
+      '<span class="pillnum'+(n?"":" is-zero")+'">'+n+'</span>'+
+      '<svg class="cv2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5 5 5-5"/></svg></div>';
+  }).join("");
+
+  $("#searchView").hidden=true;
+  $("#recordView").hidden=false;
+  $$("#recNav [data-locked], .recacts [data-locked]").forEach(bindLocked);
   evaluate("open",id);
 }
-$("#flagBtn").addEventListener("click",function(){
-  var id=this.dataset.id, c=byId(id);
-  $("#profile").hidden=true;
-  if(!evaluate("flag",id)){
-    notice("Flagged for your HMIS administrator",
-      "<p>Record <b>"+esc(id)+"</b> ("+esc(fullName(c))+") has been flagged for review.</p>"+
-      "<p style='margin-bottom:0'>End users never merge or delete client records. Your HMIS administrator resolves confirmed duplicates centrally so the CoC's unduplicated count stays accurate.</p>");
-  }
+function closeProfile(){
+  S.open=null;
+  $("#recordView").hidden=true;
+  $("#searchView").hidden=false;
+  renderTable();
+}
+/* kebab on the profile card carries the duplicate escalation */
+$("#kebabBtn").addEventListener("click",function(e){
+  e.stopPropagation();
+  var p=$("#filterPop"), open=p.hidden;
+  closePops(); if(!open) return;
+  p.innerHTML='<button class="menuitem" id="flagBtn" role="menuitem">'+
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V4h9l-1 3h6v8h-7l-1-3H5"/></svg>Flag possible duplicate</button>'+
+    '<button class="menuitem" data-locked role="menuitem">'+
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>Add to household</button>';
+  place(p,this); p.hidden=false; this.setAttribute("aria-expanded","true");
+  $("#flagBtn").addEventListener("click",function(ev){
+    ev.stopPropagation(); closePops();
+    var id=S.open, c=byId(id);
+    if(!evaluate("flag",id)){
+      notice("Flagged for your HMIS administrator",
+        "<p>Record <b>"+esc(id)+"</b> ("+esc(fullName(c))+") has been flagged for review.</p>"+
+        "<p style='margin-bottom:0'>End users never merge or delete client records. Your HMIS administrator resolves confirmed duplicates centrally so the CoC's unduplicated count stays accurate.</p>");
+    }
+  });
+  $$("#filterPop [data-locked]").forEach(bindLocked);
 });
 
 /* add client — out of scope for Lesson 1 */
@@ -1042,10 +1180,20 @@ $("#addBtn").addEventListener("click",function(){
 function notice(title,html){
   $("#ntTitle").textContent=title; $("#ntBody").innerHTML=html; $("#notice").hidden=false;
 }
-$$("[data-locked]").forEach(function(b){
+function bindLocked(b){
+  if(b.dataset.lockedBound) return;
+  b.dataset.lockedBound="1";
   b.addEventListener("click",function(){
-    notice("Not part of this simulation","<p style='margin-bottom:0'>Lesson 1 covers the Clients search screen only. Other areas of the system are disabled here.</p>");
+    notice("Not part of this simulation",
+      "<p style='margin-bottom:0'>Lesson 1 covers finding a client. The rest of the record — enrollments, "+
+      "services, assessments, notes, files — is outside this lesson.</p>");
   });
+}
+$$("[data-locked]").forEach(bindLocked);
+
+/* the global Clients button returns to the search screen from a record */
+$(".railbtn[aria-current]").addEventListener("click",function(){
+  if(S.open) closeProfile();
 });
 
 /* coach buttons */
@@ -1061,6 +1209,7 @@ $("#restartBtn").addEventListener("click",function(){
   S.idx=0; S.results=[]; S.attempts=0; S.hinted=false; S.finished=false; S.nudged=null;
   S.q=""; S.chips=[]; $("#q").value=""; S.rows=null; S.note="recent"; S.page=0; S.expanded={};
   $("#fb").innerHTML=""; $("#nextBtn").hidden=true; $("#done").hidden=true;
+  if(S.open) closeProfile();
   renderChips(); renderTable(); renderCoach();
 });
 
@@ -1085,7 +1234,11 @@ document.addEventListener("click",closePops);
 $$("[data-close]").forEach(function(b){ b.addEventListener("click",function(){ this.closest(".backdrop").hidden=true; }); });
 $$(".backdrop").forEach(function(bd){ bd.addEventListener("mousedown",function(e){ if(e.target===bd) bd.hidden=true; }); });
 document.addEventListener("keydown",function(e){
-  if(e.key==="Escape"){ closePops(); $$(".backdrop").forEach(function(b){ b.hidden=true; }); }
+  if(e.key!=="Escape") return;
+  closePops();
+  var anyModal=$$(".backdrop").some(function(b){ return !b.hidden; });
+  $$(".backdrop").forEach(function(b){ b.hidden=true; });
+  if(!anyModal && S.open) closeProfile();
 });
 
 /* boot */

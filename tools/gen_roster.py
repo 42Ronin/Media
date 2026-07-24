@@ -50,6 +50,17 @@ Jaramillo Kensington Lombardi Mwangi Novotny Oyelowo Prendergast Rutherford Sore
 Underhill Villanueva Waterhouse Zamora Adeyemi Bellweather Cortazar Drummond""".split()
 
 PRONOUNS = ["She/Her/Hers", "He/Him/His", "They/Them/Theirs"]
+
+# HUD race and ethnicity categories, plus the standard non-response codes
+RACE = ["American Indian, Alaska Native, or Indigenous", "Asian or Asian American",
+        "Black, African American, or African", "Hispanic/Latina/e/o",
+        "Middle Eastern or North African", "Native Hawaiian or Pacific Islander",
+        "White", "White, Hispanic/Latina/e/o", "Black, African American, or African, White",
+        "Client doesn't know", "Client refused", "Data not collected"]
+QNAME = ["Full name reported", "Full name reported", "Full name reported",
+         "Partial, street name, or code name reported", "Client refused"]
+QDOB  = ["Full DOB Reported", "Full DOB Reported", "Full DOB Reported",
+         "Approximate or partial DOB reported", "Client refused"]
 STAFF = ["S. Ramirez", "T. Okoye", "M. Lindgren", "J. Whitfield", "A. Barnes",
          "K. Nakamura", "D. Ferreira", "L. Mbatha", "C. Yoon", "R. Delacroix"]
 COLORS = 8
@@ -189,6 +200,31 @@ while len(clients) < TOTAL:
     clients.append(c)
 
 clients.sort(key=lambda c: (c["l"], c["f"]))
+
+# ---- client-record page fields -------------------------------------------
+# Added after the sort so the assignment stays deterministic for a given seed.
+QUALITY_LABEL = {
+    "full": "Full SSN Reported", "approx": "Approximate or partial SSN reported",
+    "refused": "Client refused", "unknown": "Client doesn't know",
+    "notcollected": "Data not collected",
+}
+for c in clients:
+    c["rc"] = rnd.choice(RACE)
+    c["rd"] = "" if rnd.random() < 0.85 else rnd.choice(
+        ["Enrolled member of a federally recognized tribe", "Afro-Caribbean", "Central American"])
+    c["qn"] = rnd.choice(QNAME)
+    c["qd"] = rnd.choice(QDOB)
+    c["ql"] = QUALITY_LABEL[c["q"]]
+    c["cr"] = "Yes" if c["r"] == "No" else "No"          # Consent Refused mirrors a declined ROI
+    c["n"] = {                                            # right-rail accordion counts
+        "pr": weighted([(0, .45), (1, .2), (2, .15), (3, .1), (6, .1)]),
+        "cq": weighted([(0, .6), (1, .3), (2, .1)]),
+        "ap": weighted([(0, .35), (1, .4), (2, .17), (3, .08)]),
+        "as": weighted([(0, .55), (1, .27), (2, .12), (3, .06)]),
+        "rs": weighted([(0, .3), (1, .25), (2, .2), (3, .15), (5, .1)]),
+        "ac": weighted([(0, .5), (1, .35), (2, .15)]),
+        "ct": weighted([(0, .4), (1, .3), (2, .2), (3, .1)]),
+    }
 
 # five records pre-seeded as "recently accessed" so the landing state matches
 # the real product, which never opens on a blank table
