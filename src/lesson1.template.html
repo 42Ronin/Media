@@ -455,11 +455,14 @@ function search(query, chips){
 }
 
 /* ---------------- columns ---------------- */
+/* Default order is Client, DOB, SSN, ROI — as the product ships. (Several help-centre
+   captures show Client, SSN, ROI, DOB; that is a demo account that had already dragged
+   DOB to the end, not the default.) Learners can reorder, and their order persists. */
 var FIELDS = [
   {k:"client", label:"Client", locked:true, vis:true},
+  {k:"dob",    label:"DOB",    vis:true},
   {k:"ssn",    label:"SSN",    vis:true},
   {k:"roi",    label:"ROI",    vis:true},
-  {k:"dob",    label:"DOB",    vis:true},
   {k:"alias",  label:"Alias",  vis:false},
   {k:"hh",     label:"Household Members", vis:false},
   {k:"vet",    label:"Veteran Status", vis:false}
@@ -468,7 +471,9 @@ var COLLAPSED = [
   {k:"cid", label:"Client ID", locked:true},
   {k:"upd", label:"Updated by"}
 ];
-var CKEY="hmisSim.l1.columns.v2";
+/* key is versioned: bumping it retires a saved order when the shipped default changes,
+   otherwise anyone who already opened the lesson keeps the old columns forever */
+var CKEY="hmisSim.l1.columns.v3";
 function loadCols(){
   try{
     var saved=JSON.parse(localStorage.getItem(CKEY)||"null");
@@ -557,7 +562,7 @@ var S = {
   q:"", chips:[], cols:loadCols(), sort:{k:"client",dir:1}, page:0, per:10,
   rows:null, note:"recent", expanded:{},
   recent:DATA.recent.slice(),
-  idx:0, results:[], attempts:0, hinted:false, finished:false
+  idx:0, results:[], attempts:0, hinted:false, finished:false, nudged:null
 };
 var PAGE_JUMP = null;
 
@@ -666,9 +671,10 @@ function renderTable(){
     return;
   }
   if(S.rows!==null && all.length===0){
+    /* The app stays plain here. The coaching that belongs with an empty result is
+       raised in the training drawer instead — see nudgeEmpty(). */
     $("#tb").innerHTML=""; pager.hidden=true; zero.hidden=false;
-    zero.innerHTML='<b>No clients found</b><span>Before deciding this person is new, try a shorter fragment of the name, '+
-      'the surname instead of the first name, or the year of birth on its own. An empty result is not proof that a client has no record.</span>';
+    zero.innerHTML='<b>No clients found</b>';
     return;
   }
   zero.hidden=true;
@@ -775,7 +781,7 @@ function pass(){
   SCORM.score(pct()); renderCoach();
 }
 function nextTask(){
-  S.idx++; S.attempts=0; S.hinted=false;
+  S.idx++; S.attempts=0; S.hinted=false; S.nudged=null;
   $("#fb").innerHTML=""; $("#nextBtn").hidden=true;
   if(S.idx>=TASKS.length) finish();
   renderCoach();
@@ -821,11 +827,25 @@ function evaluate(action,payload){
 /* ============================================================
    EVENTS
    ============================================================ */
+/* An empty result is the moment a learner wrongly concludes "new client". The app
+   itself just says No clients found; the reason it matters is raised here, once per
+   task, so the drawer does the teaching and the product stays faithful. */
+function nudgeEmpty(){
+  if(S.idx>=TASKS.length || S.nudged===task().id) return;
+  var e=task().expect;
+  if(e.type!=="open" && e.type!=="flag") return;
+  if($("#fb").querySelector(".fb.good")) return;      /* already solved */
+  S.nudged=task().id;
+  say("tip","No results is not an answer",
+    "An empty list is not proof this person has no record. Before you conclude that, try a "+
+    "shorter fragment of the name, the surname instead of the first name, or the year of birth on its own.");
+}
 function rerun(resetPage){
   var r=search(S.q,S.chips);
   S.rows=r.rows; S.note=r.note;
   if(resetPage!==false) S.page=0;
   renderTable();
+  if(S.rows && S.rows.length===0) nudgeEmpty();
 }
 var deb=null;
 $("#q").addEventListener("input",function(){
@@ -1016,7 +1036,7 @@ $("#skipBtn").addEventListener("click",function(){
 });
 $("#nextBtn").addEventListener("click",nextTask);
 $("#restartBtn").addEventListener("click",function(){
-  S.idx=0; S.results=[]; S.attempts=0; S.hinted=false; S.finished=false;
+  S.idx=0; S.results=[]; S.attempts=0; S.hinted=false; S.finished=false; S.nudged=null;
   S.q=""; S.chips=[]; $("#q").value=""; S.rows=null; S.note="recent"; S.page=0; S.expanded={};
   $("#fb").innerHTML=""; $("#nextBtn").hidden=true; $("#done").hidden=true;
   renderChips(); renderTable(); renderCoach();

@@ -13,17 +13,16 @@ records, which is the error that corrupts a CoC's unduplicated count in HUD repo
 ## Build
 
 ```bash
-./build.sh
+./build.sh            # dist/lesson1-client-search.html
+./build.sh --scorm    # also dist/lesson1-client-search-scorm.zip
 ```
 
-| Output | Use |
-|---|---|
-| `dist/lesson1-client-search.html` | Standalone. Open in any browser, put on a shared drive, or `<iframe>` into an LMS page. No server, no dependencies. |
-| `dist/lesson1-client-search-scorm.zip` | SCORM 1.2 package. Upload as a course in Cornerstone, Docebo, Moodle, SCORM Cloud, etc. |
+SCORM packaging is **opt-in and currently off**. The standalone HTML is the working
+deliverable; run with `--scorm` when the course is ready for an LMS.
 
-The HTML in both is byte-identical — the zip only adds `imsmanifest.xml`. The page
-finds the LMS API at runtime and reports progress; run standalone, the SCORM layer
-silently no-ops. There is no separate "LMS build" to keep in sync.
+The HTML inside the zip is byte-identical to the standalone file — the zip only adds
+`imsmanifest.xml`. The page finds the LMS API at runtime and reports progress; run
+standalone, the SCORM layer silently no-ops. There is no separate "LMS build" to keep in sync.
 
 Reports `cmi.core.lesson_status` and `cmi.core.score.raw` (0–100). Mastery score **80**.
 Each lesson ships as its own package so LMS admins can assign and report on them separately.
@@ -63,8 +62,10 @@ Modelled on screenshots of the current interface:
 - Names render **"Last, First (Pronouns)"** with an **alphanumeric client ID** beneath
 - **Filter chips inside the search bar** — First Name, Last Name, Alias — each with a
   value popover and a remove control
-- Columns **Client · SSN · ROI · DOB**, plus optional Alias, Household Members,
-  Veteran Status. Missing values render `(No value)`.
+- Default columns **Client · DOB · SSN · ROI**, plus optional Alias, Household Members,
+  Veteran Status. Missing values render `(No value)`. Several help-centre captures show
+  `Client · SSN · ROI · DOB` — that is a demo account that had already dragged DOB to the
+  end, not the shipped default.
 - **ROI as a results column**: `Yes` / `Missing` / `No` pills
 - **SSN** shows last 4 in results and the full number on the profile
 - **Column selector** with a field search, checkboxes, drag-to-reorder, a locked **Client**
@@ -108,7 +109,7 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-71 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+73 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics.
 
@@ -123,8 +124,12 @@ redesign targets Section 508, so the sim aims there too.
 Built against screenshots of the current interface, so layout, labels, column names, the chip
 filters, the column selector, pagination, and the ROI pills all match what was captured.
 
+The no-results state is deliberately plain — **No clients found** — so the app stays faithful.
+The coaching that belongs with an empty result ("no results is not an answer") is raised once
+per task in the training drawer instead, where coaching belongs.
+
 **Unverified** — no screenshot was available, so these are designed rather than copied: the
-no-results empty state, the client profile screen, and the exact contents of the expanded row
+exact no-results wording, the client profile screen, and the contents of the expanded row
 beyond Client ID and Updated by.
 
 ---

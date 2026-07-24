@@ -28,7 +28,9 @@ const closeAll = () => p.keyboard.press('Escape');
 console.log('\n— live search (no Enter key pressed) —');
 await type('Mike');
 ok('nickname "Mike" returns nothing — the trap holds', (await names()).length === 0);
-ok('empty state warns against assuming the client is new', (await zero()).includes('not proof'));
+ok('empty state is plain: No clients found', (await zero()) === 'No clients found');
+ok('the coach drawer raises the real lesson instead',
+   (await p.textContent('#fb')).includes('not proof'));
 
 await type('Tor');
 ok('3-letter surname fragment finds Michael Torres',
@@ -82,6 +84,11 @@ ok('roster is 300 clients', await p.evaluate(() => CLIENTS.length) === 300);
 ok('SSN data-quality codes present (refused records exist)',
    await p.evaluate(() => CLIENTS.filter(c => c.q === 'refused').length) > 5);
 
+console.log('\n— default column order —');
+const hdr = await p.$$eval('#thr th', ts => ts.map(t => t.textContent.replace(/[↑↓]/g,'').trim()).filter(Boolean));
+ok('default column order is Client, DOB, SSN, ROI',
+   JSON.stringify(hdr) === JSON.stringify(['Client','DOB','SSN','ROI']), JSON.stringify(hdr));
+
 console.log('\n— ROI + SSN columns —');
 await type('Delgado');
 ok('recently-accessed hint disappears once a search is active',
@@ -96,7 +103,12 @@ ok('three Delgados, exactly one ROI Missing',
    roi.length === 3 && roi.filter(r => r.roi === 'Missing').length === 1, JSON.stringify(roi));
 
 await type('Nakashima');
-const nk = await p.$$eval('#tb tr[data-row]', rs => rs.map(r => r.children[2].textContent.trim()));
+// locate the SSN cell by header position so column reordering can't break this
+const nk = await p.evaluate(() => {
+  const hdrs = [...document.querySelectorAll('#thr th')].map(t => t.textContent.replace(/[↑↓]/g,'').trim());
+  const col = hdrs.indexOf('SSN');
+  return [...document.querySelectorAll('#tb tr[data-row]')].map(r => r.children[col].textContent.trim());
+});
 ok('one Nakashima shows (No value) for SSN', nk.some(t => t.includes('No value')), JSON.stringify(nk));
 
 console.log('\n— recents, pagination, sorting —');
@@ -160,7 +172,7 @@ ok('field search filters the selector list', (await p.$$eval('#colVisible li', l
 await p.fill('#colQ', ''); await p.waitForTimeout(100);
 await p.click('#cb_alias'); await p.waitForTimeout(150);
 ok('column choice persists to localStorage',
-   await p.evaluate(() => !!localStorage.getItem('hmisSim.l1.columns.v2')));
+   await p.evaluate(() => !!localStorage.getItem('hmisSim.l1.columns.v3')));
 await closeAll();
 
 console.log('\n— row expand —');
