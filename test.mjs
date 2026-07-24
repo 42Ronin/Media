@@ -25,6 +25,42 @@ const names = () => p.$$eval('#tb tr[data-row] .cname', els => els.map(e => e.te
 const zero = () => p.$eval('#zero', e => e.hidden ? '' : e.textContent.trim());
 const closeAll = () => p.keyboard.press('Escape');
 
+console.log('\n— initial state —');
+ok('nothing is shown before the first search', (await names()).length === 0);
+ok('no results table on load', await p.$eval('#pager', e => e.hidden));
+ok('no recently-accessed hint on load', await p.$eval('#hintRow', e => e.hidden));
+
+console.log('\n— partial / mixed-fragment search —');
+const q = (s) => p.evaluate(x => search(x, []).rows.map(c => c.l + ', ' + c.f), s);
+ok('"mi tor" (2 + 3 letters) finds Michael Torres', (await q('mi tor')).includes('Torres, Michael'));
+ok('"mi t" (2 + 1) finds Michael Torres', (await q('mi t')).includes('Torres, Michael'));
+ok('"m t" (1 + 1) finds Michael Torres', (await q('m t')).includes('Torres, Michael'));
+ok('"m to" (1 + 2) finds Michael Torres', (await q('m to')).includes('Torres, Michael'));
+ok('fragments may match either name in any order',
+   (await q('tor mi')).includes('Torres, Michael'));
+ok('a single letter is allowed (no minimum length)', (await q('t')).length > 0);
+
+console.log('\n— partial dates —');
+ok('4-digit year 1977 works', await p.evaluate(() => search('1977', []).rows.every(c => c.d.slice(0,4) === '1977')));
+ok('2-digit year 77 finds the same people', await p.evaluate(() =>
+   search('77', []).rows.filter(c => c.d.slice(0,4) === '1977').length === search('1977', []).rows.length));
+ok('month/day fragment 12/05 finds both Dec-5 clients',
+   (await q('12/05')).includes('Whitfield, Andre') && (await q('12/05')).includes('Underwood, Jamal'));
+ok('short form 3/14/79 finds Michael Torres', (await q('3/14/79')).includes('Torres, Michael'));
+ok('full form 03/14/1979 finds him too', (await q('03/14/1979')).includes('Torres, Michael'));
+ok('dots and dashes work as separators',
+   (await q('3.14.79')).includes('Torres, Michael') && (await q('3-14-79')).includes('Torres, Michael'));
+
+console.log('\n— partial SSN —');
+ok('last 4 "4471" finds the 1968 James Wilson',
+   (await q('4471')).includes('Wilson, James') &&
+   await p.evaluate(() => search('4471', []).rows.some(c => c.d === '1968-09-02')));
+ok('leading fragment "941" also finds him',
+   await p.evaluate(() => search('941', []).rows.some(c => c.i === '3DF1DF674')));
+ok('middle fragment "33" matches inside the SSN',
+   await p.evaluate(() => search('33', []).rows.some(c => c.i === '3DF1DF674')));
+ok('name + SSN fragment combine', (await q('wilson 4471')).length === 1, JSON.stringify(await q('wilson 4471')));
+
 console.log('\n— live search (no Enter key pressed) —');
 await type('Mike');
 ok('nickname "Mike" returns nothing — the trap holds', (await names()).length === 0);
@@ -35,9 +71,6 @@ ok('the coach drawer raises the real lesson instead',
 await type('Tor');
 ok('3-letter surname fragment finds Michael Torres',
    (await names()).includes('Torres, Michael'), JSON.stringify(await names()));
-
-await type('To');
-ok('2 characters is rejected as too short', (await zero()).includes('at least the first 3 letters'));
 
 await type('1985');
 ok('bare year finds Katherine Morrison', (await names()).includes('Morrison, Katherine'));
@@ -51,7 +84,7 @@ for (const d of ['12/05/1990', '12.05.1990', '12-05-1990']) {
      n.length === 2 && n.includes('Whitfield, Andre') && n.includes('Underwood, Jamal'), JSON.stringify(n));
 }
 await type('13/45/1990');
-ok('invalid date is rejected', (await zero()).includes("isn't valid"));
+ok('an impossible date simply matches nobody', (await zero()) === 'No clients found');
 
 await type('Cruz');
 ok('surname token "Cruz" finds Maria de la Cruz',
@@ -112,9 +145,13 @@ const nk = await p.evaluate(() => {
 ok('one Nakashima shows (No value) for SSN', nk.some(t => t.includes('No value')), JSON.stringify(nk));
 
 console.log('\n— recents, pagination, sorting —');
+await type('Torres');
+await p.click('#tb tr[data-row]'); await p.waitForTimeout(150);
+await p.keyboard.press('Escape');
 await type('');
-ok('empty search shows the recently-accessed hint', !(await p.$eval('#hintRow', e => e.hidden)));
-ok('recents list is seeded, not blank', (await names()).length === 5);
+ok('an opened client lands in recently accessed', (await names()).includes('Torres, Michael'));
+ok('the recently-accessed hint appears once there are recents',
+   !(await p.$eval('#hintRow', e => e.hidden)));
 
 // ask the page's own engine which 3-letter prefix returns the most rows
 const prefix = await p.evaluate(() => {
@@ -156,7 +193,7 @@ await p.click('#chipGo'); await p.waitForTimeout(250);
 ok('chip value narrows the results', (await names()).length === 3, JSON.stringify(await names()));
 ok('chip displays its applied value', (await p.textContent('#chips')).includes('Delgado'));
 await p.click('#chips [data-chipdel="0"]'); await p.waitForTimeout(250);
-ok('removing the chip restores recents', (await names()).length === 5);
+ok('removing the chip clears the search', await p.evaluate(() => S.rows === null));
 
 console.log('\n— column selector —');
 await p.click('#colBtn'); await p.waitForTimeout(150);

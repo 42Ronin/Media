@@ -40,7 +40,7 @@ After the last task the sim unlocks for free exploration.
 | 1 | The nickname problem | An empty result is not proof the client is new |
 | 2 | Year of birth only | Year search when the surname is unreliable |
 | 3 | Date formats | `/`, `.`, `-` all parse; a shared birthday is not a match |
-| 4 | Same name, different people | Confirm identity on a second identifier |
+| 4 | Same name, different people | Narrow on a second identifier — SSN fragment or DOB |
 | 5 | Reading the ROI column | Consent status is visible before you open a record |
 | 6 | When the SSN is refused | Fall back to DOB; more data ≠ the right record |
 | 7 | Multi-word surnames | Search the distinctive fragment |
@@ -57,8 +57,14 @@ beat survives without the form being built.
 Modelled on screenshots of the current interface:
 
 - **Left icon rail** and top bar; **Clients / Search for a client** card with a persistent **⊕**
-- **Search-as-you-type**, debounced, matching fragments across first *and* last name
-  simultaneously (`ann gla` → Glass, Annie). Enter and the magnifier still work.
+- **Search-as-you-type**, debounced. Built for partial information: the bar is
+  whitespace-separated, every token must match, but each token may match a *different*
+  field and there is **no minimum length**. `mi tor`, `mi t`, `m t` and `tor mi` all find
+  Michael Torres. Enter and the magnifier still work.
+- A token matches a **name prefix**, a **date-of-birth fragment**, or an **SSN fragment**:
+  - dates: `1977`, `77`, `3/14`, `3/14/79`, `03/14/1979`, with `/`, `.` or `-`
+  - SSN: any run of digits inside it — `4471`, `941` and `33` all hit `941-33-4471`
+  - combine freely: `wilson 4471`
 - Names render **"Last, First (Pronouns)"** with an **alphanumeric client ID** beneath
 - **Filter chips inside the search bar** — First Name, Last Name, Alias — each with a
   value popover and a remove control
@@ -71,12 +77,9 @@ Modelled on screenshots of the current interface:
 - **Column selector** with a field search, checkboxes, drag-to-reorder, a locked **Client**
   column, and a **Collapsed Fields** section (Client ID, Updated by) that the row chevron reveals
 - **Pagination** (`1 – 10 of 34`) and sortable headers
-- **Recently accessed** clients shown in the table by default, with the hint row
+- **Recently accessed** clients, which start empty — the screen shows nothing until the
+  learner searches, and records accumulate as they are opened
 - Client profile with ROI banner and **SSN Data Quality**
-
-Deliberately **not** searchable: SSN. In the real product SSN is a column you read, not a
-field you query — which is what makes identity confirmation a judgment rather than a lookup,
-and is the whole basis of tasks 4 and 6.
 
 ---
 
@@ -109,9 +112,11 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-73 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+91 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
-failure branches, and accessibility basics.
+failure branches, and accessibility basics. Partial matching is covered directly: mixed
+name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three
+date separators, and SSN fragments at the start, middle and end.
 
 Accessibility: labelled controls, `aria-live` result count, accessible names on every icon
 button, focus-visible outlines, `role="dialog"` modals, Escape to close. The real product's
