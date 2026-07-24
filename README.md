@@ -18,7 +18,9 @@ with no server, no login, and no client data — and optionally to a SCORM 1.2
 package so completions track in the LMS.
 
 See the README inside a module for its build instructions, task list, and
-fidelity notes.
+fidelity notes. `CLAUDE.md` at the repo root carries the project memory — design
+decisions and their rationale, the rules that govern task design, and what still
+needs verifying. Read it before making changes.
 
 ---
 
