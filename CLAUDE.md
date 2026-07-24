@@ -110,8 +110,12 @@ Default column order is **Client · DOB · SSN · ROI**. Some captures show
 
 **Designed, not copied** (no screenshot available): the exact no-results wording.
 
-**Open question for the user:** the captured record page masks SSN as `***-**-####`. This
-sim shows it in full, per an explicit decision. Revisit if they change their mind.
+**Open questions for the user**, both on the record page and both recorded in
+`reference/client-record-page.md`:
+- The captured page masks SSN as `***-**-####`; this sim shows it in full, per an explicit
+  decision. Revisit if they change their mind.
+- The capture shows *Quality of DOB* but no *Date of Birth* field. This sim shows one.
+  Confirm against a live account before treating our version as correct.
 
 ## Gotchas that cost time
 

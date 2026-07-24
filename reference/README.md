@@ -41,8 +41,9 @@ stops being private, remove this directory first.
 
 - The **Add Client form** — needed for `HMIS BNTS - Create`.
 - The **no-results empty state** — the sim's wording is designed, not copied.
-- The **client record page**, which the owner shared as a pasted image rather than a file.
-  Worth adding here if it can be re-shared, since the record page was built from it.
+- The **client record page** image. It was shared inline in chat and never became a file,
+  so it could not be archived. `client-record-page.md` transcribes everything it showed —
+  replace that with the real image if it can be re-shared as a file.
 
 ## Pulling images out of the PDF
 
