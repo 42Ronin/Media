@@ -84,7 +84,8 @@ Modelled on screenshots of the current interface:
   **Veteran Status**, **Household Members**, **Updated by**
 - **Household Members** expand into the real people in that household — avatar, name with
   pronouns, and relationship to the head of household. Members are other clients from the
-  same roster, so every household resolves and membership is reciprocal.
+  same roster, so every household resolves and membership is reciprocal. **35% of clients
+  are in a household**; the rest are served as individuals.
 - Two identifiers, as in the product: the **unique identifier** (`AD63C3FF2`) under the name
   in search results, and the numeric **Client ID** (`17248`) on the record and expanded row
 - **Pagination** (`1 – 10 of 34`) and sortable headers
@@ -143,7 +144,7 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-137 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+138 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three

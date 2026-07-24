@@ -308,6 +308,11 @@ ok('every household member resolves to a real client in the roster',
    await p.evaluate(() => CLIENTS.every(c => (c.hm || []).every(m => !!byId(m.i)))));
 ok('the Household Members count matches the household size',
    await p.evaluate(() => CLIENTS.every(c => c.h === (c.hm && c.hm.length ? c.hm.length : 1))));
+ok('about 35% of clients are in a household, the rest are individuals',
+   await p.evaluate(() => {
+     const share = CLIENTS.filter(c => c.hm.length).length / CLIENTS.length;
+     return share > 0.32 && share < 0.38;
+   }));
 ok('household membership is reciprocal', await p.evaluate(() =>
    CLIENTS.filter(c => c.hm && c.hm.length).every(c =>
      c.hm.every(m => { const o = byId(m.i); return o.hm && o.hm.some(x => x.i === c.i); }))));

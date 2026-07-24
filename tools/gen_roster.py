@@ -246,26 +246,36 @@ def relationship(member, head):
         return "Daughter" if p.startswith("She") else "Son" if p.startswith("He") else "Child"
     return "Spouse" if gap <= 8 else "Other relative"
 
+HOUSEHOLD_SHARE = 0.35          # most clients are served as individuals
+target_in_hh = int(round(TOTAL * HOUSEHOLD_SHARE))
+
 order = clients[:]
 rnd.shuffle(order)
+in_hh = 0
 for head in order:
-    if "hm" in head:
+    if "hm" in head or in_hh >= target_in_hh:
         continue
-    size = weighted([(1, .58), (2, .18), (3, .13), (4, .08), (5, .03)])
-    if size == 1:
-        head["hm"], head["h"] = [], 1
-        continue
+    free = [c for c in order if "hm" not in c and c is not head]
+    if not free:
+        break
     members = [head]
-    while len(members) < size:
-        free = [c for c in order if "hm" not in c and c not in members]
-        if not free:
-            break
+    size = weighted([(2, .48), (3, .27), (4, .17), (5, .08)])
+    while len(members) < size and free:
         kin = [c for c in free if c["l"] == head["l"]]
-        members.append(rnd.choice(kin) if (kin and rnd.random() < .6) else rnd.choice(free))
+        pick = rnd.choice(kin) if (kin and rnd.random() < .6) else rnd.choice(free)
+        members.append(pick)
+        free.remove(pick)
+    if len(members) < 2:
+        continue
     members.sort(key=lambda c: c["d"])           # oldest first becomes the head
     roll = [{"i": m["i"], "rel": relationship(m, members[0])} for m in members]
     for m in members:
         m["hm"], m["h"] = roll, len(members)
+    in_hh += len(members)
+
+for c in clients:                                # everyone else is a household of one
+    if "hm" not in c:
+        c["hm"], c["h"] = [], 1
 
 # ---- client-record page fields -------------------------------------------
 # Added after the sort so the assignment stays deterministic for a given seed.
@@ -308,6 +318,9 @@ print(f"wrote {len(clients)} clients -> {os.path.relpath(OUT)}")
 print(f"  guard rejections : {guard_rejects}")
 print(f"  no SSN on file   : {no_ssn}")
 print(f"  ROI Missing/No   : {sum(1 for c in clients if c['r'] != 'Yes')}")
+hh_members = sum(1 for c in clients if c["hm"])
+hh_count = len({tuple(sorted(m["i"] for m in c["hm"])) for c in clients if c["hm"]})
+print(f"  in a household   : {hh_members} ({hh_members/len(clients):.0%}) across {hh_count} households")
 print(f"  partial (X-masked): {partial}")
 print(f"  partial (0-masked): {zeros}")
 def area_safe(c):
