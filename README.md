@@ -37,13 +37,13 @@ After the last task the sim unlocks for free exploration.
 
 | # | Task | Skill |
 |---|---|---|
-| 1 | The nickname problem | An empty result is not proof the client is new |
+| 1 | The street-name problem | An empty result is not proof the client is new |
 | 2 | Year of birth only | Year search when the surname is unreliable |
 | 3 | Date formats | `/`, `.`, `-` all parse; a shared birthday is not a match |
 | 4 | Same name, different people | Narrow on a second identifier — SSN fragment or DOB |
 | 5 | Reading the ROI column | Consent status is visible before you open a record |
 | 6 | When the SSN is refused | Fall back to DOB; more data ≠ the right record |
-| 7 | Multi-word surnames | Search the distinctive fragment |
+| 7 | Compound surnames | The same surname gets typed several ways |
 | 8 | A real duplicate | Recognize and escalate — never merge or delete |
 
 **Add Client** stays visible because it's on the real screen, but it defers to Lesson 2.
@@ -112,10 +112,17 @@ doesn't know, data not collected — because records with a refused or partial S
 where duplicates breed. Records coded approximate carry a genuinely partial SSN, X- or
 0-filled per HMIS convention.
 
-Seeded traps: `Michael Torres` (presents as "Mike", no alias recorded), `Katherine Morrison`
-(goes by Kate, possible former married name), two different `James Wilson`s, the
-`Shauna`/`Shawna Beckett` duplicate pair, `Maria de la Cruz`, three `Delgado`s with one ROI
-missing, and two `Robert Nakashima`s where the right one has no SSN on file.
+Seeded traps: `Michael Torres` (introduces himself as "Lefty", no alias recorded),
+`Katherine Morrison` (goes by Kate, possible former married name), two different
+`James Wilson`s, the `Shauna`/`Shawna Beckett` duplicate pair, `Maria Delacruz` (filed as
+one word, so "Cruz" matches nothing), three `Delgado`s with one ROI missing, and two
+`Robert Nakashima`s where the right one has no SSN on file.
+
+**Every trap is regression-tested.** For each task the suite runs the naive search a trainee
+would actually type and asserts it either dead-ends or narrows to a set they must choose
+from — never solves outright. This catches the failure mode where live prefix matching
+quietly dissolves a trap: typing `Mi` used to surface Michael Torres before the learner
+finished typing the nickname.
 
 The generator **rejects** any random record that would make a scenario answer ambiguous, and
 the test suite asserts each answer stays uniquely reachable — so regenerating the roster can
@@ -129,7 +136,7 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-115 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+129 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three

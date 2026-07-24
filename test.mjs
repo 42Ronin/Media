@@ -62,8 +62,13 @@ ok('middle fragment "33" matches inside the SSN',
 ok('name + SSN fragment combine', (await q('wilson 4471')).length === 1, JSON.stringify(await q('wilson 4471')));
 
 console.log('\n— live search (no Enter key pressed) —');
-await type('Mike');
-ok('nickname "Mike" returns nothing — the trap holds', (await names()).length === 0);
+await type('Lefty');
+ok('street name "Lefty" returns nothing — the trap holds', (await names()).length === 0);
+ok('"Lefty Torres" also returns nothing: extra words narrow, never widen',
+   await p.evaluate(() => search('lefty torres', []).rows.length === 0));
+ok('nobody in the roster answers to Lefty',
+   await p.evaluate(() => CLIENTS.every(c =>
+     !/^left/i.test(c.f) && !/^left/i.test(c.l) && !/^left/i.test(c.a || ''))));
 ok('empty state is plain: No clients found', (await zero()) === 'No clients found');
 ok('the coach drawer raises the real lesson instead',
    (await p.textContent('#fb')).includes('not proof'));
@@ -87,11 +92,38 @@ await type('13/45/1990');
 ok('an impossible date simply matches nobody', (await zero()) === 'No clients found');
 
 await type('Cruz');
-ok('surname token "Cruz" finds Maria de la Cruz',
-   (await names()).includes('de la Cruz, Maria'), JSON.stringify(await names()));
+ok('"Cruz" finds nobody — the surname was filed as one word', (await names()).length === 0);
+await type('dela');
+ok('the shared fragment "dela" reaches Maria Delacruz',
+   (await names()).includes('Delacruz, Maria'), JSON.stringify(await names()));
 
 const multi = await p.evaluate(() => search('mar del', []).rows.map(c => c.l + ', ' + c.f));
 ok('two fragments match across first AND last name', multi.includes('Delgado, Marcus'), JSON.stringify(multi));
+
+console.log('\n— no task is solved by the naive search —');
+/* Every task must either dead-end or narrow to a set the learner has to choose
+   from. A task solved outright by the first thing a trainee would type teaches
+   nothing — that is what happened when "Mike" prefix-matched Michael. */
+const PROBES = [
+  ['task 1', 'Lefty',        '357BF6714', 'dead'],
+  ['task 1', 'Lefty Torres', '357BF6714', 'dead'],
+  ['task 2', 'Kate',         'F565C146B', 'dead'],
+  ['task 2', 'Kate 1985',    'F565C146B', 'dead'],
+  ['task 3', '12.05.1990',   'AD63C3FF2', 'choose'],
+  ['task 4', 'James Wilson', '3DF1DF674', 'choose'],
+  ['task 5', 'Delgado',      '4F80C6E93', 'choose'],
+  ['task 6', 'Nakashima',    '7A1E93C55', 'choose'],
+  ['task 7', 'Cruz',         '2A8189B34', 'dead'],
+  ['task 7', 'Maria Cruz',   '2A8189B34', 'dead'],
+  ['task 8', 'Beckett',      '5BB517588', 'choose'],
+];
+for (const [label, query, target, want] of PROBES) {
+  const rows = await p.evaluate(q => search(q, []).rows.map(c => c.i), query);
+  const got = rows.length === 0 ? 'dead'
+            : (rows.includes(target) && rows.length === 1) ? 'instant' : 'choose';
+  ok(`${label}: "${query}" ${want === 'dead' ? 'dead-ends' : 'narrows without solving'}`,
+     got === want, `got ${got} (${rows.length} rows)`);
+}
 
 console.log('\n— scenario data integrity (guards) —');
 const uniq = await p.evaluate(() => {
@@ -100,7 +132,8 @@ const uniq = await p.evaluate(() => {
     torres: grab('Tor'),
     kate: grab('1985').filter(i => CLIENTS.find(c => c.i === i).f === 'Katherine'),
     dec5: grab('12/05/1990'), wilson: grab('Wilson'), beckett: grab('Beckett'),
-    delgado: grab('Delgado'), naka: grab('Nakashima'), cruz: grab('Cruz')
+    delgado: grab('Delgado'), naka: grab('Nakashima'),
+    cruz: grab('Cruz'), delacruz: grab('Delacruz')
   };
 });
 ok('exactly one Torres reachable by "Tor"', uniq.torres.length === 1, JSON.stringify(uniq.torres));
@@ -110,7 +143,8 @@ ok('exactly two James Wilsons', uniq.wilson.length === 2);
 ok('exactly two Becketts', uniq.beckett.length === 2);
 ok('exactly three Delgados', uniq.delgado.length === 3);
 ok('exactly two Nakashimas', uniq.naka.length === 2);
-ok('exactly one Cruz', uniq.cruz.length === 1);
+ok('nobody at all matches "Cruz"', uniq.cruz.length === 0);
+ok('exactly one Delacruz', uniq.delacruz.length === 1);
 ok('every SSN area is either 9xx or a placeholder — none can be real',
    await p.evaluate(() => CLIENTS.every(c => {
      if (!c.s) return true;
@@ -304,7 +338,7 @@ await closeAll();
 
 console.log('\n— guided flow —');
 await p.reload(); await p.waitForTimeout(200);
-ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('nickname'));
+ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('street-name'));
 ok('progress reads task 1 of 8', (await p.textContent('#taskNo')).includes('1 of 8'));
 
 await p.click('#addBtn'); await p.waitForTimeout(150);

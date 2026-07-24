@@ -127,8 +127,8 @@ SCRIPTED = [
       p="She/Her/Hers"),
     C("6381E5405", "Shawna", "Beckett", "1993-04-30", "926-71-2210", roi="Yes",
       p="She/Her/Hers"),
-    # 6 multi-word surname
-    C("2A8189B34", "Maria", "de la Cruz", "1974-01-28", "918-54-5527", roi="Yes", h=4),
+    # 6 compound surname entered as one word, so "Cruz" finds nothing
+    C("2A8189B34", "Maria", "Delacruz", "1974-01-28", "918-54-5527", roi="Yes", h=4),
     # 7 ROI column: exactly three Delgados, exactly one Missing
     C("9E4C21A70", "Marcus", "Delgado", "1985-01-19", "903-88-9927", roi="Yes"),
     C("B72D0F118", "Rosa", "Delgado", "1979-06-06", "947-12-5501", roi="Yes",
@@ -147,6 +147,9 @@ def violates(c):
     lo_l, lo_f = l.lower(), f.lower()
     # 1: no second Torres reachable by "Tor"
     if lo_l.startswith("tor"): return True
+    # 1: nobody may answer to "Lefty" — the whole task is that it matches nothing
+    if lo_f.startswith("left") or lo_l.startswith("left") or c["a"].lower().startswith("left"):
+        return True
     # 2: no other 1985-born Kat*/Kate
     if d[:4] == "1985" and (lo_f.startswith("kat") or c["a"].lower().startswith("kat")): return True
     # 2: no other Morrison
@@ -159,7 +162,8 @@ def violates(c):
     if lo_l == "wilson" and lo_f == "james": return True
     # 5: no third Beckett
     if lo_l.startswith("beckett"): return True
-    # 6: no other Cruz at all, keeps "Cruz" unambiguous
+    # 6: no other Cruz or Delacruz. "Cruz" must match nobody at all, which is
+    #    the whole task: the surname was filed as one word.
     if "cruz" in lo_l: return True
     # 7: exactly three Delgados
     if lo_l == "delgado": return True

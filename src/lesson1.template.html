@@ -594,12 +594,14 @@ function saveCols(){
    LESSON 1 — tasks
    ============================================================ */
 var TASKS=[
-{ id:"nickname", title:"The nickname problem",
-  brief:'A man at the front desk says <span class="q">"I\'m Mike Torres — I stayed here last winter."</span> You type <code>Mike</code> and the list comes back empty.',
+{ id:"nickname", title:"The street-name problem",
+  brief:'A man at the front desk says <span class="q">"Everyone calls me Lefty — Lefty Torres. I stayed here last winter."</span> You type <code>Lefty</code> and the list comes back empty.',
   ask:"Find his existing record and open it.",
-  hint:"Records are filed under a legal name, and this one has no alias recorded. Search the surname instead — a letter or two is enough, and you can combine fragments like 'mi tor'.",
+  hint:"The name he gave you isn't the name on the record, and no alias was ever recorded for him. Drop it and search the surname on its own — <code>Tor</code> is enough.",
   expect:{type:"open", id:"357BF6714"},
-  teach:"He is filed as <b>Michael Torres</b> with no alias on the record. An empty result is the moment duplicates get created: the user assumes the client is new. Always try the surname before you conclude someone isn't in the system."
+  teach:"He is filed as <b>Michael Torres</b>, with no alias on the record. Street names and nicknames often never get entered, so the name a client offers may match nothing at all. "+
+        "Note too that typing <code>Lefty Torres</code> also fails — every word you add must match, so extra words narrow a search, they never widen it. "+
+        "An empty result is the moment duplicates get created, because the user assumes the client is new."
 },
 { id:"year", title:"Year of birth only",
   brief:'A woman says everyone calls her <span class="q">"Kate."</span> She thinks her record may be under a former married name, but she is sure she was born in <b>1985</b>.',
