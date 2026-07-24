@@ -1,0 +1,61 @@
+# Reference material
+
+Source material the simulations were built against. **Internal reference only — do not
+redistribute, and do not embed any of it in a deliverable.**
+
+## Provenance and rights
+
+These are Bitfocus, Inc.'s own product documentation images and article, captured from
+the public Clarity Human Services help centre and supplied by the project owner. They are
+kept here so future work on fidelity can check the real interface without re-sourcing
+them, and because `help.bitfocus.com` is unreachable from the build environment.
+
+Copyright remains with Bitfocus, Inc. Nothing here is reproduced in the built lessons —
+the simulations are rebuilt in code, and ship no vendor assets. If this repository ever
+stops being private, remove this directory first.
+
+## What's here
+
+`How Do I Search for a Client (New Clarity Interface).pdf`
+: The help-centre article, exported to PDF. The page renders are cropped at the right
+  margin, but the **embedded images are intact at native resolution** and can be pulled
+  out with PyMuPDF — see the extraction note below.
+
+`help-centre-images/`
+: The article's images as originally served, at full width and with the animated GIFs
+  intact. Better source than the PDF for anything on the right-hand side of the screen.
+
+### The ones that answered real questions
+
+| File | What it settles |
+|---|---|
+| `Column Selector.6.gif` | Full-width search page — top bar, ⊕ add control, filter + column icons, the column selector panel with its locked **Client** row and **Collapsed Fields** section |
+| `google-1745250606670.gif` | The row chevron expanding: **Client ID** (numeric, distinct from the alphanumeric unique identifier), Veteran Status, and **Household Members** listed with avatars and relationships |
+| `google-1745250606670.webp` | The column selector's full field list and default checked state |
+| `google-1745250391263.webp` | The filter menu — **First Name, Last Name, Alias**, and nothing else |
+| `google-1745250451984.webp` | The filter chip value popover (`Search by First Name` → arrow to apply) |
+| `Filter Icon.1.webp` | The shipped default column order: **Client · DOB · SSN · ROI** |
+| `image4.webp` | Search-as-you-type: `ann gla` matching across first *and* last name |
+
+## Still missing
+
+- The **Add Client form** — needed for `HMIS BNTS - Create`.
+- The **no-results empty state** — the sim's wording is designed, not copied.
+- The **client record page**, which the owner shared as a pasted image rather than a file.
+  Worth adding here if it can be re-shared, since the record page was built from it.
+
+## Pulling images out of the PDF
+
+```python
+import fitz                                    # pip install pymupdf
+d = fitz.open("How Do I Search for a Client (New Clarity Interface).pdf")
+for pi, page in enumerate(d):
+    for ii, info in enumerate(page.get_images(full=True)):
+        px = fitz.Pixmap(d, info[0])
+        if px.n - px.alpha > 3:
+            px = fitz.Pixmap(fitz.csRGB, px)
+        px.save(f"p{pi+1:02d}_{ii}.png")
+```
+
+Sample frames from an animated GIF with `PIL.ImageSequence` — the useful content is often
+late in the animation, well past the first frame.

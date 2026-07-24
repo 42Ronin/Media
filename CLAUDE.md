@@ -12,7 +12,9 @@ reporting.
 
 Built with Claude Code. Modelled on screenshots of the real interface supplied by the
 user; `help.bitfocus.com` is unreachable from the build environment (egress policy), so
-screenshots are the source of truth, not the vendor's docs.
+screenshots are the source of truth, not the vendor's docs. Those screenshots are archived
+in `reference/` — read `reference/README.md` before doing fidelity work, and note the
+restriction: internal reference only, never redistributed or embedded in a deliverable.
 
 ## Layout
 
