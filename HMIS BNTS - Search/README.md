@@ -31,7 +31,7 @@ Each lesson ships as its own package so LMS admins can assign and report on them
 
 ## Lesson 1 tasks
 
-Eight tasks, scored 10 for a first-attempt success and 5 after a wrong attempt or a
+Twelve tasks, scored 10 for a first-attempt success and 5 after a wrong attempt or a
 revealed hint. There is no skip — a hint is always available instead. Every task ends
 with a teaching point, right or wrong. After the last task the sim unlocks for free
 exploration.
@@ -41,19 +41,34 @@ The **task panel sits on the left**, the simulated interface on the right.
 Narration says **participant**, matching LAHSA usage; the simulated product says
 **Client**, matching Clarity. The script names that difference once, deliberately.
 
-Titles and copy follow the approved script, *Lesson 1: Finding a Participant*.
+**Every task traces to the vetted LAHSA draft** (`script_finding_a_participant_v3`). Nothing
+here is invented. Tasks that were ours rather than the draft's — date-separator formats and
+reading the ROI column — were removed.
 
-| # | Task | Skill |
+*Searching* — tasks 1 to 8:
+
+| # | Task | From the draft |
 |---|---|---|
-| 1 | The name he gave you | An empty result is not proof someone is new |
-| 2 | When the last name may have changed | Year search when the surname is unreliable |
-| 3 | The same date, written differently | All separators parse; a shared birthday is not a match |
-| — | *Checkpoint: narrowing and widening* | Non-scored teaching beat between tasks 3 and 4 |
-| 4 | Two people, one name | A name is not an identifier |
-| 5 | Reading the ROI column | Consent status is visible before you open a record |
-| 6 | When there is no SSN on file | Fall back to DOB; more data ≠ the right record |
-| 7 | Names that get typed differently | The same surname gets typed several ways |
-| 8 | Finding the same person twice | Flag and report — never merge or delete |
+| 1 | The name he gave you | Alternate names and nicknames |
+| 2 | When the last name may have changed | Search by year of birth alone |
+| 3 | Starting from the last four of the SSN | Search by last four digits |
+| 4 | A name you cannot spell | First letters of first and last name (*kat joh*) |
+| 5 | Too many results | Narrow by adding a term |
+| 6 | Nothing comes back | Replace one term with another piece of information |
+| 7 | Spelled the way someone else heard it | Alternate spellings, C↔K and I↔Y |
+| 8 | A surname typed as one word | Second last names and compound surnames |
+
+*Checkpoint — from finding to verifying.* Non-scored beat on the seam, mirroring the draft's
+own split between Search and Verify.
+
+*Verifying* — tasks 9 to 12:
+
+| # | Task | From the draft |
+|---|---|---|
+| 9 | Two people, one name | Two of three identifiers must match |
+| 10 | When the identifiers are thin | Confirm household, program history, case notes |
+| 11 | More than one record matches | Choose the most complete; else the oldest enrollment |
+| 12 | Finding the same person twice | Report to HMIS Support — never merge or delete |
 
 **Add Client** stays visible because it's on the real screen, but it defers to Lesson 2.
 If the current task's client already exists, it also points that out — the duplicate-prevention
@@ -129,11 +144,14 @@ doesn't know, data not collected — because records with a refused or partial S
 where duplicates breed. Records coded approximate carry a genuinely partial SSN, X- or
 0-filled per HMIS convention.
 
-Seeded traps: `Michael Torres` (introduces himself as "Lefty", no alias recorded),
-`Katherine Morrison` (goes by Kate, possible former married name), two different
-`James Wilson`s, the `Shauna`/`Shawna Beckett` duplicate pair, `Maria Delacruz` (filed as
-one word, so "Cruz" matches nothing), three `Delgado`s with one ROI missing, and two
-`Robert Nakashima`s where the right one has no SSN on file.
+Seeded traps, one per task: `Michael Torres` ("Lefty", no alias recorded) · `Katherine
+Morrison` (goes by Kate) · `Danielle Whitmore` and `Marcus Pell` (both end 7742) ·
+`Krzysztof Wojciechowski` (unspellable) · twelve `Garcia`s (overflows a page) ·
+`Adrian Fenwick` (stated DOB is transposed) · `Kathleen Brennan` (introduces herself as
+Cathleen) · `Maria Delacruz` (filed as one word, so "Cruz" matches nothing) · two
+`James Wilson`s · `Yolanda` and `Iris Amari` (mother identified only by her household) ·
+three `Rosalind Vega` records of differing completeness · the `Shauna`/`Shawna Beckett`
+duplicate pair.
 
 **Every trap is regression-tested.** For each task the suite runs the naive search a trainee
 would actually type and asserts it either dead-ends or narrows to a set they must choose
@@ -153,7 +171,7 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-149 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+160 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three

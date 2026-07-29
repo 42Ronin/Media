@@ -104,6 +104,8 @@ def rand_updated():
     return iso(rnd.choice([2025, 2026]), rnd.randint(1, 12), rnd.randint(1, 28))
 
 # ------------------------------------------------------------ scenario cast
+# Every task below traces to a paragraph of script_finding_a_participant_v3,
+# the vetted LAHSA draft. The paragraph reference is on each entry.
 # q: ssn data-quality code. full | approx | refused | unknown | notcollected
 def C(i, f, l, d, s, q="full", roi="Yes", a="", p="", h=1, vet="No"):
     return {"i": i, "f": f, "l": l, "a": a, "p": p, "d": d, "s": s, "q": q,
@@ -111,64 +113,82 @@ def C(i, f, l, d, s, q="full", roi="Yes", a="", p="", h=1, vet="No"):
             "c": rnd.randrange(COLORS)}
 
 SCRIPTED = [
-    # 1 nickname: filed under legal name, NO alias recorded
-    C("357BF6714", "Michael", "Torres", "1979-03-14", "912-45-8802", roi="Yes", h=1),
-    # 2 year of birth: goes by Kate, surname may have changed
-    C("F565C146B", "Katherine", "Morrison", "1985-07-22", "934-17-3145", roi="Yes",
-      p="She/Her/Hers", h=3),
-    # 3 date formats: two people share this DOB
-    C("AD63C3FF2", "Andre", "Whitfield", "1990-12-05", "907-62-6690", roi="Missing"),
-    C("C967BF20E", "Jamal", "Underwood", "1990-12-05", "955-08-4402", roi="Yes"),
-    # 4 same name, different people
-    C("3DF1DF674", "James", "Wilson", "1968-09-02", "941-33-4471", roi="Yes", h=2),
-    C("8C7A8F2D2", "James", "Wilson", "1991-04-17", "968-20-9038", roi="Missing", a="Jim"),
-    # 5 true duplicate pair: same DOB, same SSN, one-letter name difference
-    C("5BB517588", "Shauna", "Beckett", "1993-04-30", "926-71-2210", roi="Missing",
-      p="She/Her/Hers"),
-    C("6381E5405", "Shawna", "Beckett", "1993-04-30", "926-71-2210", roi="Yes",
-      p="She/Her/Hers"),
-    # 6 compound surname entered as one word, so "Cruz" finds nothing
-    C("2A8189B34", "Maria", "Delacruz", "1974-01-28", "918-54-5527", roi="Yes", h=4),
-    # 7 ROI column: exactly three Delgados, exactly one Missing
-    C("9E4C21A70", "Marcus", "Delgado", "1985-01-19", "903-88-9927", roi="Yes"),
-    C("B72D0F118", "Rosa", "Delgado", "1979-06-06", "947-12-5501", roi="Yes",
-      p="She/Her/Hers", h=2),
-    C("4F80C6E93", "Elena", "Delgado", "1996-08-03", "930-45-3378", roi="Missing",
-      p="She/Her/Hers"),
-    # 8 SSN refused: identity must be confirmed on DOB alone
-    C("7A1E93C55", "Robert", "Nakashima", "1982-11-09", None, q="refused", roi="Yes"),
-    C("1C6B4D802", "Robert", "Nakashima", "1977-03-22", "961-29-7713", roi="Yes", a="Bobby"),
+    # 1  alternate names / nicknames — draft 46-50
+    C("357BF6714", "Michael", "Torres", "1979-03-14", "912-45-8802"),
+    # 2  year of birth only — draft 29
+    C("F565C146B", "Katherine", "Morrison", "1985-07-22", "934-17-3145", p="She/Her/Hers", h=3),
+    # 3  last 4 of SSN — draft 31.  Two people share 7742, so the fragment
+    #    narrows but does not decide; the participant's name settles it.
+    C("D41A7C930", "Danielle", "Whitmore", "1991-05-14", "918-30-7742", p="She/Her/Hers"),
+    C("6E23B0A85", "Marcus",   "Pell",     "1976-02-03", "944-61-7742"),
+    # 4  first letters of each name — draft 33-34 ("kat joh")
+    C("B8F0D3771", "Krzysztof", "Wojciechowski", "1968-07-30", "927-14-6053"),
+    # 5  too many results, narrow by adding a term — draft 38-41
+    C("A50C9E214", "Esperanza", "Garcia", "1987-04-09", "935-72-1180", p="She/Her/Hers", h=2),
+    # 6  zero results, swap one identifier for another — draft 42-45
+    C("72B6F1C08", "Adrian", "Fenwick", "1988-12-04", "959-23-5518"),
+    # 7  alternate spellings, C and K — draft 51-59
+    C("E19D4A6B3", "Kathleen", "Brennan", "1983-09-17", "941-88-2076", p="She/Her/Hers"),
+    # 8  second last name / compound surname filed as one word — draft 47
+    C("2A8189B34", "Maria", "Delacruz", "1974-01-28", "918-54-5527", h=4),
+    # 9  two people, one name; verify on two of three — draft 79-80
+    C("3DF1DF674", "James", "Wilson", "1968-09-02", "941-33-4471", h=2),
+    C("8C7A8F2D2", "James", "Wilson", "1991-04-17", "968-20-9038", a="Jim"),
+    # 10 verify with household members when identifiers are thin — draft 81-86
+    C("C4E7B2019", "Yolanda", "Amari", "1980-06-21", None, q="unknown", p="She/Her/Hers", h=2),
+    C("9B3F5D6C7", "Iris",    "Amari", "2011-10-02", None, q="notcollected", p="She/Her/Hers", h=2),
+    # 11 several matching records; choose the most complete — draft 96-98
+    C("F2A6C8D40", "Rosalind", "Vega", "1983-04-11", "961-27-1173", a="Roz", p="She/Her/Hers", h=2),
+    C("5C1B9E730", "Rosalind", "Vega", "1983-04-11", "961-XX-XXXX", q="approx"),
+    C("8D40A2F16", "Rosalind", "Vega", "1983-04-11", None, q="refused"),
+    # 12 a genuine duplicate; report, never merge — draft 99
+    C("5BB517588", "Shauna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
+    C("6381E5405", "Shawna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
 ]
+
+# Eleven more Garcias so that surname alone overflows a page of results (task 5).
+for _gi, (_gf, _gd) in enumerate([
+        ("Rafael", "1972-03-18"), ("Lucia", "1990-11-27"), ("Tomas", "1965-08-05"),
+        ("Ines", "1998-01-22"), ("Emilio", "1979-06-14"), ("Beatriz", "1984-09-30"),
+        ("Santiago", "1993-12-08"), ("Pilar", "1969-05-16"), ("Joaquin", "2000-02-11"),
+        ("Mercedes", "1976-07-25"), ("Alonso", "1988-10-19")]):
+    SCRIPTED.append(C("G%02d7C4E1B" % _gi, _gf, "Garcia", _gd, ssn()))
 
 # ------------------------------------------------------------------- GUARDS
 # A generated record is rejected if it would make any scenario answer ambiguous.
 def violates(c):
     f, l, d = c["f"], c["l"], c["d"]
-    lo_l, lo_f = l.lower(), f.lower()
-    # 1: no second Torres reachable by "Tor"
+    lo_l, lo_f, lo_a = l.lower(), f.lower(), c["a"].lower()
+    # 1: no second Torres reachable by "Tor"; nobody answers to "Lefty"
     if lo_l.startswith("tor"): return True
-    # 1: nobody may answer to "Lefty" — the whole task is that it matches nothing
-    if lo_f.startswith("left") or lo_l.startswith("left") or c["a"].lower().startswith("left"):
-        return True
-    # 2: no other 1985-born Kat*/Kate
-    if d[:4] == "1985" and (lo_f.startswith("kat") or c["a"].lower().startswith("kat")): return True
-    # 2: no other Morrison
+    if lo_f.startswith("left") or lo_l.startswith("left") or lo_a.startswith("left"): return True
+    # 2: no other Morrison, and no other 1985-born Kat*
     if lo_l.startswith("morr"): return True
-    # 3: no third person on that date
-    if d == "1990-12-05": return True
-    # 3: no other Whitfield / Underwood
-    if lo_l in ("whitfield", "underwood"): return True
-    # 4: no third James Wilson (other Wilsons are welcome noise)
-    if lo_l == "wilson" and lo_f == "james": return True
-    # 5: no third Beckett
-    if lo_l.startswith("beckett"): return True
-    # 6: no other Cruz or Delacruz. "Cruz" must match nobody at all, which is
-    #    the whole task: the surname was filed as one word.
+    if d[:4] == "1985" and (lo_f.startswith("kat") or lo_a.startswith("kat")): return True
+    # 3: only the two pinned records may end 7742
+    if c["s"] and c["s"].endswith("7742"): return True
+    if lo_l.startswith("whitmore") or lo_l.startswith("pell"): return True
+    if lo_f.startswith("danielle"): return True
+    # 4: one Wojciechowski, one Krzysztof
+    if lo_l.startswith("woj") or lo_f.startswith("krz"): return True
+    # 5: Garcias are pinned, so no generated ones
+    if lo_l.startswith("garcia") or lo_f.startswith("esperanza"): return True
+    # 6: one Fenwick, and nobody else born on either reading of that date
+    if lo_l.startswith("fen"): return True
+    if d in ("1988-12-04", "1988-04-12"): return True
+    # 7: one Brennan; nobody spelled with a leading C that would rescue the guess
+    if lo_l.startswith("brennan"): return True
+    if lo_f.startswith("cath") or lo_f.startswith("kath"): return True
+    # 8: no Cruz or Delacruz at all — "Cruz" must match nobody
     if "cruz" in lo_l: return True
-    # 7: exactly three Delgados
-    if lo_l == "delgado": return True
-    # 8: exactly two Nakashimas
-    if lo_l.startswith("nakashima"): return True
+    # 9: no third James Wilson
+    if lo_l == "wilson" and lo_f == "james": return True
+    # 10: the Amari household is pinned
+    if lo_l.startswith("amari"): return True
+    # 11: exactly three Vegas, all Rosalind
+    if lo_l.startswith("vega") or lo_f.startswith("rosalind"): return True
+    # 12: no third Beckett
+    if lo_l.startswith("beckett"): return True
     return False
 
 # --------------------------------------------------------------- generation
@@ -291,7 +311,8 @@ for c in clients:
     c["qn"] = rnd.choice(QNAME)
     c["qd"] = rnd.choice(QDOB)
     c["ql"] = QUALITY_LABEL[c["q"]]
-    c["cr"] = "Yes" if c["r"] == "No" else "No"          # Consent Refused mirrors a declined ROI
+    c["cr"] = "Yes" if c["r"] == "No" else "No"
+    c["fe"] = iso(rnd.randint(2016, 2025), rnd.randint(1, 12), rnd.randint(1, 28))          # Consent Refused mirrors a declined ROI
     c["n"] = {                                            # right-rail accordion counts
         "pr": weighted([(0, .45), (1, .2), (2, .15), (3, .1), (6, .1)]),
         "cq": weighted([(0, .6), (1, .3), (2, .1)]),
@@ -306,6 +327,18 @@ for c in clients:
 # the real product, which never opens on a blank table
 recent = [SCRIPTED[0]["i"], SCRIPTED[4]["i"], SCRIPTED[9]["i"],
           SCRIPTED[2]["i"], SCRIPTED[13]["i"]]
+
+# Task 11 needs a clear "most complete" and a clear "oldest enrollment".
+_vega = {c["i"]: c for c in clients if c["l"] == "Vega"}
+if len(_vega) == 3:
+    _vega["F2A6C8D40"].update({"fe": "2019-02-14", "v": "No",  "rc": "Hispanic/Latina/e/o"})
+    _vega["5C1B9E730"].update({"fe": "2022-08-03", "v": "",    "rd": ""})
+    _vega["8D40A2F16"].update({"fe": "2024-11-20", "v": "",    "rd": "", "a": ""})
+# Task 10: Yolanda's record is thin on identifiers, so the household is the way in.
+_am = {c["i"]: c for c in clients if c["l"] == "Amari"}
+if len(_am) == 2:
+    _am["C4E7B2019"].update({"qn": "Partial, street name, or code name reported",
+                             "qd": "Approximate or partial DOB reported"})
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w") as fh:

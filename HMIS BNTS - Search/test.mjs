@@ -44,8 +44,7 @@ console.log('\n— partial dates —');
 ok('4-digit year 1977 works', await p.evaluate(() => search('1977', []).rows.every(c => c.d.slice(0,4) === '1977')));
 ok('2-digit year 77 finds the same people', await p.evaluate(() =>
    search('77', []).rows.filter(c => c.d.slice(0,4) === '1977').length === search('1977', []).rows.length));
-ok('month/day fragment 12/05 finds both Dec-5 clients',
-   (await q('12/05')).includes('Whitfield, Andre') && (await q('12/05')).includes('Underwood, Jamal'));
+ok('month/day fragment 3/14 reaches Michael Torres', (await q('3/14')).includes('Torres, Michael'));
 ok('short form 3/14/79 finds Michael Torres', (await q('3/14/79')).includes('Torres, Michael'));
 ok('full form 03/14/1979 finds him too', (await q('03/14/1979')).includes('Torres, Michael'));
 ok('dots and dashes work as separators',
@@ -82,11 +81,10 @@ ok('bare year finds Katherine Morrison', (await names()).includes('Morrison, Kat
 ok('year search returns only 1985 births',
    await p.evaluate(() => S.rows.every(c => c.d.slice(0, 4) === '1985')));
 
-for (const d of ['12/05/1990', '12.05.1990', '12-05-1990']) {
+for (const d of ['3/14/1979', '3.14.1979', '3-14-1979']) {
   await type(d);
   const n = await names();
-  ok(`date format ${d} returns the same 2 people`,
-     n.length === 2 && n.includes('Whitfield, Andre') && n.includes('Underwood, Jamal'), JSON.stringify(n));
+  ok(`separator ${d} gives the same result`, n.length === 1 && n[0] === 'Torres, Michael', JSON.stringify(n));
 }
 await type('13/45/1990');
 ok('an impossible date simply matches nobody', (await zero()) === 'No clients found');
@@ -98,24 +96,27 @@ ok('the shared fragment "dela" reaches Maria Delacruz',
    (await names()).includes('Delacruz, Maria'), JSON.stringify(await names()));
 
 const multi = await p.evaluate(() => search('mar del', []).rows.map(c => c.l + ', ' + c.f));
-ok('two fragments match across first AND last name', multi.includes('Delgado, Marcus'), JSON.stringify(multi));
+ok('two fragments match across first AND last name', multi.includes('Delacruz, Maria'), JSON.stringify(multi));
 
 console.log('\n— no task is solved by the naive search —');
 /* Every task must either dead-end or narrow to a set the learner has to choose
    from. A task solved outright by the first thing a trainee would type teaches
    nothing — that is what happened when "Mike" prefix-matched Michael. */
 const PROBES = [
-  ['task 1', 'Lefty',        '357BF6714', 'dead'],
-  ['task 1', 'Lefty Torres', '357BF6714', 'dead'],
-  ['task 2', 'Kate',         'F565C146B', 'dead'],
-  ['task 2', 'Kate 1985',    'F565C146B', 'dead'],
-  ['task 3', '12.05.1990',   'AD63C3FF2', 'choose'],
-  ['task 4', 'James Wilson', '3DF1DF674', 'choose'],
-  ['task 5', 'Delgado',      '4F80C6E93', 'choose'],
-  ['task 6', 'Nakashima',    '7A1E93C55', 'choose'],
-  ['task 7', 'Cruz',         '2A8189B34', 'dead'],
-  ['task 7', 'Maria Cruz',   '2A8189B34', 'dead'],
-  ['task 8', 'Beckett',      '5BB517588', 'choose'],
+  ['task 1  alt names',    'Lefty',                '357BF6714', 'dead'],
+  ['task 1  full phrase',  'Lefty Torres',         '357BF6714', 'dead'],
+  ['task 2  nickname',     'Kate',                 'F565C146B', 'dead'],
+  ['task 3  last four',    '7742',                 'D41A7C930', 'choose'],
+  ['task 4  misspelling',  'Kristof Wojiechowski', 'B8F0D3771', 'dead'],
+  ['task 5  common name',  'Garcia',               'A50C9E214', 'choose'],
+  ['task 6  stated DOB',   '04/12/1988',           '72B6F1C08', 'dead'],
+  ['task 7  C spelling',   'Cathleen',             'E19D4A6B3', 'dead'],
+  ['task 8  Cruz',         'Cruz',                 '2A8189B34', 'dead'],
+  ['task 8  as spoken',    'Maria Cruz',           '2A8189B34', 'dead'],
+  ['task 9  the name',     'James Wilson',         '3DF1DF674', 'choose'],
+  ['task 10 the surname',  'Amari',                'C4E7B2019', 'choose'],
+  ['task 11 the surname',  'Vega',                 'F2A6C8D40', 'choose'],
+  ['task 12 the surname',  'Beckett',              '5BB517588', 'choose'],
 ];
 for (const [label, query, target, want] of PROBES) {
   const rows = await p.evaluate(q => search(q, []).rows.map(c => c.i), query);
@@ -129,22 +130,26 @@ console.log('\n— scenario data integrity (guards) —');
 const uniq = await p.evaluate(() => {
   const grab = q => search(q, []).rows.map(c => c.i);
   return {
-    torres: grab('Tor'),
-    kate: grab('1985').filter(i => CLIENTS.find(c => c.i === i).f === 'Katherine'),
-    dec5: grab('12/05/1990'), wilson: grab('Wilson'), beckett: grab('Beckett'),
-    delgado: grab('Delgado'), naka: grab('Nakashima'),
-    cruz: grab('Cruz'), delacruz: grab('Delacruz')
+    torres: grab('Tor'), lefty: grab('Lefty'), morrison: grab('Morr'),
+    last4: grab('7742'), woj: grab('woj'), garcia: grab('Garcia'),
+    fenwick: grab('Fen'), brennan: grab('Brennan'), cath: grab('Cath'),
+    cruz: grab('Cruz'), delacruz: grab('Delacruz'), wilson: grab('Wilson'),
+    amari: grab('Amari'), vega: grab('Vega'), beckett: grab('Beckett')
   };
 });
-ok('exactly one Torres reachable by "Tor"', uniq.torres.length === 1, JSON.stringify(uniq.torres));
-ok('exactly one Katherine born 1985', uniq.kate.length === 1);
-ok('exactly two people born 12/05/1990', uniq.dec5.length === 2);
+ok('exactly one Torres, and nobody answers to Lefty', uniq.torres.length === 1 && uniq.lefty.length === 0);
+ok('exactly one Morrison', uniq.morrison.length === 1);
+ok('exactly two records end 7742', uniq.last4.length === 2);
+ok('exactly one Wojciechowski', uniq.woj.length === 1);
+ok('twelve Garcias — more than one page', uniq.garcia.length === 12);
+ok('exactly one Fenwick', uniq.fenwick.length === 1);
+ok('one Brennan, and no first name starting Cath', uniq.brennan.length === 1 && uniq.cath.length === 0);
+ok('nobody matches "Cruz"; exactly one Delacruz', uniq.cruz.length === 0 && uniq.delacruz.length === 1);
 ok('exactly two James Wilsons', uniq.wilson.length === 2);
+ok('exactly two Amaris — mother and daughter', uniq.amari.length === 2);
+ok('exactly three Vegas, all the same person', uniq.vega.length === 3 &&
+   await p.evaluate(() => search('Vega', []).rows.every(c => c.f === 'Rosalind' && c.d === '1983-04-11')));
 ok('exactly two Becketts', uniq.beckett.length === 2);
-ok('exactly three Delgados', uniq.delgado.length === 3);
-ok('exactly two Nakashimas', uniq.naka.length === 2);
-ok('nobody at all matches "Cruz"', uniq.cruz.length === 0);
-ok('exactly one Delacruz', uniq.delacruz.length === 1);
 ok('every SSN area is either 9xx or a placeholder — none can be real',
    await p.evaluate(() => CLIENTS.every(c => {
      if (!c.s) return true;
@@ -167,7 +172,7 @@ ok('default column order is Client, DOB, SSN, ROI',
    JSON.stringify(hdr) === JSON.stringify(['Client','DOB','SSN','ROI']), JSON.stringify(hdr));
 
 console.log('\n— ROI + SSN columns —');
-await type('Delgado');
+await type('Vega');
 ok('recently-accessed hint disappears once a search is active',
    await p.$eval('#hintRow', e => getComputedStyle(e).display === 'none'));
 ok('client ID renders on its own line under the name',
@@ -176,17 +181,17 @@ const roi = await p.$$eval('#tb tr[data-row]', rs => rs.map(r => ({
   name: r.querySelector('.cname').textContent.trim(),
   roi: r.querySelector('.roi') ? r.querySelector('.roi').textContent.trim() : null
 })));
-ok('three Delgados, exactly one ROI Missing',
-   roi.length === 3 && roi.filter(r => r.roi === 'Missing').length === 1, JSON.stringify(roi));
+ok('every row renders a valid ROI pill',
+   roi.length === 3 && roi.every(r => ['Yes','Missing','No'].includes(r.roi)), JSON.stringify(roi));
 
-await type('Nakashima');
+await type('Vega');
 // locate the SSN cell by header position so column reordering can't break this
 const nk = await p.evaluate(() => {
   const hdrs = [...document.querySelectorAll('#thr th')].map(t => t.textContent.replace(/[↑↓]/g,'').trim());
   const col = hdrs.indexOf('SSN');
   return [...document.querySelectorAll('#tb tr[data-row]')].map(r => r.children[col].textContent.trim());
 });
-ok('one Nakashima shows (No value) for SSN', nk.some(t => t.includes('No value')), JSON.stringify(nk));
+ok('a record with no SSN renders (No value)', nk.some(t => t.includes('No value')), JSON.stringify(nk));
 
 console.log('\n— partial SSNs (X / 0 filled) —');
 const pssn = await p.evaluate(() => {
@@ -257,10 +262,11 @@ ok('filter menu offers exactly First Name, Last Name, Alias',
    JSON.stringify(ff) === JSON.stringify(['First Name', 'Last Name', 'Alias']), JSON.stringify(ff));
 await p.click('#filterPop [data-ff="last"]'); await p.waitForTimeout(200);
 ok('choosing a field creates a chip', (await p.textContent('#chips')).includes('Last Name'));
-await p.fill('#chipVal', 'Delgado');
+await p.fill('#chipVal', 'Garcia');
 await p.click('#chipGo'); await p.waitForTimeout(250);
-ok('chip value narrows the results', (await names()).length === 3, JSON.stringify(await names()));
-ok('chip displays its applied value', (await p.textContent('#chips')).includes('Delgado'));
+ok('chip value narrows the results', (await names()).length === 10 &&
+   await p.evaluate(() => S.rows.length === 12), JSON.stringify(await names()));
+ok('chip displays its applied value', (await p.textContent('#chips')).includes('Garcia'));
 await p.click('#chips [data-chipdel="0"]'); await p.waitForTimeout(250);
 ok('removing the chip clears the search', await p.evaluate(() => S.rows === null));
 
@@ -321,14 +327,14 @@ await p.click(`#tb tr[data-row="${hoh.id}"] [data-exp]`);
 ok('the search page carries no stat tiles', await p.$$eval('.tile', t => t.length === 0));
 
 console.log('\n— client record page —');
-await type('Delgado');
-await p.click('#tb tr[data-row]:has-text("Rosa")'); await p.waitForTimeout(250);
+await type('Vega');
+await p.click('#tb tr[data-row="F2A6C8D40"]'); await p.waitForTimeout(250);
 ok('opening a row navigates to the record page', !(await p.$eval('#recordView', e => e.hidden)));
 ok('the search screen is replaced, not overlaid',
    await p.$eval('#searchView', e => getComputedStyle(e).display === 'none'));
 ok('Public Alert is not shown for a client with no alert',
    await p.$eval('#alertBtn', e => getComputedStyle(e).display === 'none'));
-ok('header names the client', (await p.textContent('#recName')).includes('Rosa Delgado'));
+ok('header names the client', (await p.textContent('#recName')).includes('Rosalind Vega'));
 ok('header carries the "viewing the Client Record pages" line',
    (await p.textContent('#recSub')).includes('Client Record pages'));
 const nav = await p.$$eval('#recNav button', bs => bs.map(x => x.textContent.trim()));
@@ -336,6 +342,8 @@ ok('client nav has all 16 sections with Profile active',
    nav.length === 16 && nav[0] === 'Profile' &&
    await p.$eval('#recNav button', e => e.getAttribute('aria-current') === 'page'), JSON.stringify(nav));
 const grid = await p.textContent('#profGrid');
+ok('profile shows earliest enrollment (the tiebreaker in task 11)',
+   (await p.textContent('#profGrid')).includes('Earliest enrollment'));
 ok('profile shows the three data-quality fields',
    grid.includes('Quality of SSN') && grid.includes('Quality of Name') && grid.includes('Quality of DOB'));
 ok('profile shows Consent Refused and Race and Ethnicity',
@@ -370,7 +378,7 @@ await closeAll();
 console.log('\n— guided flow —');
 await p.reload(); await p.waitForTimeout(200);
 ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('name he gave'));
-ok('progress reads task 1 of 8', (await p.textContent('#taskNo')).includes('1 of 8'));
+ok('progress reads task 1 of 12', (await p.textContent('#taskNo')).includes('1 of 12'));
 
 await p.click('#addBtn'); await p.waitForTimeout(150);
 const nt = await p.textContent('#ntBody');
@@ -385,9 +393,9 @@ ok('teaching point appears', (await p.textContent('#fb')).includes('no alias'));
 ok('score is no longer zero', !(await p.textContent('#scoreLbl')).includes('0%'));
 await closeAll();
 await p.click('#nextBtn'); await p.waitForTimeout(150);
-ok('advances to task 2', (await p.textContent('#taskNo')).includes('2 of 8'));
+ok('advances to task 2', (await p.textContent('#taskNo')).includes('2 of 12'));
 
-await p.evaluate(() => { S.idx = 3; S.attempts = 0; S.hinted = false; renderCoach(); });
+await p.evaluate(() => { S.idx = 8; S.attempts = 0; S.hinted = false; renderCoach(); });
 await type('Wilson');
 await p.click('#tb tr[data-row]:has-text("4/17/91")'); await p.waitForTimeout(200);
 ok('wrong James Wilson rejected with a specific reason',
@@ -397,36 +405,44 @@ await p.click('#tb tr[data-row]:has-text("9/2/68")'); await p.waitForTimeout(200
 ok('correct James Wilson passes (partial credit)', (await p.textContent('#fb')).includes('Correct'));
 await closeAll();
 
-await p.evaluate(() => { S.idx = 4; S.attempts = 0; S.hinted = false; renderCoach(); });
-await type('Delgado');
-await p.click('#tb tr[data-row]:has-text("Marcus")'); await p.waitForTimeout(200);
-ok('a Delgado with ROI Yes is rejected', (await p.textContent('#fb')).includes('consent is on file'));
+// task 10 — the household is the only way to tell mother from daughter
+await p.evaluate(() => { S.idx = 9; S.attempts = 0; S.hinted = false; renderCoach(); });
+await type('Amari');
+await p.click('#tb tr[data-row="9B3F5D6C7"]'); await p.waitForTimeout(200);
+ok('opening the daughter is rejected with a reason',
+   (await p.textContent('#fb')).includes("daughter"));
 await closeAll();
-await p.click('#tb tr[data-row]:has-text("Elena")'); await p.waitForTimeout(200);
-ok('the ROI-Missing Delgado passes', (await p.textContent('#fb')).includes('Correct'));
-await closeAll();
-
-await p.evaluate(() => { S.idx = 5; S.attempts = 0; S.hinted = false; renderCoach(); });
-await type('Nakashima');
-await p.click('#tb tr[data-row]:has-text("3/22/77")'); await p.waitForTimeout(200);
-ok('record with an SSN but the wrong DOB is rejected',
-   (await p.textContent('#fb')).includes("Don't pick a record"));
-await closeAll();
-await p.click('#tb tr[data-row]:has-text("11/9/82")'); await p.waitForTimeout(200);
-ok('SSN-refused record with the right DOB passes', (await p.textContent('#fb')).includes('Correct'));
-ok('its record page shows the SSN data-quality reason',
-   (await p.textContent('#profGrid')).includes('Client refused'));
+await p.click('#tb tr[data-row="C4E7B2019"]'); await p.waitForTimeout(200);
+ok('opening the mother passes task 10', (await p.textContent('#fb')).includes('Correct'));
+ok('her record is thin on identifiers, as the task requires',
+   (await p.textContent('#profGrid')).includes('No value'));
 await closeAll();
 
-await p.evaluate(() => { S.idx = 7; S.attempts = 0; S.hinted = false; renderCoach(); });
+// task 11 — three matching records, choose the most complete
+await p.evaluate(() => { S.idx = 10; S.attempts = 0; S.hinted = false; renderCoach(); });
+await type('Vega');
+ok('three records, all the same person', (await names()).length === 3);
+await p.click('#tb tr[data-row="8D40A2F16"]'); await p.waitForTimeout(200);
+ok('the emptiest record is rejected', (await p.textContent('#fb')).includes('no SSN on file'));
+await closeAll();
+await p.click('#tb tr[data-row="5C1B9E730"]'); await p.waitForTimeout(200);
+ok('the partial record is rejected too', (await p.textContent('#fb')).includes('partial SSN'));
+await closeAll();
+await p.click('#tb tr[data-row="F2A6C8D40"]'); await p.waitForTimeout(200);
+ok('the most complete record passes task 11', (await p.textContent('#fb')).includes('Correct'));
+ok('teaching names the oldest-enrollment tiebreaker',
+   (await p.textContent('#fb')).includes('longest enrollment history'));
+await closeAll();
+
+await p.evaluate(() => { S.idx = 11; S.attempts = 0; S.hinted = false; renderCoach(); });
 await type('Beckett');
 await p.click('#tb tr[data-row]'); await p.waitForTimeout(200);
 await p.click('#kebabBtn'); await p.waitForTimeout(150);
 await p.click('#flagBtn'); await p.waitForTimeout(200);
 ok('flagging a Beckett passes the duplicate task', (await p.textContent('#fb')).includes('Correct'));
-ok('teaching point says flag and report, do not merge or delete', await p.evaluate(() => {
+ok('teaching point says report to HMIS Support, never merge or delete', await p.evaluate(() => {
   const t = document.getElementById('fb').textContent;
-  return /do not merge/i.test(t) && /do not delete/i.test(t) && /administrator/i.test(t);
+  return /do not merge/i.test(t) && /do not delete/i.test(t) && /HMIS Support/i.test(t);
 }));
 await p.click('#nextBtn'); await p.waitForTimeout(250);
 ok('completion modal appears after the final task', !(await p.$eval('#done', e => e.hidden)));
@@ -447,24 +463,25 @@ ok('the task panel sits on the left, the app on the right', await p.evaluate(() 
 ok('coach copy uses "participant", not "client"', await p.evaluate(() =>
   TASKS.some(t => /participant/i.test(t.teach + t.brief + t.ask))));
 
-console.log('\n— checkpoint between tasks 3 and 4 —');
+console.log('\n— the seam between searching and verifying —');
 await p.click('.railbtn[aria-current]'); await p.waitForTimeout(200);   // back to search
-await p.evaluate(() => { S.idx = 2; S.attempts = 0; S.hinted = false; S.results = [
+await p.evaluate(() => { S.idx = 7; S.attempts = 0; S.hinted = false; S.results = [
   {id:'nickname',p:10},{id:'year',p:10}]; renderCoach(); });
-await type('12.05.1990');
-await p.click('#tb tr[data-row="AD63C3FF2"]'); await p.waitForTimeout(200);
+await type('dela');
+await p.click('#tb tr[data-row="2A8189B34"]'); await p.waitForTimeout(200);
 await closeAll();
 await p.click('#nextBtn'); await p.waitForTimeout(200);
-ok('a checkpoint appears after task 3', (await p.textContent('#tTitle')).includes('Checkpoint'));
-ok('it teaches narrowing and widening',
-   (await p.textContent('#tBrief')).includes('Too many results') &&
-   (await p.textContent('#tBrief')).includes('No results'));
-ok('the progress label reads Checkpoint', (await p.textContent('#taskNo')).includes('Checkpoint'));
+ok('a non-scored beat appears after task 8',
+   (await p.textContent('#tTitle')).includes('From finding to verifying'));
+ok('it marks the seam between searching and verifying',
+   (await p.textContent('#tBrief')).includes('search half') &&
+   (await p.textContent('#tBrief')).includes('not the same as finding the right one'));
+ok('the progress label marks it as a checkpoint', (await p.textContent('#taskNo')).includes('Checkpoint'));
 ok('the button says Continue', (await p.textContent('#nextBtn')).includes('Continue'));
 ok('no hint is offered on a checkpoint', await p.$eval('#hintBtn', e => e.hidden));
 const scoreAtCheckpoint = await p.textContent('#scoreLbl');
 await p.click('#nextBtn'); await p.waitForTimeout(200);
-ok('continuing lands on task 4', (await p.textContent('#taskNo')).includes('4 of 8'));
+ok('continuing lands on task 9', (await p.textContent('#taskNo')).includes('9 of 12'));
 ok('the checkpoint scored nothing', (await p.textContent('#scoreLbl')) === scoreAtCheckpoint);
 
 console.log('\n— accessibility / integrity —');

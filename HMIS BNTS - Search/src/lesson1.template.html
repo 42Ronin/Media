@@ -562,6 +562,7 @@ var COLLAPSED = [
   {k:"cid", label:"Client ID", locked:true},
   {k:"vet", label:"Veteran Status"},
   {k:"hhm", label:"Household Members"},
+  {k:"fe", label:"Earliest enrollment"},
   {k:"upd", label:"Updated by"}
 ];
 /* key is versioned: bumping it retires a saved order when the shipped default changes,
@@ -593,71 +594,103 @@ var TASKS=[
   ask:"Find his record and open it.",
   hint:"The name he gave you isn't the name on the record, and no alias was ever recorded for him. Drop it and search the surname on its own — <code>Tor</code> is enough.",
   expect:{type:"open", id:"357BF6714"},
-  teach:"An empty result is not proof that someone is new. His record is filed under his legal name, <b>Michael Torres</b>, and no alias was ever recorded on it. The name a participant offers you may not be the name anyone typed. "+
-        "Typing <code>Lefty Torres</code> doesn't help either — every word has to match, so adding a word that matches nothing guarantees an empty list."
+  teach:"An empty result is not proof that someone is new. He is filed under his legal name, <b>Michael Torres</b>, with no alias on the record. Ask what else a participant has been called — a middle name, a second last name, a nickname, a shortening — and confirm the spelling of each. "+
+        "Typing <code>Lefty Torres</code> fails too: every word must match, so a word that matches nothing guarantees an empty list."
 },
 { id:"year", title:"When the last name may have changed",
   brief:'A woman says everyone calls her <span class="q">Kate.</span> She thinks her record may be under a former married name but isn\'t sure which. She knows she was born in <b>1985</b>.',
   ask:"Find and open her record.",
-  hint:"When the surname is unreliable, search what is. A year works on its own — <code>1985</code>, or just <code>85</code>.",
+  hint:"Start from one piece of information you trust. A year works on its own — <code>1985</code>, or just <code>85</code>.",
   expect:{type:"open", id:"F565C146B"},
-  teach:"When the surname is unreliable, search what is reliable. A year on its own narrows three hundred records to a list short enough to read by eye. Her record is filed as <b>Katherine</b>, not Kate."
+  teach:"She is filed as <b>Katherine Morrison</b>. Starting from a single reliable fact is the documented approach, and a year alone narrows three hundred records to a list you can read by eye."
 },
-{ id:"formats", title:"The same date, written differently",
-  brief:'An intake form arrives with a date of birth handwritten with dots: <code>12.05.1990</code>.',
-  ask:"Search that date as written, then open the participant whose surname is Whitfield.",
-  hint:"Dots, slashes and dashes all parse. Note how many people come back.",
-  expect:{type:"open", id:"AD63C3FF2"},
-  teach:"Dots, slashes and dashes all work. But notice the result: <b>two different people</b> share that date of birth. A matching birthday is not a match — you still have to confirm the name."
+{ id:"last4", title:"Starting from the last four of the SSN",
+  brief:'A woman gives her name as <span class="q">Danielle</span> and the last four of her Social Security Number: <b>7742</b>. She is not sure how her surname was spelled when she enrolled.',
+  ask:"Find and open her record.",
+  hint:"Search the four digits on their own. Two people share them — use her first name to tell them apart.",
+  expect:{type:"open", id:"D41A7C930"},
+  wrong:{"6E23B0A85":"That's Marcus Pell — his SSN also ends 7742. A shared fragment narrows the list; it does not decide it."},
+  teach:"Searching the last four is one of the documented starting points, and it works even when the name is unreliable. But a four-digit fragment is not unique: two people here end 7742. Narrow with it, then confirm on something else."
+},
+{ id:"fragments", title:"A name you cannot spell",
+  brief:'A man gives his name as <span class="q">Krzysztof Wojciechowski.</span> You try your best guess at the spelling and get nothing.',
+  ask:"Find and open his record.",
+  hint:"You do not need the whole name. The first few letters of each is enough — the same way <code>kat joh</code> finds Katherine Johnson.",
+  expect:{type:"open", id:"B8F0D3771"},
+  teach:"Short fragments beat full names, because a full name has to be spelled the way somebody else typed it and a fragment does not. <code>krz woj</code> reaches him immediately."
+},
+{ id:"narrow", title:"Too many results",
+  brief:'A woman gives her surname as <span class="q">Garcia.</span> You search it and get twelve records across two pages. She tells you her first name is <b>Esperanza</b>.',
+  ask:"Narrow the search and open her record.",
+  hint:"Add a second term rather than starting again. Surname plus the first few letters of the first name will do it.",
+  expect:{type:"open", id:"A50C9E214"},
+  teach:"When a search returns more than you can read, add another term — a first name, a middle name, a second last name, an SSN fragment, a date of birth. Adding narrows; you rarely need to start over."
+},
+{ id:"swap", title:"Nothing comes back",
+  brief:'A man says he is <span class="q">Adrian Fenwick</span> and gives his date of birth as <b>04/12/1988</b>. Searching that date returns nothing. He also remembers the last four of his SSN: <b>5518</b>.',
+  ask:"Find and open his record.",
+  hint:"When a search returns nothing, replace one piece of information with another rather than adding to it. Swap the date of birth for the SSN fragment.",
+  expect:{type:"open", id:"72B6F1C08"},
+  teach:"His record holds 12/04/1988 — the month and day the other way round, which is how dates get mistyped everywhere. When you get nothing, swap an identifier rather than piling more on: date of birth for last four of the SSN, first name for last."
+},
+{ id:"spelling", title:"Spelled the way someone else heard it",
+  brief:'A woman introduces herself as <span class="q">Cathleen Brennan.</span> Searching <code>Cathleen</code> returns nothing.',
+  ask:"Find and open her record.",
+  hint:"A previous provider may have written it down differently. Try the other spelling of that first sound.",
+  expect:{type:"open", id:"E19D4A6B3"},
+  teach:"She is filed as <b>Kathleen</b>. The swaps worth trying first are the ones people make without noticing: <b>C and K</b>, <b>I and Y</b> — Catherine and Katherine, Jonson and Johnson. Try the alternate spelling before you conclude anyone is new."
+},
+{ id:"surname", title:"A surname typed as one word",
+  brief:'A caseworker asks you to pull up <span class="q">Maria de la Cruz.</span> You search <code>Cruz</code>, then <code>Maria Cruz</code>. Both come back empty.',
+  ask:"Find and open her record.",
+  hint:"Her surname was typed as a single word. Search the fragment common to every spelling — <code>dela</code> — or drop the surname and search her first name.",
+  expect:{type:"open", id:"2A8189B34"},
+  teach:"She is filed as <b>Maria Delacruz</b>, one word. Search matches from the start of a name, so <code>Cruz</code> never reaches it. Second last names and compound surnames get entered differently by every agency — search the distinctive fragment, or the first name."
 },
 { id:"samename", title:"Two people, one name",
   brief:'A man says he is <span class="q">James Wilson.</span> He gives his date of birth as 9/2/1968 and the last four of his SSN as 4471.',
   ask:"Open the correct James Wilson.",
-  hint:"Narrow it with what he told you — a fragment of the SSN like <code>4471</code>, or the date of birth — or read the SSN and DOB columns and compare.",
+  hint:"Narrow it with what he told you — the fragment <code>4471</code>, or the date of birth — or read the SSN and DOB columns and compare.",
   expect:{type:"open", id:"3DF1DF674"},
   wrong:{"8C7A8F2D2":"That's the other James Wilson — born 4/17/1991, SSN ending 9038. Two records sharing a name are not automatically duplicates."},
-  teach:"There are two James Wilsons and they are two different people. Merging them would be a serious error. <b>A name is not an identifier.</b> Confirm on a second one — the SSN fragment or the date of birth — never on the name alone."
+  teach:"These are two different people. As a rule of thumb a record is a match when at least <b>two of the three</b> — name, date of birth, SSN — match the participant. A name on its own is never enough."
 },
-{ id:"roi", title:"Reading the ROI column",
-  brief:'Your supervisor asks about the <b>Delgado</b> records before anything is shared with a partner agency.',
-  ask:"Search Delgado and open the one participant whose ROI is not on file.",
-  hint:"The ROI column shows Yes, Missing or No right in the results — you can read consent status before you open anything.",
-  expect:{type:"open", id:"4F80C6E93"},
-  wrong:{"9E4C21A70":"Marcus Delgado's ROI reads Yes — his consent is on file.","B72D0F118":"Rosa Delgado's ROI reads Yes — her consent is on file."},
-  teach:"<b>Elena Delgado</b> shows ROI <b>Missing</b>. Consent status is visible in the results list, before you open anything. A missing Release of Information does not mean you cannot serve the participant — it means their data cannot be shared outside your agency until one is recorded."
+{ id:"household", title:"When the identifiers are thin",
+  brief:'A woman says her name is <span class="q">Yolanda Amari.</span> She does not know her Social Security Number and is unsure of her exact date of birth. She mentions her daughter, <b>Iris</b>, who is with her.',
+  ask:"Open the record that belongs to the mother.",
+  hint:"Search the surname, then open a row's chevron to see its household members. The record you want lists Iris.",
+  expect:{type:"open", id:"C4E7B2019"},
+  wrong:{"9B3F5D6C7":"That's Iris — the daughter. You are looking for the record that lists Iris as a household member, not Iris's own record."},
+  teach:"When name, date of birth and SSN cannot settle it, the record holds other things you can confirm with the participant: household members, program history, case notes, location, veteran status. Here the household is what identifies her."
 },
-{ id:"noSsn", title:"When there is no SSN on file",
-  brief:'A man says he is <span class="q">Robert Nakashima</span>, born 11/9/1982. He declined to give his Social Security Number when he first enrolled.',
-  ask:"Open the correct Robert Nakashima.",
-  hint:"Searching the SSN won't help — his record has none on file. You were given a date of birth: try <code>11/9/82</code>, or just <code>82</code>.",
-  expect:{type:"open", id:"7A1E93C55"},
-  wrong:{"1C6B4D802":"That record is born 3/22/1977 and has an SSN on file — but the man in front of you gave 11/9/1982. Don't pick a record just because it has more data in it."},
-  teach:"His record shows <b>Client refused</b> for SSN, so the usual tiebreaker is gone and date of birth is the only handle left. The record with more information filled in is not automatically the right record — that instinct is how the wrong participant gets served."
-},
-{ id:"surname", title:"Names that get typed differently",
-  brief:'A caseworker asks you to pull up <span class="q">Maria de la Cruz.</span> You search <code>Cruz</code>, then <code>Maria Cruz</code>. Both come back empty.',
-  ask:"Find and open her record.",
-  hint:"Her surname was typed as one word when the record was created. Search the fragment common to every spelling — <code>dela</code> — or drop the surname and search her first name.",
-  expect:{type:"open", id:"2A8189B34"},
-  teach:"She is filed as <b>Maria Delacruz</b>, one word, no spaces. Search matches from the start of a name, so <code>Cruz</code> never reaches it. Compound and hyphenated surnames get entered differently by every agency. "+
-        "The same applies to letters people swap without thinking: C and K, I and Y — Katherine and Catherine, Johnson and Jonson."
+{ id:"several", title:"More than one record matches",
+  brief:'You search <span class="q">Vega</span> and find three records. All three are Rosalind Vega, born 4/11/1983. All three appear to be the same person.',
+  ask:"Open the record you would work from.",
+  hint:"Choose the most complete one — full SSN, full date of birth, full name, an alias, the fullest history. Open a row's chevron and the record page to compare.",
+  expect:{type:"open", id:"F2A6C8D40"},
+  wrong:{"5C1B9E730":"That record has only a partial SSN and no alias. A more complete record exists.",
+         "8D40A2F16":"That record has no SSN on file at all, and it is the newest. A more complete record exists."},
+  teach:"Work from the <b>most complete</b> record — full SSN, full date of birth, full name, full program history. Where that is unclear, take the one with the <b>longest enrollment history</b>, based on the oldest enrollment. "+
+        "Then send the full list of matching records, with every Unique Identifier, to HMIS Support so they can merge them."
 },
 { id:"duplicate", title:"Finding the same person twice",
   brief:'You search <code>Beckett</code>. Two records come back: <b>Shauna Beckett</b> and <b>Shawna Beckett</b>. Same date of birth. Same last four of the SSN. One letter apart.',
   ask:"Open either record and flag it as a possible duplicate.",
   hint:"Open one of the two, then use 'Flag possible duplicate' in the ⋮ menu on the profile card.",
   expect:{type:"flag", ids:["5BB517588","6381E5405"]},
-  teach:"This is a duplicate — one person entered twice. You do not merge it and you do not delete it. You flag it and report it, and your HMIS administrator resolves it centrally so your CoC's unduplicated count stays accurate."
+  teach:"This is one person entered twice. You do not merge it and you do not delete it — you report it to HMIS Support with both Unique Identifiers, and they resolve it centrally so your CoC's unduplicated count stays accurate."
 }];
 
-/* Non-scored teaching beats shown after the task at the given index. */
+/* Non-scored beat. The draft splits the work in two — Search, then Verify — and
+   the tasks follow that split, so the pause goes on the seam. */
 var INTERSTITIALS={
-  2:{ title:"Checkpoint: narrowing and widening",
-      html:'<p>Before the next one, two habits worth naming.</p>'+
-           '<p><b>Too many results?</b> Add another piece of information — a middle name, a second last name, '+
-           'an SSN fragment, a date of birth. Or replace a three-letter fragment with the full name.</p>'+
-           '<p><b>No results?</b> Take something away rather than adding to it. Replace one search term with '+
-           'another: swap the date of birth for the last four of the SSN, or the first name for the last.</p>' }
+  7:{ title:"From finding to verifying",
+      html:'<p>That is the search half. You now have every documented way in: a name fragment, '+
+           'a year, four digits of an SSN, an alternate spelling, a term added to narrow, and a '+
+           'term swapped when nothing came back.</p>'+
+           '<p><b>Finding a candidate record is not the same as finding the right one.</b> The rest '+
+           'of this lesson is verifying: proving a record belongs to the person in front of you, and '+
+           'deciding what to do when more than one does.</p>' }
 };
 
 /* ============================================================
@@ -817,6 +850,7 @@ function renderTable(){
       xf("Client ID", String(c.cid))+
       xf("Veteran Status", c.v?esc(c.v):'<span class="novalue">No value</span>')+
       xf("Household Members", householdHTML(c))+
+      xf("Earliest enrollment", c.fe?dobShort(c.fe):'<span class="novalue">No value</span>')+
       xf("Updated by", esc(c.u)+' <span class="novalue">· '+dobShort(c.t)+'</span>')+
       '</div></td></tr>';
   }).join("");
@@ -1178,6 +1212,7 @@ function openProfile(id){
     field("Race and Ethnicity", esc(c.rc))+
     field("Additional Race and Ethnicity Detail", c.rd?esc(c.rd):'No value', !c.rd)+
     field("Veteran Status", c.v?esc(c.v):'No value', !c.v)+
+    field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe)+
     field("Client ID", String(c.cid))+
     field("Unique Identifier", esc(c.i));
 
