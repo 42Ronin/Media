@@ -136,9 +136,18 @@ bold+underline sections, italic production notes, green/orange knowledge-check a
 questions back to the author. Task titles and teaching copy in the build track that script.
 **Change the script first, then the build.**
 
-It was developed from an earlier draft, `script_finding_a_participant_v3`, which remains the
-authority on LAHSA policy: search before creating, two-of-three identifiers to verify, choose
-the most complete record, escalate duplicates to HMIS Support.
+It was developed from an earlier draft, `script_finding_a_participant_v3`, which is the
+authority on LAHSA policy and was vetted internally before this project began.
+
+**Every task must trace to a paragraph of that draft.** Two tasks that did not — searching a
+date with different separators, and reading the ROI column — were built and then removed once
+the provenance was checked. The separator behaviour is real, but it comes from Bitfocus's help
+article rather than LAHSA's own documentation; ROI-in-results was our invention entirely. Both
+are fine as *instruction*; neither earned a scored task. Apply the same test to anything new.
+
+The twelve tasks split the way the draft does: eight on searching, a non-scored beat on the
+seam, then four on verifying. `tools/gen_roster.py` carries a comment on each pinned client
+naming the draft paragraph it serves.
 
 Two conventions to preserve:
 - Narration says **participant**; the simulated product says **Client**. Both are correct, and
