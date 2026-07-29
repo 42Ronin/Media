@@ -111,8 +111,18 @@ ok('pause stops the clock and the audio', await p.evaluate(()=>playing===false &
 const held1=await p.$eval('#pic',e=>e.style.transform);
 await p.waitForTimeout(500);
 ok('nothing moves while paused', await p.$eval('#pic',e=>e.style.transform)===held1);
+// dragging the track back is what a learner does when they miss a line
+const box = await p.$eval('#track', e => { const r = e.getBoundingClientRect();
+  return {x:r.left, y:r.top + r.height/2, w:r.width}; });
+await p.mouse.click(box.x + box.w * 0.25, box.y);
+await p.waitForTimeout(300);
+ok('clicking the track scrubs to that point', await p.evaluate(()=>Math.abs(clock-4.5)<0.6),
+   await p.evaluate(()=>clock.toFixed(2)));
+ok('and the frame repaints to match', (await p.textContent('#cap')).includes('doorway'),
+   await p.textContent('#cap'));
 await p.click('#pp'); await p.waitForTimeout(300);
-ok('play resumes', await p.evaluate(()=>playing===true));
+ok('play resumes from where it was scrubbed to',
+   await p.evaluate(()=>playing===true && clock>4 && clock<7), await p.evaluate(()=>clock.toFixed(2)));
 
 console.log('\n— a hold stops for the learner —');
 await p.evaluate(()=>{ clock=11.7; if(A) A.currentTime=11.7; });
@@ -147,7 +157,7 @@ ok('no network requests at all', reqs.length===0, reqs.join(' | '));
 ok('no JS errors in the exported player', errs.length===0, errs.join(' | '));
 ok('no JS errors in the editor', edErrs.length===0, edErrs.join(' | '));
 
-await p.evaluate(()=>{ pause(); seek(4.2); });
+await p.evaluate(()=>{ pause(); seek(0.08); });   // seek takes a fraction of the whole
 await p.waitForTimeout(400);
 await p.screenshot({path:join(D,'shot-export-play.png')});
 await b.close();
