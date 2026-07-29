@@ -369,7 +369,7 @@ await closeAll();
 
 console.log('\n— guided flow —');
 await p.reload(); await p.waitForTimeout(200);
-ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('street-name'));
+ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('name he gave'));
 ok('progress reads task 1 of 8', (await p.textContent('#taskNo')).includes('1 of 8'));
 
 await p.click('#addBtn'); await p.waitForTimeout(150);
@@ -424,13 +424,48 @@ await p.click('#tb tr[data-row]'); await p.waitForTimeout(200);
 await p.click('#kebabBtn'); await p.waitForTimeout(150);
 await p.click('#flagBtn'); await p.waitForTimeout(200);
 ok('flagging a Beckett passes the duplicate task', (await p.textContent('#fb')).includes('Correct'));
-ok('teaching point says escalate, never merge', (await p.textContent('#fb')).includes('never merge'));
+ok('teaching point says flag and report, do not merge or delete', await p.evaluate(() => {
+  const t = document.getElementById('fb').textContent;
+  return /do not merge/i.test(t) && /do not delete/i.test(t) && /administrator/i.test(t);
+}));
 await p.click('#nextBtn'); await p.waitForTimeout(250);
 ok('completion modal appears after the final task', !(await p.$eval('#done', e => e.hidden)));
 ok('completion reports a percentage', (await p.textContent('#dnBody')).includes('%'));
 ok('completion points forward to Lesson 2', (await p.textContent('#dnBody')).includes('Lesson 2'));
 await closeAll();
 ok('free exploration unlocks after the last task', (await p.textContent('#tTitle')).includes('complete'));
+
+console.log('\n— script alignment —');
+ok('lesson is titled Finding a Participant',
+   (await p.textContent('.chead h2')).includes('Finding a Participant'));
+ok('the Skip button is gone', await p.$$eval('#skipBtn', e => e.length === 0));
+ok('the task panel sits on the left, the app on the right', await p.evaluate(() => {
+  const c = document.querySelector('.coach').getBoundingClientRect();
+  const a = document.querySelector('.app').getBoundingClientRect();
+  return c.left < a.left && c.right <= a.left + 1;
+}));
+ok('coach copy uses "participant", not "client"', await p.evaluate(() =>
+  TASKS.some(t => /participant/i.test(t.teach + t.brief + t.ask))));
+
+console.log('\n— checkpoint between tasks 3 and 4 —');
+await p.click('.railbtn[aria-current]'); await p.waitForTimeout(200);   // back to search
+await p.evaluate(() => { S.idx = 2; S.attempts = 0; S.hinted = false; S.results = [
+  {id:'nickname',p:10},{id:'year',p:10}]; renderCoach(); });
+await type('12.05.1990');
+await p.click('#tb tr[data-row="AD63C3FF2"]'); await p.waitForTimeout(200);
+await closeAll();
+await p.click('#nextBtn'); await p.waitForTimeout(200);
+ok('a checkpoint appears after task 3', (await p.textContent('#tTitle')).includes('Checkpoint'));
+ok('it teaches narrowing and widening',
+   (await p.textContent('#tBrief')).includes('Too many results') &&
+   (await p.textContent('#tBrief')).includes('No results'));
+ok('the progress label reads Checkpoint', (await p.textContent('#taskNo')).includes('Checkpoint'));
+ok('the button says Continue', (await p.textContent('#nextBtn')).includes('Continue'));
+ok('no hint is offered on a checkpoint', await p.$eval('#hintBtn', e => e.hidden));
+const scoreAtCheckpoint = await p.textContent('#scoreLbl');
+await p.click('#nextBtn'); await p.waitForTimeout(200);
+ok('continuing lands on task 4', (await p.textContent('#taskNo')).includes('4 of 8'));
+ok('the checkpoint scored nothing', (await p.textContent('#scoreLbl')) === scoreAtCheckpoint);
 
 console.log('\n— accessibility / integrity —');
 ok('result count is an aria-live region',

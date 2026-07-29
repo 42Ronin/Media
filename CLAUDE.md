@@ -128,6 +128,26 @@ Default column order is **Client · DOB · SSN · ROI**. Some captures show
 - The `localStorage` key for saved columns is versioned. Bump it when the shipped default
   changes, or existing users keep the old layout forever.
 
+## The script is the source of truth for copy
+
+`HMIS BNTS - Search/Script - HMIS BNTS Lesson 1 - Finding a Participant.docx` is the approved
+lesson script, written in the team's established format — legend table, table of contents,
+bold+underline sections, italic production notes, green/orange knowledge-check answers, red
+questions back to the author. Task titles and teaching copy in the build track that script.
+**Change the script first, then the build.**
+
+It was developed from an earlier draft, `script_finding_a_participant_v3`, which remains the
+authority on LAHSA policy: search before creating, two-of-three identifiers to verify, choose
+the most complete record, escalate duplicates to HMIS Support.
+
+Two conventions to preserve:
+- Narration says **participant**; the simulated product says **Client**. Both are correct, and
+  the script names the difference once rather than hiding it.
+- The lesson has no Skip. A hint is always available instead.
+
+Two steps the simulation cannot cover, written as instruction in the script: the **Outreach
+module** location search, and **first-level verification** (record photo and the Files tab).
+
 ## Lesson 2 — Create
 
 Scope is adding a client. The Add (⊕) button already exists in Search and defers to

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 1: Client Search — HMIS Training Simulation</title>
+<title>Lesson 1: Finding a Participant — HMIS Training Simulation</title>
 <style>
 :root{
   --rail:#e9e8fa; --rail-ink:#4a44a8; --canvas:#eeedfb; --card:#fdfdff;
@@ -35,8 +35,8 @@ input,select{font:inherit}
   text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px}
 #simBanner em{font-style:normal;font-weight:400;text-transform:none;letter-spacing:0;opacity:.9}
 
-.app{position:fixed;top:26px;left:0;right:360px;bottom:0;display:flex;overflow:hidden}
-@media(max-width:1180px){.app{right:0;bottom:44%}}
+.app{position:fixed;top:26px;left:360px;right:0;bottom:0;display:flex;overflow:hidden}
+@media(max-width:1180px){.app{left:0;bottom:44%}}
 
 /* ---------------- left rail ---------------- */
 .rail{width:70px;flex:none;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;gap:4px;overflow:hidden}
@@ -222,9 +222,9 @@ tbody tr.open{background:var(--indigo-soft)}
 .kv dd{margin:0}
 
 /* ---------------- coach drawer ---------------- */
-.coach{position:fixed;top:26px;right:0;bottom:0;width:360px;background:var(--coach);color:var(--coach-ink);
-  display:flex;flex-direction:column;z-index:120;box-shadow:-6px 0 24px rgba(20,16,40,.18)}
-@media(max-width:1180px){.coach{top:auto;left:0;width:auto;height:44%}}
+.coach{position:fixed;top:26px;left:0;bottom:0;width:360px;background:var(--coach);color:var(--coach-ink);
+  display:flex;flex-direction:column;z-index:120;box-shadow:6px 0 24px rgba(20,16,40,.18)}
+@media(max-width:1180px){.coach{top:auto;right:0;width:auto;height:44%}}
 .chead{padding:16px 18px 12px;border-bottom:1px solid #2c3a4b;flex:none}
 .chead .lz{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--coach-mut);font-weight:700}
 .chead h2{margin:3px 0 0;font-size:16px;font-weight:600}
@@ -415,7 +415,7 @@ tbody tr.open{background:var(--indigo-soft)}
 <aside class="coach" aria-label="Training panel">
   <div class="chead">
     <div class="lz">Lesson 1 of 2</div>
-    <h2>Finding a client</h2>
+    <h2>Finding a Participant</h2>
     <div class="bar"><i id="barFill"></i></div>
     <div class="cmeta"><span id="taskNo"></span><span id="scoreLbl"></span></div>
   </div>
@@ -428,7 +428,6 @@ tbody tr.open{background:var(--indigo-soft)}
   </div>
   <div class="cfoot">
     <button class="cbtn" id="hintBtn">Show hint</button>
-    <button class="cbtn" id="skipBtn">Skip</button>
     <button class="cbtn go" id="nextBtn" hidden>Next task →</button>
   </div>
   <div class="legal">
@@ -589,67 +588,77 @@ function saveCols(){
    LESSON 1 — tasks
    ============================================================ */
 var TASKS=[
-{ id:"nickname", title:"The street-name problem",
-  brief:'A man at the front desk says <span class="q">"Everyone calls me Lefty — Lefty Torres. I stayed here last winter."</span> You type <code>Lefty</code> and the list comes back empty.',
-  ask:"Find his existing record and open it.",
+{ id:"nickname", title:"The name he gave you",
+  brief:'A man at the front desk says <span class="q">"Everyone calls me Lefty. Lefty Torres. I stayed here last winter."</span> You type <code>Lefty</code>. Nothing comes back.',
+  ask:"Find his record and open it.",
   hint:"The name he gave you isn't the name on the record, and no alias was ever recorded for him. Drop it and search the surname on its own — <code>Tor</code> is enough.",
   expect:{type:"open", id:"357BF6714"},
-  teach:"He is filed as <b>Michael Torres</b>, with no alias on the record. Street names and nicknames often never get entered, so the name a client offers may match nothing at all. "+
-        "Note too that typing <code>Lefty Torres</code> also fails — every word you add must match, so extra words narrow a search, they never widen it. "+
-        "An empty result is the moment duplicates get created, because the user assumes the client is new."
+  teach:"An empty result is not proof that someone is new. His record is filed under his legal name, <b>Michael Torres</b>, and no alias was ever recorded on it. The name a participant offers you may not be the name anyone typed. "+
+        "Typing <code>Lefty Torres</code> doesn't help either — every word has to match, so adding a word that matches nothing guarantees an empty list."
 },
-{ id:"year", title:"Year of birth only",
-  brief:'A woman says everyone calls her <span class="q">"Kate."</span> She thinks her record may be under a former married name, but she is sure she was born in <b>1985</b>.',
+{ id:"year", title:"When the last name may have changed",
+  brief:'A woman says everyone calls her <span class="q">Kate.</span> She thinks her record may be under a former married name but isn\'t sure which. She knows she was born in <b>1985</b>.',
   ask:"Find and open her record.",
-  hint:"When the surname is unreliable, search what you trust. A year works on its own — 1985 or just 85.",
+  hint:"When the surname is unreliable, search what is. A year works on its own — <code>1985</code>, or just <code>85</code>.",
   expect:{type:"open", id:"F565C146B"},
-  teach:"She is stored as <b>Katherine Morrison</b>, 7/22/1985. When a surname may have changed, year of birth is often the only stable handle you have, and it narrows 300 records to a list you can read by eye."
+  teach:"When the surname is unreliable, search what is reliable. A year on its own narrows three hundred records to a list short enough to read by eye. Her record is filed as <b>Katherine</b>, not Kate."
 },
-{ id:"formats", title:"Date formats",
-  brief:'An intake form arrives with the date of birth handwritten as <code>12.05.1990</code> — with dots.',
-  ask:"Search that date exactly as written, then open the client whose surname is Whitfield.",
-  hint:"Dots, slashes, and dashes all parse. Note how many people come back.",
+{ id:"formats", title:"The same date, written differently",
+  brief:'An intake form arrives with a date of birth handwritten with dots: <code>12.05.1990</code>.',
+  ask:"Search that date as written, then open the participant whose surname is Whitfield.",
+  hint:"Dots, slashes and dashes all parse. Note how many people come back.",
   expect:{type:"open", id:"AD63C3FF2"},
-  teach:"All three separators work. Notice the search returned <b>two</b> people born 12/5/1990. A shared birthday is not a match — you still have to confirm the name."
+  teach:"Dots, slashes and dashes all work. But notice the result: <b>two different people</b> share that date of birth. A matching birthday is not a match — you still have to confirm the name."
 },
-{ id:"samename", title:"Same name, different people",
-  brief:'A client says he is <span class="q">"James Wilson."</span> He gives his date of birth as 9/2/1968 and the last four of his SSN as 4471.',
+{ id:"samename", title:"Two people, one name",
+  brief:'A man says he is <span class="q">James Wilson.</span> He gives his date of birth as 9/2/1968 and the last four of his SSN as 4471.',
   ask:"Open the correct James Wilson.",
-  hint:"Two James Wilsons exist. Narrow it with what he told you — a fragment of the SSN like 4471, or the date of birth — or read the SSN and DOB columns and compare.",
+  hint:"Narrow it with what he told you — a fragment of the SSN like <code>4471</code>, or the date of birth — or read the SSN and DOB columns and compare.",
   expect:{type:"open", id:"3DF1DF674"},
   wrong:{"8C7A8F2D2":"That's the other James Wilson — born 4/17/1991, SSN ending 9038. Two records sharing a name are not automatically duplicates."},
-  teach:"These are two genuinely different people. Merging them would be a serious data-integrity error. Confirm identity on a second identifier — date of birth or SSN — never on the name alone."
+  teach:"There are two James Wilsons and they are two different people. Merging them would be a serious error. <b>A name is not an identifier.</b> Confirm on a second one — the SSN fragment or the date of birth — never on the name alone."
 },
 { id:"roi", title:"Reading the ROI column",
-  brief:'Before you share any client data with a partner agency, you need to know who has a signed Release of Information. Your supervisor asks about the <b>Delgado</b> records.',
-  ask:"Search Delgado and open the one client whose ROI is not on file.",
-  hint:"The ROI column shows Yes, Missing, or No right in the results — you can see consent status before you ever open a record.",
+  brief:'Your supervisor asks about the <b>Delgado</b> records before anything is shared with a partner agency.',
+  ask:"Search Delgado and open the one participant whose ROI is not on file.",
+  hint:"The ROI column shows Yes, Missing or No right in the results — you can read consent status before you open anything.",
   expect:{type:"open", id:"4F80C6E93"},
   wrong:{"9E4C21A70":"Marcus Delgado's ROI reads Yes — his consent is on file.","B72D0F118":"Rosa Delgado's ROI reads Yes — her consent is on file."},
-  teach:"<b>Elena Delgado</b> shows ROI <b>Missing</b>. Because ROI is a results column, you can see whose data may be shared before opening anything. A missing ROI doesn't mean you can't serve the client — it means their data can't be shared outside your agency."
+  teach:"<b>Elena Delgado</b> shows ROI <b>Missing</b>. Consent status is visible in the results list, before you open anything. A missing Release of Information does not mean you cannot serve the participant — it means their data cannot be shared outside your agency until one is recorded."
 },
-{ id:"noSsn", title:"When the SSN is refused",
-  brief:'A man says he is <span class="q">Robert Nakashima.</span> He gives his date of birth as 11/9/1982. He declined to give his Social Security Number when he first enrolled.',
+{ id:"noSsn", title:"When there is no SSN on file",
+  brief:'A man says he is <span class="q">Robert Nakashima</span>, born 11/9/1982. He declined to give his Social Security Number when he first enrolled.',
   ask:"Open the correct Robert Nakashima.",
-  hint:"Two records share this name. Searching the SSN won't help — one of them has none on file. You were given a date of birth: try 11/9/82, or just 82.",
+  hint:"Searching the SSN won't help — his record has none on file. You were given a date of birth: try <code>11/9/82</code>, or just <code>82</code>.",
   expect:{type:"open", id:"7A1E93C55"},
   wrong:{"1C6B4D802":"That record is born 3/22/1977 and has an SSN on file — but the man in front of you gave 11/9/1982. Don't pick a record just because it has more data in it."},
-  teach:"His record shows <b>Client refused</b> for SSN, so the usual tiebreaker is gone and date of birth is the only handle left. The record with more data filled in is not automatically the right one — that instinct is exactly how the wrong client gets served."
+  teach:"His record shows <b>Client refused</b> for SSN, so the usual tiebreaker is gone and date of birth is the only handle left. The record with more information filled in is not automatically the right record — that instinct is how the wrong participant gets served."
 },
-{ id:"surname", title:"Multi-word surnames",
-  brief:'A caseworker asks you to pull up <span class="q">"Maria Cruz."</span>',
+{ id:"surname", title:"Names that get typed differently",
+  brief:'A caseworker asks you to pull up <span class="q">Maria de la Cruz.</span> You search <code>Cruz</code>, then <code>Maria Cruz</code>. Both come back empty.',
   ask:"Find and open her record.",
-  hint:"Her surname has several parts. Any word within it will match — try Cruz on its own.",
+  hint:"Her surname was typed as one word when the record was created. Search the fragment common to every spelling — <code>dela</code> — or drop the surname and search her first name.",
   expect:{type:"open", id:"2A8189B34"},
-  teach:"She is filed as <b>Maria de la Cruz</b>. Compound and hyphenated surnames get entered inconsistently between agencies, so search the distinctive fragment rather than the whole string."
+  teach:"She is filed as <b>Maria Delacruz</b>, one word, no spaces. Search matches from the start of a name, so <code>Cruz</code> never reaches it. Compound and hyphenated surnames get entered differently by every agency. "+
+        "The same applies to letters people swap without thinking: C and K, I and Y — Katherine and Catherine, Johnson and Jonson."
 },
-{ id:"duplicate", title:"A real duplicate",
-  brief:'Search <code>Beckett</code>. Two records come back: <b>Shauna Beckett</b> and <b>Shawna Beckett</b>. Both show 4/30/1993 and both SSNs end 2210.',
+{ id:"duplicate", title:"Finding the same person twice",
+  brief:'You search <code>Beckett</code>. Two records come back: <b>Shauna Beckett</b> and <b>Shawna Beckett</b>. Same date of birth. Same last four of the SSN. One letter apart.',
   ask:"Open either record and flag it as a possible duplicate.",
-  hint:"Open one of the two, then use 'Flag possible duplicate' at the bottom of the profile.",
+  hint:"Open one of the two, then use 'Flag possible duplicate' in the ⋮ menu on the profile card.",
   expect:{type:"flag", ids:["5BB517588","6381E5405"]},
-  teach:"Same date of birth, same SSN, one letter apart — a textbook duplicate. End users never merge or delete records themselves. You escalate to your HMIS administrator or help desk, who resolves it centrally so the CoC's unduplicated count stays accurate."
+  teach:"This is a duplicate — one person entered twice. You do not merge it and you do not delete it. You flag it and report it, and your HMIS administrator resolves it centrally so your CoC's unduplicated count stays accurate."
 }];
+
+/* Non-scored teaching beats shown after the task at the given index. */
+var INTERSTITIALS={
+  2:{ title:"Checkpoint: narrowing and widening",
+      html:'<p>Before the next one, two habits worth naming.</p>'+
+           '<p><b>Too many results?</b> Add another piece of information — a middle name, a second last name, '+
+           'an SSN fragment, a date of birth. Or replace a three-letter fragment with the full name.</p>'+
+           '<p><b>No results?</b> Take something away rather than adding to it. Replace one search term with '+
+           'another: swap the date of birth for the last four of the SSN, or the first name for the last.</p>' }
+};
 
 /* ============================================================
    STATE
@@ -658,7 +667,7 @@ var S = {
   q:"", chips:[], cols:loadCols(), sort:{k:"client",dir:1}, page:0, per:10,
   rows:null, note:"recent", expanded:{},
   recent:[],   /* starts empty: nothing is shown until the learner searches */
-  idx:0, results:[], attempts:0, hinted:false, finished:false, nudged:null, open:null
+  idx:0, results:[], attempts:0, hinted:false, finished:false, nudged:null, open:null, note:null
 };
 var PAGE_JUMP = null;
 
@@ -858,6 +867,19 @@ function renderColPanel(){
    ============================================================ */
 function renderCoach(){
   var done=S.idx>=TASKS.length;
+  if(S.note){                                   /* a checkpoint between tasks */
+    $("#barFill").style.width=(S.results.length/TASKS.length*100)+"%";
+    $("#taskNo").textContent="Checkpoint";
+    $("#scoreLbl").textContent="Score "+pct()+"%";
+    $("#tTitle").textContent=S.note.title;
+    $("#tBrief").innerHTML=S.note.html;
+    $("#tAsk").innerHTML="Read this, then carry on.";
+    $("#hintBtn").hidden=true;
+    $("#nextBtn").hidden=false; $("#nextBtn").textContent="Continue →";
+    renderTaskList();
+    return;
+  }
+  $("#nextBtn").textContent="Next task →";
   $("#barFill").style.width=(S.results.length/TASKS.length*100)+"%";
   $("#taskNo").textContent=done?"All tasks complete":("Task "+(S.idx+1)+" of "+TASKS.length);
   $("#scoreLbl").textContent="Score "+pct()+"%";
@@ -865,14 +887,17 @@ function renderCoach(){
     $("#tTitle").textContent="Lesson complete";
     $("#tBrief").innerHTML="You can keep searching the roster freely. Nothing you do now affects your score.";
     $("#tAsk").innerHTML="Try the column selector, the filter chips, and a few searches of your own.";
-    $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+    $("#hintBtn").hidden=true;
   }else{
     var t=task();
     $("#tTitle").textContent=t.title;
     $("#tBrief").innerHTML=t.brief;
     $("#tAsk").innerHTML="<b>Your task:</b> "+esc(t.ask);
-    $("#hintBtn").hidden=false; $("#skipBtn").hidden=false;
+    $("#hintBtn").hidden=false;
   }
+  renderTaskList();
+}
+function renderTaskList(){
   $("#tList").innerHTML=TASKS.map(function(t,i){
     var r=S.results.filter(function(x){return x.id===t.id;})[0];
     var mark=r?(r.p===10?"✔":r.p>0?"◑":"✖"):"○";
@@ -887,11 +912,19 @@ function pass(){
   var t=task(), p=(S.attempts===0&&!S.hinted)?10:5;
   S.results.push({id:t.id,p:p});
   say("good", p===10?"Correct":"Correct — partial credit", "You found the right record.", t.teach);
-  $("#nextBtn").hidden=false; $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
+  $("#nextBtn").hidden=false; $("#hintBtn").hidden=true;
   SCORM.score(pct()); renderCoach();
 }
 function nextTask(){
-  S.idx++; S.attempts=0; S.hinted=false; S.nudged=null;
+  if(S.note){ S.note=null; }                    /* leaving a checkpoint */
+  else if(INTERSTITIALS[S.idx]){                /* entering one */
+    S.note=INTERSTITIALS[S.idx];
+    S.idx++; S.attempts=0; S.hinted=false; S.nudged=null;
+    $("#fb").innerHTML="";
+    renderCoach();
+    return;
+  }
+  else { S.idx++; S.attempts=0; S.hinted=false; S.nudged=null; }
   $("#fb").innerHTML=""; $("#nextBtn").hidden=true;
   if(S.idx>=TASKS.length) finish();
   renderCoach();
@@ -902,17 +935,20 @@ function finish(){
   $("#dnBody").innerHTML=
     '<p style="margin:0 0 10px;font-size:17px"><b>'+p+'%</b> — '+(passed?"passed":"not yet passing")+' (80% required)</p>'+
     '<p style="margin:0 0 16px">'+clean+' of '+TASKS.length+' tasks completed on the first attempt.</p>'+
-    '<div class="banner warn"><div><b>The habit that carries into Lesson 2</b><br>'+
-    'Every task here could be failed the same way — by treating an empty or partial result as proof the client is new. '+
-    'Search the surname fragment, search the year of birth, and confirm on a second identifier before you ever create a record. '+
-    'Lesson 2 covers adding a client, where that habit is the only thing standing between you and a duplicate.</div></div>';
+    '<p style="margin:0 0 16px">You searched on partial information, on a year, on a fragment of a Social Security Number, '+
+    'and on a name that had been typed a different way. You told two people with the same name apart, read consent status '+
+    'before opening a record, worked with a record that had no SSN at all, and recognised the same person entered twice.</p>'+
+    '<div class="banner warn"><div><b>The habit underneath all of it</b><br>'+
+    'An empty result is not proof that someone is new. Search the surname fragment, search the year of birth, '+
+    'confirm on a second identifier — and only then create a record.<br><br>'+
+    'Lesson 2 covers creating that record, where this habit is the only thing standing between you and a duplicate.</div></div>';
   $("#done").hidden=false;
   SCORM.finish(p,passed);
 }
 
 /* ---------------- task evaluation ---------------- */
 function evaluate(action,payload){
-  if(S.idx>=TASKS.length) return false;
+  if(S.note || S.idx>=TASKS.length) return false;
   var t=task(), e=t.expect;
   if(e.type==="open"&&action==="open"){
     if(payload===e.id){ pass(); return true; }
@@ -941,7 +977,7 @@ function evaluate(action,payload){
    itself just says No clients found; the reason it matters is raised here, once per
    task, so the drawer does the teaching and the product stays faithful. */
 function nudgeEmpty(){
-  if(S.idx>=TASKS.length || S.nudged===task().id) return;
+  if(S.note || S.idx>=TASKS.length || S.nudged===task().id) return;
   var e=task().expect;
   if(e.type!=="open" && e.type!=="flag") return;
   if($("#fb").querySelector(".fb.good")) return;      /* already solved */
@@ -1229,15 +1265,9 @@ $("#globalSearchBtn").addEventListener("click",function(){
 
 /* coach buttons */
 $("#hintBtn").addEventListener("click",function(){ S.hinted=true; say("tip","Hint",task().hint); });
-$("#skipBtn").addEventListener("click",function(){
-  var t=task(); S.results.push({id:t.id,p:0});
-  say("bad","Task skipped","No points for this one.",t.teach);
-  $("#nextBtn").hidden=false; $("#hintBtn").hidden=true; $("#skipBtn").hidden=true;
-  renderCoach();
-});
 $("#nextBtn").addEventListener("click",nextTask);
 $("#restartBtn").addEventListener("click",function(){
-  S.idx=0; S.results=[]; S.attempts=0; S.hinted=false; S.finished=false; S.nudged=null;
+  S.idx=0; S.results=[]; S.attempts=0; S.hinted=false; S.finished=false; S.nudged=null; S.note=null;
   S.q=""; S.chips=[]; $("#q").value=""; S.rows=null; S.note="recent"; S.page=0; S.expanded={};
   $("#fb").innerHTML=""; $("#nextBtn").hidden=true; $("#done").hidden=true;
   if(S.open) closeProfile();

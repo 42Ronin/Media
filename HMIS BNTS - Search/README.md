@@ -31,20 +31,29 @@ Each lesson ships as its own package so LMS admins can assign and report on them
 
 ## Lesson 1 tasks
 
-Eight tasks, scored 10 for a first-attempt success, 5 after a wrong attempt or a
-revealed hint, 0 if skipped. Every task ends with a teaching point, right or wrong.
-After the last task the sim unlocks for free exploration.
+Eight tasks, scored 10 for a first-attempt success and 5 after a wrong attempt or a
+revealed hint. There is no skip — a hint is always available instead. Every task ends
+with a teaching point, right or wrong. After the last task the sim unlocks for free
+exploration.
+
+The **task panel sits on the left**, the simulated interface on the right.
+
+Narration says **participant**, matching LAHSA usage; the simulated product says
+**Client**, matching Clarity. The script names that difference once, deliberately.
+
+Titles and copy follow the approved script, *Lesson 1: Finding a Participant*.
 
 | # | Task | Skill |
 |---|---|---|
-| 1 | The street-name problem | An empty result is not proof the client is new |
-| 2 | Year of birth only | Year search when the surname is unreliable |
-| 3 | Date formats | `/`, `.`, `-` all parse; a shared birthday is not a match |
-| 4 | Same name, different people | Narrow on a second identifier — SSN fragment or DOB |
+| 1 | The name he gave you | An empty result is not proof someone is new |
+| 2 | When the last name may have changed | Year search when the surname is unreliable |
+| 3 | The same date, written differently | All separators parse; a shared birthday is not a match |
+| — | *Checkpoint: narrowing and widening* | Non-scored teaching beat between tasks 3 and 4 |
+| 4 | Two people, one name | A name is not an identifier |
 | 5 | Reading the ROI column | Consent status is visible before you open a record |
-| 6 | When the SSN is refused | Fall back to DOB; more data ≠ the right record |
-| 7 | Compound surnames | The same surname gets typed several ways |
-| 8 | A real duplicate | Recognize and escalate — never merge or delete |
+| 6 | When there is no SSN on file | Fall back to DOB; more data ≠ the right record |
+| 7 | Names that get typed differently | The same surname gets typed several ways |
+| 8 | Finding the same person twice | Flag and report — never merge or delete |
 
 **Add Client** stays visible because it's on the real screen, but it defers to Lesson 2.
 If the current task's client already exists, it also points that out — the duplicate-prevention
@@ -144,7 +153,7 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-138 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+149 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three
