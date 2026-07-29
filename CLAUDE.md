@@ -21,6 +21,7 @@ restriction: internal reference only, never redistributed or embedded in a deliv
 ```
 HMIS BNTS - Search/     built    — finding an existing client
 HMIS BNTS - Create/     planned  — adding a new client record
+tools/scene-editor/     built    — authoring tool for the photo+narration openers
 ```
 
 One folder per lesson, self-contained: own source, roster, build, tests, SCORM package.
@@ -146,7 +147,7 @@ article rather than LAHSA's own documentation; ROI-in-results was our invention 
 are fine as *instruction*; neither earned a scored task. Apply the same test to anything new.
 
 The twelve tasks split the way the draft does: eight on searching, a non-scored beat on the
-seam, then four on verifying. `tools/gen_roster.py` carries a comment on each pinned client
+seam, then four on verifying. The lesson's own `tools/gen_roster.py` carries a comment on each pinned client
 naming the draft paragraph it serves.
 
 Two conventions to preserve:
@@ -166,6 +167,31 @@ Reuse the chrome, roster, and search engine from Search rather than rebuilding.
 Still needed from the user: a screenshot of the **Add Client form**. Households are a
 natural place for duplicates to propagate and are now modelled, so that's available as
 teaching material.
+
+## The opening animation, and `tools/scene-editor`
+
+The lessons open with a photos-and-narration beat (an outreach worker meeting someone who
+may need services) rather than dropping the learner straight into the software. It is Ken
+Burns motion over stills with timed captions — no Articulate, no video render, just a
+player that interpolates a CSS transform against the audio clock.
+
+`tools/scene-editor/scene-editor.html` is the authoring tool for those openers: one file,
+opens in a browser, media never leaves the machine. Its own `?` guide is the manual; its
+README covers only layout and output. Two things worth knowing before touching it:
+
+- **Motion is a keyframe list per scene**, `{t,s,x,y}`, smoothstepped between. Not a
+  from/to pair — that could not express "tight on one corner, pull out, push into the
+  other", which the user asked for explicitly. Old from/to projects migrate on open.
+- **Three outputs, one of which round-trips.** `Save project` (`intro-project.json`) is the
+  working file and the only thing the editor can reopen. `Export HTML` (`intro.html`) is
+  the deliverable: a single self-contained page, media as data URLs, a few MB, fetches
+  nothing, and posts `{introComplete:true}` to `window.parent` when the learner finishes.
+  `Export timeline` is the cue sheet alone. **Neither export is a backup.**
+
+`test-export.mjs` builds a project, exports, then opens the *exported file* and asserts it
+plays — motion, captions, holds, end card — with a hard assertion that **no network request
+is made**. That assertion is the point: it is what makes "single HTML" a fact rather than a
+claim. 37 editor tests + 35 export tests, all passing as of this note.
 
 ## Working preferences observed
 
