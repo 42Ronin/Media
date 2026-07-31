@@ -176,7 +176,11 @@ confirmed the colour code stays. The *final* AIAN Module 1 script and storyboard
 narration written as spoken text, on-screen text inline, interactions described in place, and
 standard front and closing slides — Course Navigation, Course Overview, Objectives ("By the
 end of this lesson, you will…"), Lesson Structure, Lesson Closing. Our script is the two
-combined. Task titles and teaching copy in the build track that script.
+combined.
+
+**AIAN is a reference for presentation only, not for instructional approach.** It has no
+knowledge check anywhere in Module 1; ours keeps its six questions. Don't raise that as a
+discrepancy again — it was asked and answered. Task titles and teaching copy in the build track that script.
 **Change the script first, then the build.**
 
 It was developed from an earlier draft, `script_finding_a_participant_v3`, which is the
