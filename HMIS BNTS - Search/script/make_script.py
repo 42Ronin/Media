@@ -315,8 +315,10 @@ body("This draft is complete enough to review end to end. Every screen of narrat
 body("What is not settled are the questions below. They are numbered, and each appears again in "
      "place so it can be read in context. Most need either a subject-matter answer or a decision "
      "about scope.")
-note("Not yet in this draft, and deliberately: external links and source citations, which are a "
-     "separate pass once the content is agreed.")
+note("Not yet in this draft, and deliberately: external links and source citations, and any "
+     "visual or layout direction. Production notes describe what a screen has to do and what the "
+     "learner does on it, not how it should look. Styling is a later pass, once the content is "
+     "agreed.")
 
 sub("Open questions, in one place")
 for _qn, _qt in enumerate(OPEN_QUESTIONS):
@@ -416,13 +418,14 @@ num("Read a participant's history from their record, and explain why finding the
     "decides what they have access to.")
 body("Meeting these lays the groundwork for everything that follows — every lesson after this "
      "one assumes you can find the right person first.")
-note("Numbered 01 to 04 down the right, against a solid colour panel carrying the slide title, "
-     "matching HMIS Essentials. Reveal one at a time if the build allows it.")
-note("These are written to sit under objective 02 of HMIS Essentials — search and find a "
-     "participant's HMIS record to learn their back story — rather than restating it. The "
-     "earlier draft of this slide had two of its three objectives sitting under Essentials "
-     "objective 01 instead, which is what had this lesson teaching an introduction it does not "
-     "own.")
+note("Presented as a numbered list, as HMIS Essentials does. Visual treatment is not decided at "
+     "this stage and is deliberately not described here.")
+note("Written to sit under objective 02 of HMIS Essentials — search and find a participant's "
+     "HMIS record to learn their back story — rather than restating it, and to leave room for "
+     "the lessons that follow in HMIS Basic Navigation to take objectives 03 to 05 without "
+     "overlapping this one. An earlier draft of this slide had two of its three objectives "
+     "sitting under Essentials objective 01, which is what had this lesson teaching an "
+     "introduction it does not own.")
 ask(18)
 ask(19)
 note("On screen as a numbered list before the lesson proper, the way the HUD Exchange courses "
@@ -447,8 +450,10 @@ num("Enroll a participant into a program and perform services, run an assessment
 num("Access the HMIS Knowledge Base to further expand your HMIS knowledge.")
 body("Everything here serves the second one. Where this lesson touches the others, it gives you "
      "what you need and no more.")
-note("Reviewer-facing as much as learner-facing. If this list is on screen at all it should be "
-     "as a series map with the current lesson marked, not read aloud in full.")
+note("Reviewer-facing as much as learner-facing — it is here so the boundary between this "
+     "lesson and the rest of HMIS Basic Navigation is explicit and can be argued with. If it "
+     "appears on screen at all, the current lesson is marked and the list is not read aloud in "
+     "full. How it looks is a later question.")
 
 topic("Lesson Structure")
 body("This lesson has five parts.")

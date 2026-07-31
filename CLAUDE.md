@@ -152,6 +152,9 @@ as the package.
 The existing course is **HMIS Essentials (v1.1.0)** on `cta.lahsa.org`. Its five training
 objectives are the series' decomposition, and they were approved long before this project:
 
+The series continuing on from this lesson is **HMIS Basic Navigation**, so objectives have to
+be divided cleanly across it — this lesson must not spend objectives that later lessons need.
+
 1. Identify the reasons why using HMIS correctly to enter data is important
 2. **Search and find a participant's HMIS record to learn their back story** ← this lesson
 3. Correctly create a new HMIS record for a participant that does not have one
@@ -167,8 +170,10 @@ Two consequences, both live questions in the script:
   history: clearly in. Choosing between three matching records and reporting duplicates to
   HMIS Support: probably not — those are the last two tasks.
 
-Objectives on the Essentials slide are numbered `01`–`05` in a light serif against a solid
-teal panel. Ours follow that treatment.
+**Styling is not in scope yet — don't write visual direction into the script.** The Essentials
+screenshot was shared to check objective alignment across the series, not as a look. Production
+notes say what a screen must do and what the learner does on it; how it looks is a later pass,
+with sources and external links.
 
 ## Field practice, from the user — outranks the draft where they conflict
 
