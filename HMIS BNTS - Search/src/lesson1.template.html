@@ -969,9 +969,12 @@ function finish(){
   $("#dnBody").innerHTML=
     '<p style="margin:0 0 10px;font-size:17px"><b>'+p+'%</b> — '+(passed?"passed":"not yet passing")+' (80% required)</p>'+
     '<p style="margin:0 0 16px">'+clean+' of '+TASKS.length+' tasks completed on the first attempt.</p>'+
-    '<p style="margin:0 0 16px">You searched on partial information, on a year, on a fragment of a Social Security Number, '+
-    'and on a name that had been typed a different way. You told two people with the same name apart, read consent status '+
-    'before opening a record, worked with a record that had no SSN at all, and recognised the same person entered twice.</p>'+
+    '<p style="margin:0 0 16px">You searched on a name fragment, on a year, on four digits of a Social Security Number, '+
+    'and on a name that had been typed a different way. You narrowed a search that returned too much, and you swapped an '+
+    'identifier when a search returned nothing.</p>'+
+    '<p style="margin:0 0 16px">Then you verified. You told two people with the same name apart on a second identifier. '+
+    'You identified someone whose record held almost no identifiers, using her household. You chose between three records '+
+    'that all matched. And you recognised the same person entered twice, and reported it rather than fixing it yourself.</p>'+
     '<div class="banner warn"><div><b>The habit underneath all of it</b><br>'+
     'An empty result is not proof that someone is new. Search the surname fragment, search the year of birth, '+
     'confirm on a second identifier — and only then create a record.<br><br>'+
