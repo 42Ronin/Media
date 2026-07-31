@@ -197,21 +197,26 @@ section("Introduction")
 topic("Course Overview")
 body("This lesson is about one thing: finding out whether the person in front of you already has a "
      "record in HMIS, and making sure you are looking at the right one.")
-body("Set aside about fifty minutes. Roughly half of that is hands on: you will work in a "
+body("Set aside about forty minutes. A good part of that is hands on: you will work in a "
      "practice version of Clarity — the same screens you use at work, with invented people in "
      "them. Nothing you do in the practice affects real records, and none of the people in it "
      "are real.")
 body("You can return to this lesson any time after you finish it.")
-ask("Author question, and the most important one in this document: the brainstorm notes put an "
-    "e-learning at about ten minutes. This script is roughly fifty. Those are different products, "
-    "and the gap is the practice — fourteen hands-on tasks is what makes it long, and it is also "
-    "the part that teaches judgment rather than button locations. Three ways to close it: run the "
-    "instruction as a ten-minute lesson and make the simulation a separate practice activity that "
-    "is not timed; cut to five or six tasks and lose documented coverage; or split into two "
-    "lessons at the checkpoint. Needs deciding before design starts.")
-note("Fourteen scored tasks and a knowledge check is a long single sitting. If the series would "
-     "rather run shorter lessons, the natural cut is the checkpoint between task 8 and task 9 — "
-     "eight tasks on searching, four on verifying.")
+note("Where the forty minutes goes, measured from this script rather than estimated: narrated "
+     "instruction 2,780 words, about 19 minutes at a normal pace. Task situations and feedback, "
+     "which the learner reads rather than hears, about 8 minutes. Knowledge check about 2 and a "
+     "half. The fourteen tasks themselves are the smallest part — around 7 minutes of actual "
+     "interaction, because each one is a short search. Hints and the correct-record lines in this "
+     "document are not learner-facing time at all.")
+ask("Author question: the brainstorm notes put an e-learning at about ten minutes, and this is "
+    "forty. Worth knowing before that is treated as a problem: the practice is not what makes it "
+    "long — the instruction is, at just over half the words, and most of that is groundwork the "
+    "rest of the series stands on rather than material this lesson needs for itself. The lever "
+    "that moves the number furthest is how much is narrated versus read: as narration the "
+    "instruction runs about 19 minutes, as on-screen text about 12. Cutting tasks saves the least "
+    "and costs the most.")
+note("If the series would rather run shorter lessons anyway, the natural cut is the checkpoint "
+     "between task 8 and task 9 — eight tasks on searching, six on verifying.")
 note("Opening screen. Course title, estimated time, and a Begin button. The Begin button also "
      "satisfies the browser requirement that the learner interact with the page before audio can play.")
 
