@@ -147,6 +147,21 @@ ok('one Brennan, and no first name starting Cath', uniq.brennan.length === 1 && 
 ok('nobody matches "Cruz"; exactly one Delacruz', uniq.cruz.length === 0 && uniq.delacruz.length === 1);
 ok('exactly two James Wilsons', uniq.wilson.length === 2);
 ok('exactly two Amaris — mother and daughter', uniq.amari.length === 2);
+// Task 10's whole method is "identify her by her household". The hint names Iris,
+// so Iris has to actually be on the record — a household size alone is not enough.
+const amariHh = await p.evaluate(() => {
+  const m = search('Amari', []).rows.find(c => c.f === 'Yolanda');
+  const d = search('Amari', []).rows.find(c => c.f === 'Iris');
+  return { size: m.h, roll: m.hm.map(x => x.i), rel: m.hm, dSize: d.h, dRoll: d.hm.map(x => x.i) };
+});
+ok('Yolanda\'s record really lists a household, not just a count',
+   amariHh.size === 2 && amariHh.roll.length === 2, JSON.stringify(amariHh));
+ok('and Iris is the member named on it',
+   amariHh.roll.includes('9B3F5D6C7'), JSON.stringify(amariHh.roll));
+ok('the household is reciprocal, so opening either resolves',
+   amariHh.dSize === 2 && amariHh.dRoll.includes('C4E7B2019'), JSON.stringify(amariHh.dRoll));
+ok('Iris is shown as the daughter',
+   amariHh.rel.some(x => x.i === '9B3F5D6C7' && x.rel === 'Daughter'), JSON.stringify(amariHh.rel));
 ok('exactly three Vegas, all the same person', uniq.vega.length === 3 &&
    await p.evaluate(() => search('Vega', []).rows.every(c => c.f === 'Rosalind' && c.d === '1983-04-11')));
 ok('exactly two Becketts', uniq.beckett.length === 2);

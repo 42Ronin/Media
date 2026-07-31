@@ -129,6 +129,18 @@ Default column order is **Client · DOB · SSN · ROI**. Some captures show
 - The `localStorage` key for saved columns is versioned. Bump it when the shipped default
   changes, or existing users keep the old layout forever.
 
+## Field practice, from the user — outranks the draft where they conflict
+
+- **Search order is first name, last name, DOB. SSN comes later.** The vetted draft says to
+  start with DOB *or SSN* because names get misspelled. That is not what staff do. Where the
+  draft and the user disagree about practice, the user wins; the draft still governs policy.
+- **It happens on a phone or a tablet, standing up.** Not at a desk. Anything the lesson asks
+  of a learner has to be plausible one-handed on a small screen.
+- **The usual opening is a city cleanup, and the participant approaches them** — most often
+  asking whether there is an update on interim housing. It is not a quiet first contact
+  initiated by the worker. The request for information is what makes pulling the record
+  necessary, which is a better motivation for search than the current "Meeting Ana" opener.
+
 ## The script is the source of truth for copy
 
 `HMIS BNTS - Search/Script - HMIS BNTS Lesson 1 - Finding a Participant.docx` is the approved

@@ -107,16 +107,16 @@ def rand_updated():
 # Every task below traces to a paragraph of script_finding_a_participant_v3,
 # the vetted LAHSA draft. The paragraph reference is on each entry.
 # q: ssn data-quality code. full | approx | refused | unknown | notcollected
-def C(i, f, l, d, s, q="full", roi="Yes", a="", p="", h=1, vet="No"):
+def C(i, f, l, d, s, q="full", roi="Yes", a="", p="", vet="No"):
     return {"i": i, "f": f, "l": l, "a": a, "p": p, "d": d, "s": s, "q": q,
-            "r": roi, "h": h, "v": vet, "u": rnd.choice(STAFF), "t": rand_updated(),
+            "r": roi, "h": 1, "v": vet, "u": rnd.choice(STAFF), "t": rand_updated(),
             "c": rnd.randrange(COLORS)}
 
 SCRIPTED = [
     # 1  alternate names / nicknames — draft 46-50
     C("357BF6714", "Michael", "Torres", "1979-03-14", "912-45-8802"),
     # 2  year of birth only — draft 29
-    C("F565C146B", "Katherine", "Morrison", "1985-07-22", "934-17-3145", p="She/Her/Hers", h=3),
+    C("F565C146B", "Katherine", "Morrison", "1985-07-22", "934-17-3145", p="She/Her/Hers"),
     # 3  last 4 of SSN — draft 31.  Two people share 7742, so the fragment
     #    narrows but does not decide; the participant's name settles it.
     C("D41A7C930", "Danielle", "Whitmore", "1991-05-14", "918-30-7742", p="She/Her/Hers"),
@@ -124,26 +124,31 @@ SCRIPTED = [
     # 4  first letters of each name — draft 33-34 ("kat joh")
     C("B8F0D3771", "Krzysztof", "Wojciechowski", "1968-07-30", "927-14-6053"),
     # 5  too many results, narrow by adding a term — draft 38-41
-    C("A50C9E214", "Esperanza", "Garcia", "1987-04-09", "935-72-1180", p="She/Her/Hers", h=2),
+    C("A50C9E214", "Esperanza", "Garcia", "1987-04-09", "935-72-1180", p="She/Her/Hers"),
     # 6  zero results, swap one identifier for another — draft 42-45
     C("72B6F1C08", "Adrian", "Fenwick", "1988-12-04", "959-23-5518"),
     # 7  alternate spellings, C and K — draft 51-59
     C("E19D4A6B3", "Kathleen", "Brennan", "1983-09-17", "941-88-2076", p="She/Her/Hers"),
     # 8  second last name / compound surname filed as one word — draft 47
-    C("2A8189B34", "Maria", "Delacruz", "1974-01-28", "918-54-5527", h=4),
+    C("2A8189B34", "Maria", "Delacruz", "1974-01-28", "918-54-5527"),
     # 9  two people, one name; verify on two of three — draft 79-80
-    C("3DF1DF674", "James", "Wilson", "1968-09-02", "941-33-4471", h=2),
+    C("3DF1DF674", "James", "Wilson", "1968-09-02", "941-33-4471"),
     C("8C7A8F2D2", "James", "Wilson", "1991-04-17", "968-20-9038", a="Jim"),
     # 10 verify with household members when identifiers are thin — draft 81-86
-    C("C4E7B2019", "Yolanda", "Amari", "1980-06-21", None, q="unknown", p="She/Her/Hers", h=2),
-    C("9B3F5D6C7", "Iris",    "Amari", "2011-10-02", None, q="notcollected", p="She/Her/Hers", h=2),
+    C("C4E7B2019", "Yolanda", "Amari", "1980-06-21", None, q="unknown", p="She/Her/Hers"),
+    C("9B3F5D6C7", "Iris",    "Amari", "2011-10-02", None, q="notcollected", p="She/Her/Hers"),
     # 11 several matching records; choose the most complete — draft 96-98
-    C("F2A6C8D40", "Rosalind", "Vega", "1983-04-11", "961-27-1173", a="Roz", p="She/Her/Hers", h=2),
+    C("F2A6C8D40", "Rosalind", "Vega", "1983-04-11", "961-27-1173", a="Roz", p="She/Her/Hers"),
     C("5C1B9E730", "Rosalind", "Vega", "1983-04-11", "961-XX-XXXX", q="approx"),
     C("8D40A2F16", "Rosalind", "Vega", "1983-04-11", None, q="refused"),
     # 12 a genuine duplicate; report, never merge — draft 99
     C("5BB517588", "Shauna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
     C("6381E5405", "Shawna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
+]
+
+# Households that a scripted task depends on, by client id.
+PINNED_HOUSEHOLDS = [
+    ("C4E7B2019", "9B3F5D6C7"),      # task 10: Yolanda Amari and her daughter Iris
 ]
 
 # Eleven more Garcias so that surname alone overflows a page of results (task 5).
@@ -272,6 +277,18 @@ target_in_hh = int(round(TOTAL * HOUSEHOLD_SHARE))
 order = clients[:]
 rnd.shuffle(order)
 in_hh = 0
+by_id = {c["i"]: c for c in clients}
+
+# Households a task depends on. These are built before the random roll, because a
+# household has to be reciprocal to be findable and the roll only ever produced
+# random ones — task 10 asks the learner to identify Yolanda by her daughter.
+for _group in PINNED_HOUSEHOLDS:
+    _members = sorted((by_id[i] for i in _group), key=lambda c: c["d"])
+    _roll = [{"i": m["i"], "rel": relationship(m, _members[0])} for m in _members]
+    for _m in _members:
+        _m["hm"], _m["h"] = _roll, len(_members)
+    in_hh += len(_members)
+
 for head in order:
     if "hm" in head or in_hh >= target_in_hh:
         continue
