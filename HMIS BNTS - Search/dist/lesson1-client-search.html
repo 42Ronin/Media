@@ -717,11 +717,23 @@ function liveRows(){
 /* ============================================================
    SCORM 1.2
    ============================================================ */
+/* Talking to the LMS is opt-in, and our own SCORM package is the only thing that
+   opts in — build.sh points the manifest at index.html?scorm=1.
+
+   Without that guard this lesson climbs the frame chain looking for window.API,
+   which is fine when it IS the SCORM package and destructive when it is embedded
+   in one. Dropped inside a Rise or Storyline course it would find that course's
+   API, reset its lesson_status, and call LMSFinish on unload — ending the host
+   course's session while the learner is still working. Embedded builds report
+   through postMessage instead; see EMBED below. */
+var SCORM_ENABLED=/[?&]scorm=1/.test(location.search);
+
 var SCORM=(function(){
   var api=null, on=false;
   function walk(w,d){ while(w&&d-->0){ if(w.API) return w.API; w=(w.parent!==w)?w.parent:null; } return null; }
   return {
     init:function(){
+      if(!SCORM_ENABLED) return false;
       try{
         api=walk(window,12)||(window.opener?walk(window.opener,12):null);
         if(!api) return false;
@@ -747,6 +759,40 @@ var SCORM=(function(){
 })();
 SCORM.init();
 window.addEventListener("beforeunload",function(){ if(SCORM.on()) SCORM.finish(pct(),pct()>=80); });
+
+/* ============================================================
+   EMBED — how the lesson reports when it is inside another course
+
+   Rise has no scripting, so it cannot listen to any of this: in Rise the
+   simulation is ungraded practice and Rise's own quiz carries the score.
+   A Storyline block or web object CAN listen — see docs/embedding.md for
+   the bridge to paste into a Storyline JavaScript trigger.
+
+   Every message is {source:"hmis-sim", type, ...}. Check the source: an
+   iframe's parent hears from everything on the page, not just from us.
+   ============================================================ */
+var EMBED=(function(){
+  var framed=false;
+  try{ framed=(window.parent && window.parent!==window); }catch(e){ framed=true; }
+  function send(type,data){
+    if(!framed) return;
+    var msg={source:"hmis-sim",lesson:"hmis-bnts-search",type:type};
+    for(var k in data) if(data.hasOwnProperty.call(data,k)) msg[k]=data[k];
+    try{ window.parent.postMessage(msg,"*"); }catch(e){}
+  }
+  return {
+    framed:function(){ return framed; },
+    ready:function(n){ send("ready",{tasks:n}); },
+    task:function(t,i,points){
+      send("task",{index:i+1,total:TASKS.length,id:t.id,title:t.title,
+                   points:points,firstTry:points===10,percent:pct()});
+    },
+    complete:function(p,passed,clean){
+      send("complete",{percent:p,passed:passed,passMark:80,
+                       firstTry:clean,total:TASKS.length});
+    }
+  };
+})();
 
 /* ============================================================
    RENDER — table
@@ -945,6 +991,7 @@ function say(kind,title,body,teach){
 function pass(){
   var t=task(), p=(S.attempts===0&&!S.hinted)?10:5;
   S.results.push({id:t.id,p:p});
+  EMBED.task(t,S.idx,p);
   say("good", p===10?"Correct":"Correct — partial credit", "You found the right record.", t.teach);
   $("#nextBtn").hidden=false; $("#hintBtn").hidden=true;
   SCORM.score(pct()); renderCoach();
@@ -981,6 +1028,7 @@ function finish(){
     'Lesson 2 covers creating that record, where this habit is the only thing standing between you and a duplicate.</div></div>';
   $("#done").hidden=false;
   SCORM.finish(p,passed);
+  EMBED.complete(p,passed,clean);
 }
 
 /* ---------------- task evaluation ---------------- */
@@ -1342,6 +1390,7 @@ document.addEventListener("keydown",function(e){
 
 /* boot */
 renderChips(); renderTable(); renderCoach();
+EMBED.ready(TASKS.length);
 </script>
 </body>
 </html>

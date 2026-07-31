@@ -3,6 +3,8 @@
  *   npm i playwright && node test.mjs
  */
 import { chromium } from 'playwright';
+import { createServer } from 'http';
+import { readFileSync } from 'fs';
 
 const FILE = 'file://' + new URL('./dist/lesson1-client-search.html', import.meta.url).pathname;
 let pass = 0, fail = 0;
@@ -509,6 +511,80 @@ ok('SSN safety note is shown to the learner', (await p.textContent('.legal')).in
 ok('every rail button has an accessible name',
    await p.$$eval('.railbtn', bs => bs.every(x => x.getAttribute('aria-label'))));
 ok('no JS errors during the entire run', errs.length === 0, errs.join(' | '));
+
+/* ------------------------------------------------------------------
+   Embedding. The lesson is going into Rise as an HTML embed, so it must
+   not touch the host course's SCORM session — and it must still be able
+   to report to a Storyline block, which can listen. Both are asserted by
+   loading the lesson inside a frame that fakes an LMS API.
+   ------------------------------------------------------------------ */
+console.log('\n— embedding in another course —');
+/* Both pages have to share a real origin: a file:// or data:// frame is walled
+   off by the browser, which would make "it never reached the host's API" pass
+   for the wrong reason. A throwaway http server gives us a genuine same-origin
+   embed, which is the case that can actually do damage. */
+const LESSON_HTML = readFileSync(new URL('./dist/lesson1-client-search.html', import.meta.url), 'utf8');
+const HOST_HTML = `<!doctype html><title>host course</title>
+<script>
+  window.hostCalls = [];
+  window.API = {
+    LMSInitialize: function(){ hostCalls.push('LMSInitialize'); return 'true'; },
+    LMSSetValue:   function(k,v){ hostCalls.push('LMSSetValue:'+k+'='+v); return 'true'; },
+    LMSGetValue:   function(){ return ''; },
+    LMSCommit:     function(){ hostCalls.push('LMSCommit'); return 'true'; },
+    LMSFinish:     function(){ hostCalls.push('LMSFinish'); return 'true'; },
+    LMSGetLastError: function(){ return '0'; }
+  };
+  window.simMsgs = [];
+  addEventListener('message', function(e){
+    if (e.data && e.data.source === 'hmis-sim') simMsgs.push(e.data);
+  });
+</script>
+<iframe id="f" src="/lesson.html" style="width:1460px;height:880px;border:0"></iframe>`;
+
+const srv = createServer((req, res) => {
+  const url = req.url.split('?')[0];
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(url === '/lesson.html' ? LESSON_HTML : HOST_HTML);
+}).listen(0);
+const PORT = srv.address().port;
+
+const host = await b.newPage({ viewport: { width: 1500, height: 950 } });
+await host.goto(`http://127.0.0.1:${PORT}/host.html`);
+await host.waitForTimeout(1500);
+
+ok('embedded, it never initialises the host course\'s SCORM session',
+   await host.evaluate(() => window.hostCalls.length === 0),
+   JSON.stringify(await host.evaluate(() => window.hostCalls)));
+ok('the host API really was reachable — the guard is what stopped it, not the browser',
+   await host.evaluate(() => { try { return !!document.querySelector('#f').contentWindow.parent.API; }
+                               catch (e) { return false; } }));
+ok('and it announces itself to the host instead',
+   await host.evaluate(() => simMsgs.some(m => m.type === 'ready' && m.tasks === 12)),
+   JSON.stringify(await host.evaluate(() => simMsgs)));
+
+const f = host.frames().find(fr => fr.url().includes('lesson.html'));
+await f.fill('#q', 'Tor'); await host.waitForTimeout(400);
+await f.click('.cwrap'); await host.waitForTimeout(600);
+const taskMsg = await host.evaluate(() => simMsgs.find(m => m.type === 'task'));
+ok('a solved task is reported to the host', !!taskMsg && taskMsg.index === 1 && taskMsg.id === 'nickname',
+   JSON.stringify(taskMsg));
+ok('the report carries the score and whether it was first-try',
+   !!taskMsg && taskMsg.points === 10 && taskMsg.firstTry === true && typeof taskMsg.percent === 'number',
+   JSON.stringify(taskMsg));
+ok('every message is tagged so a host can tell ours apart',
+   await host.evaluate(() => simMsgs.every(m => m.source === 'hmis-sim' && m.lesson === 'hmis-bnts-search')));
+ok('still no SCORM traffic after scoring a task',
+   await host.evaluate(() => window.hostCalls.length === 0),
+   JSON.stringify(await host.evaluate(() => window.hostCalls)));
+
+await host.evaluate(() => { document.querySelector('#f').src = '/lesson.html?scorm=1'; });
+await host.waitForTimeout(1500);
+ok('with ?scorm=1 it does report to the LMS, which is how our own package launches',
+   await host.evaluate(() => window.hostCalls.includes('LMSInitialize')),
+   JSON.stringify(await host.evaluate(() => window.hostCalls)));
+await host.close();
+srv.close();
 
 await b.close();
 console.log(`\n${pass} passed, ${fail} failed\n`);

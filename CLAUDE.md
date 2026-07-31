@@ -129,6 +129,24 @@ Default column order is **Client · DOB · SSN · ROI**. Some captures show
 - The `localStorage` key for saved columns is versioned. Bump it when the shipped default
   changes, or existing users keep the old layout forever.
 
+## Delivery: Rise, with the simulation embedded
+
+The plan is a Rise 360 course with this lesson embedded as an HTML block. `HMIS BNTS -
+Search/docs/embedding.md` is the reference; the two things to keep in mind before
+changing anything in this area:
+
+- **Rise has no scripting, so nothing embedded in it can report back.** In Rise the
+  simulation is practice and Rise's own quiz must carry the score. Only a Storyline block
+  (which does have JS triggers) can receive the lesson's messages.
+- **Talking to the LMS is opt-in via `?scorm=1`**, which only our own manifest sets.
+  Without that guard the lesson's frame-walk would find the *host* course's SCORM API,
+  reset its status and call `LMSFinish` on unload. Do not remove the guard, and do not
+  make SCORM the default again.
+
+Reporting to a host goes over `postMessage` as `{source:"hmis-sim", type, …}` — `ready`,
+`task`, `complete`. Tests cover both halves: silent when embedded, reporting when launched
+as the package.
+
 ## Field practice, from the user — outranks the draft where they conflict
 
 - **Search order is first name, last name, DOB. SSN comes later.** The vetted draft says to

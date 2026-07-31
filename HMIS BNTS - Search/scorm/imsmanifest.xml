@@ -23,7 +23,7 @@
   </organizations>
 
   <resources>
-    <resource identifier="RES-L1" type="webcontent" adlcp:scormtype="sco" href="index.html">
+    <resource identifier="RES-L1" type="webcontent" adlcp:scormtype="sco" href="index.html?scorm=1">
       <file href="index.html"/>
     </resource>
   </resources>
