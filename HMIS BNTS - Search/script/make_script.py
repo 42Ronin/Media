@@ -171,7 +171,11 @@ toc = [
     ("What You Found", ["No Matching Record", "One Matching Record", "Several Matching Records",
                         "Choosing Which Record to Work From"]),
     ("Practice: Verifying a Record",
-     [f"Task {t['n']} — {HEADINGS[t['id']]}" for t in TASKS[8:]]),
+     [f"Task {TASKS[8]['n']} — {HEADINGS[TASKS[8]['id']]}",
+      f"Task {TASKS[9]['n']} — {HEADINGS[TASKS[9]['id']]}",
+      "Task 11 — Where They Have Been Staying",
+      f"Task 12 — {HEADINGS[TASKS[10]['id']]}",
+      f"Task 13 — {HEADINGS[TASKS[11]['id']]}"]),
     ("When You Are Short on Time", ["In the Field"]),
     ("Knowledge Check", []),
     ("Take This With You", ["The One-Page Version"]),
@@ -195,11 +199,20 @@ body("Set aside about fifty minutes. Roughly half of that is hands on: you will 
      "them. Nothing you do in the practice affects real records, and none of the people in it "
      "are real.")
 body("You can return to this lesson any time after you finish it.")
-note("Twelve scored tasks and a knowledge check is a long single sitting. If the series would "
+note("Thirteen scored tasks and a knowledge check is a long single sitting. If the series would "
      "rather run shorter lessons, the natural cut is the checkpoint between task 8 and task 9 — "
      "eight tasks on searching, four on verifying.")
 note("Opening screen. Course title, estimated time, and a Begin button. The Begin button also "
      "satisfies the browser requirement that the learner interact with the page before audio can play.")
+
+topic("Before You Start")
+body("One question before the lesson begins: which Continuum of Care do you work with?")
+note("Single-select, asked on the opening screen and stored for the rest of the course. It "
+     "decides which CoC the lesson names when it talks about the unduplicated count, and it is "
+     "worth knowing who is taking this training.")
+ask("Author question: is a pre-survey required for this course, or is this an enrollment "
+     "question rather than a lesson question? If enrollment already captures the learner's CoC, "
+     "this screen should be dropped rather than asking for it twice.")
 
 topic("Someone Asks You for an Update")
 body("There is a cleanup on the block this morning. People are moving their things, and your team "
@@ -207,9 +220,10 @@ body("There is a cleanup on the block this morning. People are moving their thin
 body("Someone walks up to you. Not a stranger exactly — you have seen him here before. He wants to "
      "know whether there is any news about interim housing for him.")
 body("It is a fair question and it deserves a real answer. To give him one you need his record.")
-body("So the first thing you do is not paperwork and it is not a form. It is a search. And what you "
-     "do in the next few minutes decides something that will follow him for years: whether he has "
-     "one record in the system, or two.")
+body("So the first thing you do is not paperwork and it is not a form. It is a search.")
+body("Get it right and everything he is already owed comes with him — the time he has waited, the "
+     "programs he is enrolled in, the place he holds on a list. Get it wrong and he starts again "
+     "from nothing in a second record, while the first one sits somewhere with his history in it.")
 note("Opening sequence. Photographs with slow pan and zoom, narration over the top, captions on "
      "screen throughout. Roughly 60 to 90 seconds. Ends on a Continue button rather than running "
      "straight into the next screen.")
@@ -221,9 +235,12 @@ ask("Author question: this opener now matches the way outreach staff describe it
      "representative, and give the participant a name if the team has a persona it already uses.")
 
 topic("Why Searching Thoroughly Matters")
-body("Searching thoroughly avoids duplicate records, keeps a participant's full history available, "
-     "and prevents delays later. When records are split or incomplete, participants can lose access "
-     "to services or housing opportunities, and staff spend time afterwards repairing the data.")
+body("Searching thoroughly is how a participant keeps what they have already earned. Their wait "
+     "time, their enrollments, their referrals and their place in a queue all live on the record, "
+     "so finding the right one is the difference between continuing their case and restarting it.")
+body("It also avoids duplicate records, keeps a participant's full history available, and prevents "
+     "delays later. When records are split or incomplete, participants can lose access to services "
+     "or housing opportunities, and staff spend time afterwards repairing the data.")
 sub("What a thorough search protects")
 bullet("Continuity of care across every provider the participant has worked with")
 bullet("A complete history when they are being qualified for services or housing")
@@ -296,8 +313,10 @@ body("You do not need to press Enter. The list updates with every character.")
 sub("Every word you add must match")
 body("Adding a word narrows the search — it never widens it. If you type a first name and a last "
      "name and get nothing, one of the two is wrong. Try each on its own.")
-note("Screen recording or animated demonstration of typing into the search bar and watching the "
-     "list shrink. No interaction required from the learner yet.")
+note("Guided walkthrough, not a passive recording. The search text types itself on screen a "
+     "character at a time, a tooltip explains what is happening, the result list narrows "
+     "underneath, and the learner clicks to advance when they are ready. This is the pattern the "
+     "RoninWrite tutorial uses and it should be lifted from there rather than reinvented.")
 
 topic("Searching by Name")
 body("You do not need a whole name. The first few letters of a first and last name are usually "
@@ -318,10 +337,16 @@ body("Some records hold only part of an SSN. When a participant could not recall
      "that were recorded are still searchable.")
 
 topic("Reading the Results")
-body("Each result shows the participant's name, their date of birth and age, the last four digits "
-     "of their SSN, and their ROI status.")
-body("The ROI column shows whether that participant has a Release of Information on file, which "
-     "governs whether their data can be shared outside your agency.")
+body("Each result shows the participant's name, their date of birth and age, and the last four "
+     "digits of their SSN. That is what you need to tell one person from another.")
+body("There is a further column, ROI, which you will see but do not need for this lesson. It is "
+     "covered where it belongs, alongside consent and data sharing.")
+note("ROI is deliberately not taught here — it has not been introduced anywhere in the series "
+     "yet, and consent deserves explaining properly rather than in passing. The column stays "
+     "visible in the simulation because it is on the real screen; the narration does not lean "
+     "on it.")
+ask("Author question: which lesson introduces ROI and Release of Information? This one should "
+     "point forward to it by name once that is settled.")
 body("A word about wording. This lesson says participant. The software says Client. They mean the "
      "same person.")
 ask("Author question: confirm the team wants participant used in narration throughout, with the "
@@ -373,9 +398,9 @@ note("Creating a record is Lesson 2. In this lesson the Add button acknowledges 
 section("Practice: Finding a Participant")
 
 topic("How the Practice Works")
-body("What follows is a practice version of Clarity, loaded with three hundred invented people. "
-     "It behaves the way the real system behaves.")
-body("You will be given twelve situations. Each one is a person standing in front of you and "
+body("What follows is a practice version of Clarity. It behaves the way the real system behaves. "
+     "Everyone in it is invented — nothing you do here touches a real record.")
+body("You will be given thirteen situations. Each one is a person standing in front of you and "
      "something they have told you. Your job is to find their record — and, later, to prove it is "
      "the right one.")
 body("The practice roster holds three hundred people. The live system holds hundreds of "
@@ -392,16 +417,16 @@ note("Scoring, which is the same for every task: ten points if they find it firs
      "hint, five otherwise. Eighty per cent passes. There is no skip, and the hint is always "
      "available.")
 ask("Author question: the pass mark and the cost of a hint need confirming together. As it stands "
-     "a learner who takes a hint on five of the twelve tasks cannot reach eighty per cent no "
+     "a learner who takes a hint on six of the thirteen tasks cannot reach eighty per cent no "
      "matter how well they do on the rest — and the lesson does not tell them. Options are to "
      "lower the pass mark, make hints free, or make the practice unscored and let the knowledge "
      "check carry the grade.")
 
-def emit_task(t):
+def emit_task(t, num=None):
     """One task, documented the way a reviewer needs to read it: the situation the
     learner is put in, what they are asked to do, the help available, the record
     that is correct, and the words they get back when they find it."""
-    topic(f"Task {t['n']} — {HEADINGS[t['id']]}")
+    topic(f"Task {num or t['n']} — {HEADINGS[t['id']]}")
     note(f"Draft reference: {DRAFT_REF[t['id']]}.")
     sub("The situation, as the learner sees it")
     body(plain(t["brief"]))
@@ -505,12 +530,44 @@ body("Then submit the full list of matching records to HMIS Support, including e
      "Identifier, so they can merge them.")
 
 section("Practice: Verifying a Record")
-body("Four more situations. This time finding a candidate record is the easy half — the "
+body("Five more situations. This time finding a candidate record is the easy half — the "
      "question is whether it is the right person, and what to do when more than one record "
      "could be.")
 
-for _t in TASKS[8:]:
-    emit_task(_t)
+emit_task(TASKS[8])       # 9  — two people, one name
+emit_task(TASKS[9])       # 10 — thin identifiers, found by household
+
+# ---- Task 11, requested in review: confirm the profile by location ---------
+topic("Task 11 — Where They Have Been Staying")
+note("Draft reference: confirming other information in the record — location data.")
+sub("The situation, as the learner sees it")
+body("A man gives his name as David Nguyen. Two records come back. Both are David Nguyen, both "
+     "born in 1982. He does not know his Social Security Number and cannot remember which agency "
+     "he last worked with. He does tell you he has been staying by the wash under the 6th Street "
+     "bridge, and has been for about a year.")
+sub("What the learner is asked to do")
+body("Open the record whose location history matches where he has been staying.")
+sub("Hint, if they ask for one")
+body("Name and date of birth cannot separate these two. Open each record and look at Location — "
+     "one of them was last contacted at the 6th Street bridge.")
+sub("The correct record")
+body("To be assigned when the roster is pinned for this task.")
+sub("Feedback when they get it right")
+body("When name and date of birth cannot separate two records, the rest of the record can. In "
+     "outreach, location is often the fastest of them: where someone has been contacted before is "
+     "a fact you can both check, and it does not ask the participant to remember an agency name "
+     "or a date.")
+body("Confirm it with them rather than assuming. People move, and a location recorded a year ago "
+     "proves less than one recorded last month — treat it as one identifier among several, not as "
+     "the answer on its own.")
+ask("Author question: this task is new, requested in review, and is not built yet. It needs "
+     "location history on the client record page, which the simulation does not show today. "
+     "Confirm the scenario is realistic — in particular whether location in Clarity is granular "
+     "enough to distinguish two people this way, or whether it is recorded loosely enough that "
+     "this would mislead.")
+
+emit_task(TASKS[10], num=12)   # more than one record matches
+emit_task(TASKS[11], num=13)   # a genuine duplicate
 
 # ───────────────────────────────── time pressure ──────────────────────────
 section("When You Are Short on Time")

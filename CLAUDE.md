@@ -182,8 +182,11 @@ the provenance was checked. The separator behaviour is real, but it comes from B
 article rather than LAHSA's own documentation; ROI-in-results was our invention entirely. Both
 are fine as *instruction*; neither earned a scored task. Apply the same test to anything new.
 
-The twelve tasks split the way the draft does: eight on searching, a non-scored beat on the
-seam, then four on verifying. The lesson's own `tools/gen_roster.py` carries a comment on each pinned client
+The thirteen tasks split the way the draft does: eight on searching, a non-scored beat on the
+seam, then five on verifying. **Task 11 (confirm the profile by location) is specified in the
+script but not built** — it was requested in review, it traces to the draft's "Still Unsure"
+list, and it needs location history on the client record page, which the simulation does not
+show yet. The lesson's own `tools/gen_roster.py` carries a comment on each pinned client
 naming the draft paragraph it serves.
 
 Two conventions to preserve:
