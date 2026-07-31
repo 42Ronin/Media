@@ -148,7 +148,8 @@ note("Second pass. Every task in the practice simulation is now documented in fu
 # ───────────────────────────────── contents ───────────────────────────────
 section("Table of Contents")
 toc = [
-    ("Introduction", ["Course Overview", "Someone Asks You for an Update",
+    ("Introduction", ["Course Overview", "What You Will Be Able to Do", "Before You Start",
+                      "Someone Asks You for an Update", "How This Lesson Runs",
                       "Why Searching Thoroughly Matters"]),
     ("Two Rules Before You Touch the Keyboard", ["Assume a Record Already Exists",
                                                  "Never Create Before You Search"]),
@@ -160,6 +161,7 @@ toc = [
                                     "Start Over From a Different Fact",
                                     "Street Outreach: Searching by Location", "Ask Your Data Staff",
                                     "Only Then, Create a Record"]),
+    ("How the Practice Tool Is Built", ["Only What This Lesson Needs", "Earning the Rest"]),
     ("Practice: Finding a Participant",
      ["How the Practice Works"] +
      [f"Task {t['n']} — {HEADINGS[t['id']]}" for t in TASKS[:8]] +
@@ -174,11 +176,12 @@ toc = [
      [f"Task {TASKS[8]['n']} — {HEADINGS[TASKS[8]['id']]}",
       f"Task {TASKS[9]['n']} — {HEADINGS[TASKS[9]['id']]}",
       "Task 11 — Where They Have Been Staying",
-      f"Task 12 — {HEADINGS[TASKS[10]['id']]}",
-      f"Task 13 — {HEADINGS[TASKS[11]['id']]}"]),
+      "Task 12 — Everything at Once",
+      f"Task 13 — {HEADINGS[TASKS[10]['id']]}",
+      f"Task 14 — {HEADINGS[TASKS[11]['id']]}"]),
     ("When You Are Short on Time", ["In the Field"]),
     ("Knowledge Check", []),
-    ("Take This With You", ["The One-Page Version"]),
+    ("Take This With You", ["Why Accuracy on the Way In Matters", "The One-Page Version"]),
     ("Summary", ["What You Practiced", "Survey"]),
 ]
 for sec, tops in toc:
@@ -199,11 +202,25 @@ body("Set aside about fifty minutes. Roughly half of that is hands on: you will 
      "them. Nothing you do in the practice affects real records, and none of the people in it "
      "are real.")
 body("You can return to this lesson any time after you finish it.")
-note("Thirteen scored tasks and a knowledge check is a long single sitting. If the series would "
+ask("Author question, and the most important one in this document: the brainstorm notes put an "
+    "e-learning at about ten minutes. This script is roughly fifty. Those are different products, "
+    "and the gap is the practice — fourteen hands-on tasks is what makes it long, and it is also "
+    "the part that teaches judgment rather than button locations. Three ways to close it: run the "
+    "instruction as a ten-minute lesson and make the simulation a separate practice activity that "
+    "is not timed; cut to five or six tasks and lose documented coverage; or split into two "
+    "lessons at the checkpoint. Needs deciding before design starts.")
+note("Fourteen scored tasks and a knowledge check is a long single sitting. If the series would "
      "rather run shorter lessons, the natural cut is the checkpoint between task 8 and task 9 — "
      "eight tasks on searching, four on verifying.")
 note("Opening screen. Course title, estimated time, and a Begin button. The Begin button also "
      "satisfies the browser requirement that the learner interact with the page before audio can play.")
+
+topic("What You Will Be Able to Do")
+num("Say what HMIS is and what it is used for.")
+num("Use search properly, and explain why searching diligently matters.")
+num("Explain why capturing a participant's information accurately matters.")
+note("On screen as a numbered list before the lesson proper, the way the HUD Exchange courses "
+     "open. Three, not more.")
 
 topic("Before You Start")
 body("One question before the lesson begins: which Continuum of Care do you work with?")
@@ -217,8 +234,13 @@ ask("Author question: is a pre-survey required for this course, or is this an en
 topic("Someone Asks You for an Update")
 body("There is a cleanup on the block this morning. People are moving their things, and your team "
      "is working the encampment.")
-body("Someone walks up to you. Not a stranger exactly — you have seen him here before. He wants to "
-     "know whether there is any news about interim housing for him.")
+body("Someone walks up to you. Not a stranger exactly — you have seen him here before. He wants "
+     "to know whether there is any news about interim housing for him.")
+body("He tells you somebody came round a while back. Took his details, said they would be in "
+     "touch. Nothing happened, and he does not remember the name of the agency or the worker.")
+body("That last part is the part to notice. If a provider took his details, there is very likely "
+     "already a record — a contact, an outreach note, something with his name on it. He is not "
+     "new to this system even though he feels new to you.")
 body("It is a fair question and it deserves a real answer. To give him one you need his record.")
 body("So the first thing you do is not paperwork and it is not a form. It is a search.")
 body("Get it right and everything he is already owed comes with him — the time he has waited, the "
@@ -230,9 +252,18 @@ note("Opening sequence. Photographs with slow pan and zoom, narration over the t
 ask("Author question: is there an approved participant persona and photo set we should use here, or "
      "should this stay illustrative? Photographs of people experiencing homelessness carry consent "
      "considerations even when licensed, and an illustrative style avoids that entirely.")
-ask("Author question: this opener now matches the way outreach staff describe it — a city cleanup, "
-     "and the participant approaches asking for an update on interim housing. Confirm that is "
-     "representative, and give the participant a name if the team has a persona it already uses.")
+ask("Author question: give the participant a name if the team has a persona it already uses.")
+
+topic("How This Lesson Runs")
+body("The shape of it is the shape of the job:")
+num("You are an outreach worker with a caseload and a system you are accountable to.")
+num("You meet someone.")
+num("You search for them — first name, last name, date of birth.")
+num("If and only if you cannot find them, you enter them.")
+body("Everything in this lesson sits on one of those four steps. Most of it sits on the third, "
+     "because that is where the damage is done or avoided.")
+note("Consider showing the four steps as a progress marker that stays visible, so the learner "
+     "always knows which part of the job they are in.")
 
 topic("Why Searching Thoroughly Matters")
 body("Searching thoroughly is how a participant keeps what they have already earned. Their wait "
@@ -245,8 +276,11 @@ body("There is a harder edge to it than history. A participant's HMIS record can
      "bed nights and contacts that prove their history sit on the record you did not find.")
 body("Referrals work the same way. Coordinated entry rides on the client record, so a second "
      "record does not just lose the history — it separates the person from the referral.")
-note("Sourced from HUD Exchange's HMIS Fundamentals curriculum; see "
-     "reference/hud-exchange-fundamentals.md. Marked for a source link in the next pass.")
+note("Sourced; a source link goes here in the sourcing pass.")
+body("And a duplicate is not a tidy-up job. Once two records exist for one person, somebody has "
+     "to investigate which is which, work out what happened on each, and clean it up — and that "
+     "is a long process, measured in weeks rather than minutes. While it runs, the person is the "
+     "one waiting.")
 body("It also avoids duplicate records, keeps a participant's full history available, and prevents "
      "delays later. When records are split or incomplete, participants can lose access to services "
      "or housing opportunities, and staff spend time afterwards repairing the data.")
@@ -301,8 +335,9 @@ body("Social Security Number comes later, if you need it. Asking a stranger for 
      "well without it.")
 body("Date of birth tends to be accurate and people hesitate over it far less than they do over a "
      "Social Security Number.")
-body("If someone does not want to give you their SSN, that is a legitimate answer and you can work "
-     "without it. You will practice exactly that situation later in this lesson.")
+body("If someone does not want to give you their SSN, that is a legitimate answer and you can "
+     "work without it. Plenty of records hold no Social Security Number at all, or only part of "
+     "one, and they are still findable.")
 
 topic("Confirm the Spelling")
 body("Confirm the spelling of the full name before you move on.")
@@ -313,18 +348,14 @@ body("If they have any identification or written documentation, ask to see it. D
 section("How Search Works")
 
 topic("Why It Is These Three")
-body("Name, date of birth and Social Security Number are not an arbitrary trio. HUD calls them "
-     "Universal Identifier Elements, and the standard says there is to be one and only one of "
-     "each per client record.")
-body("That is worth sitting with, because it is the whole argument in one line. If a person is "
-     "meant to have one name, one date of birth and one Social Security Number in HMIS, then a "
-     "second record is not untidy — it is a contradiction of the standard, and it is why those "
-     "same three fields are what you verify against later.")
-body("Everything else on a record — the programs, the dates, the destinations — belongs to a "
-     "particular stay, and can legitimately differ from one enrollment to the next. The "
-     "identifiers cannot.")
-note("Sourced from the HMIS Data Standards via HUD Exchange. A source link goes here in the "
-     "next pass.")
+body("Name, date of birth and Social Security Number are not an arbitrary trio. They are the "
+     "things a person has one of. One name, one date of birth, one Social Security Number — so "
+     "they are what tells one person from another, and they are what you check a record against.")
+body("Everything else on a record can legitimately change. Someone can have several enrollments, "
+     "several programs, several addresses, and none of that makes them a different person. The "
+     "three identifiers are the part that should never disagree.")
+body("Which is also why a second record for the same person is a problem rather than a "
+     "duplicate row. It gives one person two sets of the things they only have one of.")
 
 topic("One Bar, Many Kinds of Information")
 body("Clarity has a single search bar, and it accepts several different kinds of information at "
@@ -370,23 +401,16 @@ body("The difference is worth reading. A refusal is settled; a gap is not. If a 
      "fill — and one more identifier to verify against next time.")
 body("The rule that goes with it: you may not decide on someone's behalf. Do not record a "
      "refusal without asking, and never use it to mean that you do not know the answer.")
-note("These are the HMIS Data Standards definitions, from HUD Exchange. Source link next pass.")
-ask("Author question: HUD's current wording is Client prefers not to answer. Our simulation "
-     "displays Client refused, which is the older phrasing. Confirm which one Clarity actually "
-     "shows on the record page — the lesson should use whatever the learner will see, and the "
-     "simulation should match it.")
+note("Definitions are the standard ones; a source link goes here in the sourcing pass.")
+ask("Author question: our simulation displays Client refused. The wording in current guidance is "
+     "Client prefers not to answer. Confirm which one Clarity actually shows on the record page — "
+     "the lesson should use whatever the learner will see, and the simulation should match it.")
 
 topic("Reading the Results")
 body("Each result shows the participant's name, their date of birth and age, and the last four "
      "digits of their SSN. That is what you need to tell one person from another.")
-body("There is a further column, ROI, which you will see but do not need for this lesson. It is "
-     "covered where it belongs, alongside consent and data sharing.")
-note("ROI is deliberately not taught here — it has not been introduced anywhere in the series "
-     "yet, and consent deserves explaining properly rather than in passing. The column stays "
-     "visible in the simulation because it is on the real screen; the narration does not lean "
-     "on it.")
-ask("Author question: which lesson introduces ROI and Release of Information? This one should "
-     "point forward to it by name once that is settled.")
+note("The ROI column is dimmed in the simulation for this lesson — see Building It Up, below. "
+     "Nothing needs to be said about it, so nothing is.")
 body("A word about wording. This lesson says participant. The software says Client. They mean the "
      "same person.")
 ask("Author question: confirm the team wants participant used in narration throughout, with the "
@@ -415,8 +439,8 @@ topic("Street Outreach: Searching by Location")
 body("If you are working in street outreach, search using the Outreach module. Enter the location "
      "where you have met this participant — an address or a cross street — and look at the records "
      "at or near that location.")
-note("The Outreach module is not part of this lesson's practice simulation. Consider a short "
-     "screen recording, or defer it to a later lesson.")
+note("The Outreach module is not part of this lesson's simulation. Taught with a short screen "
+     "recording — enough to know the search exists and when to reach for it.")
 ask("Author question: should the Outreach module be demonstrated here, or held for a dedicated "
      "outreach lesson? It is the one step in this list the practice cannot cover.")
 
@@ -430,9 +454,42 @@ body("If you have worked through all of the above and still cannot find a candid
 body("When you get the chance afterwards, submit a ticket to HMIS Support with the Unique "
      "Identifier of the record you created and ask them to double-check that you did not miss an "
      "existing one.")
-note("Creating a record is Lesson 2. In this lesson the Add button acknowledges the learner and "
+note("Creating a record is its own lesson, and the create form is dimmed here. In this lesson "
+     "the Add button acknowledges the learner and "
      "explains that it is covered next — and points out when the participant in the current task "
      "already has a record.")
+
+# ───────────────────────────────── the tool ───────────────────────────────
+section("How the Practice Tool Is Built")
+
+topic("Only What This Lesson Needs")
+body("The practice version of Clarity shows the whole screen, because that is what you will see "
+     "at work. But the parts this lesson does not use are dimmed and cannot be clicked.")
+body("This is deliberate, and it is worth explaining. A new user opening Clarity for the first "
+     "time is looking at dozens of controls, almost none of which they need in their first week. "
+     "Dimming the rest means there is never a moment in this lesson where something is on screen "
+     "that we have to explain away, or promise to cover another time.")
+sub("What is dimmed in this lesson")
+bullet("The ROI column in the results table")
+bullet("The client record's other tabs — Privacy, Programs, Services, Assessments, Files")
+bullet("The Add Client form behind the ⊕ button")
+bullet("The filter and column controls beyond the ones the tasks use")
+
+topic("Earning the Rest")
+body("Each lesson in the series switches on the part of the interface it teaches. Finish this "
+     "one and search is fully yours; the next lesson lights up the create form, and so on, until "
+     "the whole screen is live and you have been taught every part of it.")
+note("The reveal should be an event, not a settings change. When a lesson unlocks a feature, the "
+     "dimmed area brightens on screen with a short animation and a line naming what the learner "
+     "just earned — the same beat as gaining a new item in a game, where the reward is a "
+     "permanent increase in what you are able to do. It costs very little to build and it gives "
+     "a series of short lessons a spine.")
+note("Production consequence worth stating plainly: this only works if the lessons share one "
+     "simulation and one record of what the learner has unlocked. That is an argument for "
+     "building the series on the common simulation this lesson already uses, rather than "
+     "rebuilding the interface per lesson.")
+ask("Author question: is there appetite for the unlock treatment across the series? It is the "
+     "one thing here that needs a decision before the second lesson is built rather than after.")
 
 # ───────────────────────────────── practice ───────────────────────────────
 section("Practice: Finding a Participant")
@@ -440,7 +497,7 @@ section("Practice: Finding a Participant")
 topic("How the Practice Works")
 body("What follows is a practice version of Clarity. It behaves the way the real system behaves. "
      "Everyone in it is invented — nothing you do here touches a real record.")
-body("You will be given thirteen situations. Each one is a person standing in front of you and "
+body("You will be given fourteen situations. Each one is a person standing in front of you and "
      "something they have told you. Your job is to find their record — and, later, to prove it is "
      "the right one.")
 body("The practice roster holds three hundred people. The live system holds hundreds of "
@@ -457,7 +514,7 @@ note("Scoring, which is the same for every task: ten points if they find it firs
      "hint, five otherwise. Eighty per cent passes. There is no skip, and the hint is always "
      "available.")
 ask("Author question: the pass mark and the cost of a hint need confirming together. As it stands "
-     "a learner who takes a hint on six of the thirteen tasks cannot reach eighty per cent no "
+     "a learner who takes a hint on six of the fourteen tasks cannot reach eighty per cent no "
      "matter how well they do on the rest — and the lesson does not tell them. Options are to "
      "lower the pass mark, make hints free, or make the practice unscored and let the knowledge "
      "check carry the grade.")
@@ -513,8 +570,9 @@ topic("First Level: Photo and Documents")
 body("The quickest check is visual. Look at the photo on the record, and look under the Files tab "
      "for identification or other documentation.")
 body("These can tell you immediately whether the record belongs to the person in front of you.")
-note("The practice simulation does not include photos or the Files tab. Consider a still screenshot "
-     "walkthrough here, or note it as covered in a later lesson.")
+note("The simulation does not show photos or the Files tab, so this is taught with a still "
+     "screenshot rather than practised. Enough to recognise the check and do it; the mechanics "
+     "of uploading and managing documents belong to the lesson on files.")
 
 topic("Second Level: Two of Three")
 body("If there is no photo, work through the record with the participant and check whether the "
@@ -545,6 +603,13 @@ body("Stop entering data into it. Note what you have entered and when, and send 
 ask("Author question: is this the right route for a mis-identified record — the same HMIS Support "
      "ticket as a duplicate, or a different process? The draft does not cover it and it happens.")
 
+ask("Author question: the brainstorm raised the CLNT-125 client summary report as a quick way to "
+    "see everything gathered about a person — profile, program history, demographics, service "
+    "history, contact information — on one page rather than reading through the record. As a "
+    "verification aid that is a good fit for this lesson. It was parked because client-level "
+    "reports were not yet available in the new interface. Worth re-checking; if it is available "
+    "now, it belongs in this section.")
+
 topic("Record the Match, Then Keep Looking")
 body("If you decide the record is a match, note it down — then go back to search and look for "
      "others. Finding one match does not mean there is only one.")
@@ -570,7 +635,7 @@ body("Then submit the full list of matching records to HMIS Support, including e
      "Identifier, so they can merge them.")
 
 section("Practice: Verifying a Record")
-body("Five more situations. This time finding a candidate record is the easy half — the "
+body("Six more situations. This time finding a candidate record is the easy half — the "
      "question is whether it is the right person, and what to do when more than one record "
      "could be.")
 
@@ -606,8 +671,38 @@ ask("Author question: this task is new, requested in review, and is not built ye
      "enough to distinguish two people this way, or whether it is recorded loosely enough that "
      "this would mislead.")
 
-emit_task(TASKS[10], num=12)   # more than one record matches
-emit_task(TASKS[11], num=13)   # a genuine duplicate
+# ---- Task 12, requested in review: the hard one ---------------------------
+topic("Task 12 — Everything at Once")
+note("Draft reference: alternate names, alternate spellings, and confirming other information "
+     "in the record when the identifiers will not settle it.")
+sub("The situation, as the learner sees it")
+body("A man introduces himself as Smoke. It is the only name anyone out here uses for him. "
+     "Pressed, he gives a last name — Reyes, he thinks, though it might have been written down "
+     "as Reyez or Rios at some point. He does not know his date of birth beyond the year, and he "
+     "will not give a Social Security Number. He does tell you he served — Army, a long time ago.")
+sub("What the learner is asked to do")
+body("Find his record and open it.")
+sub("Hint, if they ask for one")
+body("Nothing you have been given will find him on its own. Search the surname fragment you are "
+     "least sure of least — Rey — and use the year and the veteran flag to cut the list down.")
+sub("The correct record")
+body("To be assigned when the roster is pinned for this task.")
+sub("Feedback when they get it right")
+body("This is the real thing. No date of birth, no Social Security Number, a street name that is "
+     "on no record, and a surname three plausible spellings deep. What is left is a fragment, a "
+     "year, and one fact he volunteered.")
+body("Veteran status is a field on the record, and it is worth remembering precisely because it "
+     "is the kind of thing people tell you without being asked. When the identifiers are thin, "
+     "the thing they mentioned in passing is often what closes it.")
+body("And notice what you did not do. You did not conclude he was new because three searches came "
+     "back empty.")
+ask("Author question: this task is new, requested in review, and is not built yet. It needs a "
+     "roster entry with no DOB, no SSN, veteran status set, and two near-miss surnames. Confirm "
+     "the scenario is fair — in particular whether a learner can reasonably be expected to try "
+     "Rey after Reyes and Reyez fail, or whether the hint should come sooner.")
+
+emit_task(TASKS[10], num=13)   # more than one record matches
+emit_task(TASKS[11], num=14)   # a genuine duplicate
 
 # ───────────────────────────────── time pressure ──────────────────────────
 section("When You Are Short on Time")
@@ -685,6 +780,15 @@ ask("Author question: does the knowledge check carry the grade for this lesson, 
 
 # ───────────────────────────────── job aid ────────────────────────────────
 section("Take This With You")
+
+topic("Why Accuracy on the Way In Matters")
+body("This lesson is about finding someone. But every record you can find was typed by somebody "
+     "who came before you, and the reason you can find it is that they got it right.")
+body("So when you do reach the point of entering someone — because you searched properly and "
+     "they genuinely are not there — the care you take is not administrative. Accurate "
+     "information is what makes them findable by the next worker, and being findable is what "
+     "makes their support arrive on time and go to the right person.")
+body("Search and accurate entry are the same skill pointed in two directions.")
 
 topic("The One-Page Version")
 body("This work happens on a phone, standing up, usually while something else is going on. Nobody "

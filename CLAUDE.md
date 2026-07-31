@@ -182,8 +182,14 @@ the provenance was checked. The separator behaviour is real, but it comes from B
 article rather than LAHSA's own documentation; ROI-in-results was our invention entirely. Both
 are fine as *instruction*; neither earned a scored task. Apply the same test to anything new.
 
-The thirteen tasks split the way the draft does: eight on searching, a non-scored beat on the
-seam, then five on verifying. **Task 11 (confirm the profile by location) is specified in the
+**Direction from the owner that overrides earlier passes:** do not talk about HUD standards —
+say *data quality* instead; data-quality codes belong to the create-client lesson where the
+learner sets them. And **never punt** ("we'll cover that later") — dim what the lesson does not
+need, and where something cannot be skirted, give just enough to fill the blank. The simulation
+dims unused controls and each lesson unlocks the part it teaches, as a visible reward.
+
+The fourteen tasks split the way the draft does: eight on searching, a non-scored beat on the
+seam, then six on verifying. **Task 11 (confirm the profile by location) is specified in the
 script but not built** — it was requested in review, it traces to the draft's "Still Unsure"
 list, and it needs location history on the client record page, which the simulation does not
 show yet. The lesson's own `tools/gen_roster.py` carries a comment on each pinned client
