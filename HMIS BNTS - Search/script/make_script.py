@@ -238,6 +238,15 @@ topic("Why Searching Thoroughly Matters")
 body("Searching thoroughly is how a participant keeps what they have already earned. Their wait "
      "time, their enrollments, their referrals and their place in a queue all live on the record, "
      "so finding the right one is the difference between continuing their case and restarting it.")
+body("There is a harder edge to it than history. A participant's HMIS record can serve as "
+     "third-party documentation of their homelessness — a stay in an emergency shelter or Safe "
+     "Haven, or a contact recorded by a street outreach worker, is evidence of where they have "
+     "been. That evidence is part of what qualifies them for housing. A duplicate splits it: the "
+     "bed nights and contacts that prove their history sit on the record you did not find.")
+body("Referrals work the same way. Coordinated entry rides on the client record, so a second "
+     "record does not just lose the history — it separates the person from the referral.")
+note("Sourced from HUD Exchange's HMIS Fundamentals curriculum; see "
+     "reference/hud-exchange-fundamentals.md. Marked for a source link in the next pass.")
 body("It also avoids duplicate records, keeps a participant's full history available, and prevents "
      "delays later. When records are split or incomplete, participants can lose access to services "
      "or housing opportunities, and staff spend time afterwards repairing the data.")
@@ -303,6 +312,20 @@ body("If they have any identification or written documentation, ask to see it. D
 # ───────────────────────────────── how search works ───────────────────────
 section("How Search Works")
 
+topic("Why It Is These Three")
+body("Name, date of birth and Social Security Number are not an arbitrary trio. HUD calls them "
+     "Universal Identifier Elements, and the standard says there is to be one and only one of "
+     "each per client record.")
+body("That is worth sitting with, because it is the whole argument in one line. If a person is "
+     "meant to have one name, one date of birth and one Social Security Number in HMIS, then a "
+     "second record is not untidy — it is a contradiction of the standard, and it is why those "
+     "same three fields are what you verify against later.")
+body("Everything else on a record — the programs, the dates, the destinations — belongs to a "
+     "particular stay, and can legitimately differ from one enrollment to the next. The "
+     "identifiers cannot.")
+note("Sourced from the HMIS Data Standards via HUD Exchange. A source link goes here in the "
+     "next pass.")
+
 topic("One Bar, Many Kinds of Information")
 body("Clarity has a single search bar, and it accepts several different kinds of information at "
      "once. You can type part of a name, a date of birth, a year, or part of a Social Security "
@@ -335,6 +358,23 @@ body("You can search the last four digits on their own, or the full number.")
 body("Some records hold only part of an SSN. When a participant could not recall all of it, the "
      "missing parts were stored as X's or zeros — so a record might read XXX-XX-6789. The digits "
      "that were recorded are still searchable.")
+sub("What the code next to it tells you")
+body("A record also carries a reason when the number is not there, and the three you will see "
+     "mean genuinely different things:")
+bullet("Client doesn't know — they do not have the information.")
+bullet("Client refused — they know it and have chosen not to give it. That is their decision to "
+       "make, and it is a legitimate answer. Nobody is denied assistance for it.")
+bullet("Data not collected — nobody recorded it. Often that means nobody asked.")
+body("The difference is worth reading. A refusal is settled; a gap is not. If a record shows "
+     "data not collected and you are with the participant, that is a blank you may be able to "
+     "fill — and one more identifier to verify against next time.")
+body("The rule that goes with it: you may not decide on someone's behalf. Do not record a "
+     "refusal without asking, and never use it to mean that you do not know the answer.")
+note("These are the HMIS Data Standards definitions, from HUD Exchange. Source link next pass.")
+ask("Author question: HUD's current wording is Client prefers not to answer. Our simulation "
+     "displays Client refused, which is the older phrasing. Confirm which one Clarity actually "
+     "shows on the record page — the lesson should use whatever the learner will see, and the "
+     "simulation should match it.")
 
 topic("Reading the Results")
 body("Each result shows the participant's name, their date of birth and age, and the last four "

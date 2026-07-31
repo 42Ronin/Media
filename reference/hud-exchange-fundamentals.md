@@ -9,7 +9,7 @@ policy, history and federal-reporting structure are out of scope, however good t
 What survives is what changes what an end user does at the keyboard, or what tells them why
 it matters to the person in front of them.
 
-Batch 1 of an expected 3–4. More to be added as they arrive.
+Batches 1–3, fourteen screenshots. Extend if more arrive.
 
 ---
 
@@ -86,3 +86,102 @@ out as consistent with house style. This is evidence the audience is used to see
 
 Both are held until the remaining screenshots arrive, so the script is revised once rather
 than four times.
+
+---
+
+# Batch 2 — the HMIS Data Standards themselves
+
+This batch is far closer to Lesson 1 than batch 1, because it defines the fields the lesson
+searches on and the data-quality codes the simulation already models.
+
+## Universal Data Elements — the basis of the whole lesson
+
+> HMIS Universal Data Elements are elements required to be collected by all projects
+> participating in HMIS, regardless of funding source.
+>
+> The UDEs are the basis for producing **unduplicated estimates** of the number of people
+> experiencing homelessness accessing services from homeless assistance projects…
+
+The table splits them, and the left-hand column is the important one:
+
+**Universal Identifier Elements — "One and Only One per Client Record"**
+3.01 Name · 3.02 Social Security Number · 3.03 Date of Birth · 3.04 Race and Ethnicity ·
+3.07 Veteran Status
+
+**Universal Project Stay Elements — one value per project stay**
+3.08 Disabling Condition · 3.10 Project Start Date · 3.11 Project Exit Date · 3.12
+Destination · 3.15 Relationship to Head of Household · 3.16 Enrollment CoC · 3.20 Housing
+Move-In Date · 3.917 Prior Living Situation
+
+*Why this matters, and it matters a lot:* **the three things Lesson 1 teaches people to
+search on — Name, SSN, Date of Birth — are exactly HUD's Universal Identifier Elements, and
+HUD defines them as one and only one per client record.** That is the authoritative basis
+for two things the lesson currently asserts on its own account:
+
+- **Why a duplicate is a defect, not an inconvenience.** A second record gives one person a
+  second set of elements that are specified to exist once.
+- **Why "two of three" is the rule.** Name, DOB and SSN are the identifiers; everything else
+  in the record belongs to a project stay and can legitimately vary.
+
+Also worth noting: *Veteran Status* and *Relationship to Head of Household* are both UDEs,
+and both are things the lesson already uses in verification.
+
+Confirmed by the same page: the collection point *Record creation* means the element
+"**have one and only one value for each client in an HMIS**".
+
+## The data-quality codes, defined by HUD
+
+The simulation already models these. Now they can be described in HUD's own terms:
+
+> **"Client doesn't know"** – means that the client does not know the information.
+> **"Client prefers not to answer"** – means the client knows the information but prefers not
+> to provide the information to record in HMIS.
+> **"Data not collected"** – means the worker did not record the information. This may be
+> because the client was not available to provide the information, or the worker simply
+> didn't ask.
+
+And two rules that are directly a field worker's business:
+
+> **It is not the intention of HUD or the federal partners that clients be denied assistance
+> if they prefer not to or are unable to provide the information.**
+
+> The "Client doesn't know" or "Client prefers not to answer" responses should not be used to
+> indicate that the case manager or data entry person does not know the client's response.
+> Nor are these responses to be assumed without first asking the client to provide the
+> information. Some clients may decline to provide responses to some fields, but case
+> managers or data entry staff may not make that decision for them.
+
+*Why it matters:* Lesson 1 already tells learners that a refused SSN is a legitimate answer.
+This makes that sourced and sharper — nobody is denied assistance for it, and a worker may
+not record a refusal on a participant's behalf without asking. It also gives the learner a
+way to *read* a record: "Data not collected" means nobody asked, which is a different thing
+from the participant declining, and it tells you the gap may be fillable.
+
+### A terminology mismatch to check
+
+HUD's current wording is **"Client prefers not to answer."** Our simulation displays
+**"Client refused"**, which is the older phrasing. Which one Clarity shows on the record page
+needs checking against a live account — the lesson should use whatever the learner will
+actually see. Raised as an author question in the script.
+
+---
+
+# Batch 3 — reporting
+
+Almost all of this batch is HUD/CoC reporting structure — project level, system level and
+custom reports, APR, SPM, LSA, AHAR, grant compliance, policy and advocacy. **Dropped in
+full** under the end-user filter. Two clauses survive:
+
+> HMIS enables agencies to coordinate services, **avoid duplication**, and allocate resources
+> more effectively.
+
+> HMIS allows agencies to track client progress across multiple services and supports
+> referrals for **coordinated entry**.
+
+*Why they matter:* avoiding duplication is named as a purpose of the system rather than as
+our editorialising, and coordinated-entry referrals riding on the client record is the
+concrete version of "their place in a queue lives on the record" — which is the services
+framing the owner asked for.
+
+Not used: the qualitative-data section ("HMIS data is an important source of information but
+it is not the only one"), which is good writing and belongs to a different audience.
