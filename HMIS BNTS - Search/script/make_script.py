@@ -32,11 +32,21 @@ def para(text="", bold=False, italic=False, underline=False, color=None,
     p.paragraph_format.space_after = Pt(space_after)
     return p
 
+_slide = {"sec": 0, "n": 0}
+EMITTED = []
+
 def title(t):        return para(t, bold=True, underline=True, space_after=12)
 def section(t):
+    _slide["sec"] += 1
+    _slide["n"] = 0
     d.add_paragraph()
     return para(t, bold=True, underline=True, space_after=8)
-def topic(t):        return para(t, bold=True, space_after=4)
+def topic(t):
+    """Slides are numbered section.slide, as in the team's storyboard format, so a
+    reviewer and a developer can both point at one thing."""
+    _slide["n"] += 1
+    EMITTED.append((f"{_slide['sec']}.{_slide['n']}", t))
+    return para(f"Slide {_slide['sec']}.{_slide['n']} \u2013 {t}", bold=True, space_after=4)
 def sub(t):          return para(t, underline=True, space_after=4)
 def body(t):         return para(t, space_after=8)
 def note(t):         return para(t, italic=True, space_after=8)
@@ -281,7 +291,7 @@ for i, (a, b) in enumerate([
     meta.rows[i].cells[1].paragraphs[0].add_run(b)
 d.add_paragraph()
 
-topic("What Is Being Asked of the Reviewer")
+para("What Is Being Asked of the Reviewer", bold=True, space_after=4)
 body("This draft is complete enough to review end to end. Every screen of narration is written, "
      "and every task in the practice simulation is documented in full — the situation the learner "
      "sees, the instruction, the hint, the record that is correct, and the feedback — so nothing "
@@ -301,14 +311,15 @@ d.add_paragraph()
 # ───────────────────────────────── contents ───────────────────────────────
 section("Table of Contents")
 toc = [
-    ("Introduction", ["Course Overview", "What You Will Be Able to Do", "Before You Start",
-                      "Someone Asks You for an Update", "How This Lesson Runs",
+    ("Introduction", ["Course Navigation", "Course Overview", "Objectives", "Lesson Structure",
+                      "Before You Start", "Someone Asks You for an Update", "How This Lesson Runs",
                       "Why Searching Thoroughly Matters"]),
     ("Words You Will See", ["Key Terms"]),
     ("Two Rules Before You Touch the Keyboard", ["Assume a Record Already Exists",
                                                  "Never Create Before You Search"]),
     ("Preparing to Search", ["What to Collect First", "The Order to Ask In", "Confirm the Spelling"]),
-    ("How Search Works", ["One Bar, Many Kinds of Information", "Searching by Name",
+    ("How Search Works", ["Why It Is These Three", "One Bar, Many Kinds of Information",
+                          "Searching by Name",
                           "Searching by Date of Birth", "Searching by Social Security Number",
                           "Reading the Results"]),
     ("When Search Comes Up Empty", ["Alternate Names", "Alternate Spellings",
@@ -334,20 +345,29 @@ toc = [
       f"Task 13 — {HEADINGS[TASKS[10]['id']]}",
       f"Task 14 — {HEADINGS[TASKS[11]['id']]}"]),
     ("When You Are Short on Time", ["In the Field"]),
-    ("Production Standards", ["Accessibility"]),
-    ("Knowledge Check", []),
+    ("Knowledge Check", ["Check What You Took In"]),
     ("Take This With You", ["Why Accuracy on the Way In Matters", "The One-Page Version"]),
-    ("Summary", ["What You Practiced", "Survey"]),
+    ("Summary", ["What You Practiced", "Lesson Closing", "Survey"]),
+    ("Production Standards", ["Accessibility"]),
 ]
-for sec, tops in toc:
-    para(sec, bold=True, space_after=2)
-    for t in tops:
-        para(t, space_after=1)
+for _si, (sec, tops) in enumerate(toc, start=1):
+    para(f"{_si}. {sec}", bold=True, space_after=2)
+    for _ti, t in enumerate(tops, start=1):
+        para(f"      {_si}.{_ti}  {t}", space_after=1)
 
 d.add_page_break()
 
 # ───────────────────────────────── introduction ───────────────────────────
+_slide["sec"] = 0          # front matter is not part of the slide sequence
 section("Introduction")
+
+topic("Course Navigation")
+body("Before we start, a quick look at how to move around. This lesson has audio, so turn your "
+     "sound on. Closed captions are available from the captions icon. The contents on the left "
+     "let you jump back to anything you have already finished. Move forward with the right arrow "
+     "— it appears once you have done what a screen asks of you — and back with the left.")
+note("Standard navigation screen, matching the rest of the series. Adjust the wording to whatever "
+     "Rise actually shows once the course shell is built.")
 
 topic("Course Overview")
 body("This lesson is about one thing: finding out whether the person in front of you already has a "
@@ -369,10 +389,13 @@ note("If the series would rather run shorter lessons anyway, the natural cut is 
 note("Opening screen. Course title, estimated time, and a Begin button. The Begin button also "
      "satisfies the browser requirement that the learner interact with the page before audio can play.")
 
-topic("What You Will Be Able to Do")
+topic("Objectives")
+body("This lesson has three objectives. By the end of it, you will")
 num("Say what HMIS is and what it is used for.")
 num("Use search properly, and explain why searching diligently matters.")
 num("Explain why capturing a participant's information accurately matters.")
+body("Meeting these lays the groundwork for everything else in the series — every lesson that "
+     "follows assumes you can find the right person first.")
 note("On screen as a numbered list before the lesson proper, the way the HUD Exchange courses "
      "open. Three, not more.")
 note("Where each is taught and where it is checked — for review, not for the learner:")
@@ -383,6 +406,16 @@ note("2. Using search, and why diligence matters — taught in How Search Works 
 note("3. Why accurate information matters — taught in Verify, What You Found and Why Accuracy on "
      "the Way In Matters; practised in tasks 9 to 14; checked by knowledge-check questions 3, 4 "
      "and 5.")
+
+topic("Lesson Structure")
+body("This lesson has five parts.")
+num("Getting ready — what to ask for, and in what order.")
+num("How search works.")
+num("Practice: finding a participant.")
+num("Verifying that the record is really theirs, and practising that too.")
+num("What to do when you are short on time, and what to take away with you.")
+note("Consider a persistent marker showing which part the learner is in, as the other courses in "
+     "the series do.")
 
 topic("Before You Start")
 body("One question before the lesson begins: which Continuum of Care do you work with?")
@@ -887,28 +920,8 @@ num("Create a record, if you need a Unique Identifier for the participant right 
 body("What is not an option is creating a record and saying nothing.")
 
 # ───────────────────────────────── knowledge check ────────────────────────
-section("Production Standards")
-
-topic("Accessibility")
-body("Applies to every screen in this lesson, and to the practice simulation.")
-bullet("Narration is captioned, and a transcript is available on the page.")
-bullet("Every image that carries meaning has alternative text. Images that are decorative are "
-       "marked as decorative rather than described.")
-bullet("Colour is never the only way something is signalled — a correct answer, a dimmed control "
-       "or an alert also carries text or a shape.")
-bullet("Everything the learner must do can be done from the keyboard, including the search field, "
-       "the results table and opening a record.")
-bullet("Text can be resized without content being cut off or overlapping.")
-bullet("Contrast meets WCAG 2.1 AA. This includes the dimmed controls, which must read as "
-       "unavailable without becoming invisible.")
-bullet("Nothing depends on hearing alone, and nothing depends on a timed response.")
-note("LAHSA is a public agency and this training is federally adjacent, so Section 508 and "
-     "WCAG 2.1 AA are the standard to build to, not to retrofit. The dimming treatment described "
-     "earlier is the one place where accessibility and design pull against each other — dimmed "
-     "still has to be legible.")
-ask(17)
-
 section("Knowledge Check")
+topic("Check What You Took In")
 note("Scored knowledge check. Correct answers in green, incorrect in orange. Randomise answer "
      "order. Every option needs feedback text, not just a right-or-wrong mark — the feedback for "
      "each question is given below it, and the wrong answers here are wrong for reasons worth "
@@ -1011,10 +1024,55 @@ body("The habit underneath all of it is one sentence: an empty result is not pro
 body("Lesson 2 covers creating that record, where this habit is the only thing standing between you "
      "and a duplicate.")
 
+topic("Lesson Closing")
+body("That is the end of Lesson 1. Well done — this is the least glamorous part of the job and "
+     "the one that decides the most.")
+body("The next lesson covers adding a participant who genuinely is not there, which is where "
+     "everything you have just practised gets put to work.")
+note("Closing screen with an Exit control, matching the series.")
+
 topic("Survey")
 body("Now that you have completed the lesson, we would appreciate your feedback. Please complete "
      "the short survey below.")
 note("Survey embed.")
+
+section("Production Standards")
+
+topic("Accessibility")
+note("At the back of the document on purpose. This was not part of the brief and is not asking "
+     "for a decision — it is here so the standard is on the record as considered, and so it can "
+     "be pulled forward if it turns out to be required.")
+body("Applies to every screen in this lesson, and to the practice simulation.")
+bullet("Narration is captioned, and a transcript is available on the page.")
+bullet("Every image that carries meaning has alternative text. Images that are decorative are "
+       "marked as decorative rather than described.")
+bullet("Colour is never the only way something is signalled — a correct answer, a dimmed control "
+       "or an alert also carries text or a shape.")
+bullet("Everything the learner must do can be done from the keyboard, including the search field, "
+       "the results table and opening a record.")
+bullet("Text can be resized without content being cut off or overlapping.")
+bullet("Contrast meets WCAG 2.1 AA. This includes the dimmed controls, which must read as "
+       "unavailable without becoming invisible.")
+bullet("Nothing depends on hearing alone, and nothing depends on a timed response.")
+note("LAHSA is a public agency and this training is federally adjacent, so Section 508 and "
+     "WCAG 2.1 AA are the standard to build to, not to retrofit. The dimming treatment described "
+     "earlier is the one place where accessibility and design pull against each other — dimmed "
+     "still has to be legible.")
+ask(17)
+
+# The table of contents is written before the body, so the only thing keeping the
+# two in step is this check. A slide added to one and not the other fails here
+# rather than reaching a reviewer.
+_expected = [(f"{i}.{j}", t)
+             for i, (_s, _tops) in enumerate(toc, start=1)
+             for j, t in enumerate(_tops, start=1)]
+if _expected != EMITTED:
+    _only_body = [x for x in EMITTED if x not in _expected]
+    _only_toc  = [x for x in _expected if x not in EMITTED]
+    raise SystemExit("contents and body disagree.\n"
+                     f"  in the body, not the contents: {_only_body}\n"
+                     f"  in the contents, not the body: {_only_toc}")
+print(f"{len(EMITTED)} slides, contents agrees")
 
 OUT = "script_l1_v3.docx"
 d.save(OUT)
