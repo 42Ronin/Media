@@ -37,6 +37,16 @@ stops being private, remove this directory first.
 | `Filter Icon.1.webp` | The shipped default column order: **Client · DOB · SSN · ROI** |
 | `image4.webp` | Search-as-you-type: `ann gla` matching across first *and* last name |
 
+## HUD Exchange — HMIS Fundamentals Curriculum
+
+`hud-exchange-fundamentals.md` holds extracts from HUD Exchange's own HMIS Fundamentals
+course, supplied as screenshots by the project owner and captured as text. It is context for
+the lessons, not interface fidelity material.
+
+The owner's filter is recorded there and governs what gets used: **our training is for the
+HMIS end user**, so governance, policy, history and federal-reporting structure are dropped
+however good the copy is.
+
 ## Still missing
 
 - The **Add Client form** — needed for `HMIS BNTS - Create`.
