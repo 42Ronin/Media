@@ -126,37 +126,10 @@ ACTION = {"open": "Open the record.", "choose": "Choose a record."}
 
 DOC_DATE = "31 July 2026"
 
-OPEN_QUESTIONS = [
-    (
-        "the series title. This document says HMIS Basic New Trainee Series, which is my expansion "
-        "of the BNTS in the folder name and was never confirmed. If it stands for something else, "
-        "or if the series is simply HMIS Basic Navigation, correct the cover before this goes any "
-        "further."
-    ),
-    (
-        "BNTS replaces HMIS Essentials, so Essentials objective 01 \u2014 why entering data "
-        "correctly matters \u2014 needs a home in the new series. It is not this lesson. Confirm "
-        "it becomes its own lesson ahead of this one, so the Introduction here can shrink to what "
-        "a search lesson needs."
-    ),
-    (
-        "give the participant a name. Everything in the lesson is invented and illustrative, so "
-        "any name will do, but it should be one the series can reuse."
-    ),
-    (
-        "the location task treats where someone has been staying as one identifier among several, "
-        "never as the answer on its own. Confirm that framing is right for Clarity, and that "
-        "location is recorded consistently enough to be worth checking at all."
-    ),
-    (
-        "the Smoke task is built to be hard. The learner is expected to clear the box and try "
-        "again several times before anything works. Confirm that is wanted here rather than "
-        "softened, and that a learner who cannot get it has a way forward that is not a score."
-    ),
-]
+OPEN_QUESTIONS = []
 
 # ───────────────────────────────── title + key ────────────────────────────
-title("HMIS Basic New Trainee Series")
+title("HMIS BNTS")
 para("Lesson 1: Finding a Participant — Elearning Course Script", bold=True, space_after=10)
 body("The key below displays the function of various text attributes of the following script.")
 
@@ -306,12 +279,17 @@ body("Set aside about forty minutes. A good part of that is hands on: you will w
      "them. Nothing you do in the practice affects real records, and none of the people in it "
      "are real.")
 body("You can return to this lesson any time after you finish it.")
-note("Where the forty minutes goes, measured from this script rather than estimated: narrated "
-     "instruction 2,780 words, about 19 minutes at a normal pace. Task situations and feedback, "
-     "which the learner reads rather than hears, about 8 minutes. Knowledge check about 2 and a "
-     "half. The fourteen tasks themselves are the smallest part — around 7 minutes of actual "
-     "interaction, because each one is a short search. Hints and the correct-record lines in this "
-     "document are not learner-facing time at all.")
+note("Where the time goes, measured from this script rather than estimated. Instruction is 3,929 "
+     "words — about 26 minutes narrated, about 18 if the reference material is read on screen "
+     "rather than spoken. What the learner reads inside the practice is another 1,700 or so. The "
+     "thirteen tasks are the smallest part at roughly 6 minutes of actual interaction, because "
+     "each is a short search. Hints and the correct-record lines in this document are not "
+     "learner-facing time at all.")
+note("Which puts the lesson between 35 and 45 minutes depending on how much is narrated. Twenty "
+     "is not reachable while this lesson also carries why-data-quality-matters and thirteen "
+     "hands-on tasks; those two together are most of the runtime. The remaining lever inside the "
+     "script is the task feedback, currently around 95 words per task where 50 would land as "
+     "hard.")
 
 note("If the series would rather run shorter lessons anyway, the natural cut is the checkpoint "
      "between task 8 and task 9 — eight tasks on searching, six on verifying.")
@@ -326,8 +304,7 @@ num("Recover a search that returns nothing, and narrow one that returns too much
 num("Confirm that the record you found belongs to the person in front of you.")
 num("Read a participant's history from their record, and explain why finding the right one "
     "decides what they have access to.")
-body("Meeting these lays the groundwork for everything that follows — every lesson after this "
-     "one assumes you can find the right person first.")
+body("Everything after this lesson assumes you can find the right person first.")
 note("Presented as a numbered list, as HMIS Essentials does. Visual treatment is not decided at "
      "this stage and is deliberately not described here.")
 note("Written to sit under objective 02 of HMIS Essentials — search and find a participant's "
@@ -378,18 +355,20 @@ note("Consider a persistent marker showing which part the learner is in, as the 
 topic("Someone Asks You for an Update")
 body("There is a cleanup on the block this morning. People are moving their things, and your team "
      "is working the encampment.")
-body("Someone walks up to you. Not a stranger exactly — you have seen him here before. He wants "
-     "to know whether there is any news about interim housing for him.")
-body("He tells you somebody came round a while back. Took his details, said they would be in "
-     "touch. Nothing happened, and he does not remember the name of the agency or the worker.")
-body("That last part is the part to notice. If a provider took his details, there is very likely "
-     "already a record — a contact, an outreach note, something with his name on it. He is not "
-     "new to this system even though he feels new to you.")
-body("It is a fair question and it deserves a real answer. To give him one you need his record.")
+body("Someone walks up to you. Not a stranger exactly — you have seen him here before. He gives "
+     "his name as Desmond, and he wants to know whether there is any news about interim housing "
+     "for him.")
+body("Desmond tells you somebody came round a while back. Took his details, said they would be "
+     "in touch. Nothing happened, and he does not remember the name of the agency or the worker.")
+body("That is the part to notice. If a provider took his details there is very likely already a "
+     "record — a contact, a note, something with his name on it. Desmond is new to you; he is not "
+     "new to the system. Right now he is a potential participant, and whether he is a participant "
+     "depends on what your search finds.")
+body("His question deserves a real answer, and to give him one you need his record.")
 body("So the first thing you do is not paperwork and it is not a form. It is a search.")
-body("Get it right and everything he is already owed comes with him — the time he has waited, the "
-     "programs he is enrolled in, the place he holds on a list. Get it wrong and he starts again "
-     "from nothing in a second record, while the first one sits somewhere with his history in it.")
+body("Get it right and everything he is owed comes with him — the time he has waited, the "
+     "programs he is in, the place he holds on a list. Get it wrong and he starts from nothing in "
+     "a second record, while the first sits somewhere with his history in it.")
 note("Opening sequence. Photographs with slow pan and zoom, narration over the top, captions on "
      "screen throughout. Roughly 60 to 90 seconds. Ends on a Continue button rather than running "
      "straight into the next screen.")
@@ -409,23 +388,16 @@ note("Consider showing the four steps as a progress marker that stays visible, s
 
 topic("Why Searching Thoroughly Matters")
 body("Searching thoroughly is how a participant keeps what they have already earned. Their wait "
-     "time, their enrollments, their referrals and their place in a queue all live on the record, "
-     "so finding the right one is the difference between continuing their case and restarting it.")
-body("There is a harder edge to it than history. A participant's HMIS record can serve as "
-     "third-party documentation of their homelessness — a stay in an emergency shelter or Safe "
-     "Haven, or a contact recorded by a street outreach worker, is evidence of where they have "
-     "been. That evidence is part of what qualifies them for housing. A duplicate splits it: the "
-     "bed nights and contacts that prove their history sit on the record you did not find.")
-body("Referrals work the same way. Coordinated entry rides on the client record, so a second "
-     "record does not just lose the history — it separates the person from the referral.")
+     "time, their enrollments, their referrals and their place in a queue all live on the record. "
+     "Find the right one and their case continues. Miss it and it starts over.")
+body("There is a harder edge to it. A record can serve as third-party documentation of someone's "
+     "homelessness — a shelter stay, or a contact logged by an outreach worker, is evidence of "
+     "where they have been, and that evidence is part of what qualifies them for housing. A "
+     "duplicate splits it, and the bed nights that prove their history sit on the record you did "
+     "not find.")
 note("Sourced; a source link goes here in the sourcing pass.")
-body("And a duplicate is not a tidy-up job. Once two records exist for one person, somebody has "
-     "to investigate which is which, work out what happened on each, and clean it up — and that "
-     "is a long process, measured in weeks rather than minutes. While it runs, the person is the "
-     "one waiting.")
-body("It also avoids duplicate records, keeps a participant's full history available, and prevents "
-     "delays later. When records are split or incomplete, participants can lose access to services "
-     "or housing opportunities, and staff spend time afterwards repairing the data.")
+body("A duplicate is also not a tidy-up job. Once two records exist, somebody has to work out "
+     "which is which and clean it up — weeks, not minutes, and the person is the one waiting.")
 sub("What a thorough search protects")
 bullet("Continuity of care across every provider the participant has worked with")
 bullet("A complete history when they are being qualified for services or housing")
@@ -491,7 +463,6 @@ body("Before you search, note down the participant's full name and either their 
 body("Ask for it before you start typing, and ask for all of it in one go. Going back three "
      "times to ask someone to repeat their date of birth does not build trust, and it makes you "
      "look like the system is in charge of the conversation rather than you.")
-ask(2)
 
 topic("The Order to Ask In")
 body("First name, last name, date of birth. That is the order, and it is the order because it is "
@@ -678,6 +649,10 @@ note("The practice is not scored. It is practice — the learner works each situ
 note("That is deliberate. Searching well means searching repeatedly: clear the box, type "
      "something else, watch the list change, try again. A score would punish exactly the "
      "behaviour the lesson is trying to build.")
+note("Unscored does not mean optional. Every task has to be completed before the learner moves "
+     "on — there is no skip and no passing over one that will not come. Hints escalate as they "
+     "are asked for, ending with one that names the search outright, so nobody is stuck "
+     "permanently. But they type it themselves and they see it work.")
 
 
 def emit_task(t, num=None):
@@ -851,7 +826,6 @@ body("And notice what you did not do. You did not conclude he was new because th
      "came back empty. You cleared the box and typed something else, and then did it again.")
 body("That is the skill. Not one clever search — several ordinary ones, each telling you "
      "something about what to try next.")
-ask(3)
 
 emit_task(TASKS[10], num=13)   # more than one record matches
 # ───────────────────────────────── time pressure ──────────────────────────
@@ -925,7 +899,6 @@ note("Feedback: creating a record is the last step, not the second one. An empty
      "search has not found them yet — it is not evidence that they are new. And when you do create "
      "one, send the Unique Identifier to HMIS Support and ask them to double-check.")
 
-ask(4)
 
 # ───────────────────────────────── job aid ────────────────────────────────
 section("Summary")
