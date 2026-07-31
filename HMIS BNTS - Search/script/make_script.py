@@ -40,7 +40,10 @@ def topic(t):        return para(t, bold=True, space_after=4)
 def sub(t):          return para(t, underline=True, space_after=4)
 def body(t):         return para(t, space_after=8)
 def note(t):         return para(t, italic=True, space_after=8)
-def ask(t):          return para(t, color=RED, space_after=8)
+def ask(n):
+    """Open questions are numbered so a reviewer can refer to one by number, and
+    are listed together at the front as well as in place."""
+    return para(f"Open question {n + 1}: {OPEN_QUESTIONS[n]}", color=RED, space_after=8)
 def bullet(t, lvl=0):
     p = d.add_paragraph(t, style="List Bullet" if lvl == 0 else "List Bullet 2")
     p.paragraph_format.space_after = Pt(2)
@@ -111,6 +114,110 @@ HEADINGS = {
 
 ACTION = {"open": "Open the record.", "choose": "Choose a record."}
 
+DOC_DATE = "31 July 2026"
+
+OPEN_QUESTIONS = [
+    (
+        "the brainstorm notes put an e-learning at about ten minutes, and this is forty. Worth kn"
+        "owing before that is treated as a problem: the practice is not what makes it long — the "
+        "instruction is, at just over half the words, and most of that is groundwork the rest of "
+        "the series stands on rather than material this lesson needs for itself. The lever that m"
+        "oves the number furthest is how much is narrated versus read: as narration the instructi"
+        "on runs about 19 minutes, as on-screen text about 12. Cutting tasks saves the least and "
+        "costs the most."
+    ),
+    (
+        "is a pre-survey required for this course, or is this an enrollment question rather than "
+        "a lesson question? If enrollment already captures the learner's CoC, this screen should "
+        "be dropped rather than asking for it twice."
+    ),
+    (
+        "is there an approved participant persona and photo set we should use here, or should thi"
+        "s stay illustrative? Photographs of people experiencing homelessness carry consent consi"
+        "derations even when licensed, and an illustrative style avoids that entirely."
+    ),
+    (
+        "give the participant a name if the team has a persona it already uses."
+    ),
+    (
+        "confirm this matches LAHSA's data-handling policy for field notes. The earlier draft say"
+        "s to note the name and DOB or SSN on paper or in a phone's Notes app; the wording above "
+        "deliberately stops short of the SSN."
+    ),
+    (
+        "our simulation displays Client refused. The wording in current guidance is Client prefer"
+        "s not to answer. Confirm which one Clarity actually shows on the record page — the lesso"
+        "n should use whatever the learner will see, and the simulation should match it."
+    ),
+    (
+        "confirm the team wants participant used in narration throughout, with the software's own"
+        " label acknowledged once here."
+    ),
+    (
+        "should the Outreach module be demonstrated here, or held for a dedicated outreach lesson"
+        "? It is the one step in this list the practice cannot cover."
+    ),
+    (
+        "is there appetite for the unlock treatment across the series? It is the one thing here t"
+        "hat needs a decision before the second lesson is built rather than after."
+    ),
+    (
+        "the pass mark and the cost of a hint need confirming together. As it stands a learner wh"
+        "o takes a hint on six of the fourteen tasks cannot reach eighty per cent no matter how w"
+        "ell they do on the rest — and the lesson does not tell them. Options are to lower the pa"
+        "ss mark, make hints free, or make the practice unscored and let the knowledge check carr"
+        "y the grade."
+    ),
+    (
+        "is this the right route for a mis-identified record — the same HMIS Support ticket as a "
+        "duplicate, or a different process? The draft does not cover it and it happens."
+    ),
+    (
+        "the brainstorm raised the CLNT-125 client summary report as a quick way to see everythin"
+        "g gathered about a person — profile, program history, demographics, service history, con"
+        "tact information — on one page rather than reading through the record. As a verification"
+        " aid that is a good fit for this lesson. It was parked because client-level reports were"
+        " not yet available in the new interface. Worth re-checking; if it is available now, it b"
+        "elongs in this section."
+    ),
+    (
+        "this task is new, requested in review, and is not built yet. It needs location history o"
+        "n the client record page, which the simulation does not show today. Confirm the scenario"
+        " is realistic — in particular whether location in Clarity is granular enough to distingu"
+        "ish two people this way, or whether it is recorded loosely enough that this would mislea"
+        "d."
+    ),
+    (
+        "this task is new, requested in review, and is not built yet. It needs a roster entry wit"
+        "h no DOB, no SSN, veteran status set, and two near-miss surnames. Confirm the scenario i"
+        "s fair — in particular whether a learner can reasonably be expected to try Rey after Rey"
+        "es and Reyez fail, or whether the hint should come sooner."
+    ),
+    (
+        "does the knowledge check carry the grade for this lesson, or the practice, or both? If t"
+        "he lesson is delivered in Rise with the simulation embedded, the simulation cannot repor"
+        "t a score to the course — so the knowledge check would have to be the graded instrument,"
+        " and the practice becomes ungraded rehearsal."
+    ),
+    (
+        "is there a house format for job aids this should follow, and does anything need to go on"
+        " it that is not in the list above?"
+    ),
+    (
+        "a participant may go by a name that is not the one on their record because it is their "
+        "name — chosen name, or a name that fits their gender identity, rather than a nickname. "
+        "The lesson now covers this alongside street names and shortenings. Confirm the wording "
+        "against LAHSA's guidance, and confirm what Clarity offers for it: an alias field, a "
+        "preferred-name field, or neither."
+    ),
+    (
+        "search returns participants from across the CoC, including people served only by other "
+        "agencies. Is there guidance for end users on whose record they may open and when — a "
+        "legitimate-purpose or minimum-necessary rule? A search lesson is where that would land, "
+        "and this draft says nothing about it."
+    ),
+]
+
 # ───────────────────────────────── title + key ────────────────────────────
 title("HMIS Basic New Trainee Series")
 para("Lesson 1: Finding a Participant — Elearning Course Script", bold=True, space_after=10)
@@ -139,11 +246,57 @@ for i, (a, b) in enumerate(rows):
     key.rows[i].cells[1].paragraphs[0].add_run(b)
 
 d.add_paragraph()
-note("Second pass. Every task in the practice simulation is now documented in full — the situation, "
+note("Third pass, and the first intended for review outside the project. Every task in the "
+     "practice simulation is documented in full — the situation, "
      "the instruction, the hint, the correct record and the feedback — so this can be reviewed "
      "without opening the simulation. External links and sources are intentionally omitted at this stage and "
      "will be added in a later pass. Interactivity notes describe the interaction rather than a "
      "specific authoring-tool feature, because this lesson is built in code rather than in Rise.")
+
+# ───────────────────────────────── front matter ───────────────────────────
+section("About This Document")
+
+meta = d.add_table(rows=8, cols=2)
+meta.style = "Table Grid"
+meta.alignment = WD_TABLE_ALIGNMENT.LEFT
+for i, (a, b) in enumerate([
+    ("Lesson",        "HMIS Basic New Trainee Series — Lesson 1: Finding a Participant"),
+    ("Version",       "0.3, draft for review"),
+    ("Date",          DOC_DATE),
+    ("Author",        "Nishan Paparian, Instructional Design"),
+    ("Audience",      "HMIS end users at LAHSA and partner agencies — outreach and front-line "
+                      "staff who look up participants in Clarity. No prior Clarity experience "
+                      "assumed."),
+    ("Prerequisites", "None within this series. Learners are assumed to hold, or to be in the "
+                      "process of obtaining, an HMIS user account and whatever access agreement "
+                      "and privacy training that requires."),
+    ("Seat time",     "About forty minutes. See the note under How the Practice Works for where "
+                      "it goes."),
+    ("Delivery",      "Rise 360, with the practice simulation embedded as an uploaded HTML "
+                      "block. The simulation is hands-on practice; Rise carries the score."),
+]):
+    meta.rows[i].cells[0].width = Inches(1.4)
+    meta.rows[i].cells[1].width = Inches(5.1)
+    meta.rows[i].cells[0].paragraphs[0].add_run(a).bold = True
+    meta.rows[i].cells[1].paragraphs[0].add_run(b)
+d.add_paragraph()
+
+topic("What Is Being Asked of the Reviewer")
+body("This draft is complete enough to review end to end. Every screen of narration is written, "
+     "and every task in the practice simulation is documented in full — the situation the learner "
+     "sees, the instruction, the hint, the record that is correct, and the feedback — so nothing "
+     "needs to be opened to review it.")
+body("What is not settled are the questions below. They are numbered, and each appears again in "
+     "place so it can be read in context. Most need either a subject-matter answer or a decision "
+     "about scope.")
+note("Not yet in this draft, and deliberately: external links and source citations, which are a "
+     "separate pass once the content is agreed.")
+
+sub("Open questions, in one place")
+for _qn, _qt in enumerate(OPEN_QUESTIONS):
+    para(f"{_qn + 1}. {_qt}", color=RED, space_after=6)
+
+d.add_paragraph()
 
 # ───────────────────────────────── contents ───────────────────────────────
 section("Table of Contents")
@@ -151,6 +304,7 @@ toc = [
     ("Introduction", ["Course Overview", "What You Will Be Able to Do", "Before You Start",
                       "Someone Asks You for an Update", "How This Lesson Runs",
                       "Why Searching Thoroughly Matters"]),
+    ("Words You Will See", ["Key Terms"]),
     ("Two Rules Before You Touch the Keyboard", ["Assume a Record Already Exists",
                                                  "Never Create Before You Search"]),
     ("Preparing to Search", ["What to Collect First", "The Order to Ask In", "Confirm the Spelling"]),
@@ -180,6 +334,7 @@ toc = [
       f"Task 13 — {HEADINGS[TASKS[10]['id']]}",
       f"Task 14 — {HEADINGS[TASKS[11]['id']]}"]),
     ("When You Are Short on Time", ["In the Field"]),
+    ("Production Standards", ["Accessibility"]),
     ("Knowledge Check", []),
     ("Take This With You", ["Why Accuracy on the Way In Matters", "The One-Page Version"]),
     ("Summary", ["What You Practiced", "Survey"]),
@@ -208,13 +363,7 @@ note("Where the forty minutes goes, measured from this script rather than estima
      "half. The fourteen tasks themselves are the smallest part — around 7 minutes of actual "
      "interaction, because each one is a short search. Hints and the correct-record lines in this "
      "document are not learner-facing time at all.")
-ask("Author question: the brainstorm notes put an e-learning at about ten minutes, and this is "
-    "forty. Worth knowing before that is treated as a problem: the practice is not what makes it "
-    "long — the instruction is, at just over half the words, and most of that is groundwork the "
-    "rest of the series stands on rather than material this lesson needs for itself. The lever "
-    "that moves the number furthest is how much is narrated versus read: as narration the "
-    "instruction runs about 19 minutes, as on-screen text about 12. Cutting tasks saves the least "
-    "and costs the most.")
+ask(0)
 note("If the series would rather run shorter lessons anyway, the natural cut is the checkpoint "
      "between task 8 and task 9 — eight tasks on searching, six on verifying.")
 note("Opening screen. Course title, estimated time, and a Begin button. The Begin button also "
@@ -226,15 +375,21 @@ num("Use search properly, and explain why searching diligently matters.")
 num("Explain why capturing a participant's information accurately matters.")
 note("On screen as a numbered list before the lesson proper, the way the HUD Exchange courses "
      "open. Three, not more.")
+note("Where each is taught and where it is checked — for review, not for the learner:")
+note("1. What HMIS is and what it is for — taught in Why Searching Thoroughly Matters and Why It "
+     "Is These Three; checked by knowledge-check questions 1 and 6.")
+note("2. Using search, and why diligence matters — taught in How Search Works and When Search "
+     "Comes Up Empty; practised in tasks 1 to 8; checked by knowledge-check questions 1, 2 and 6.")
+note("3. Why accurate information matters — taught in Verify, What You Found and Why Accuracy on "
+     "the Way In Matters; practised in tasks 9 to 14; checked by knowledge-check questions 3, 4 "
+     "and 5.")
 
 topic("Before You Start")
 body("One question before the lesson begins: which Continuum of Care do you work with?")
 note("Single-select, asked on the opening screen and stored for the rest of the course. It "
      "decides which CoC the lesson names when it talks about the unduplicated count, and it is "
      "worth knowing who is taking this training.")
-ask("Author question: is a pre-survey required for this course, or is this an enrollment "
-     "question rather than a lesson question? If enrollment already captures the learner's CoC, "
-     "this screen should be dropped rather than asking for it twice.")
+ask(1)
 
 topic("Someone Asks You for an Update")
 body("There is a cleanup on the block this morning. People are moving their things, and your team "
@@ -254,10 +409,8 @@ body("Get it right and everything he is already owed comes with him — the time
 note("Opening sequence. Photographs with slow pan and zoom, narration over the top, captions on "
      "screen throughout. Roughly 60 to 90 seconds. Ends on a Continue button rather than running "
      "straight into the next screen.")
-ask("Author question: is there an approved participant persona and photo set we should use here, or "
-     "should this stay illustrative? Photographs of people experiencing homelessness carry consent "
-     "considerations even when licensed, and an illustrative style avoids that entirely.")
-ask("Author question: give the participant a name if the team has a persona it already uses.")
+ask(2)
+ask(3)
 
 topic("How This Lesson Runs")
 body("The shape of it is the shape of the job:")
@@ -300,6 +453,35 @@ note("Consider a short animated figure: one person, two record cards, and the co
      "Static illustration is fine if animation is out of scope.")
 
 # ───────────────────────────────── two rules ──────────────────────────────
+section("Words You Will See")
+
+topic("Key Terms")
+body("These come up throughout the lesson. You do not need to memorise them; they are here so "
+     "nothing later depends on a word you have not met.")
+sub("HMIS")
+body("Homeless Management Information System. The system your CoC uses to record who has been "
+     "served and what they were given. Clarity is the software LAHSA uses for it.")
+sub("CoC — Continuum of Care")
+body("The regional body that coordinates homeless services and reports on them. Los Angeles has "
+     "one; you work inside it.")
+sub("Participant, and Client")
+body("This lesson says participant. The software says Client. They mean the same person. Both are "
+     "correct — one is how we talk about people, the other is what the screen is labelled.")
+sub("Record")
+body("Everything HMIS holds about one person: their identifying information, the programs they "
+     "have been enrolled in, the services they have received, who they are housed with.")
+sub("Unique Identifier")
+body("The short code under a participant's name in search results, like AD63C3FF2. It names one "
+     "record and nothing else, which is why you quote it when you report a problem.")
+sub("Duplicate")
+body("Two records for the same person. The thing this lesson exists to prevent.")
+sub("Data quality")
+body("How complete and accurate a record is — whether the name is full, whether the date of birth "
+     "is exact, whether the Social Security Number is there. It is recorded on the record itself, "
+     "not just implied.")
+note("A short screen, or a reference panel the learner can open at any point rather than a screen "
+     "they have to sit through. Consider the latter.")
+
 section("Two Rules Before You Touch the Keyboard")
 
 topic("Assume a Record Already Exists")
@@ -328,9 +510,7 @@ body("Keep the note to what you need — a name and a date of birth. Do not writ
      "Security Number, use an agency device rather than a personal one where you can, and get rid "
      "of the note once the information is in HMIS. It is a participant's identifying information "
      "and it is your responsibility for as long as you are carrying it.")
-ask("Author question: confirm this matches LAHSA's data-handling policy for field notes. The "
-     "earlier draft says to note the name and DOB or SSN on paper or in a phone's Notes app; the "
-     "wording above deliberately stops short of the SSN.")
+ask(4)
 
 topic("The Order to Ask In")
 body("First name, last name, date of birth. That is the order, and it is the order because it is "
@@ -407,9 +587,7 @@ body("The difference is worth reading. A refusal is settled; a gap is not. If a 
 body("The rule that goes with it: you may not decide on someone's behalf. Do not record a "
      "refusal without asking, and never use it to mean that you do not know the answer.")
 note("Definitions are the standard ones; a source link goes here in the sourcing pass.")
-ask("Author question: our simulation displays Client refused. The wording in current guidance is "
-     "Client prefers not to answer. Confirm which one Clarity actually shows on the record page — "
-     "the lesson should use whatever the learner will see, and the simulation should match it.")
+ask(5)
 
 topic("Reading the Results")
 body("Each result shows the participant's name, their date of birth and age, and the last four "
@@ -418,8 +596,7 @@ note("The ROI column is dimmed in the simulation for this lesson — see Buildin
      "Nothing needs to be said about it, so nothing is.")
 body("A word about wording. This lesson says participant. The software says Client. They mean the "
      "same person.")
-ask("Author question: confirm the team wants participant used in narration throughout, with the "
-     "software's own label acknowledged once here.")
+ask(6)
 
 # ───────────────────────────────── empty search ───────────────────────────
 section("When Search Comes Up Empty")
@@ -429,6 +606,12 @@ body("You have searched and found nothing. Before you conclude the participant i
 topic("Alternate Names")
 body("Ask the participant what else they have been called: a middle name, a second last name, a "
      "nickname, a shortened name. Confirm the spelling of each one.")
+body("Some of what you hear will not be a nickname at all. A participant may give you the name "
+     "they use — a chosen name, or the name that fits who they are — while the record was created "
+     "under a different one. Ask for both, without making it a thing: the name they go by, and "
+     "any other name a record might be under. Search on both, and address them by the one they "
+     "gave you.")
+ask(16)
 body("Ask to see any identification or written documentation. It is the fastest way to discover a "
      "name nobody thought to mention.")
 
@@ -446,8 +629,7 @@ body("If you are working in street outreach, search using the Outreach module. E
      "at or near that location.")
 note("The Outreach module is not part of this lesson's simulation. Taught with a short screen "
      "recording — enough to know the search exists and when to reach for it.")
-ask("Author question: should the Outreach module be demonstrated here, or held for a dedicated "
-     "outreach lesson? It is the one step in this list the practice cannot cover.")
+ask(7)
 
 topic("Ask Your Data Staff")
 body("If you have time and your organisation has data staff, ask them. They search differently and "
@@ -493,8 +675,7 @@ note("Production consequence worth stating plainly: this only works if the lesso
      "simulation and one record of what the learner has unlocked. That is an argument for "
      "building the series on the common simulation this lesson already uses, rather than "
      "rebuilding the interface per lesson.")
-ask("Author question: is there appetite for the unlock treatment across the series? It is the "
-     "one thing here that needs a decision before the second lesson is built rather than after.")
+ask(8)
 
 # ───────────────────────────────── practice ───────────────────────────────
 section("Practice: Finding a Participant")
@@ -518,11 +699,7 @@ note("Every task below traces to a paragraph of script_finding_a_participant_v3;
 note("Scoring, which is the same for every task: ten points if they find it first time without a "
      "hint, five otherwise. Eighty per cent passes. There is no skip, and the hint is always "
      "available.")
-ask("Author question: the pass mark and the cost of a hint need confirming together. As it stands "
-     "a learner who takes a hint on six of the fourteen tasks cannot reach eighty per cent no "
-     "matter how well they do on the rest — and the lesson does not tell them. Options are to "
-     "lower the pass mark, make hints free, or make the practice unscored and let the knowledge "
-     "check carry the grade.")
+ask(9)
 
 def emit_task(t, num=None):
     """One task, documented the way a reviewer needs to read it: the situation the
@@ -605,15 +782,9 @@ body("Stop entering data into it. Note what you have entered and when, and send 
      "Identifier to HMIS Support with what you found. The longer a mistaken record is worked in, "
      "the harder it is to unpick, and a record that has been added to by two agencies is a much "
      "bigger job than one caught the same day.")
-ask("Author question: is this the right route for a mis-identified record — the same HMIS Support "
-     "ticket as a duplicate, or a different process? The draft does not cover it and it happens.")
+ask(10)
 
-ask("Author question: the brainstorm raised the CLNT-125 client summary report as a quick way to "
-    "see everything gathered about a person — profile, program history, demographics, service "
-    "history, contact information — on one page rather than reading through the record. As a "
-    "verification aid that is a good fit for this lesson. It was parked because client-level "
-    "reports were not yet available in the new interface. Worth re-checking; if it is available "
-    "now, it belongs in this section.")
+ask(11)
 
 topic("Record the Match, Then Keep Looking")
 body("If you decide the record is a match, note it down — then go back to search and look for "
@@ -670,11 +841,7 @@ body("When name and date of birth cannot separate two records, the rest of the r
 body("Confirm it with them rather than assuming. People move, and a location recorded a year ago "
      "proves less than one recorded last month — treat it as one identifier among several, not as "
      "the answer on its own.")
-ask("Author question: this task is new, requested in review, and is not built yet. It needs "
-     "location history on the client record page, which the simulation does not show today. "
-     "Confirm the scenario is realistic — in particular whether location in Clarity is granular "
-     "enough to distinguish two people this way, or whether it is recorded loosely enough that "
-     "this would mislead.")
+ask(12)
 
 # ---- Task 12, requested in review: the hard one ---------------------------
 topic("Task 12 — Everything at Once")
@@ -701,10 +868,7 @@ body("Veteran status is a field on the record, and it is worth remembering preci
      "the thing they mentioned in passing is often what closes it.")
 body("And notice what you did not do. You did not conclude he was new because three searches came "
      "back empty.")
-ask("Author question: this task is new, requested in review, and is not built yet. It needs a "
-     "roster entry with no DOB, no SSN, veteran status set, and two near-miss surnames. Confirm "
-     "the scenario is fair — in particular whether a learner can reasonably be expected to try "
-     "Rey after Reyes and Reyez fail, or whether the hint should come sooner.")
+ask(13)
 
 emit_task(TASKS[10], num=13)   # more than one record matches
 emit_task(TASKS[11], num=14)   # a genuine duplicate
@@ -723,6 +887,27 @@ num("Create a record, if you need a Unique Identifier for the participant right 
 body("What is not an option is creating a record and saying nothing.")
 
 # ───────────────────────────────── knowledge check ────────────────────────
+section("Production Standards")
+
+topic("Accessibility")
+body("Applies to every screen in this lesson, and to the practice simulation.")
+bullet("Narration is captioned, and a transcript is available on the page.")
+bullet("Every image that carries meaning has alternative text. Images that are decorative are "
+       "marked as decorative rather than described.")
+bullet("Colour is never the only way something is signalled — a correct answer, a dimmed control "
+       "or an alert also carries text or a shape.")
+bullet("Everything the learner must do can be done from the keyboard, including the search field, "
+       "the results table and opening a record.")
+bullet("Text can be resized without content being cut off or overlapping.")
+bullet("Contrast meets WCAG 2.1 AA. This includes the dimmed controls, which must read as "
+       "unavailable without becoming invisible.")
+bullet("Nothing depends on hearing alone, and nothing depends on a timed response.")
+note("LAHSA is a public agency and this training is federally adjacent, so Section 508 and "
+     "WCAG 2.1 AA are the standard to build to, not to retrofit. The dimming treatment described "
+     "earlier is the one place where accessibility and design pull against each other — dimmed "
+     "still has to be legible.")
+ask(17)
+
 section("Knowledge Check")
 note("Scored knowledge check. Correct answers in green, incorrect in orange. Randomise answer "
      "order. Every option needs feedback text, not just a right-or-wrong mark — the feedback for "
@@ -778,10 +963,7 @@ note("Feedback: creating a record is the last step, not the second one. An empty
      "search has not found them yet — it is not evidence that they are new. And when you do create "
      "one, send the Unique Identifier to HMIS Support and ask them to double-check.")
 
-ask("Author question: does the knowledge check carry the grade for this lesson, or the practice, "
-     "or both? If the lesson is delivered in Rise with the simulation embedded, the simulation "
-     "cannot report a score to the course — so the knowledge check would have to be the graded "
-     "instrument, and the practice becomes ungraded rehearsal.")
+ask(14)
 
 # ───────────────────────────────── job aid ────────────────────────────────
 section("Take This With You")
@@ -810,8 +992,7 @@ bullet("Empty result is not proof they are new.")
 bullet("Never merge, never delete. Report both Unique Identifiers to HMIS Support.")
 note("Downloadable one-page PDF, and the same content as an on-screen summary for anyone who will "
      "not download it. Sized to be readable on a phone.")
-ask("Author question: is there a house format for job aids this should follow, and does anything "
-     "need to go on it that is not in the list above?")
+ask(15)
 
 # ───────────────────────────────── summary ────────────────────────────────
 section("Summary")
