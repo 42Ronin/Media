@@ -161,8 +161,14 @@ as the package.
 
 ## The script is the source of truth for copy
 
-`HMIS BNTS - Search/Script - HMIS BNTS Lesson 1 - Finding a Participant.docx` is the approved
-lesson script, written in the team's established format — legend table, table of contents,
+`HMIS BNTS - Search/Script - HMIS BNTS Lesson 1 - Finding a Participant.docx` is the
+lesson script. **It is generated** — edit `HMIS BNTS - Search/script/make_script.py` and
+rebuild; never hand-edit the docx. Every task in it is transcribed from the built lesson
+via `script/extract_tasks.mjs`, so the script documents the situation, instruction, hint,
+correct record and feedback exactly as the learner meets them. Authority still runs
+script → build: the script is approved first and the build follows it.
+
+It is written in the team's established format — legend table, table of contents,
 bold+underline sections, italic production notes, green/orange knowledge-check answers, red
 questions back to the author. Task titles and teaching copy in the build track that script.
 **Change the script first, then the build.**
