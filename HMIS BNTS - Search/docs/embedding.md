@@ -23,9 +23,12 @@ material.
 
 | Route | Reports to the course? | Cost |
 |---|---|---|
-| **Rise Embed block** | No — ungraded practice | Needs the file hosted at a URL |
+| **Uploaded into Rise** | No — ungraded practice | None. Rise carries the file. |
 | **Storyline block inside Rise** | Yes — score, completion, gating | Build a one-slide Storyline project |
 | **Its own SCORM package** | Yes — direct to the LMS | It is a separate course, not part of the Rise one |
+
+Uploading solves *hosting*. It does not solve *reporting* — that is the no-scripting
+constraint above, and it holds however the file gets in.
 
 Rise supports inserting a Storyline block into a Rise course, and Storyline *does* have
 JavaScript triggers and variables. So if the score has to flow, the shape is:
@@ -101,23 +104,24 @@ window.addEventListener("message", function (e) {
 Then a normal Storyline trigger — *when `simDone` changes, jump to the next slide*, or
 *submit results* — and the Next button stays disabled until the simulation says so.
 
-## Hosting
+## Hosting: upload it to Rise
 
-The Rise Embed block takes a URL, so the file has to live somewhere reachable:
+Rise takes the HTML file directly and carries it in the course. That is the route to use.
+It is a single 212 KB file with no dependencies, no network calls and no relative paths —
+exactly the shape that survives being uploaded and served by something else.
 
-- **HTTPS.** If the LMS is on HTTPS and the simulation is on HTTP, the browser blocks it
-  and the block renders empty.
-- **Iframe-able.** The host must not send `X-Frame-Options: DENY` or a restrictive
-  `frame-ancestors`. SharePoint in particular often refuses to be framed — check before
-  choosing it.
-- **Stable.** The URL is baked into the published Rise course; moving the file breaks
-  every published copy.
+It also disposes of everything an external URL would have dragged in: no separate host, no
+HTTPS mismatch, no `X-Frame-Options` negotiation, and no stable-URL problem where moving
+the file breaks every published copy of the course.
 
-It is a single 212 KB file with no dependencies, so any static host will do.
+**But it makes the SCORM guard load-bearing.** A file Rise serves is served from the same
+origin as the Rise course, which is precisely the case where this lesson's old frame-walk
+would have reached `window.API` and found *Rise's* SCORM session. An externally hosted
+copy would have been saved by the browser's cross-origin rules; an uploaded one would not.
+Do not remove the `?scorm=1` guard.
 
-Putting the file *inside* the published Rise package and pointing the embed at a relative
-path does work, but the change is lost every time Rise is republished. Not recommended
-unless someone owns that step.
+If Rise sandboxes the frame it embeds, that is fine either way — `postMessage` works
+through a sandboxed frame, and the guard means we were never going to touch the API.
 
 ## Two limits to know before you build around it
 
