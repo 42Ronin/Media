@@ -147,6 +147,29 @@ Reporting to a host goes over `postMessage` as `{source:"hmis-sim", type, …}` 
 `task`, `complete`. Tests cover both halves: silent when embedded, reporting when launched
 as the package.
 
+## Where this lesson sits — HMIS Essentials
+
+The existing course is **HMIS Essentials (v1.1.0)** on `cta.lahsa.org`. Its five training
+objectives are the series' decomposition, and they were approved long before this project:
+
+1. Identify the reasons why using HMIS correctly to enter data is important
+2. **Search and find a participant's HMIS record to learn their back story** ← this lesson
+3. Correctly create a new HMIS record for a participant that does not have one
+4. Enroll a participant into a program and perform services, run an assessment, write a case
+   note, and upload documents
+5. Access the HMIS Knowledge Base to further expand your HMIS knowledge
+
+Two consequences, both live questions in the script:
+
+- **Objective 01 is not ours.** "Why entering data correctly matters" is most of what our
+  Introduction and Key Terms slides do. If Essentials stays, we are teaching it twice.
+- **Objective 02 is narrower than what we built.** Find the right person and read their
+  history: clearly in. Choosing between three matching records and reporting duplicates to
+  HMIS Support: probably not — those are the last two tasks.
+
+Objectives on the Essentials slide are numbered `01`–`05` in a light serif against a solid
+teal panel. Ours follow that treatment.
+
 ## Field practice, from the user — outranks the draft where they conflict
 
 - **Search order is first name, last name, DOB. SSN comes later.** The vetted draft says to

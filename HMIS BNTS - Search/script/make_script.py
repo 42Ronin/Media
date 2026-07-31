@@ -226,6 +226,22 @@ OPEN_QUESTIONS = [
         "legitimate-purpose or minimum-necessary rule? A search lesson is where that would land, "
         "and this draft says nothing about it."
     ),
+    (
+        "does the Basic New Trainee Series replace HMIS Essentials (v1.1.0) or sit alongside it? "
+        "It matters more than it sounds. Essentials objective 01 — why entering data correctly "
+        "matters — is most of this lesson's Introduction and Key Terms. If Essentials stays, we "
+        "are teaching it twice and this lesson can lose about eight minutes by pointing at it "
+        "instead. If BNTS replaces Essentials, the intro material has to live somewhere in the "
+        "series, and this is the wrong lesson for it — it wants to be its own."
+    ),
+    (
+        "Essentials objective 02 is \u201csearch and find a participant\u2019s HMIS record to "
+        "learn their back story\u201d. That is this lesson, and it is narrower than what is "
+        "currently written. Confirm the boundary: finding the right person and reading their "
+        "history is clearly in. Choosing between three matching records, and reporting duplicates "
+        "to HMIS Support, may belong with data quality or with Essentials objective 01. Tasks 13 "
+        "and 14 are the ones in question."
+    ),
 ]
 
 # ───────────────────────────────── title + key ────────────────────────────
@@ -311,7 +327,8 @@ d.add_paragraph()
 # ───────────────────────────────── contents ───────────────────────────────
 section("Table of Contents")
 toc = [
-    ("Introduction", ["Course Navigation", "Course Overview", "Objectives", "Lesson Structure",
+    ("Introduction", ["Course Navigation", "Course Overview", "Objectives",
+                      "Where This Lesson Sits", "Lesson Structure",
                       "Before You Start", "Someone Asks You for an Update", "How This Lesson Runs",
                       "Why Searching Thoroughly Matters"]),
     ("Words You Will See", ["Key Terms"]),
@@ -390,12 +407,24 @@ note("Opening screen. Course title, estimated time, and a Begin button. The Begi
      "satisfies the browser requirement that the learner interact with the page before audio can play.")
 
 topic("Objectives")
-body("This lesson has three objectives. By the end of it, you will")
-num("Say what HMIS is and what it is used for.")
-num("Use search properly, and explain why searching diligently matters.")
-num("Explain why capturing a participant's information accurately matters.")
-body("Meeting these lays the groundwork for everything else in the series — every lesson that "
-     "follows assumes you can find the right person first.")
+body("This lesson has four objectives. By the end of it, you will")
+num("Search HMIS on partial or uncertain information — a fragment of a name, a year, four "
+    "digits — and find a participant's record.")
+num("Recover a search that returns nothing, and narrow one that returns too much.")
+num("Confirm that the record you found belongs to the person in front of you.")
+num("Read a participant's history from their record, and explain why finding the right one "
+    "decides what they have access to.")
+body("Meeting these lays the groundwork for everything that follows — every lesson after this "
+     "one assumes you can find the right person first.")
+note("Numbered 01 to 04 down the right, against a solid colour panel carrying the slide title, "
+     "matching HMIS Essentials. Reveal one at a time if the build allows it.")
+note("These are written to sit under objective 02 of HMIS Essentials — search and find a "
+     "participant's HMIS record to learn their back story — rather than restating it. The "
+     "earlier draft of this slide had two of its three objectives sitting under Essentials "
+     "objective 01 instead, which is what had this lesson teaching an introduction it does not "
+     "own.")
+ask(18)
+ask(19)
 note("On screen as a numbered list before the lesson proper, the way the HUD Exchange courses "
      "open. Three, not more.")
 note("Where each is taught and where it is checked — for review, not for the learner:")
@@ -406,6 +435,20 @@ note("2. Using search, and why diligence matters — taught in How Search Works 
 note("3. Why accurate information matters — taught in Verify, What You Found and Why Accuracy on "
      "the Way In Matters; practised in tasks 9 to 14; checked by knowledge-check questions 3, 4 "
      "and 5.")
+
+topic("Where This Lesson Sits")
+body("HMIS Essentials sets out what a new user has to be able to do. This lesson is the second "
+     "of those things.")
+num("Identify the reasons why using HMIS correctly to enter data is important.")
+num("Search and find a participant's HMIS record to learn their back story.  \u2190 this lesson")
+num("Correctly create a new HMIS record for a participant that does not have one.")
+num("Enroll a participant into a program and perform services, run an assessment, write a case "
+    "note, and upload documents.")
+num("Access the HMIS Knowledge Base to further expand your HMIS knowledge.")
+body("Everything here serves the second one. Where this lesson touches the others, it gives you "
+     "what you need and no more.")
+note("Reviewer-facing as much as learner-facing. If this list is on screen at all it should be "
+     "as a series map with the current lesson marked, not read aloud in full.")
 
 topic("Lesson Structure")
 body("This lesson has five parts.")
