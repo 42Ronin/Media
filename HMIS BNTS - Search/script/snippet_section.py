@@ -3,9 +3,15 @@
 editing by hand.
 
     python3 snippet_section.py "When Search Comes Up Empty"
+    python3 snippet_section.py "When Search Comes Up Empty" 12
 
 Copies the real elements — paragraphs, tables, formatting — so what lands in the
 draft is exactly what the script says, not a re-rendering of it.
+
+The optional second argument renumbers the slides. The generator numbers sections
+by their position in its own running order, which is not the numbering in a draft
+someone is editing by hand — so pass the number the draft actually uses and the
+slides come out as 12.1, 12.2 and so on.
 """
 import copy
 import os
@@ -19,6 +25,7 @@ from docx import Document
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WANTED = sys.argv[1] if len(sys.argv) > 1 else "When Search Comes Up Empty"
+RENUMBER = sys.argv[2] if len(sys.argv) > 2 else None
 
 src = Document(os.path.join(HERE, "script_l1_v3.docx"))
 
@@ -44,6 +51,14 @@ out.styles["Normal"].font.name = src.styles["Normal"].font.name
 out.styles["Normal"].font.size = src.styles["Normal"].font.size
 for el in items[i:j]:
     out.element.body.insert(len(out.element.body) - 1, copy.deepcopy(el))
+
+if RENUMBER:
+    for p in out.paragraphs:
+        m = re.match(r"^(Slide )(\d+)(\.\d+ .*)$", p.text)
+        if not m:
+            continue
+        for r in p.runs:            # the heading is one run, but do not assume it
+            r.text = re.sub(r"^Slide \d+\.", f"Slide {RENUMBER}.", r.text)
 
 slug = re.sub(r"[^a-z0-9]+", "-", WANTED.lower()).strip("-")
 OUT = os.path.join(HERE, f"section-{slug}.docx")

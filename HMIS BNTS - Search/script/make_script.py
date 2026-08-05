@@ -183,6 +183,9 @@ d.add_paragraph()
 
 # ───────────────────────────────── contents ───────────────────────────────
 section("Table of Contents")
+def _t(n):
+    return f"Task {TASKS[n]['n']} — {TASKS[n]['title']}"
+
 toc = [
     ("Introduction", ["Course Navigation", "Course Overview", "Objectives",
                       "Where This Lesson Sits", "Lesson Structure",
@@ -191,25 +194,27 @@ toc = [
     ("Words You Will See", ["Key Terms"]),
     ("Two Rules Before You Touch the Keyboard", ["Assume a Record Already Exists",
                                                  "Never Create Before You Search"]),
-    ("Preparing to Search", ["What to Collect First", "The Order to Ask In", "Confirm the Spelling"]),
+    ("Preparing to Search", ["What to Collect First", "The Order to Ask In",
+                             "Confirm the Spelling"]),
     ("How Search Works", ["Why It Is These Three", "One Bar, Many Kinds of Information",
-                          "Searching by Name",
-                          "Searching by Date of Birth", "Searching by Social Security Number",
-                          "Reading the Results"]),
-
+                          "Searching by Name", "Searching by Date of Birth",
+                          "Searching by Social Security Number", "Reading the Results"]),
     ("How the Practice Tool Is Built", ["Only What This Lesson Needs", "Earning the Rest"]),
-    ("Practice: Finding a Participant",
-     ["How the Practice Works"] +
-     [f"Task {t['n']} — {t['title']}" for t in TASKS[:8]] +
-     ["Checkpoint: From Finding to Verifying"]),
-    ("Verify: Is This the Right Person?", ["First Level: Photo and Documents",
-                                           "Second Level: Two of Three", "Still Unsure",
-                                           "If You Later Find You Were Wrong",
-                                           "Record the Match, Then Keep Looking"]),
-    ("What You Found", ["No Matching Record", "One Matching Record", "Several Matching Records",
-                        "Choosing Which Record to Work From"]),
-    ("Practice: Verifying a Record",
-     [f"Task {t['n']} — {t['title']}" for t in TASKS[8:]]),
+    ("Practice: The Sandbox",
+     ["How the Practice Works",
+      "Round 1 — The Name You Were Given", _t(0), _t(1),
+      "Round 2 — When You Only Have a Piece", _t(2), _t(3),
+      "Round 3 — Too Many, and Then None", _t(4), _t(5),
+      "Round 4 — Written Down Differently", _t(6), _t(7),
+      "Halfway — From Finding to Verifying",
+      "Verify: Is This the Right Person?", "First Level: Photo and Documents",
+      "Second Level: Two of Three", "Still Unsure", "If You Later Find You Were Wrong",
+      "Record the Match, Then Keep Looking",
+      "What You Found", "No Matching Record", "One Matching Record",
+      "Several Matching Records", "Choosing Which Record to Work From",
+      "Round 5 — Which One of These Is Them", _t(8), _t(9), _t(10),
+      "Round 6 — Everything at Once", _t(11), _t(12),
+      "Out of the Sandbox"]),
     ("When Search Comes Up Empty", ["Somebody Nobody Can Find", "Alternate Names",
                                     "Alternate Spellings", "Start Over From a Different Fact",
                                     "Ask Your Data Staff", "Only Then, Create a Record"]),
@@ -219,6 +224,7 @@ toc = [
                  "Lesson Closing", "Survey"]),
     ("Production Standards", ["Accessibility"]),
 ]
+
 for _si, (sec, tops) in enumerate(toc, start=1):
     para(f"{_si}. {sec}", bold=True, space_after=2)
     for _ti, t in enumerate(tops, start=1):
@@ -552,40 +558,9 @@ note("Production consequence worth stating plainly: this only works if the lesso
      "rebuilding the interface per lesson.")
 
 # ───────────────────────────────── practice ───────────────────────────────
-section("Practice: Finding a Participant")
-
-topic("How the Practice Works")
-body("What follows is a practice version of Clarity. It behaves the way the real system behaves. "
-     "Everyone in it is invented — nothing you do here touches a real record.")
-body("You will be given thirteen situations. Each one is a person standing in front of you and "
-     "something they have told you. Your job is to find their record — and, later, to prove it is "
-     "the right one.")
-body("The practice roster holds three hundred people. The live system holds hundreds of "
-     "thousands. A search that returns a readable handful here can return pages there — so the "
-     "habit to build is to narrow before you scan, not to scroll.")
-note("Interactive simulation begins. The lesson panel sits to the left of the simulated "
-     "interface and carries the situation, the instruction and the feedback. No score, no skip, "
-     "and a hint whenever it is asked for.")
-note("Every task below traces to a paragraph of script_finding_a_participant_v3; the reference is "
-     "given under each so the mapping can be checked. Each task is documented in full — the "
-     "situation, the instruction, the hint, the record that is correct, and the feedback — so this "
-     "script can be reviewed without opening the simulation.")
-note("The practice is not scored. It is practice — the learner works each situation until they "
-     "find the record, hints are free and unlimited, and nothing here counts towards passing. "
-     "The knowledge check carries the grade, at eighty per cent.")
-note("That is deliberate. Searching well means searching repeatedly: clear the box, type "
-     "something else, watch the list change, try again. A score would punish exactly the "
-     "behaviour the lesson is trying to build.")
-note("Unscored does not mean optional. Every task has to be completed before the learner moves "
-     "on — there is no skip and no passing over one that will not come. Hints escalate as they "
-     "are asked for, ending with one that names the search outright, so nobody is stuck "
-     "permanently. But they type it themselves and they see it work.")
-
-
 def kv_table(rows, label_width=1.45):
-    """Two-column label/value table. The task specifications read as a run of
-    sub-headings before this — six of them per task, thirteen tasks — which is
-    accurate and very hard to scan. A table says the same thing at a glance."""
+    """Two-column label/value table. A run of sub-headings per task is accurate
+    and very hard to scan; a table says the same thing at a glance."""
     t = d.add_table(rows=len(rows), cols=2)
     t.style = "Table Grid"
     t.alignment = WD_TABLE_ALIGNMENT.LEFT
@@ -593,49 +568,130 @@ def kv_table(rows, label_width=1.45):
         c0, c1 = t.rows[i].cells
         c0.width = Inches(label_width)
         c1.width = Inches(6.5 - label_width)
-        lr = c0.paragraphs[0].add_run(label)
-        lr.bold = True
-        values = value if isinstance(value, list) else [value]
-        for j, v in enumerate(values):
+        c0.paragraphs[0].add_run(label).bold = True
+        for j, v in enumerate(value if isinstance(value, list) else [value]):
             p = c1.paragraphs[0] if j == 0 else c1.add_paragraph()
-            vr = p.add_run(v)
-            vr.italic = italic
+            p.add_run(v).italic = italic
     d.add_paragraph()
     return t
 
 
 def emit_task(t):
-    """One task, documented the way a reviewer needs to read it: the situation the
-    learner is put in, what they are asked to do, the help available, the record
-    that is correct, and the words they get back when they find it."""
+    """One situation, documented the way a reviewer needs to read it: what the
+    learner is put in front of, what they are asked to do, the help available,
+    the record that is correct, and the words they get back when they find it."""
     topic(f"Task {t['n']} — {t['title']}")
     rows = [
-        ("Draft reference", t["draft_ref"],  True),
-        ("Situation",       t["situation"],  False),
-        ("Instruction",     t["instruction"],False),
-        ("Hint",            t["hint"],       False),
-        ("Correct record",  t["answer"],     False),
-        ("Feedback",        t["feedback"],   False),
+        ("Draft reference", t["draft_ref"],   True),
+        ("Situation",       t["situation"],   False),
+        ("Instruction",     t["instruction"], False),
+        ("Hint",            t["hint"],        False),
+        ("Correct record",  t["answer"],      False),
+        ("Feedback",        t["feedback"],    False),
     ]
     if not t["built"]:
         rows.insert(1, ("Status", "Specified here; not built in the simulation yet.", True))
     kv_table(rows)
 
 
-for _t in TASKS[:8]:
+section("Practice: The Sandbox")
+
+topic("How the Practice Works")
+body("What follows is a practice version of Clarity. It behaves the way the real system behaves. "
+     "Everyone in it is invented — nothing you do here touches a real record.")
+body("You open it once. You do not leave it again until the practice is finished.")
+body("Thirteen people will come to you, in six rounds. Each round is harder than the one before "
+     "it, and each round needs everything the rounds before it taught you — the techniques do "
+     "not get retired, they get added to. By the last round you are choosing which one to reach "
+     "for without being told.")
+body("The practice roster holds three hundred people. The live system holds hundreds of "
+     "thousands. A search that returns a readable handful here can return pages there — so the "
+     "habit to build is to narrow before you scan, not to scroll.")
+note("One simulation, opened at this point and held open for the whole practice. The learner "
+     "does not return to a slide between situations — the panel on the left changes, the search "
+     "bar and the results stay where they are. That continuity is the point: it is one sitting at "
+     "one screen, which is what the work is.")
+note("Rounds are marked in the panel — Round 1 of 6 — with a line naming what this round adds. "
+     "Between rounds the panel pauses for a Continue rather than cutting away to a slide.")
+note("The practice is not scored. It is practice — the learner works each situation until they "
+     "find the record, hints are free and unlimited, and nothing here counts towards passing. "
+     "The knowledge check carries the grade, at eighty per cent.")
+note("That is deliberate. Searching well means searching repeatedly: clear the box, type "
+     "something else, watch the list change, try again. A score would punish exactly the "
+     "behaviour the lesson is trying to build.")
+note("Unscored does not mean optional. Every situation has to be worked before the learner moves "
+     "on — there is no skip. Hints escalate as they are asked for, ending with one that names "
+     "the search outright, so nobody is stuck permanently. But they type it themselves and they "
+     "see it work.")
+note("Every situation traces to a paragraph of script_finding_a_participant_v3; the reference is "
+     "given under each. Each is documented in full — the situation, the instruction, the hint, "
+     "the record that is correct, and the feedback — so this can be reviewed without opening the "
+     "simulation.")
+
+topic("Round 1 — The Name You Were Given")
+kv_table([
+    ("What this round adds",
+     "That the name you are told is not always the name on the record, and that an empty result "
+     "is the start of the work rather than the end of it.", False),
+    ("What it re-uses", "Nothing yet. This is the floor.", False),
+    ("Situations", "Two.", False),
+])
+
+for _t in TASKS[0:2]:
     emit_task(_t)
 
-topic("Checkpoint: From Finding to Verifying")
-body("That is the search half. You now have every documented way in: a name fragment, a year, four "
-     "digits of an SSN, an alternate spelling, a term added to narrow, and a term swapped when "
-     "nothing came back.")
-body("Finding a candidate record is not the same as finding the right one. The rest of this lesson "
-     "is verifying: proving a record belongs to the person in front of you, and deciding what to do "
-     "when more than one does.")
-note("Non-scored beat between the search tasks and the verification tasks. Continue button only.")
+topic("Round 2 — When You Only Have a Piece")
+kv_table([
+    ("What this round adds",
+     "Working from a fragment of something rather than the whole of it — four digits of an SSN, "
+     "the first few letters of a name.", False),
+    ("What it re-uses",
+     "Round 1. Both of these people are also filed under something other than what you were "
+     "told, so you are still not taking the first answer as final.", False),
+    ("Situations", "Two.", False),
+])
+
+for _t in TASKS[2:4]:
+    emit_task(_t)
+
+topic("Round 3 — Too Many, and Then None")
+kv_table([
+    ("What this round adds",
+     "The two failures that look opposite and are not: a search that returns more than you can "
+     "read, and one that returns nothing at all. Adding a term narrows. Swapping a term recovers.", False),
+    ("What it re-uses",
+     "Rounds 1 and 2 — you are narrowing and swapping with fragments, not full values.", False),
+    ("Situations", "Two.", False),
+])
+
+for _t in TASKS[4:6]:
+    emit_task(_t)
+
+topic("Round 4 — Written Down Differently")
+kv_table([
+    ("What this round adds",
+     "That somebody typed this record while listening. C and K, I and Y, a compound surname run "
+     "together into one word.", False),
+    ("What it re-uses",
+     "All of it. You are searching fragments, you are not trusting the first empty result, and "
+     "you are choosing which part of the name to keep.", False),
+    ("Situations", "Two.", False),
+])
+
+for _t in TASKS[6:8]:
+    emit_task(_t)
+
+topic("Halfway — From Finding to Verifying")
+body("Four rounds in. You now have every documented way in: a name fragment, a year, four digits "
+     "of an SSN, an alternate spelling, a term added to narrow, and a term swapped when nothing "
+     "came back.")
+body("The two rounds left are a different problem. Finding a candidate record is not the same as "
+     "finding the right one — and from here the search is the easy half.")
+note("A pause inside the sandbox, not a screen away from it. The panel stops for a Continue; the "
+     "simulation stays on screen behind it.")
 
 # ───────────────────────────────── verify ─────────────────────────────────
-section("Verify: Is This the Right Person?")
+topic("Verify: Is This the Right Person?")
 body("Finding a candidate record is not the same as finding the right one. Verifying is a separate "
      "step and it has an order.")
 
@@ -682,7 +738,7 @@ body("If you decide the record is a match, note it down — then go back to sear
      "others. Finding one match does not mean there is only one.")
 
 # ───────────────────────────────── outcomes ───────────────────────────────
-section("What You Found")
+topic("What You Found")
 
 topic("No Matching Record")
 body("Create a new HMIS record for this participant.")
@@ -703,13 +759,41 @@ body("Note the Unique Identifiers of the others as you go, so you are not starti
 note("Removed from this lesson: submitting the list of matching records to HMIS Support. "
      "Reporting duplicates is not part of this training.")
 
-section("Practice: Verifying a Record")
-body("Five more situations. This time finding a candidate record is the easy half — the "
-     "question is whether it is the right person, and what to do when more than one record "
-     "could be.")
+topic("Round 5 — Which One of These Is Them")
+kv_table([
+    ("What this round adds",
+     "Reading past the identifiers. Two of three before you call it a match, and what to do when "
+     "there is no third thing to check — the household, the location, whatever the record holds "
+     "that the person in front of you can confirm.", False),
+    ("What it re-uses",
+     "Every search technique from rounds 1 to 4. Finding the candidates is no longer the "
+     "difficulty; you will have them on screen in one search.", False),
+    ("Situations", "Three.", False),
+])
 
-for _t in TASKS[8:]:      # the five verification tasks, all built now
+for _t in TASKS[8:11]:
     emit_task(_t)
+
+topic("Round 6 — Everything at Once")
+kv_table([
+    ("What this round adds",
+     "Nothing new, and that is the point. Nobody tells you which technique this needs. One of "
+     "these takes several searches before anything works; the other gives you three records that "
+     "are all the same person and asks you to choose.", False),
+    ("What it re-uses",
+     "All five rounds. Alternate names, alternate spellings, fragments, the year, narrowing, and "
+     "reading past the identifiers.", False),
+    ("Situations", "Two.", False),
+])
+
+for _t in TASKS[11:]:
+    emit_task(_t)
+
+topic("Out of the Sandbox")
+body("Thirteen people, six rounds, one screen. You did not learn thirteen tricks — you learned "
+     "six or seven, and then used them in combinations nobody told you to use.")
+note("The simulation closes here for the first time since the practice began. It opens again for "
+     "the scenario in When Search Comes Up Empty, which is the same sandbox and the same roster.")
 
 # ───────────────────────────────── empty search ───────────────────────────
 section("When Search Comes Up Empty")

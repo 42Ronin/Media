@@ -60,9 +60,17 @@ elements so what lands in the draft is exactly what the script says:
 
 ```bash
 python3 snippet_section.py "When Search Comes Up Empty"
+python3 snippet_section.py "When Search Comes Up Empty" 12
 ```
 
 Run it with a name it does not recognise and it prints the sections it does.
+
+**The second argument matters more than it looks.** The generator numbers sections by
+their position in its own running order. A draft someone is editing by hand has its own
+numbering, and any structural change here — merging two sections, moving one — shifts
+every number after it. Pass the number the draft actually uses and the slides come out
+matching it. Do not renumber somebody else's document by handing them a snippet that
+disagrees with it.
 
 The output is gitignored; regenerate it rather than tracking it.
 
