@@ -453,8 +453,24 @@ ok('two records, neither with an SSN', (await names()).length === 2 &&
    await p.evaluate(() => search('Nguyen', []).rows.every(c => !c.s)));
 ok('only one of them has been at the 6th Street bridge', await p.evaluate(() =>
    search('Nguyen', []).rows.filter(c => (c.lo || []).some(e => e.p === '6th Street bridge')).length === 1));
+ok('location records carry a type and a recording method, and no invented date',
+   await p.evaluate(() => CLIENTS.filter(c => (c.lo || []).length).every(c => c.lo.every(e =>
+     e.p && e.ty && ['Address', 'Field Interaction'].includes(e.k) && e.d === undefined))));
 await p.click('#tb tr[data-row="6C2D91B47"]'); await p.waitForTimeout(250);
 ok('opening the one at the bridge passes task 11', (await p.textContent('#fb')).includes('Correct'));
+// Location is a tab on the record, the way the product has it — not a profile field
+ok('the Location tab is reachable', await p.$$eval('#recNav [data-tab="Location"]', e => e.length === 1));
+ok('the profile card does not carry location',
+   !(await p.textContent('#profGrid')).includes('6th Street bridge'));
+await p.click('#recNav [data-tab="Location"]'); await p.waitForTimeout(200);
+ok('the Location tab shows a map with lettered pins',
+   await p.$$eval('#locBody .pin', e => e.length === 2 && e[0].textContent.trim() === 'A'));
+ok('and lists each location with its type', await p.evaluate(() => {
+  const t = document.querySelector('#locBody').textContent;
+  return /6th Street bridge/.test(t) && /Encampment/.test(t) && /Field Interaction/.test(t);
+}));
+ok('Add Address is present but obstructed, since adding is not this lesson',
+   await p.$$eval('#locationPane .locbtn[data-locked]', e => e.length === 2));
 ok('the teaching keeps location as one identifier among several',
    (await p.textContent('#fb')).includes('not as the answer on its own'));
 await closeAll();

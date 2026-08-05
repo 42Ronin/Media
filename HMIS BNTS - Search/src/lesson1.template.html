@@ -220,10 +220,28 @@ tbody tr.open{background:var(--indigo-soft)}
 .kv{display:grid;grid-template-columns:170px 1fr;gap:10px 16px;font-size:14px}
 .kv dt{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding-top:2px}
 .kv dd{margin:0}
-.loclist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
-.loclist li{display:flex;gap:10px;align-items:baseline}
+.lochead{display:flex;align-items:center;gap:12px;background:#5b6b83;color:#fff;
+  padding:11px 16px;font-size:13px;letter-spacing:.09em;text-transform:uppercase;font-weight:700}
+.locacts{margin-left:auto;display:flex;gap:8px;align-items:center}
+.locbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:#fff;
+  font:inherit;font-size:12px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer}
+.locmap{position:relative;height:250px;background:
+  linear-gradient(0deg,rgba(0,0,0,.05) 1px,transparent 1px) 0 0/100% 34px,
+  linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px) 0 0/34px 100%,#eef1f4;
+  border-bottom:1px solid var(--line-2)}
+.pin{position:absolute;transform:translate(-50%,-100%);width:22px;height:22px;border-radius:50% 50% 50% 0;
+  rotate:-45deg;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:11px;
+  font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.pin>*{rotate:45deg}
+.loclist{list-style:none;margin:0;padding:8px 16px 14px}
+.loclist li{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:14px}
+.loclist li:last-child{border-bottom:0}
+.pinl{width:20px;height:20px;border-radius:50%;background:var(--indigo);color:#fff;display:grid;
+  place-items:center;font-size:11px;font-weight:700;flex:none}
 .locp{font-weight:600}
-.locd{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.loct,.lock{font-size:12.5px;color:var(--muted)}
+.lock{margin-left:auto}
+.locempty{padding:22px 16px;color:var(--muted);margin:0}
 
 /* ---------------- coach drawer ---------------- */
 .coach{position:fixed;top:26px;left:0;bottom:0;width:360px;background:var(--coach);color:var(--coach-ink);
@@ -313,7 +331,7 @@ tbody tr.open{background:var(--indigo-soft)}
         <div class="recbody">
           <nav class="recnav" id="recNav" aria-label="Client record"></nav>
 
-          <div class="card reccard">
+          <div class="card reccard" id="profilePane">
             <div class="cardhead">
               <div><h1 id="recCardName"></h1><p>Client profile information</p></div>
               <div style="margin-left:auto;display:flex;gap:4px">
@@ -322,6 +340,18 @@ tbody tr.open{background:var(--indigo-soft)}
               </div>
             </div>
             <div class="profgrid" id="profGrid"></div>
+          </div>
+
+          <div class="card reccard" id="locationPane" hidden>
+            <div class="lochead">
+              <span>Client Location</span>
+              <span class="locacts">
+                <button class="locbtn" data-locked>Add Address
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+                <button class="locbtn ic" data-locked aria-label="Use current location"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 3L3 10l8 3 3 8z"/></svg></button>
+              </span>
+            </div>
+            <div id="locBody"></div>
           </div>
 
           <div class="recrail" id="recRail"></div>
@@ -670,7 +700,7 @@ var TASKS=[
 { id:"location", title:"Where they have been staying",
   brief:'A man gives his name as <span class="q">David Nguyen.</span> Two records come back — both David Nguyen, both born in 1982. He does not know his Social Security Number and cannot remember which agency he last worked with. He does tell you he has been staying by the wash under the <b>6th Street bridge</b>, and has been for about a year.',
   ask:"Open the record whose location history matches where he has been staying.",
-  hint:"Name and date of birth cannot separate these two. Open each record and read <b>Location history</b> — one of them was contacted at the 6th Street bridge.",
+  hint:"Name and date of birth cannot separate these two. Open each record, go to the <b>Location</b> tab, and compare — one of them has been contacted at the 6th Street bridge.",
   expect:{type:"open", id:"6C2D91B47"},
   teach:"When name and date of birth cannot separate two records, the rest of the record can. In outreach, location is often the fastest of them: where someone has been contacted before is a fact you can both check, and it does not ask the participant to remember an agency name or a date. "+
         "Confirm it with them rather than assuming. People move, and a location recorded a year ago proves less than one recorded last month — treat it as one identifier among several, not as the answer on its own."
@@ -1259,7 +1289,9 @@ function openProfile(id){
   $("#alertCount").textContent=alerts;
 
   $("#recNav").innerHTML=REC_NAV.map(function(n,i){
-    return '<button type="button" '+(i===0?'aria-current="page"':'data-locked')+'>'+
+    var open = (n[0]==="Profile" || n[0]==="Location");
+    return '<button type="button" '+(n[0]==="Profile"?'aria-current="page"':"")+
+      (open?' data-tab="'+esc(n[0])+'"':' data-locked')+'>'+
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="'+n[1]+'"/></svg>'+esc(n[0])+'</button>';
   }).join("");
 
@@ -1279,8 +1311,7 @@ function openProfile(id){
     field("Veteran Status", c.v?esc(c.v):'No value', !c.v)+
     field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe)+
     field("Client ID", String(c.cid))+
-    field("Unique Identifier", esc(c.i))+
-    field("Location history", locationHTML(c), !(c.lo && c.lo.length));
+    field("Unique Identifier", esc(c.i));
 
   $("#recRail").innerHTML=RAIL.map(function(r){
     var n = r[0]==="hh" ? c.h : (c.n&&c.n[r[0]])||0;
@@ -1289,19 +1320,52 @@ function openProfile(id){
       '<svg class="cv2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5 5 5-5"/></svg></div>';
   }).join("");
 
+  showRecordTab("Profile", c);
   $("#searchView").hidden=true;
   $("#recordView").hidden=false;
   $$("#recNav [data-locked], .recacts [data-locked]").forEach(bindLocked);
+  $$("#recNav [data-tab]").forEach(function(b){
+    b.addEventListener("click", function(){ showRecordTab(b.getAttribute("data-tab"), c); });
+  });
   evaluate("open",id);
 }
-/* Where a participant has been contacted. Thin on most records and absent on
-   plenty — which is the honest picture, and the reason the lesson treats it as
-   one identifier among several rather than the answer. */
-function locationHTML(c){
-  if(!c.lo || !c.lo.length) return "No value";
-  return '<ul class="loclist">'+c.lo.map(function(e){
-    return '<li><span class="locp">'+esc(e.p)+'</span><span class="locd">'+dobShort(e.d)+'</span></li>';
-  }).join("")+'</ul>';
+/* The Location tab. Locations are shown collectively for one client, as a map of
+   lettered pins with the list beneath it — see reference/. Only the two types
+   that do not need Outreach are modelled: Field Interaction and Address. No
+   dates: the help article does not show one, and guessing is what got this
+   wrong the first time. */
+var PIN_LETTERS = "ABCDEFGH";
+function renderLocation(c){
+  var lo = c.lo || [];
+  if(!lo.length){
+    $("#locBody").innerHTML = '<p class="locempty">No location data has been recorded for '+
+      esc(fullName(c))+'.</p>';
+    return;
+  }
+  $("#locBody").innerHTML =
+    '<div class="locmap" role="img" aria-label="Map showing '+lo.length+
+      ' recorded location'+(lo.length===1?"":"s")+'">'+
+      lo.map(function(e,i){
+        return '<span class="pin" style="left:'+(e.x*100)+'%;top:'+(e.y*100)+'%"><b>'+
+          PIN_LETTERS[i]+'</b></span>';
+      }).join("")+
+    '</div>'+
+    '<ul class="loclist">'+lo.map(function(e,i){
+      return '<li><span class="pinl">'+PIN_LETTERS[i]+'</span>'+
+        '<span class="locp">'+esc(e.p)+'</span>'+
+        '<span class="loct">'+esc(e.ty)+'</span>'+
+        '<span class="lock">'+esc(e.k)+'</span></li>';
+    }).join("")+'</ul>';
+}
+function showRecordTab(name, c){
+  $$("#recNav button").forEach(function(b){
+    if(b.getAttribute("data-tab")===name) b.setAttribute("aria-current","page");
+    else b.removeAttribute("aria-current");
+  });
+  var isLoc = name==="Location";
+  $("#profilePane").hidden = isLoc;
+  $("#locationPane").hidden = !isLoc;
+  if(isLoc) renderLocation(c);
 }
 function closeProfile(){
   S.open=null;

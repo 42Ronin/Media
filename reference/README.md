@@ -47,26 +47,49 @@ The owner's filter is recorded there and governs what gets used: **our training 
 HMIS end user**, so governance, policy, history and federal-reporting structure are dropped
 however good the copy is.
 
-## Client Location — modelled without the source, and it shows
+## Client Location — now sourced
 
-`help.bitfocus.com/introduction-to-client-location-data` is still unreachable from here
-(403 on CONNECT, same as the search article). The Location feature was built from a guess,
-and two frames of a GIF supplied by the owner show the guess was wrong in shape:
+`Introduction to Client Location Data (Bitfocus help article).pdf` is the article, supplied
+by the owner because `help.bitfocus.com` is unreachable from here. It settles what two GIF
+frames could not.
 
-| What we built | What the product does |
-|---|---|
-| A field on the Profile card | **Its own page**, headed `CLIENT LOCATION` |
-| A dated list of place names | A **map with lettered pins** — A, B, D, G — plus a red one |
-| Free-text places, e.g. "6th Street bridge" | **Addresses**, entered through an address field with suggestions |
-| No way to add one | `ADD ADDRESS ⊕`, opening an `ADD LOCATION` dialog with an Address field, a map, a **Current location** control and a **Limit geographic area address suggestions** toggle |
+**Four ways location gets recorded**, and only the first two matter for a search lesson:
 
-Still unknown, and needed before this is rebuilt properly: whether locations carry dates,
-what the pin letters signify and whether they are ordered, whether there is a list view
-alongside the map, and what the red pin means as against the lettered ones.
+| Type | Recorded from | Shows in the Location tab |
+|---|---|---|
+| **Field Interaction** | the Location tab's locate button | yes |
+| **Address** | `ADD ADDRESS` in the Location tab. Carries **name, address type and notes** | yes |
+| Geolocation Field | a Geolocation field on a screen — Assessment, Profile, Status, Enrollment, Exit, Follow-up | only if Outreach is enabled |
+| Geolocation-enabled Service Item | a service item with Enable Geolocation on | only if Outreach is enabled |
 
-Until that is settled the simulation's Location display is **provisional and known to be
-wrong** — not a fidelity reference. The underlying task is sound: two records the
-identifiers cannot separate, told apart by where the person has been contacted.
+That last column matters: **Field Interaction and Address records show in the Location tab
+without Outreach being enabled.** Since Outreach is out of scope for this lesson, those are
+the two types the simulation should model, and it can show them honestly.
+
+**Viewing.** Locations are seen collectively for one client from the **LOCATION tab**, or
+across a Continuum through Outreach. The GIF frames show that tab: a map of the area with
+**lettered pins**, `ADD ADDRESS ⊕` and a locate control in the header bar.
+
+**Adding.** Anywhere you add location data you get the **ADD LOCATION** pop-up:
+
+- Search manually by **latitude/longitude, or address details including cross-streets and
+  landmarks**. Results sort by proximity to your device, or to your agency's address if the
+  browser has no location permission.
+- Or move and zoom the map and **drop a pin by clicking**.
+- **CURRENT LOCATION** drops a pin from the device — most accurate on a phone with GPS.
+- **LIMIT GEOGRAPHIC AREA ADDRESS SUGGESTIONS** restricts results to a radius when the
+  administrator has enabled it. The learner can untoggle it.
+- Where *Restrict User Visibility by CoC* is on, only users under that CoC's agencies see
+  that CoC's **encampments** in the search field.
+
+**One guess that turned out right:** searching by landmark and cross-street is supported,
+and encampments are a named search category — so "6th Street bridge" is a legitimate
+location value rather than the invention it looked like.
+
+**Still not answered by the article:** whether location records carry a visible date, what
+the pin letters signify or how they are ordered, and what the red pin means as against the
+lettered ones. The simulation therefore shows locations without dates rather than inventing
+them.
 
 ## Still missing
 

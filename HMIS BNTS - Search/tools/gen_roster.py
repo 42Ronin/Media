@@ -337,12 +337,22 @@ for c in clients:                                # everyone else is a household 
 
 # ---- client-record page fields -------------------------------------------
 # Added after the sort so the assignment stays deterministic for a given seed.
-# Invented street locations. Deliberately generic and not tied to real encampments.
+# Invented locations. Clarity's ADD LOCATION search takes addresses, cross-streets,
+# landmarks and encampments, so a mix of those is right. Deliberately generic and
+# not tied to any real encampment. x/y position the pin on the schematic map.
 LOCATIONS = [
-    "6th Street bridge", "Alameda St underpass", "Slauson Ave & Central",
-    "MacArthur Park north lawn", "Vermont Ave & 8th", "LA River path, Elysian",
-    "Union Station forecourt", "Adams Blvd & Figueroa", "Westlake metro portal",
-    "Hollywood & Western", "Venice Blvd & Sepulveda", "Grand Ave & 5th",
+    ("6th Street bridge",        "Encampment", 0.55, 0.42),
+    ("Alameda St underpass",     "Encampment", 0.62, 0.55),
+    ("Slauson Ave & Central",    "Cross-street", 0.58, 0.78),
+    ("MacArthur Park north lawn","Landmark",   0.34, 0.38),
+    ("Vermont Ave & 8th",        "Cross-street", 0.26, 0.44),
+    ("LA River path, Elysian",   "Landmark",   0.70, 0.22),
+    ("Union Station forecourt",  "Landmark",   0.66, 0.34),
+    ("Adams Blvd & Figueroa",    "Cross-street", 0.44, 0.62),
+    ("Westlake metro portal",    "Landmark",   0.32, 0.46),
+    ("Hollywood & Western",      "Cross-street", 0.22, 0.14),
+    ("Venice Blvd & Sepulveda",  "Cross-street", 0.08, 0.66),
+    ("Grand Ave & 5th",          "Cross-street", 0.52, 0.40),
 ]
 
 QUALITY_LABEL = {
@@ -362,10 +372,13 @@ for c in clients:
     # Location history. Clarity records where a participant was contacted; the
     # record page shows it, and for a street-outreach worker it is often the
     # fastest thing to confirm. Invented locations only — see LOCATIONS.
-    c["lo"] = [{"d": iso(rnd.randint(2023, 2026), rnd.randint(1, 12), rnd.randint(1, 28)),
-                "p": rnd.choice(LOCATIONS)}
-               for _ in range(weighted([(0, .30), (1, .34), (2, .22), (3, .14)]))]
-    c["lo"].sort(key=lambda x: x["d"], reverse=True)
+    # Field Interaction and Address records both show in the Location tab without
+    # Outreach enabled, so those are the two types modelled. No dates — the help
+    # article does not show one, and inventing it would be guessing again.
+    _picked = rnd.sample(LOCATIONS, weighted([(0, .30), (1, .34), (2, .22), (3, .14)]))
+    c["lo"] = [{"p": p, "ty": ty, "x": x, "y": y,
+                "k": "Address" if rnd.random() < .45 else "Field Interaction"}
+               for (p, ty, x, y) in _picked]
     c["n"] = {                                            # right-rail accordion counts
         "pr": weighted([(0, .45), (1, .2), (2, .15), (3, .1), (6, .1)]),
         "cq": weighted([(0, .6), (1, .3), (2, .1)]),
@@ -392,11 +405,14 @@ if len(_vega) == 3:
 # the search stops separating them.
 _ngu = {c["i"]: c for c in clients if c["l"] == "Nguyen"}
 if len(_ngu) == 2:
-    _ngu["6C2D91B47"]["lo"] = [{"d": "2026-06-02", "p": "6th Street bridge"},
-                               {"d": "2026-01-14", "p": "6th Street bridge"},
-                               {"d": "2025-08-27", "p": "6th Street bridge"}]
-    _ngu["D3A7E0C85"]["lo"] = [{"d": "2026-05-19", "p": "Hollywood & Western"},
-                               {"d": "2025-11-03", "p": "Venice Blvd & Sepulveda"}]
+    _by_name = {p: (p, ty, x, y) for (p, ty, x, y) in LOCATIONS}
+    def _rec(name, kind):
+        p, ty, x, y = _by_name[name]
+        return {"p": p, "ty": ty, "x": x, "y": y, "k": kind}
+    _ngu["6C2D91B47"]["lo"] = [_rec("6th Street bridge", "Field Interaction"),
+                               _rec("Alameda St underpass", "Field Interaction")]
+    _ngu["D3A7E0C85"]["lo"] = [_rec("Hollywood & Western", "Address"),
+                               _rec("Venice Blvd & Sepulveda", "Field Interaction")]
 for c in clients:
     if c["l"] != "Nguyen":
         c["lo"] = [e for e in c["lo"] if e["p"] != "6th Street bridge"]

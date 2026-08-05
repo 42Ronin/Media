@@ -167,7 +167,7 @@
       "note": false,
       "brief": "A man gives his name as <span class=\"q\">David Nguyen.</span> Two records come back — both David Nguyen, both born in 1982. He does not know his Social Security Number and cannot remember which agency he last worked with. He does tell you he has been staying by the wash under the <b>6th Street bridge</b>, and has been for about a year.",
       "ask": "Open the record whose location history matches where he has been staying.",
-      "hint": "Name and date of birth cannot separate these two. Open each record and read <b>Location history</b> — one of them was contacted at the 6th Street bridge.",
+      "hint": "Name and date of birth cannot separate these two. Open each record, go to the <b>Location</b> tab, and compare — one of them has been contacted at the 6th Street bridge.",
       "teach": "When name and date of birth cannot separate two records, the rest of the record can. In outreach, location is often the fastest of them: where someone has been contacted before is a fact you can both check, and it does not ask the participant to remember an agency name or a date. Confirm it with them rather than assuming. People move, and a location recorded a year ago proves less than one recorded last month — treat it as one identifier among several, not as the answer on its own.",
       "expectType": "open",
       "answerId": "6C2D91B47",
