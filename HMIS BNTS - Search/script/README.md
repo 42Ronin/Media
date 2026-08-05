@@ -37,8 +37,27 @@ The helpers at the top of `make_script.py` (`title`, `section`, `topic`, `sub`, 
 
 Two things worth knowing:
 
-- **Red paragraphs are the open questions.** There are nine. They are the point of this
-  draft — each one is a decision only the author or the team can make.
+- **Red paragraphs are the open questions.** There are none at present — all twenty raised
+  across the review rounds have been answered. The convention stays because it is the
+  team's; new questions go in red and are also listed together in the front matter, both
+  generated from `OPEN_QUESTIONS` so the list and the body cannot disagree.
 - `python-docx` writes `<w:zoom>` without the `w:percent` the schema requires, so the
   build patches `word/settings.xml` after saving. Check with
   `python3 ~/.claude/skills/docx/scripts/office/validate.py script_l1_v3.docx`.
+
+## Snippets
+
+`snippet_s8.py` builds section 8 on its own — the eight search tasks as one wide landscape
+table, a row per task and a column per field, for pasting into a draft someone is editing by
+hand:
+
+```bash
+python3 snippet_s8.py        # -> section-8-tasks-as-columns.docx
+```
+
+The output is gitignored; regenerate it rather than tracking it. It reads the same
+`tasks.json` as the script, so a snippet cannot drift from the lesson.
+
+**When someone is hand-editing the draft, do not regenerate and send the whole script.**
+Make the change in `make_script.py` so it is there at the next rebuild, or cut a snippet like
+this one. Sending a fresh full document risks overwriting work that is not in the generator.

@@ -9,3 +9,6 @@ tools/scene-editor/package-lock.json
 tools/scene-editor/sample/narration.wav
 tools/scene-editor/intro-export.html
 tools/scene-editor/shot-*.png
+
+# generated snippets for pasting into a hand-edited draft — regenerate, don't track
+HMIS BNTS - Search/script/section-*.docx
