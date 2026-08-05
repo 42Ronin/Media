@@ -655,35 +655,55 @@ note("Unscored does not mean optional. Every task has to be completed before the
      "permanently. But they type it themselves and they see it work.")
 
 
+def kv_table(rows, label_width=1.45):
+    """Two-column label/value table. The task specifications read as a run of
+    sub-headings before this — six of them per task, thirteen tasks — which is
+    accurate and very hard to scan. A table says the same thing at a glance."""
+    t = d.add_table(rows=len(rows), cols=2)
+    t.style = "Table Grid"
+    t.alignment = WD_TABLE_ALIGNMENT.LEFT
+    for i, (label, value, italic) in enumerate(rows):
+        c0, c1 = t.rows[i].cells
+        c0.width = Inches(label_width)
+        c1.width = Inches(6.5 - label_width)
+        lr = c0.paragraphs[0].add_run(label)
+        lr.bold = True
+        values = value if isinstance(value, list) else [value]
+        for j, v in enumerate(values):
+            p = c1.paragraphs[0] if j == 0 else c1.add_paragraph()
+            vr = p.add_run(v)
+            vr.italic = italic
+    d.add_paragraph()
+    return t
+
+
 def emit_task(t, num=None):
     """One task, documented the way a reviewer needs to read it: the situation the
     learner is put in, what they are asked to do, the help available, the record
     that is correct, and the words they get back when they find it."""
     topic(f"Task {num or t['n']} — {HEADINGS[t['id']]}")
-    note(f"Draft reference: {DRAFT_REF[t['id']]}.")
-    sub("The situation, as the learner sees it")
-    body(plain(t["brief"]))
-    sub("What the learner is asked to do")
-    body(plain(t["ask"]))
-    sub("Hint, if they ask for one")
-    body(plain(t["hint"]))
+
     def describe(name, cid, dob, ssn):
         bits = [name, f"unique identifier {cid}"]
         if dob:
             bits.append(f"born {longdate(dob)}")
         bits.append("SSN " + (ssn if ssn else "none on file"))
-        return " · ".join(bits) + "."
+        return " \u00b7 ".join(bits) + "."
 
     if t.get("answerSet"):
-        sub("The correct records — both of them")
-        for r in t["answerSet"]:
-            bullet(describe(r["name"], r["id"], r["dob"], r["ssn"]))
-        note("Scored on flagging either record as a possible duplicate, not on which one they open.")
+        answer = [describe(r["name"], r["id"], r["dob"], r["ssn"]) for r in t["answerSet"]]
     else:
-        sub("The correct record")
-        body(describe(t["answerName"], t["answerId"], t["answerDob"], t["answerSsn"]))
-    sub("Feedback when they get it right")
-    body(plain(t["teach"]))
+        answer = describe(t["answerName"], t["answerId"], t["answerDob"], t["answerSsn"])
+
+    kv_table([
+        ("Draft reference", DRAFT_REF[t["id"]] + ".",        True),
+        ("Situation",       plain(t["brief"]),               False),
+        ("Instruction",     plain(t["ask"]),                 False),
+        ("Hint",            plain(t["hint"]),                False),
+        ("Correct record",  answer,                          False),
+        ("Feedback",        plain(t["teach"]),               False),
+    ])
+
 
 for _t in TASKS[:8]:
     emit_task(_t)
@@ -776,56 +796,61 @@ emit_task(TASKS[9])       # 10 — thin identifiers, found by household
 
 # ---- Task 11, requested in review: confirm the profile by location ---------
 topic("Task 11 — Where They Have Been Staying")
-note("Draft reference: confirming other information in the record — location data.")
-sub("The situation, as the learner sees it")
-body("A man gives his name as David Nguyen. Two records come back. Both are David Nguyen, both "
+kv_table([
+    ("Draft reference", "confirming other information in the record — location data.", True),
+    ("Situation",
+     "A man gives his name as David Nguyen. Two records come back. Both are David Nguyen, both "
      "born in 1982. He does not know his Social Security Number and cannot remember which agency "
      "he last worked with. He does tell you he has been staying by the wash under the 6th Street "
-     "bridge, and has been for about a year.")
-sub("What the learner is asked to do")
-body("Open the record whose location history matches where he has been staying.")
-sub("Hint, if they ask for one")
-body("Name and date of birth cannot separate these two. Open each record and look at Location — "
-     "one of them was last contacted at the 6th Street bridge.")
-sub("The correct record")
-body("To be assigned when the roster is pinned for this task.")
-sub("Feedback when they get it right")
-body("When name and date of birth cannot separate two records, the rest of the record can. In "
-     "outreach, location is often the fastest of them: where someone has been contacted before is "
-     "a fact you can both check, and it does not ask the participant to remember an agency name "
-     "or a date.")
-body("Confirm it with them rather than assuming. People move, and a location recorded a year ago "
-     "proves less than one recorded last month — treat it as one identifier among several, not as "
-     "the answer on its own.")
+     "bridge, and has been for about a year.", False),
+    ("Instruction", "Open the record whose location history matches where he has been staying.", False),
+    ("Hint",
+     "Name and date of birth cannot separate these two. Open each record and look at Location — "
+     "one of them was last contacted at the 6th Street bridge.", False),
+    ("Correct record", "To be assigned when the roster is pinned for this task.", False),
+    ("Feedback",
+     ["When name and date of birth cannot separate two records, the rest of the record can. In "
+      "outreach, location is often the fastest of them: where someone has been contacted before "
+      "is a fact you can both check, and it does not ask the participant to remember an agency "
+      "name or a date.",
+      "Confirm it with them rather than assuming. People move, and a location recorded a year ago "
+      "proves less than one recorded last month — treat it as one identifier among several, not "
+      "as the answer on its own."], False),
+])
 
 
 # ---- Task 12, requested in review: the hard one ---------------------------
 topic("Task 12 — Everything at Once")
-note("Draft reference: alternate names, alternate spellings, and confirming other information "
-     "in the record when the identifiers will not settle it.")
-sub("The situation, as the learner sees it")
-body("A man introduces himself as Smoke. It is the only name anyone out here uses for him. "
-     "Pressed, he gives a last name — Reyes, he thinks, though it might have been written down "
-     "as Reyez or Rios at some point. He does not know his date of birth beyond the year, and he "
-     "will not give a Social Security Number. He does tell you he served — Army, a long time ago.")
-sub("What the learner is asked to do")
-body("Find his record and open it.")
-sub("Hint, if they ask for one")
-body("Nothing you have been given will find him on its own. Search the surname fragment you are "
-     "least sure of least — Rey — and use the year and the veteran flag to cut the list down.")
-sub("The correct record")
-body("To be assigned when the roster is pinned for this task.")
-sub("Feedback when they get it right")
-body("This is the real thing. No date of birth, no Social Security Number, a street name that is "
-     "on no record, and a surname three plausible spellings deep. What is left is a fragment, a "
-     "year, and one fact he volunteered.")
-body("Veteran status is a field on the record, and it is worth remembering precisely because it "
-     "is the kind of thing people tell you without being asked. When the identifiers are thin, "
-     "the thing they mentioned in passing is often what closes it.")
-body("And notice what you did not do. You did not conclude he was new because three searches "
-     "came back empty. You cleared the box and typed something else, and then did it again.")
-body("That is the skill. Not one clever search — several ordinary ones, each telling you "
-     "something about what to try next.")
+kv_table([
+    ("Draft reference",
+     "alternate names, alternate spellings, and confirming other information in the record when "
+     "the identifiers will not settle it.", True),
+    ("Situation",
+     "A man introduces himself as Smoke. It is the only name anyone out here uses for him. "
+     "Pressed, he gives a last name — Reyes, he thinks, though it might have been written down as "
+     "Reyez or Rios at some point. He does not know his date of birth beyond the year, and he "
+     "will not give a Social Security Number. He does tell you he served — Army, a long time ago.", False),
+    ("Instruction", "Find his record and open it.", False),
+    ("Hint",
+     ["Hints escalate on this one, because the learner has to get there rather than be told. "
+      "First: nothing you have been given will find him on its own — try the part of the surname "
+      "you are surest of.",
+      "Then: the first three letters are the same in all three spellings.",
+      "Last: search Rey, and use the year and the veteran flag to cut the list down."], False),
+    ("Correct record", "To be assigned when the roster is pinned for this task.", False),
+    ("Feedback",
+     ["This is the real thing. No date of birth, no Social Security Number, a street name that is "
+      "on no record, and a surname three plausible spellings deep. What is left is a fragment, a "
+      "year, and one fact he volunteered.",
+      "Veteran status is a field on the record, and it is worth remembering precisely because it "
+      "is the kind of thing people tell you without being asked. When the identifiers are thin, "
+      "the thing they mentioned in passing is often what closes it.",
+      "And notice what you did not do. You did not conclude he was new because three searches "
+      "came back empty. You cleared the box and typed something else, and then did it again.",
+      "That is the skill. Not one clever search — several ordinary ones, each telling you "
+      "something about what to try next."], False),
+])
+
 
 emit_task(TASKS[10], num=13)   # more than one record matches
 # ───────────────────────────────── time pressure ──────────────────────────

@@ -233,6 +233,11 @@ list, and it needs location history on the client record page, which the simulat
 show yet. The lesson's own `tools/gen_roster.py` carries a comment on each pinned client
 naming the draft paragraph it serves.
 
+Each task is documented as a **two-column table** — Draft reference, Situation, Instruction,
+Hint, Correct record, Feedback — rather than a run of sub-headings. Thirteen tasks × six
+headings was accurate and unreadable. `kv_table()` in `make_script.py` builds them; a cell
+takes a list when it needs several paragraphs.
+
 Two conventions to preserve:
 - Narration says **participant**; the simulated product says **Client**. Both are correct, and
   the script names the difference once rather than hiding it.
