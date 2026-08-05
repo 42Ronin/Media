@@ -47,17 +47,35 @@ Two things worth knowing:
 
 ## Snippets
 
-`snippet_s8.py` builds section 8 on its own — the eight search tasks as one wide landscape
-table, a row per task and a column per field, for pasting into a draft someone is editing by
-hand:
+`snippet_tasks.py` cuts one section's tasks as a single wide landscape table — a row per
+task, a column per field — for pasting into a draft someone is editing by hand:
 
 ```bash
-python3 snippet_s8.py        # -> section-8-tasks-as-columns.docx
+python3 snippet_tasks.py 8      # the eight search tasks
+python3 snippet_tasks.py 11     # the five verification tasks
 ```
 
-The output is gitignored; regenerate it rather than tracking it. It reads the same
-`tasks.json` as the script, so a snippet cannot drift from the lesson.
+The output is gitignored; regenerate it rather than tracking it.
 
 **When someone is hand-editing the draft, do not regenerate and send the whole script.**
-Make the change in `make_script.py` so it is there at the next rebuild, or cut a snippet like
-this one. Sending a fresh full document risks overwriting work that is not in the generator.
+Make the change in `make_script.py` so it is there at the next rebuild, or cut a snippet.
+Sending a fresh full document risks overwriting work that is not in the generator.
+
+## Where task copy lives
+
+`task_data.py` is the single source, and everything that renders a task reads it:
+
+- `tasks.json` — transcribed out of the built simulation by `extract_tasks.mjs`
+- `proposed-tasks.json` — the two tasks specified in the script but not built yet
+  (location, and the hard one). Same shape, edited by hand.
+- `OVERRIDES` in `task_data.py` — copy a review decision has changed where the build has
+  not caught up yet
+
+**An entry in `OVERRIDES` is a debt.** The script is right and the build owes it a change;
+the entry carries the reason so nobody removes one without knowing what it was for.
+`snippet_tasks.py` prints any that apply to the section it just cut. Clear a debt by fixing
+the copy in `src/lesson1.template.html`, re-running `extract_tasks.mjs`, and deleting the
+override.
+
+Currently outstanding: **`several`** — the built feedback still ends by sending the list of
+matching records to HMIS Support, and reporting duplicates was removed from this training.
