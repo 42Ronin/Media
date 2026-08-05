@@ -47,6 +47,27 @@ The owner's filter is recorded there and governs what gets used: **our training 
 HMIS end user**, so governance, policy, history and federal-reporting structure are dropped
 however good the copy is.
 
+## Client Location — modelled without the source, and it shows
+
+`help.bitfocus.com/introduction-to-client-location-data` is still unreachable from here
+(403 on CONNECT, same as the search article). The Location feature was built from a guess,
+and two frames of a GIF supplied by the owner show the guess was wrong in shape:
+
+| What we built | What the product does |
+|---|---|
+| A field on the Profile card | **Its own page**, headed `CLIENT LOCATION` |
+| A dated list of place names | A **map with lettered pins** — A, B, D, G — plus a red one |
+| Free-text places, e.g. "6th Street bridge" | **Addresses**, entered through an address field with suggestions |
+| No way to add one | `ADD ADDRESS ⊕`, opening an `ADD LOCATION` dialog with an Address field, a map, a **Current location** control and a **Limit geographic area address suggestions** toggle |
+
+Still unknown, and needed before this is rebuilt properly: whether locations carry dates,
+what the pin letters signify and whether they are ordered, whether there is a list view
+alongside the map, and what the red pin means as against the lettered ones.
+
+Until that is settled the simulation's Location display is **provisional and known to be
+wrong** — not a fidelity reference. The underlying task is sound: two records the
+identifiers cannot separate, told apart by where the person has been contacted.
+
 ## Still missing
 
 - The **Add Client form** — needed for `HMIS BNTS - Create`.

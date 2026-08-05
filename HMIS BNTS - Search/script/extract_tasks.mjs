@@ -1,8 +1,12 @@
 import { chromium } from 'playwright';
 import { writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+const HERE = dirname(fileURLToPath(import.meta.url));
+
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 const p = await b.newPage();
-await p.goto('file://' + process.cwd() + '/dist/lesson1-client-search.html');
+await p.goto('file://' + join(HERE, '..', 'dist', 'lesson1-client-search.html'));
 const data = await p.evaluate(() => {
   const byId = i => CLIENTS.find(c => c.i === i);
   const nm = c => c ? (c.f + ' ' + c.l) : null;
@@ -26,7 +30,7 @@ const data = await p.evaluate(() => {
     interstitials: typeof INTERSTITIALS === 'undefined' ? {} : INTERSTITIALS
   };
 });
-writeFileSync('/tmp/claude-0/-home-user-Media/6315a6fc-311a-5bd3-ae63-49c3647996b2/scratchpad/tasks.json',
+writeFileSync(join(HERE, 'tasks.json'),
               JSON.stringify(data, null, 2));
 console.log('tasks:', data.tasks.length, '| interstitials:', Object.keys(data.interstitials).join(','));
 await b.close();

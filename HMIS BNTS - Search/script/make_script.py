@@ -72,8 +72,8 @@ def answer(t, correct):
 # ---- the simulation's own task definitions --------------------------------
 # Transcribed straight from the built lesson so the script and the thing the
 # learner actually sees cannot drift. Regenerate with extract_tasks.mjs.
-TASKS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                    "tasks.json")))["tasks"]
+import task_data
+TASKS = task_data.specs()
 
 def plain(html):
     """The lesson marks copy up for the screen; the script wants the words."""
@@ -91,36 +91,7 @@ def longdate(iso):
 
 # Every task traces to a paragraph of the vetted draft. The reference is carried
 # here so the mapping can be checked without reading the build.
-DRAFT_REF = {
-    "nickname":  "alternate names and nicknames",
-    "year":      "search by year of birth alone",
-    "last4":     "search by the last four digits of the Social Security Number",
-    "fragments": "search the first letters of the first and last name, as in kat joh",
-    "narrow":    "narrowing an over-broad result set by adding a term",
-    "swap":      "replacing one search term with another piece of information",
-    "spelling":  "alternate spellings, C and K, I and Y",
-    "surname":  "second last names and compound surnames",
-    "samename":"a record is a match when at least two of name, date of birth and SSN agree",
-    "household": "confirming other information in the record — household members, program "
-                 "history, case notes, location, veteran status",
-    "several":   "choosing which matching record to work from",
-    "duplicate": "reporting duplicates to HMIS Support",
-}
 
-HEADINGS = {
-    "nickname":  "The Name He Gave You",
-    "year":      "When the Last Name May Have Changed",
-    "last4":     "Starting From the Last Four of the SSN",
-    "fragments": "A Name You Cannot Spell",
-    "narrow":    "Too Many Results",
-    "swap":      "Nothing Comes Back",
-    "spelling":  "Spelled the Way Someone Else Heard It",
-    "surname":  "A Surname Typed as One Word",
-    "samename":"Two People, One Name",
-    "household": "When the Identifiers Are Thin",
-    "several":   "More Than One Record Matches",
-    "duplicate": "Finding the Same Person Twice",
-}
 
 ACTION = {"open": "Open the record.", "choose": "Choose a record."}
 
@@ -232,7 +203,7 @@ toc = [
     ("How the Practice Tool Is Built", ["Only What This Lesson Needs", "Earning the Rest"]),
     ("Practice: Finding a Participant",
      ["How the Practice Works"] +
-     [f"Task {t['n']} — {HEADINGS[t['id']]}" for t in TASKS[:8]] +
+     [f"Task {t['n']} — {t['title']}" for t in TASKS[:8]] +
      ["Checkpoint: From Finding to Verifying"]),
     ("Verify: Is This the Right Person?", ["First Level: Photo and Documents",
                                            "Second Level: Two of Three", "Still Unsure",
@@ -241,11 +212,7 @@ toc = [
     ("What You Found", ["No Matching Record", "One Matching Record", "Several Matching Records",
                         "Choosing Which Record to Work From"]),
     ("Practice: Verifying a Record",
-     [f"Task {TASKS[8]['n']} — {HEADINGS[TASKS[8]['id']]}",
-      f"Task {TASKS[9]['n']} — {HEADINGS[TASKS[9]['id']]}",
-      "Task 11 — Where They Have Been Staying",
-      "Task 12 — Everything at Once",
-      f"Task 13 — {HEADINGS[TASKS[10]['id']]}"]),
+     [f"Task {t['n']} — {t['title']}" for t in TASKS[8:]]),
     ("When You Are Short on Time", ["In the Field"]),
     ("Knowledge Check", ["Check What You Took In"]),
     ("Summary", ["Why Accuracy on the Way In Matters", "What You Practiced",
@@ -677,32 +644,22 @@ def kv_table(rows, label_width=1.45):
     return t
 
 
-def emit_task(t, num=None):
+def emit_task(t):
     """One task, documented the way a reviewer needs to read it: the situation the
     learner is put in, what they are asked to do, the help available, the record
     that is correct, and the words they get back when they find it."""
-    topic(f"Task {num or t['n']} — {HEADINGS[t['id']]}")
-
-    def describe(name, cid, dob, ssn):
-        bits = [name, f"unique identifier {cid}"]
-        if dob:
-            bits.append(f"born {longdate(dob)}")
-        bits.append("SSN " + (ssn if ssn else "none on file"))
-        return " \u00b7 ".join(bits) + "."
-
-    if t.get("answerSet"):
-        answer = [describe(r["name"], r["id"], r["dob"], r["ssn"]) for r in t["answerSet"]]
-    else:
-        answer = describe(t["answerName"], t["answerId"], t["answerDob"], t["answerSsn"])
-
-    kv_table([
-        ("Draft reference", DRAFT_REF[t["id"]] + ".",        True),
-        ("Situation",       plain(t["brief"]),               False),
-        ("Instruction",     plain(t["ask"]),                 False),
-        ("Hint",            plain(t["hint"]),                False),
-        ("Correct record",  answer,                          False),
-        ("Feedback",        plain(t["teach"]),               False),
-    ])
+    topic(f"Task {t['n']} — {t['title']}")
+    rows = [
+        ("Draft reference", t["draft_ref"],  True),
+        ("Situation",       t["situation"],  False),
+        ("Instruction",     t["instruction"],False),
+        ("Hint",            t["hint"],       False),
+        ("Correct record",  t["answer"],     False),
+        ("Feedback",        t["feedback"],   False),
+    ]
+    if not t["built"]:
+        rows.insert(1, ("Status", "Specified here; not built in the simulation yet.", True))
+    kv_table(rows)
 
 
 for _t in TASKS[:8]:
@@ -791,68 +748,9 @@ body("Five more situations. This time finding a candidate record is the easy hal
      "question is whether it is the right person, and what to do when more than one record "
      "could be.")
 
-emit_task(TASKS[8])       # 9  — two people, one name
-emit_task(TASKS[9])       # 10 — thin identifiers, found by household
+for _t in TASKS[8:]:      # the five verification tasks, all built now
+    emit_task(_t)
 
-# ---- Task 11, requested in review: confirm the profile by location ---------
-topic("Task 11 — Where They Have Been Staying")
-kv_table([
-    ("Draft reference", "confirming other information in the record — location data.", True),
-    ("Situation",
-     "A man gives his name as David Nguyen. Two records come back. Both are David Nguyen, both "
-     "born in 1982. He does not know his Social Security Number and cannot remember which agency "
-     "he last worked with. He does tell you he has been staying by the wash under the 6th Street "
-     "bridge, and has been for about a year.", False),
-    ("Instruction", "Open the record whose location history matches where he has been staying.", False),
-    ("Hint",
-     "Name and date of birth cannot separate these two. Open each record and look at Location — "
-     "one of them was last contacted at the 6th Street bridge.", False),
-    ("Correct record", "To be assigned when the roster is pinned for this task.", False),
-    ("Feedback",
-     ["When name and date of birth cannot separate two records, the rest of the record can. In "
-      "outreach, location is often the fastest of them: where someone has been contacted before "
-      "is a fact you can both check, and it does not ask the participant to remember an agency "
-      "name or a date.",
-      "Confirm it with them rather than assuming. People move, and a location recorded a year ago "
-      "proves less than one recorded last month — treat it as one identifier among several, not "
-      "as the answer on its own."], False),
-])
-
-
-# ---- Task 12, requested in review: the hard one ---------------------------
-topic("Task 12 — Everything at Once")
-kv_table([
-    ("Draft reference",
-     "alternate names, alternate spellings, and confirming other information in the record when "
-     "the identifiers will not settle it.", True),
-    ("Situation",
-     "A man introduces himself as Smoke. It is the only name anyone out here uses for him. "
-     "Pressed, he gives a last name — Reyes, he thinks, though it might have been written down as "
-     "Reyez or Rios at some point. He does not know his date of birth beyond the year, and he "
-     "will not give a Social Security Number. He does tell you he served — Army, a long time ago.", False),
-    ("Instruction", "Find his record and open it.", False),
-    ("Hint",
-     ["Hints escalate on this one, because the learner has to get there rather than be told. "
-      "First: nothing you have been given will find him on its own — try the part of the surname "
-      "you are surest of.",
-      "Then: the first three letters are the same in all three spellings.",
-      "Last: search Rey, and use the year and the veteran flag to cut the list down."], False),
-    ("Correct record", "To be assigned when the roster is pinned for this task.", False),
-    ("Feedback",
-     ["This is the real thing. No date of birth, no Social Security Number, a street name that is "
-      "on no record, and a surname three plausible spellings deep. What is left is a fragment, a "
-      "year, and one fact he volunteered.",
-      "Veteran status is a field on the record, and it is worth remembering precisely because it "
-      "is the kind of thing people tell you without being asked. When the identifiers are thin, "
-      "the thing they mentioned in passing is often what closes it.",
-      "And notice what you did not do. You did not conclude he was new because three searches "
-      "came back empty. You cleared the box and typed something else, and then did it again.",
-      "That is the skill. Not one clever search — several ordinary ones, each telling you "
-      "something about what to try next."], False),
-])
-
-
-emit_task(TASKS[10], num=13)   # more than one record matches
 # ───────────────────────────────── time pressure ──────────────────────────
 section("When You Are Short on Time")
 

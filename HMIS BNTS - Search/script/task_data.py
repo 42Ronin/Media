@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """One source of task copy for everything that renders it.
 
-`tasks.json` is transcribed out of the built simulation by `extract_tasks.mjs`.
-Two tasks are specified in the script but not built yet, and they live in
-`proposed-tasks.json`. And where a review decision has changed the copy but the
+`tasks.json` is transcribed out of the built simulation by `extract_tasks.mjs`,
+and is authoritative for any task that exists there. `proposed-tasks.json` holds
+tasks the script specifies before they are built, and is read only when the build
+is missing one. It does not exist at present: everything the script specifies is
+built. Recreate it when a task is written ahead of the simulation again. And where a review decision has changed the copy but the
 build has not caught up, the change is recorded in OVERRIDES rather than being
 applied by hand in each place that renders a task — which is how the script, the
 snippets and the simulation drift apart.
@@ -18,8 +20,13 @@ import re
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def _load(name):
-    with open(os.path.join(HERE, name)) as fh:
+def _load(name, default=None):
+    path = os.path.join(HERE, name)
+    if not os.path.exists(path):
+        if default is None:
+            raise FileNotFoundError(path)
+        return default
+    with open(path) as fh:
         return json.load(fh)
 
 
@@ -44,17 +51,9 @@ def longdate(iso):
 # Keyed by task id, then by field. Each carries the reason, so nobody deletes one
 # without knowing what it was for.
 OVERRIDES = {
-    "several": {
-        "teach": (
-            "Work from the most complete record — full SSN, full date of birth, full name, "
-            "full program history. Where that is unclear, take the one with the longest "
-            "enrollment history, based on the oldest enrollment. Note the Unique Identifiers "
-            "of the others as you go, so you are not starting from nothing if it comes up "
-            "again."
-        ),
-        "_why": "Reporting duplicates was removed from this training. The built version still "
-                "ends by sending the list to HMIS Support.",
-    },
+    # Empty. An entry here means the script is right and the build has not caught
+    # up; clear one by fixing src/lesson1.template.html, re-running
+    # extract_tasks.mjs, and deleting the entry.
 }
 
 DRAFT_REF = {
@@ -70,6 +69,9 @@ DRAFT_REF = {
     "household": "confirming other information in the record — household members, program "
                  "history, case notes, location, veteran status",
     "several":   "choosing which matching record to work from",
+    "location":  "confirming other information in the record — location data",
+    "smoke":     "alternate names, alternate spellings, and confirming other information in "
+                 "the record when the identifiers will not settle it",
 }
 
 HEADINGS = {
@@ -84,6 +86,8 @@ HEADINGS = {
     "samename":  "Two People, One Name",
     "household": "When the Identifiers Are Thin",
     "several":   "More Than One Record Matches",
+    "location":  "Where They Have Been Staying",
+    "smoke":     "Everything at Once",
 }
 
 # Tasks 12 and 14 of the build are gone — the duplicate-reporting task was cut —
@@ -104,10 +108,10 @@ def _describe(name, cid, dob, ssn):
 def specs():
     """Every task in running order, as plain text ready to render."""
     built = {t["id"]: t for t in _load("tasks.json")["tasks"]}
-    proposed = {t["id"]: t for t in _load("proposed-tasks.json")}
+    proposed = {t["id"]: t for t in _load("proposed-tasks.json", [])}
     out = []
     for n, tid in enumerate(SEARCH_IDS + VERIFY_IDS, start=1):
-        if tid in proposed:
+        if tid not in built and tid in proposed:
             p = proposed[tid]
             out.append({
                 "n": n, "id": tid, "built": False,

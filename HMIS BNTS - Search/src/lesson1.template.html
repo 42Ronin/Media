@@ -220,6 +220,10 @@ tbody tr.open{background:var(--indigo-soft)}
 .kv{display:grid;grid-template-columns:170px 1fr;gap:10px 16px;font-size:14px}
 .kv dt{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding-top:2px}
 .kv dd{margin:0}
+.loclist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.loclist li{display:flex;gap:10px;align-items:baseline}
+.locp{font-weight:600}
+.locd{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 
 /* ---------------- coach drawer ---------------- */
 .coach{position:fixed;top:26px;left:0;bottom:0;width:360px;background:var(--coach);color:var(--coach-ink);
@@ -663,6 +667,23 @@ var TASKS=[
   wrong:{"9B3F5D6C7":"That's Iris — the daughter. You are looking for the record that lists Iris as a household member, not Iris's own record."},
   teach:"When name, date of birth and SSN cannot settle it, the record holds other things you can confirm with the participant: household members, program history, case notes, location, veteran status. Here the household is what identifies her."
 },
+{ id:"location", title:"Where they have been staying",
+  brief:'A man gives his name as <span class="q">David Nguyen.</span> Two records come back — both David Nguyen, both born in 1982. He does not know his Social Security Number and cannot remember which agency he last worked with. He does tell you he has been staying by the wash under the <b>6th Street bridge</b>, and has been for about a year.',
+  ask:"Open the record whose location history matches where he has been staying.",
+  hint:"Name and date of birth cannot separate these two. Open each record and read <b>Location history</b> — one of them was contacted at the 6th Street bridge.",
+  expect:{type:"open", id:"6C2D91B47"},
+  teach:"When name and date of birth cannot separate two records, the rest of the record can. In outreach, location is often the fastest of them: where someone has been contacted before is a fact you can both check, and it does not ask the participant to remember an agency name or a date. "+
+        "Confirm it with them rather than assuming. People move, and a location recorded a year ago proves less than one recorded last month — treat it as one identifier among several, not as the answer on its own."
+},
+{ id:"smoke", title:"Everything at once",
+  brief:'A man introduces himself as <span class="q">Smoke.</span> It is the only name anyone out here uses for him. Pressed, he gives a last name — <b>Reyes</b>, he thinks, though it might have been written down as Reyez or Rios. He does not know his date of birth beyond the year, <b>1971</b>, and he will not give a Social Security Number. He does tell you he served — Army, a long time ago.',
+  ask:"Find his record and open it.",
+  hint:"Nothing you have been given finds him on its own. The first three letters are the same in all three spellings — search <code>Rey</code>, then use the year and the Veteran Status column to cut the list down.",
+  expect:{type:"open", id:"A19F4C2E8"},
+  teach:"This is the real thing. No date of birth, no Social Security Number, a street name that is on no record, and a surname three plausible spellings deep. What is left is a fragment, a year, and one fact he volunteered — he is filed as <b>Elias Reyez</b>. "+
+        "Veteran status is worth remembering precisely because it is the kind of thing people tell you without being asked. When the identifiers are thin, the thing they mentioned in passing is often what closes it. "+
+        "And notice what you did not do: you did not conclude he was new because a search came back empty. You cleared the box and typed something else, and then did it again."
+},
 { id:"several", title:"More than one record matches",
   brief:'You search <span class="q">Vega</span> and find three records. All three are Rosalind Vega, born 4/11/1983. All three appear to be the same person.',
   ask:"Open the record you would work from.",
@@ -671,14 +692,7 @@ var TASKS=[
   wrong:{"5C1B9E730":"That record has only a partial SSN and no alias. A more complete record exists.",
          "8D40A2F16":"That record has no SSN on file at all, and it is the newest. A more complete record exists."},
   teach:"Work from the <b>most complete</b> record — full SSN, full date of birth, full name, full program history. Where that is unclear, take the one with the <b>longest enrollment history</b>, based on the oldest enrollment. "+
-        "Then send the full list of matching records, with every Unique Identifier, to HMIS Support so they can merge them."
-},
-{ id:"duplicate", title:"Finding the same person twice",
-  brief:'You search <code>Beckett</code>. Two records come back: <b>Shauna Beckett</b> and <b>Shawna Beckett</b>. Same date of birth. Same last four of the SSN. One letter apart.',
-  ask:"Open either record and flag it as a possible duplicate.",
-  hint:"Open one of the two, then use 'Flag possible duplicate' in the ⋮ menu on the profile card.",
-  expect:{type:"flag", ids:["5BB517588","6381E5405"]},
-  teach:"This is one person entered twice. You do not merge it and you do not delete it — you report it to HMIS Support with both Unique Identifiers, and they resolve it centrally so your CoC's unduplicated count stays accurate."
+        "Note the Unique Identifiers of the others as you go, so you are not starting from nothing if it comes up again."
 }];
 
 /* Non-scored beat. The draft splits the work in two — Search, then Verify — and
@@ -1265,7 +1279,8 @@ function openProfile(id){
     field("Veteran Status", c.v?esc(c.v):'No value', !c.v)+
     field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe)+
     field("Client ID", String(c.cid))+
-    field("Unique Identifier", esc(c.i));
+    field("Unique Identifier", esc(c.i))+
+    field("Location history", locationHTML(c), !(c.lo && c.lo.length));
 
   $("#recRail").innerHTML=RAIL.map(function(r){
     var n = r[0]==="hh" ? c.h : (c.n&&c.n[r[0]])||0;
@@ -1279,31 +1294,33 @@ function openProfile(id){
   $$("#recNav [data-locked], .recacts [data-locked]").forEach(bindLocked);
   evaluate("open",id);
 }
+/* Where a participant has been contacted. Thin on most records and absent on
+   plenty — which is the honest picture, and the reason the lesson treats it as
+   one identifier among several rather than the answer. */
+function locationHTML(c){
+  if(!c.lo || !c.lo.length) return "No value";
+  return '<ul class="loclist">'+c.lo.map(function(e){
+    return '<li><span class="locp">'+esc(e.p)+'</span><span class="locd">'+dobShort(e.d)+'</span></li>';
+  }).join("")+'</ul>';
+}
 function closeProfile(){
   S.open=null;
   $("#recordView").hidden=true;
   $("#searchView").hidden=false;
   renderTable();
 }
-/* kebab on the profile card carries the duplicate escalation */
+/* Kebab on the profile card. Reporting duplicates is not part of this training,
+   so the control is present — it is on the real screen — but obstructed, the same
+   as everything else this lesson does not teach. */
 $("#kebabBtn").addEventListener("click",function(e){
   e.stopPropagation();
   var p=$("#filterPop"), open=p.hidden;
   closePops(); if(!open) return;
-  p.innerHTML='<button class="menuitem" id="flagBtn" role="menuitem">'+
+  p.innerHTML='<button class="menuitem" data-locked role="menuitem">'+
     '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V4h9l-1 3h6v8h-7l-1-3H5"/></svg>Flag possible duplicate</button>'+
     '<button class="menuitem" data-locked role="menuitem">'+
     '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>Add to household</button>';
   place(p,this); p.hidden=false; this.setAttribute("aria-expanded","true");
-  $("#flagBtn").addEventListener("click",function(ev){
-    ev.stopPropagation(); closePops();
-    var id=S.open, c=byId(id);
-    if(!evaluate("flag",id)){
-      notice("Flagged for your HMIS administrator",
-        "<p>Record <b>"+esc(id)+"</b> ("+esc(fullName(c))+") has been flagged for review.</p>"+
-        "<p style='margin-bottom:0'>End users never merge or delete client records. Your HMIS administrator resolves confirmed duplicates centrally so the CoC's unduplicated count stays accurate.</p>");
-    }
-  });
   $$("#filterPop [data-locked]").forEach(bindLocked);
 });
 

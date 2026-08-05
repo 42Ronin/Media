@@ -117,8 +117,12 @@ const PROBES = [
   ['task 8  as spoken',    'Maria Cruz',           '2A8189B34', 'dead'],
   ['task 9  the name',     'James Wilson',         '3DF1DF674', 'choose'],
   ['task 10 the surname',  'Amari',                'C4E7B2019', 'choose'],
-  ['task 11 the surname',  'Vega',                 'F2A6C8D40', 'choose'],
-  ['task 12 the surname',  'Beckett',              '5BB517588', 'choose'],
+  ['task 11 the surname',  'Nguyen',               '6C2D91B47', 'choose'],
+  ['task 11 full name',    'David Nguyen',         '6C2D91B47', 'choose'],
+  ['task 12 as spoken',    'Smoke',                'A19F4C2E8', 'dead'],
+  ['task 12 wrong spell',  'Reyes',                'A19F4C2E8', 'choose'],
+  ['task 12 the fragment', 'Rey',                  'A19F4C2E8', 'choose'],
+  ['task 13 the surname',  'Vega',                 'F2A6C8D40', 'choose'],
 ];
 for (const [label, query, target, want] of PROBES) {
   const rows = await p.evaluate(q => search(q, []).rows.map(c => c.i), query);
@@ -136,7 +140,8 @@ const uniq = await p.evaluate(() => {
     last4: grab('7742'), woj: grab('woj'), garcia: grab('Garcia'),
     fenwick: grab('Fen'), brennan: grab('Brennan'), cath: grab('Cath'),
     cruz: grab('Cruz'), delacruz: grab('Delacruz'), wilson: grab('Wilson'),
-    amari: grab('Amari'), vega: grab('Vega'), beckett: grab('Beckett')
+    amari: grab('Amari'), vega: grab('Vega'),
+    nguyen: grab('Nguyen'), rey: grab('Rey'), smoke: grab('Smoke')
   };
 });
 ok('exactly one Torres, and nobody answers to Lefty', uniq.torres.length === 1 && uniq.lefty.length === 0);
@@ -166,7 +171,13 @@ ok('Iris is shown as the daughter',
    amariHh.rel.some(x => x.i === '9B3F5D6C7' && x.rel === 'Daughter'), JSON.stringify(amariHh.rel));
 ok('exactly three Vegas, all the same person', uniq.vega.length === 3 &&
    await p.evaluate(() => search('Vega', []).rows.every(c => c.f === 'Rosalind' && c.d === '1983-04-11')));
-ok('exactly two Becketts', uniq.beckett.length === 2);
+ok('exactly two Nguyens, both David', uniq.nguyen.length === 2 &&
+   await p.evaluate(() => search('Nguyen', []).rows.every(c => c.f === 'David')));
+ok('nobody answers to Smoke', uniq.smoke.length === 0);
+ok('"Rey" reaches several, so the fragment alone cannot decide it', uniq.rey.length >= 4,
+   String(uniq.rey.length));
+ok('exactly one veteran born 1971 among them', await p.evaluate(() =>
+   search('Rey', []).rows.filter(c => c.d.slice(0,4) === '1971' && c.v === 'Yes').length === 1));
 ok('every SSN area is either 9xx or a placeholder — none can be real',
    await p.evaluate(() => CLIENTS.every(c => {
      if (!c.s) return true;
@@ -224,7 +235,7 @@ if (pssn) {
      await p.evaluate(() => search('xxx', []).rows.length === 0));
 }
 ok('a search cannot match across a masked segment', await p.evaluate(() => {
-  const c = CLIENTS.find(x => x.s && /^9\d\d-(XX|00)-\d{4}$/.test(x.s));
+  const c = CLIENTS.find(x => x.s && /^9\d\d-XX-\d{4}$/.test(x.s));
   if (!c) return true;
   const straddle = c.s.slice(1, 3) + c.s.slice(7, 9);   // last 2 of area + first 2 of serial
   return !search(straddle, []).rows.some(r => r.i === c.i) ||
@@ -359,7 +370,7 @@ ok('client nav has all 16 sections with Profile active',
    nav.length === 16 && nav[0] === 'Profile' &&
    await p.$eval('#recNav button', e => e.getAttribute('aria-current') === 'page'), JSON.stringify(nav));
 const grid = await p.textContent('#profGrid');
-ok('profile shows earliest enrollment (the tiebreaker in task 11)',
+ok('profile shows earliest enrollment (the tiebreaker in task 13)',
    (await p.textContent('#profGrid')).includes('Earliest enrollment'));
 ok('profile shows the three data-quality fields',
    grid.includes('Quality of SSN') && grid.includes('Quality of Name') && grid.includes('Quality of DOB'));
@@ -395,7 +406,7 @@ await closeAll();
 console.log('\n— guided flow —');
 await p.reload(); await p.waitForTimeout(200);
 ok('lesson opens on task 1', (await p.textContent('#tTitle')).includes('name he gave'));
-ok('progress reads task 1 of 12', (await p.textContent('#taskNo')).includes('1 of 12'));
+ok('progress reads task 1 of 13', (await p.textContent('#taskNo')).includes('1 of 13'));
 
 await p.click('#addBtn'); await p.waitForTimeout(150);
 const nt = await p.textContent('#ntBody');
@@ -410,7 +421,7 @@ ok('teaching point appears', (await p.textContent('#fb')).includes('no alias'));
 ok('score is no longer zero', !(await p.textContent('#scoreLbl')).includes('0%'));
 await closeAll();
 await p.click('#nextBtn'); await p.waitForTimeout(150);
-ok('advances to task 2', (await p.textContent('#taskNo')).includes('2 of 12'));
+ok('advances to task 2', (await p.textContent('#taskNo')).includes('2 of 13'));
 
 await p.evaluate(() => { S.idx = 8; S.attempts = 0; S.hinted = false; renderCoach(); });
 await type('Wilson');
@@ -435,8 +446,32 @@ ok('her record is thin on identifiers, as the task requires',
    (await p.textContent('#profGrid')).includes('No value'));
 await closeAll();
 
-// task 11 — three matching records, choose the most complete
+// task 11 — two records the identifiers cannot separate; location decides
 await p.evaluate(() => { S.idx = 10; S.attempts = 0; S.hinted = false; renderCoach(); });
+await type('Nguyen');
+ok('two records, neither with an SSN', (await names()).length === 2 &&
+   await p.evaluate(() => search('Nguyen', []).rows.every(c => !c.s)));
+ok('only one of them has been at the 6th Street bridge', await p.evaluate(() =>
+   search('Nguyen', []).rows.filter(c => (c.lo || []).some(e => e.p === '6th Street bridge')).length === 1));
+await p.click('#tb tr[data-row="6C2D91B47"]'); await p.waitForTimeout(250);
+ok('opening the one at the bridge passes task 11', (await p.textContent('#fb')).includes('Correct'));
+ok('the teaching keeps location as one identifier among several',
+   (await p.textContent('#fb')).includes('not as the answer on its own'));
+await closeAll();
+
+// task 12 — the hard one: street name, three spellings, year and veteran only
+await p.evaluate(() => { S.idx = 11; S.attempts = 0; S.hinted = false; renderCoach(); });
+await type('Smoke');
+ok('the street name reaches nobody', (await names()).length === 0);
+await type('Rey');
+ok('the fragment narrows without deciding', (await names()).length >= 4);
+await p.click('#tb tr[data-row="A19F4C2E8"]'); await p.waitForTimeout(250);
+ok('opening Elias Reyez passes task 12', (await p.textContent('#fb')).includes('Correct'));
+ok('the teaching names what closed it', (await p.textContent('#fb')).includes('Veteran status'));
+await closeAll();
+
+// task 13 — three matching records, choose the most complete
+await p.evaluate(() => { S.idx = 12; S.attempts = 0; S.hinted = false; renderCoach(); });
 await type('Vega');
 ok('three records, all the same person', (await names()).length === 3);
 await p.click('#tb tr[data-row="8D40A2F16"]'); await p.waitForTimeout(200);
@@ -446,21 +481,25 @@ await p.click('#tb tr[data-row="5C1B9E730"]'); await p.waitForTimeout(200);
 ok('the partial record is rejected too', (await p.textContent('#fb')).includes('partial SSN'));
 await closeAll();
 await p.click('#tb tr[data-row="F2A6C8D40"]'); await p.waitForTimeout(200);
-ok('the most complete record passes task 11', (await p.textContent('#fb')).includes('Correct'));
+ok('the most complete record passes task 13', (await p.textContent('#fb')).includes('Correct'));
 ok('teaching names the oldest-enrollment tiebreaker',
    (await p.textContent('#fb')).includes('longest enrollment history'));
 await closeAll();
 
-await p.evaluate(() => { S.idx = 11; S.attempts = 0; S.hinted = false; renderCoach(); });
-await type('Beckett');
-await p.click('#tb tr[data-row]'); await p.waitForTimeout(200);
-await p.click('#kebabBtn'); await p.waitForTimeout(150);
-await p.click('#flagBtn'); await p.waitForTimeout(200);
-ok('flagging a Beckett passes the duplicate task', (await p.textContent('#fb')).includes('Correct'));
-ok('teaching point says report to HMIS Support, never merge or delete', await p.evaluate(() => {
-  const t = document.getElementById('fb').textContent;
-  return /do not merge/i.test(t) && /do not delete/i.test(t) && /HMIS Support/i.test(t);
-}));
+// Reporting duplicates was removed from this training, so nothing in the lesson
+// may send the learner to HMIS Support or tell them to merge or delete.
+ok('no task sends the learner to HMIS Support', await p.evaluate(() =>
+  TASKS.every(t => !/HMIS Support/i.test((t.teach || '') + (t.hint || '') + (t.brief || '')))));
+ok('nothing tells the learner to merge or delete a record', await p.evaluate(() =>
+  TASKS.every(t => !/\b(merge|delete)\b/i.test((t.teach || '') + (t.hint || '')))));
+ok('the flag control is present but obstructed, like the rest of what this lesson skips',
+   await p.evaluate(async () => {
+     document.getElementById('kebabBtn').click();
+     await new Promise(r => setTimeout(r, 120));
+     const items = [...document.querySelectorAll('#filterPop .menuitem')];
+     const flag = items.find(x => /Flag possible duplicate/i.test(x.textContent));
+     return !!flag && flag.hasAttribute('data-locked');
+   }));
 await p.click('#nextBtn'); await p.waitForTimeout(250);
 ok('completion modal appears after the final task', !(await p.$eval('#done', e => e.hidden)));
 ok('completion reports a percentage', (await p.textContent('#dnBody')).includes('%'));
@@ -498,7 +537,7 @@ ok('the button says Continue', (await p.textContent('#nextBtn')).includes('Conti
 ok('no hint is offered on a checkpoint', await p.$eval('#hintBtn', e => e.hidden));
 const scoreAtCheckpoint = await p.textContent('#scoreLbl');
 await p.click('#nextBtn'); await p.waitForTimeout(200);
-ok('continuing lands on task 9', (await p.textContent('#taskNo')).includes('9 of 12'));
+ok('continuing lands on task 9', (await p.textContent('#taskNo')).includes('9 of 13'));
 ok('the checkpoint scored nothing', (await p.textContent('#scoreLbl')) === scoreAtCheckpoint);
 
 console.log('\n— accessibility / integrity —');
@@ -560,7 +599,7 @@ ok('the host API really was reachable — the guard is what stopped it, not the 
    await host.evaluate(() => { try { return !!document.querySelector('#f').contentWindow.parent.API; }
                                catch (e) { return false; } }));
 ok('and it announces itself to the host instead',
-   await host.evaluate(() => simMsgs.some(m => m.type === 'ready' && m.tasks === 12)),
+   await host.evaluate(() => simMsgs.some(m => m.type === 'ready' && m.tasks === 13)),
    JSON.stringify(await host.evaluate(() => simMsgs)));
 
 const f = host.frames().find(fr => fr.url().includes('lesson.html'));

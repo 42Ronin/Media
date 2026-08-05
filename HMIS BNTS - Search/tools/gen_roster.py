@@ -144,6 +144,20 @@ SCRIPTED = [
     # 12 a genuine duplicate; report, never merge — draft 99
     C("5BB517588", "Shauna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
     C("6381E5405", "Shawna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
+    # 11 (script order) confirm by location — draft 81-86, "location data".
+    #    Two David Nguyens, same birth year, neither with an SSN. Only the
+    #    location history separates them.
+    C("6C2D91B47", "David", "Nguyen", "1982-03-09", None, q="refused"),
+    C("D3A7E0C85", "David", "Nguyen", "1982-11-22", None, q="unknown"),
+    # 12 (script order) everything at once — draft 46-59.
+    #    He answers to Smoke, which is on no record. The surname is three
+    #    plausible spellings deep, so only the fragment "Rey" reaches all of
+    #    them, and the year plus veteran status is what settles it.
+    C("A19F4C2E8", "Elias",  "Reyez", "1971-06-14", None, q="refused", vet="Yes"),
+    C("B72E5D3F1", "Marisol", "Reyes", "1971-02-27", "933-40-1182", p="She/Her/Hers"),
+    C("C58A6E4D2", "Hector", "Reyes", "1988-09-03", "947-22-6690"),
+    C("E41B7F5A3", "Lucia",  "Reynoso", "1971-12-08", "952-19-3374", p="She/Her/Hers"),
+    C("F93C8A6B4", "Tomas",  "Rios",  "1976-04-19", "918-77-2051"),
 ]
 
 # Households that a scripted task depends on, by client id.
@@ -194,6 +208,13 @@ def violates(c):
     if lo_l.startswith("vega") or lo_f.startswith("rosalind"): return True
     # 12: no third Beckett
     if lo_l.startswith("beckett"): return True
+    # location task: exactly two Nguyens, both David, nobody else close
+    if lo_l.startswith("nguyen") or lo_f.startswith("david"): return True
+    # the hard one: every Rey*/Rio* surname is pinned, and nobody answers to Smoke
+    if lo_l.startswith("rey") or lo_l.startswith("rio"): return True
+    if lo_f.startswith("smoke") or lo_l.startswith("smoke") or lo_a.startswith("smoke"): return True
+    # only one veteran born 1971 among them, so the flag decides it
+    if d[:4] == "1971" and lo_f.startswith("elias"): return True
     return False
 
 # --------------------------------------------------------------- generation
@@ -316,6 +337,14 @@ for c in clients:                                # everyone else is a household 
 
 # ---- client-record page fields -------------------------------------------
 # Added after the sort so the assignment stays deterministic for a given seed.
+# Invented street locations. Deliberately generic and not tied to real encampments.
+LOCATIONS = [
+    "6th Street bridge", "Alameda St underpass", "Slauson Ave & Central",
+    "MacArthur Park north lawn", "Vermont Ave & 8th", "LA River path, Elysian",
+    "Union Station forecourt", "Adams Blvd & Figueroa", "Westlake metro portal",
+    "Hollywood & Western", "Venice Blvd & Sepulveda", "Grand Ave & 5th",
+]
+
 QUALITY_LABEL = {
     "full": "Full SSN Reported", "approx": "Approximate or partial SSN reported",
     "refused": "Client refused", "unknown": "Client doesn't know",
@@ -330,6 +359,13 @@ for c in clients:
     c["ql"] = QUALITY_LABEL[c["q"]]
     c["cr"] = "Yes" if c["r"] == "No" else "No"
     c["fe"] = iso(rnd.randint(2016, 2025), rnd.randint(1, 12), rnd.randint(1, 28))          # Consent Refused mirrors a declined ROI
+    # Location history. Clarity records where a participant was contacted; the
+    # record page shows it, and for a street-outreach worker it is often the
+    # fastest thing to confirm. Invented locations only — see LOCATIONS.
+    c["lo"] = [{"d": iso(rnd.randint(2023, 2026), rnd.randint(1, 12), rnd.randint(1, 28)),
+                "p": rnd.choice(LOCATIONS)}
+               for _ in range(weighted([(0, .30), (1, .34), (2, .22), (3, .14)]))]
+    c["lo"].sort(key=lambda x: x["d"], reverse=True)
     c["n"] = {                                            # right-rail accordion counts
         "pr": weighted([(0, .45), (1, .2), (2, .15), (3, .1), (6, .1)]),
         "cq": weighted([(0, .6), (1, .3), (2, .1)]),
@@ -351,6 +387,20 @@ if len(_vega) == 3:
     _vega["F2A6C8D40"].update({"fe": "2019-02-14", "v": "No",  "rc": "Hispanic/Latina/e/o"})
     _vega["5C1B9E730"].update({"fe": "2022-08-03", "v": "",    "rd": ""})
     _vega["8D40A2F16"].update({"fe": "2024-11-20", "v": "",    "rd": "", "a": ""})
+# The location task: one David Nguyen has been at the 6th Street bridge for about
+# a year, the other has never been there. Nobody else may hold that location, or
+# the search stops separating them.
+_ngu = {c["i"]: c for c in clients if c["l"] == "Nguyen"}
+if len(_ngu) == 2:
+    _ngu["6C2D91B47"]["lo"] = [{"d": "2026-06-02", "p": "6th Street bridge"},
+                               {"d": "2026-01-14", "p": "6th Street bridge"},
+                               {"d": "2025-08-27", "p": "6th Street bridge"}]
+    _ngu["D3A7E0C85"]["lo"] = [{"d": "2026-05-19", "p": "Hollywood & Western"},
+                               {"d": "2025-11-03", "p": "Venice Blvd & Sepulveda"}]
+for c in clients:
+    if c["l"] != "Nguyen":
+        c["lo"] = [e for e in c["lo"] if e["p"] != "6th Street bridge"]
+
 # Task 10: Yolanda's record is thin on identifiers, so the household is the way in.
 _am = {c["i"]: c for c in clients if c["l"] == "Amari"}
 if len(_am) == 2:

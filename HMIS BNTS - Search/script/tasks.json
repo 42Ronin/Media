@@ -162,48 +162,51 @@
     },
     {
       "n": 11,
+      "id": "location",
+      "title": "Where they have been staying",
+      "note": false,
+      "brief": "A man gives his name as <span class=\"q\">David Nguyen.</span> Two records come back — both David Nguyen, both born in 1982. He does not know his Social Security Number and cannot remember which agency he last worked with. He does tell you he has been staying by the wash under the <b>6th Street bridge</b>, and has been for about a year.",
+      "ask": "Open the record whose location history matches where he has been staying.",
+      "hint": "Name and date of birth cannot separate these two. Open each record and read <b>Location history</b> — one of them was contacted at the 6th Street bridge.",
+      "teach": "When name and date of birth cannot separate two records, the rest of the record can. In outreach, location is often the fastest of them: where someone has been contacted before is a fact you can both check, and it does not ask the participant to remember an agency name or a date. Confirm it with them rather than assuming. People move, and a location recorded a year ago proves less than one recorded last month — treat it as one identifier among several, not as the answer on its own.",
+      "expectType": "open",
+      "answerId": "6C2D91B47",
+      "answerName": "David Nguyen",
+      "answerDob": "1982-03-09",
+      "answerSsn": null,
+      "answerSet": []
+    },
+    {
+      "n": 12,
+      "id": "smoke",
+      "title": "Everything at once",
+      "note": false,
+      "brief": "A man introduces himself as <span class=\"q\">Smoke.</span> It is the only name anyone out here uses for him. Pressed, he gives a last name — <b>Reyes</b>, he thinks, though it might have been written down as Reyez or Rios. He does not know his date of birth beyond the year, <b>1971</b>, and he will not give a Social Security Number. He does tell you he served — Army, a long time ago.",
+      "ask": "Find his record and open it.",
+      "hint": "Nothing you have been given finds him on its own. The first three letters are the same in all three spellings — search <code>Rey</code>, then use the year and the Veteran Status column to cut the list down.",
+      "teach": "This is the real thing. No date of birth, no Social Security Number, a street name that is on no record, and a surname three plausible spellings deep. What is left is a fragment, a year, and one fact he volunteered — he is filed as <b>Elias Reyez</b>. Veteran status is worth remembering precisely because it is the kind of thing people tell you without being asked. When the identifiers are thin, the thing they mentioned in passing is often what closes it. And notice what you did not do: you did not conclude he was new because a search came back empty. You cleared the box and typed something else, and then did it again.",
+      "expectType": "open",
+      "answerId": "A19F4C2E8",
+      "answerName": "Elias Reyez",
+      "answerDob": "1971-06-14",
+      "answerSsn": null,
+      "answerSet": []
+    },
+    {
+      "n": 13,
       "id": "several",
       "title": "More than one record matches",
       "note": false,
       "brief": "You search <span class=\"q\">Vega</span> and find three records. All three are Rosalind Vega, born 4/11/1983. All three appear to be the same person.",
       "ask": "Open the record you would work from.",
       "hint": "Choose the most complete one — full SSN, full date of birth, full name, an alias, the fullest history. Open a row's chevron and the record page to compare.",
-      "teach": "Work from the <b>most complete</b> record — full SSN, full date of birth, full name, full program history. Where that is unclear, take the one with the <b>longest enrollment history</b>, based on the oldest enrollment. Then send the full list of matching records, with every Unique Identifier, to HMIS Support so they can merge them.",
+      "teach": "Work from the <b>most complete</b> record — full SSN, full date of birth, full name, full program history. Where that is unclear, take the one with the <b>longest enrollment history</b>, based on the oldest enrollment. Note the Unique Identifiers of the others as you go, so you are not starting from nothing if it comes up again.",
       "expectType": "open",
       "answerId": "F2A6C8D40",
       "answerName": "Rosalind Vega",
       "answerDob": "1983-04-11",
       "answerSsn": "961-27-1173",
       "answerSet": []
-    },
-    {
-      "n": 12,
-      "id": "duplicate",
-      "title": "Finding the same person twice",
-      "note": false,
-      "brief": "You search <code>Beckett</code>. Two records come back: <b>Shauna Beckett</b> and <b>Shawna Beckett</b>. Same date of birth. Same last four of the SSN. One letter apart.",
-      "ask": "Open either record and flag it as a possible duplicate.",
-      "hint": "Open one of the two, then use 'Flag possible duplicate' in the ⋮ menu on the profile card.",
-      "teach": "This is one person entered twice. You do not merge it and you do not delete it — you report it to HMIS Support with both Unique Identifiers, and they resolve it centrally so your CoC's unduplicated count stays accurate.",
-      "expectType": "flag",
-      "answerId": null,
-      "answerName": null,
-      "answerDob": null,
-      "answerSsn": null,
-      "answerSet": [
-        {
-          "id": "5BB517588",
-          "name": "Shauna Beckett",
-          "dob": "1993-04-30",
-          "ssn": "926-71-2210"
-        },
-        {
-          "id": "6381E5405",
-          "name": "Shawna Beckett",
-          "dob": "1993-04-30",
-          "ssn": "926-71-2210"
-        }
-      ]
     }
   ],
   "interstitials": {
