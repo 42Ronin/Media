@@ -196,10 +196,7 @@ toc = [
                           "Searching by Name",
                           "Searching by Date of Birth", "Searching by Social Security Number",
                           "Reading the Results"]),
-    ("When Search Comes Up Empty", ["Alternate Names", "Alternate Spellings",
-                                    "Start Over From a Different Fact",
-                                    "Ask Your Data Staff",
-                                    "Only Then, Create a Record"]),
+
     ("How the Practice Tool Is Built", ["Only What This Lesson Needs", "Earning the Rest"]),
     ("Practice: Finding a Participant",
      ["How the Practice Works"] +
@@ -213,6 +210,9 @@ toc = [
                         "Choosing Which Record to Work From"]),
     ("Practice: Verifying a Record",
      [f"Task {t['n']} — {t['title']}" for t in TASKS[8:]]),
+    ("When Search Comes Up Empty", ["Somebody Nobody Can Find", "Alternate Names",
+                                    "Alternate Spellings", "Start Over From a Different Fact",
+                                    "Ask Your Data Staff", "Only Then, Create a Record"]),
     ("When You Are Short on Time", ["In the Field"]),
     ("Knowledge Check", ["Check What You Took In"]),
     ("Summary", ["Why Accuracy on the Way In Matters", "What You Practiced",
@@ -521,45 +521,6 @@ body("The software says Client. That means the same thing as participant. Both a
      "is how we talk about people, the other is what the screen is labelled.")
 
 
-# ───────────────────────────────── empty search ───────────────────────────
-section("When Search Comes Up Empty")
-body("You have searched and found nothing. Before you conclude the participant is new, work through "
-     "this list.")
-
-topic("Alternate Names")
-body("Ask the participant what else they have been called: a middle name, a second last name, a "
-     "nickname, a shortened name. Confirm the spelling of each one.")
-body("Some of what you hear will not be a nickname at all. A participant may give you the name "
-     "they use — a chosen name, or the name that fits who they are — while the record was created "
-     "under a different one. Ask for both, without making it a thing: the name they go by, and "
-     "any other name a record might be under. Search on both, and address them by the one they "
-     "gave you.")
-
-body("Ask to see any identification or written documentation. It is the fastest way to discover a "
-     "name nobody thought to mention.")
-
-topic("Alternate Spellings")
-body("Try the spellings a previous provider might have used by mistake. For Katherine Johnson: "
-     "catherine, cat, jonson, jon.")
-
-topic("Start Over From a Different Fact")
-body("Go back to the beginning and start from a different piece of information. If you began with "
-     "the date of birth, begin this time with the first three letters of the first and last name.")
-
-topic("Ask Your Data Staff")
-body("If you have time and your organisation has data staff, ask them. They search differently and "
-     "they find things.")
-
-topic("Only Then, Create a Record")
-body("If you have worked through all of the above and still cannot find a candidate record, create "
-     "a new one. At that point it is the right thing to do.")
-note("Removed from this lesson: asking HMIS Support to double-check a newly created record. "
-     "Reporting duplicates is not part of this training.")
-note("Creating a record is its own lesson, and the create form is blurred out here. In this lesson "
-     "the Add button acknowledges the learner and "
-     "explains that it is covered next — and points out when the participant in the current task "
-     "already has a record.")
-
 # ───────────────────────────────── the tool ───────────────────────────────
 section("How the Practice Tool Is Built")
 
@@ -589,7 +550,6 @@ note("Production consequence worth stating plainly: this only works if the lesso
      "simulation and one record of what the learner has unlocked. That is an argument for "
      "building the series on the common simulation this lesson already uses, rather than "
      "rebuilding the interface per lesson.")
-
 
 # ───────────────────────────────── practice ───────────────────────────────
 section("Practice: Finding a Participant")
@@ -750,6 +710,118 @@ body("Five more situations. This time finding a candidate record is the easy hal
 
 for _t in TASKS[8:]:      # the five verification tasks, all built now
     emit_task(_t)
+
+# ───────────────────────────────── empty search ───────────────────────────
+section("When Search Comes Up Empty")
+body("You have searched and found nothing. Before you conclude the participant is new, work "
+     "through this list — and this time you work it on one person, start to finish, choosing "
+     "for yourself which step to reach for.")
+note("Standalone sandbox rather than a run of taught screens. One scenario, and the learner "
+     "drives the search bar. The panel moves the story on when they reach each point and does "
+     "not block a route we did not predict. No score, a hint always available, and the learner "
+     "does not leave until they have opened her record.")
+note("Every step below is something a task already taught. This is where they put it together "
+     "without being told which tool to pick up.")
+
+topic("Somebody Nobody Can Find")
+kv_table([
+    ("Story",
+     "Second morning of a cleanup. A woman waits until your team is packing up and then comes "
+     "over. Weeks ago somebody told her a shelter bed was being held for her. She has heard "
+     "nothing since, and she wants to know whether it is real. She gives her name as Sylvia "
+     "Marchetti.", False),
+    ("Learner does", "Searches what she gave them.", False),
+    ("What happens",
+     "Nothing. Not the full name, not Marchetti on its own. The empty state says No clients "
+     "found and that is all it says.", False),
+    ("The point",
+     "An empty result is not proof that somebody is new — it is the beginning of the list "
+     "below, not the end of the search.", False),
+])
+
+topic("Alternate Names")
+body("Ask the participant what else they have been called: a middle name, a second last name, a "
+     "nickname, a shortened name. Confirm the spelling of each one.")
+body("Some of what you hear will not be a nickname at all. A participant may give you the name "
+     "they use — a chosen name, or the name that fits who they are — while the record was created "
+     "under a different one. Ask for both, without making it a thing: the name they go by, and "
+     "any other name a record might be under. Search on both, and address them by the one they "
+     "gave you.")
+body("Ask to see any identification or written documentation. It is the fastest way to discover a "
+     "name nobody thought to mention.")
+kv_table([
+    ("Story",
+     "You tell her the search is not finding her, which is not the same as her not being there, "
+     "and you ask what else she has been called. Everyone calls her Syl. She has not used "
+     "Marchetti in years — there was another name before it and she cannot remember which one "
+     "the shelter wrote down. She was born in 1979 but does not know the day. She would rather "
+     "not give her Social Security Number, and that is fine.", False),
+    ("Learner does", "Searches Syl. Then the year on its own.", False),
+    ("What happens",
+     "Syl reaches nobody — no alias was ever recorded for her. The year returns a long list, and "
+     "no Marchetti is in it, because there is no Marchetti to find.", False),
+    ("The point",
+     "Asking got you three new facts and ruled out a fourth. None of them has found her yet, and "
+     "that is still progress.", False),
+])
+
+topic("Alternate Spellings")
+body("Try the spellings a previous provider might have used by mistake. For Katherine Johnson: "
+     "catherine, cat, jonson, jon.")
+kv_table([
+    ("Story",
+     "Sylvia. With a Y. Somebody wrote this down once while listening rather than reading, and "
+     "the swap nobody notices themselves making is I for Y.", False),
+    ("Learner does", "Searches Sil.", False),
+    ("What happens",
+     "Five records — Sileshi, Silvana, Silas, and two women called Silvia.", False),
+    ("The point",
+     "The fragment beats the full name, because a fragment does not have to be spelled the way "
+     "somebody else typed it.", False),
+])
+
+topic("Start Over From a Different Fact")
+body("Go back to the beginning and start from a different piece of information. If you began with "
+     "the date of birth, begin this time with the first three letters of the first and last name.")
+kv_table([
+    ("Story",
+     "Five is readable and four of them are plainly not her. You started from her name and the "
+     "name was wrong twice over — so start from the other thing she gave you.", False),
+    ("Learner does", "Adds 1979 to the fragment.", False),
+    ("What happens",
+     "Two records. Silvia Duarte and Silvia Okonkwo, both born that year. Nothing she has told "
+     "you separates them: she does not know her exact date of birth, she has not given an SSN, "
+     "and either surname could be the one she stopped using.", False),
+    ("Learner does next",
+     "Goes back to her. Is there anyone with you? Her son Mateo is on the kerb with their bags. "
+     "Opens both records and reads past the identifiers.", False),
+    ("The right record",
+     "Silvia Duarte · unique identifier 7E1D4A9C3 · born 8 May 1979 · SSN none on file. Mateo "
+     "Duarte is on her household. Silvia Okonkwo's record lists nobody.", False),
+    ("The point",
+     "When the identifiers run out, the rest of the record is what identifies somebody. The "
+     "referral she was asking about is on the record you just opened — filed under a name she "
+     "had stopped using and a spelling she never saw.", False),
+])
+
+topic("Ask Your Data Staff")
+body("If you have time and your organisation has data staff, ask them. They search differently and "
+     "they find things.")
+note("Story note: this is where Silvia's morning would have gone next if both of those records "
+     "had turned out to be somebody else. Worth saying so, so the step does not read as "
+     "hypothetical.")
+
+topic("Only Then, Create a Record")
+body("If you have worked through all of the above and still cannot find a candidate record, create "
+     "a new one. At that point it is the right thing to do.")
+body("Notice how far down this list that sentence is. Sylvia was four searches from being a "
+     "second record for a person who already had one — and every one of those searches was a "
+     "thing you had already practised.")
+note("Removed from this lesson: asking HMIS Support to double-check a newly created record. "
+     "Reporting duplicates is not part of this training.")
+note("Creating a record is its own lesson, and the create form is blurred out here. In this lesson "
+     "the Add button acknowledges the learner and explains that it is covered next — and points "
+     "out when the participant in the current task already has a record.")
 
 # ───────────────────────────────── time pressure ──────────────────────────
 section("When You Are Short on Time")

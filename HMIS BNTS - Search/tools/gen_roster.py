@@ -158,11 +158,25 @@ SCRIPTED = [
     C("C58A6E4D2", "Hector", "Reyes", "1988-09-03", "947-22-6690"),
     C("E41B7F5A3", "Lucia",  "Reynoso", "1971-12-08", "952-19-3374", p="She/Her/Hers"),
     C("F93C8A6B4", "Tomas",  "Rios",  "1976-04-19", "918-77-2051"),
+    # Capstone sandbox. She introduces herself as Sylvia Marchetti: the spelling
+    # is wrong and the surname is one she stopped using. Nothing she offers at
+    # first reaches her, so the learner has to ask, respell, narrow, and then
+    # confirm on the household — every technique the tasks taught, in one go.
+    C("7E1D4A9C3", "Silvia", "Duarte",   "1979-05-08", None, q="refused", p="She/Her/Hers"),
+    C("2B8F6E1D5", "Mateo",  "Duarte",   "2014-02-17", None, q="notcollected"),
+    # No SSN on either Silvia. If one had a number on file, a learner could pick
+    # the other by elimination — she declined to give hers, which says nothing
+    # about what is stored. The household has to be the only thing that decides.
+    C("9A3C7B2E6", "Silvia", "Okonkwo",  "1979-10-30", None, q="unknown", p="She/Her/Hers"),
+    C("4D6E8F1A2", "Silvana","Moreau",   "1991-07-22", "938-64-2207", p="She/Her/Hers"),
+    C("8C5B3D7E9", "Silas",  "Whitcomb", "1966-11-05", "925-13-9948"),
+    C("1F2A5C8B4", "Sileshi","Abate",    "1984-03-26", "957-81-4432"),
 ]
 
 # Households that a scripted task depends on, by client id.
 PINNED_HOUSEHOLDS = [
     ("C4E7B2019", "9B3F5D6C7"),      # task 10: Yolanda Amari and her daughter Iris
+    ("7E1D4A9C3", "2B8F6E1D5"),      # capstone: Silvia Duarte and her son Mateo
 ]
 
 # Eleven more Garcias so that surname alone overflows a page of results (task 5).
@@ -215,6 +229,11 @@ def violates(c):
     if lo_f.startswith("smoke") or lo_l.startswith("smoke") or lo_a.startswith("smoke"): return True
     # only one veteran born 1971 among them, so the flag decides it
     if d[:4] == "1971" and lo_f.startswith("elias"): return True
+    # capstone: every Sil* is pinned, nobody is spelled Sylvia, and the surname
+    # she offers reaches nobody at all
+    if lo_f.startswith("sil") or lo_l.startswith("sil"): return True
+    if lo_f.startswith("syl") or lo_l.startswith("syl") or lo_a.startswith("syl"): return True
+    if lo_l.startswith("march") or lo_l.startswith("duarte"): return True
     return False
 
 # --------------------------------------------------------------- generation
@@ -416,6 +435,15 @@ if len(_ngu) == 2:
 for c in clients:
     if c["l"] != "Nguyen":
         c["lo"] = [e for e in c["lo"] if e["p"] != "6th Street bridge"]
+
+# The capstone turns on Silvia Duarte having a household and Silvia Okonkwo not.
+_ok = next((c for c in clients if c["i"] == "9A3C7B2E6"), None)
+if _ok is not None and _ok["hm"]:
+    for m in _ok["hm"]:
+        _other = next((x for x in clients if x["i"] == m["i"]), None)
+        if _other is not None:
+            _other["hm"], _other["h"] = [], 1
+    _ok["hm"], _ok["h"] = [], 1
 
 # Task 10: Yolanda's record is thin on identifiers, so the household is the way in.
 _am = {c["i"]: c for c in clients if c["l"] == "Amari"}

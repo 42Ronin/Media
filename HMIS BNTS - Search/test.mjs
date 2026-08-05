@@ -573,6 +573,34 @@ ok('no JS errors during the entire run', errs.length === 0, errs.join(' | '));
    to report to a Storyline block, which can listen. Both are asserted by
    loading the lesson inside a frame that fakes an LMS API.
    ------------------------------------------------------------------ */
+console.log('\n— the recovery scenario (sandbox) —');
+/* One person, worked end to end. Each step has to fail in the way the story says
+   it fails, or the scenario teaches the wrong lesson. */
+const ARC = [
+  ['what she gives you dead-ends',        'Sylvia Marchetti', 0],
+  ['the surname alone reaches nobody',    'Marchetti',        0],
+  ['the nickname was never recorded',     'Syl',              0],
+  ['the Y spelling finds nothing',        'Sylvia',           0],
+  ['the I spelling opens it up',          'Sil',              5],
+  ['adding the year narrows to two',      'Sil 1979',         2],
+];
+for (const [label, query, expected] of ARC) {
+  const n = await p.evaluate(x => search(x, []).rows.length, query);
+  ok(`${label}: "${query}" -> ${expected}`, n === expected, `got ${n}`);
+}
+ok('the two that remain cannot be told apart on identifiers', await p.evaluate(() => {
+  const rows = search('Sil 1979', []).rows;
+  return rows.length === 2 && rows.every(c => c.f === 'Silvia' && !c.s);
+}));
+ok('the household is what separates them', await p.evaluate(() => {
+  const rows = search('Sil 1979', []).rows;
+  const withHh = rows.filter(c => (c.hm || []).length);
+  return withHh.length === 1 && withHh[0].i === '7E1D4A9C3' &&
+         withHh[0].hm.some(m => m.i === '2B8F6E1D5');
+}));
+ok('and her son resolves to a real record',
+   await p.evaluate(() => !!CLIENTS.find(c => c.i === '2B8F6E1D5' && c.f === 'Mateo')));
+
 console.log('\n— embedding in another course —');
 /* Both pages have to share a real origin: a file:// or data:// frame is walled
    off by the browser, which would make "it never reached the host's API" pass

@@ -55,6 +55,15 @@ python3 snippet_tasks.py 8      # the eight search tasks
 python3 snippet_tasks.py 11     # the five verification tasks
 ```
 
+`snippet_section.py` cuts any one section out of the built script, copying the real
+elements so what lands in the draft is exactly what the script says:
+
+```bash
+python3 snippet_section.py "When Search Comes Up Empty"
+```
+
+Run it with a name it does not recognise and it prints the sections it does.
+
 The output is gitignored; regenerate it rather than tracking it.
 
 **When someone is hand-editing the draft, do not regenerate and send the whole script.**
