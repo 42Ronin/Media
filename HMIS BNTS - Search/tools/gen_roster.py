@@ -53,6 +53,21 @@ Ainsworth Bordelon Chaudhry Dunkerley Escalante Fitzwilliam Ghorbani Huntington 
 Jaramillo Kensington Lombardi Mwangi Novotny Oyelowo Prendergast Rutherford Sorensen Tanaka
 Underhill Villanueva Waterhouse Zamora Adeyemi Bellweather Cortazar Drummond""".split()
 
+# Names that repeat, deliberately. A roster where every name is unique makes search
+# look far more decisive than it is: the first thing a learner types finds exactly
+# one person, and they stop thinking. Most records are drawn from these much smaller
+# pools instead, so a name usually returns a handful and the learner has to add a
+# second identifier to reach one person. That is the habit the whole lesson is for.
+#
+# Nothing here may collide with a pinned answer — every one of these is checked by
+# violates() the same as any other generated record.
+COMMON_F = """Maria Jose Anthony Angela Robert Linda Michelle Carlos Sandra Kevin
+Monica Andre Tanya Luis Rosa Eric Patricia Jamal Teresa Darnell""".split()
+COMMON_L = """Johnson Williams Lopez Smith Jackson Martinez Hernandez Brown Davis
+Thompson Robinson Walker Young Alvarez Ramirez Carter Flores Bennett Foster Freeman""".split()
+COMMON_RATE = 0.84          # how often a name is drawn from the small pool
+MAX_TWINS   = 26            # records allowed to share a full name with another
+
 PRONOUNS = ["She/Her/Hers", "He/Him/His", "They/Them/Theirs"]
 
 # HUD race and ethnicity categories, plus the standard non-response codes
@@ -171,6 +186,17 @@ SCRIPTED = [
     C("4D6E8F1A2", "Silvana","Moreau",   "1991-07-22", "938-64-2207", p="She/Her/Hers"),
     C("8C5B3D7E9", "Silas",  "Whitcomb", "1966-11-05", "925-13-9948"),
     C("1F2A5C8B4", "Sileshi","Abate",    "1984-03-26", "957-81-4432"),
+
+    # Section 11 — the running scenario. He calls himself Desmond and gives Carrow,
+    # a surname he stopped using; nobody is filed under it, so his first two
+    # searches reach nobody at all. "Dez" is the fragment that opens it up, and it
+    # has to return five so the list is readable but not an answer. Adding 1974
+    # leaves two, neither with an SSN, and only the Location tab separates them.
+    C("D2F8A6C31", "Dezmond", "Ellery", "1974-08-16", None, q="refused"),
+    C("A7C4E9B52", "Dezmond", "Achebe", "1974-03-02", None, q="unknown"),
+    C("B5E1D8F43", "Dezirae", "Halvorsen", "1996-11-09", "943-28-1160", p="She/Her/Hers"),
+    C("C9A3F7E64", "Dezra",   "Osterman",  "1988-05-23", "917-62-9084", p="She/Her/Hers"),
+    C("E6B2C5A75", "Dezhawn", "Arrington", "2001-01-30", "955-40-3372"),
 ]
 
 # Households that a scripted task depends on, by client id.
@@ -234,6 +260,12 @@ def violates(c):
     if lo_f.startswith("sil") or lo_l.startswith("sil"): return True
     if lo_f.startswith("syl") or lo_l.startswith("syl") or lo_a.startswith("syl"): return True
     if lo_l.startswith("march") or lo_l.startswith("duarte"): return True
+    # section 11: every Dez* is pinned, so the fragment returns exactly five.
+    # Nobody is filed under Carrow, and no first name begins Des, so neither of
+    # the two searches he leads with can reach anybody.
+    if lo_f.startswith("dez") or lo_l.startswith("dez") or lo_a.startswith("dez"): return True
+    if lo_f.startswith("des") or lo_a.startswith("des"): return True
+    if lo_l.startswith("carrow") or lo_l.startswith("ellery") or lo_l.startswith("achebe"): return True
     return False
 
 # --------------------------------------------------------------- generation
@@ -257,12 +289,21 @@ def weighted(pairs):
     return pairs[-1][0]
 
 guard_rejects = 0
+twins = 0
 while len(clients) < TOTAL:
     bucket = weighted([("f", .47), ("m", .47), ("n", .06)])
-    first = rnd.choice(FIRST_F if bucket == "f" else FIRST_M if bucket == "m" else FIRST_N)
-    last = rnd.choice(LAST)
+    common_f = rnd.random() < COMMON_RATE
+    common_l = rnd.random() < COMMON_RATE
+    first = (rnd.choice(COMMON_F) if common_f else
+             rnd.choice(FIRST_F if bucket == "f" else FIRST_M if bucket == "m" else FIRST_N))
+    last = rnd.choice(COMMON_L if common_l else LAST)
     if (first, last) in used_names:
-        continue
+        # A full name that is not unique is the point, within a limit: it is why
+        # "two of the three" is the rule the lesson teaches. Only common names may
+        # collide, so a pinned answer can never acquire a twin this way.
+        if not (common_f and common_l) or twins >= MAX_TWINS:
+            continue
+        twins += 1
 
     q = weighted([("full", .80), ("approx", .05), ("refused", .07),
                   ("unknown", .04), ("notcollected", .04)])
@@ -429,12 +470,28 @@ if len(_ngu) == 2:
         p, ty, x, y = _by_name[name]
         return {"p": p, "ty": ty, "x": x, "y": y, "k": kind}
     _ngu["6C2D91B47"]["lo"] = [_rec("6th Street bridge", "Field Interaction"),
-                               _rec("Alameda St underpass", "Field Interaction")]
+                               _rec("Union Station forecourt", "Field Interaction")]
     _ngu["D3A7E0C85"]["lo"] = [_rec("Hollywood & Western", "Address"),
                                _rec("Venice Blvd & Sepulveda", "Field Interaction")]
 for c in clients:
     if c["l"] != "Nguyen":
         c["lo"] = [e for e in c["lo"] if e["p"] != "6th Street bridge"]
+
+# Section 11: one Dezmond has been contacted at the Alameda St underpass, the block
+# the team has been working. The other has never been there. Like the bridge above,
+# the location only separates them if nobody else on the roster holds it.
+_dez = {c["i"]: c for c in clients if c["f"] == "Dezmond"}
+if len(_dez) == 2:
+    _by_name2 = {p: (p, ty, x, y) for (p, ty, x, y) in LOCATIONS}
+    def _rec2(name, kind):
+        p, ty, x, y = _by_name2[name]
+        return {"p": p, "ty": ty, "x": x, "y": y, "k": kind}
+    _dez["D2F8A6C31"]["lo"] = [_rec2("Alameda St underpass", "Field Interaction"),
+                               _rec2("Grand Ave & 5th", "Field Interaction")]
+    _dez["A7C4E9B52"]["lo"] = [_rec2("Westlake metro portal", "Address")]
+for c in clients:
+    if c["i"] != "D2F8A6C31":
+        c["lo"] = [e for e in c["lo"] if e["p"] != "Alameda St underpass"]
 
 # The capstone turns on Silvia Duarte having a household and Silvia Okonkwo not.
 _ok = next((c for c in clients if c["i"] == "9A3C7B2E6"), None)
@@ -472,3 +529,13 @@ def area_safe(c):
     a = c["s"].split("-")[0]
     return a.startswith("9") or a in ("XXX", "000")
 print(f"  all areas safe   : {all(area_safe(c) for c in clients)}")
+
+from collections import Counter
+_f = Counter(c["f"] for c in clients)
+_l = Counter(c["l"] for c in clients)
+_n = Counter((c["f"], c["l"]) for c in clients)
+print(f"  distinct first   : {len(_f)}  most common {_f.most_common(1)[0]}")
+print(f"  distinct last    : {len(_l)}  most common {_l.most_common(1)[0]}")
+print(f"  first names shared by 2+ : {sum(1 for v in _f.values() if v > 1)}")
+print(f"  surnames shared by 2+    : {sum(1 for v in _l.values() if v > 1)}")
+print(f"  full names shared by 2+  : {sum(1 for v in _n.values() if v > 1)}")
