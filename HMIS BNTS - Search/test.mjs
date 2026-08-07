@@ -53,7 +53,8 @@ const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
    back to search. Every task after the first begins by needing it, and the
    simulation only explains the two shortcuts once you click them, which is too
    late. Flagged in the template for scripted wording. */
-ok("slide 7.1, the two ways back, and the panel that is ours not the product's", tourLen === 8, String(tourLen));
+ok("slide 7.1, a walk through a record, the two ways back, and the panel that is ours",
+   tourLen === 12, String(tourLen));
 
 const seen = [];
 let arrowSeen = 0, arrowUnderBubble = false, arrowBackwards = 0;
@@ -1029,16 +1030,28 @@ ok('no task sends the learner to HMIS Support', await p.evaluate(() =>
   TASKS.every(t => !/HMIS Support/i.test((t.teach || '') + (t.hint || '') + (t.brief || '')))));
 ok('nothing tells the learner to merge or delete a record', await p.evaluate(() =>
   TASKS.every(t => !/\b(merge|delete)\b/i.test((t.teach || '') + (t.hint || '')))));
-/* The record kebab's menu is one we have never seen, so it names itself rather than
-   listing invented actions — "Flag possible duplicate" was ours. */
-ok('the record kebab is obstructed without inventing what is behind it',
+/* An obstructed control does nothing at all. It used to open a modal explaining
+   itself, which meant every stray click on the dimmed interface interrupted the task
+   with a box to dismiss — and a control that answers back does not read as out of
+   use. The record kebab is the edit route, which this lesson does not teach. */
+ok('an obstructed control does nothing when clicked',
    await p.evaluate(async () => {
+     const before = { notice: document.getElementById('notice').hidden,
+                      pop: document.getElementById('filterPop').hidden, open: S.open };
      document.getElementById('kebabBtn').click();
      await new Promise(r => setTimeout(r, 140));
-     return !document.getElementById('notice').hidden &&
-            document.getElementById('filterPop').hidden;
+     return document.getElementById('notice').hidden === before.notice &&
+            document.getElementById('filterPop').hidden === before.pop &&
+            S.open === before.open;
    }));
-await closeAll();   // it is a modal now, not a popover — it would block what follows
+ok('...and so does a blurred one deeper in the page',
+   await p.evaluate(async () => {
+     const el = document.querySelector('#recNav [data-locked]');
+     const before = document.getElementById('notice').hidden;
+     el.click();
+     await new Promise(r => setTimeout(r, 120));
+     return document.getElementById('notice').hidden === before;
+   }));
 await p.click('#nextBtn'); await p.waitForTimeout(250);
 ok('completion modal appears after the final task', !(await p.$eval('#done', e => e.hidden)));
 ok('completion reports what was done, not a mark',

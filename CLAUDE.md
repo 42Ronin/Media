@@ -280,7 +280,21 @@ available, not present.
 - **The `?` in the panel bar is a hover, not a button.** It used to replay the whole
   orientation, which is a lot to sit through when you only wanted to remember what the two
   icons beside it do. It has no click handler and starts nothing.
-- **Section 7's orientation is eight beats**, the last of which points at the task box and
+- **An obstructed control does nothing at all.** It used to open a modal explaining itself, which
+  meant every stray click on the dimmed interface interrupted the task with a box to dismiss —
+  and a control that answers back does not read as out of use. `bindLocked` swallows the click
+  and nothing else. The orientation says it in words once, so it does not need saying again.
+- **A tour beat can drive the interface** via `act:`. The orientation walks a record rather than
+  describing one: it types a name, opens somebody, names the profile fields, opens Location, then
+  hands everything back — search cleared, record closed, **recents cleared too**, because the
+  learner did not open that person. `TOUR_DRIVING` makes the evaluator ignore it; without that
+  guard, opening the demo record scored as an attempt at task one and tore the tour down
+  mid-sentence. `demoClient()` picks somebody who is not the answer to any task, so the walk
+  cannot hand over a record the learner is about to be asked to find.
+- **Anchor a beat at something small.** `#profGrid` and `#locBody` are whole panels; an arrow
+  cannot point at a 600×800 block and the solver has nowhere to stand beside one. The card heads
+  work because they are small and sit at the top of the thing being described.
+- **Section 7's orientation is twelve beats**, the last of which points at the task box and
   says to start. Before that the tour simply stopped, leaving the learner facing an interface
   with no sign the work had begun. Beats 6 and 7 cover pop-out and collapse, because the panel
   is ours rather than the product's and nothing in the script describes it.
