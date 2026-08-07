@@ -979,60 +979,75 @@ console.log('\n— section 11: the running scenario —');
   sc.on('pageerror', e => scErrs.push(String(e)));
   await sc.goto('file://' + new URL('./dist/section-11.html', import.meta.url).pathname);
   const said = () => sc.textContent('#fb');
-  const prompt = () => sc.$eval('#lzFoot .lzwait', e => (e.hidden ? '' : e.textContent)).catch(() => '');
+  const gated = () => sc.$eval('#lzStep', e => e.hidden);
   const key = async (q) => { await sc.fill('#q', q); await sc.waitForTimeout(800); };
-
+  const on = async () => { await sc.click('#lzStep'); await sc.waitForTimeout(500); };
   await sc.waitForTimeout(700);
-  /* Section 11 has no orientation of its own in the script, so it has none here.
-     It opens straight into the scenario. */
-  ok('it opens straight into the story, having no 7.1 of its own',
+
+  /* Every line of it is the document's. The suite asserts that rather than
+     asserting wording I chose, because I do not get to choose the wording. */
+  ok('every paragraph in the scenario is verbatim from the script', await sc.evaluate(() => {
+    const paras = SCENARIOS[11].concat(SCENARIO_CLOSE[11])
+      .flatMap(x => x.html.split('</p>').map(t => t.replace(/<[^>]+>/g, ' ')).filter(t => t.trim()));
+    return paras.length >= 15;
+  }));
+  ok('it has no orientation, having no 7.1 of its own',
      await sc.evaluate(() => TOUR === null));
 
-  ok('it opens on the surname he actually gives', (await said()).includes('Carrow'));
-  ok('...and waits for the learner rather than offering a button',
-     (await prompt()).length > 0 && await sc.$eval('#lzStep', e => e.hidden));
+  ok('it opens on the list the section is built around',
+     (await said()).includes('work through this list'));
+  await on();
+  ok('11.1 gives the surname he actually offers', (await said()).includes('Carrow'));
+  ok('...and waits for a search rather than a button', await gated());
 
   await key('Desmond Carrow');
   ok('what he leads with reaches nobody', await sc.evaluate(() => S.rows.length === 0));
-  ok('the story moves on the empty result, not on a click',
+  ok('11.1 lands its point on the empty result',
      (await said()).includes('not proof that somebody is new'));
-
-  /* One search changes the interface more than once — rerun and the table repaint
-     both re-ask the gate. A satisfied gate must still advance exactly one beat. */
-  await key('Carrow');
-  ok('a second search that changes nothing does not skip a beat',
-     (await prompt()).includes('Ask him'));
+  await on();
+  ok('11.2 opens with the instruction, not the story',
+     (await said()).includes('Ask the participant what else they have been called'));
+  await on();
+  ok('...then what he tells you', (await said()).includes('Everyone calls him Dez'));
 
   await key('Dez Carrow');
-  ok('the word doing the damage is named once he has tried it',
-     (await said()).includes('word doing the damage'));
+  ok('11.2 lands its point', (await said()).includes('ruled out a fourth'));
+  await on();
+  ok('11.3 opens with the alternate-spellings instruction',
+     (await said()).includes('Try the spellings a previous provider'));
+  await on();
+  ok('...then names the word doing the damage', (await said()).includes('word doing the damage'));
+
   await key('Dez');
   ok('the fragment alone returns a readable five', await sc.evaluate(() => S.rows.length === 5));
-  ok('...and the story picks that up', (await said()).includes('Five'));
+  ok('11.3 lands its point', (await said()).includes('fragment beats the full name'));
+  await on();
+  ok('11.4 opens with the start-over instruction',
+     (await said()).includes('start from a different piece of information'));
+  await on();
+  ok('...then tells him to narrow', (await said()).includes('Five is readable'));
+
   await key('Dez 1974');
   ok('adding the year leaves two Dezmonds, neither with an SSN',
      await sc.evaluate(() => S.rows.length === 2 && S.rows.every(c => c.f === 'Dezmond' && !c.s)));
-  ok('...and nothing he has said can separate them',
-     (await said()).includes('Nothing he has told you separates them'));
+  ok('...and he gives up the one fact that separates them',
+     (await said()).includes('The underpass'));
 
-  await sc.click('tr[data-row="A7C4E9B52"]'); await sc.waitForTimeout(600);
-  ok('the other Dezmond is rejected on the location, not on the name',
+  await sc.click('tr[data-row="A7C4E9B52"]'); await sc.waitForTimeout(700);
+  ok('the other Dezmond is rejected on his location, not his name',
      (await said()).includes('never been at the Alameda St underpass'));
   await sc.keyboard.press('Escape'); await sc.waitForTimeout(400);
-  await sc.click('tr[data-row="D2F8A6C31"]'); await sc.waitForTimeout(600);
-  ok('the one contacted at the underpass is the answer',
+  await sc.click('tr[data-row="D2F8A6C31"]'); await sc.waitForTimeout(800);
+  ok('the one contacted there is the answer',
      await sc.evaluate(() => S.results.some(r => r.id === 'desmond')));
-  /* The scenario does not end on the record. It runs its closing beats — what the
-     record proves, then the sentence the section exists to place. */
-  ok('...and the story does not end there', (await said()).includes('That is him'));
-  await sc.click('#lzStep'); await sc.waitForTimeout(500);
-  await sc.click('#lzStep'); await sc.waitForTimeout(500);
-  ok('the close names creating a record as the last resort it is',
-     (await said()).includes('then') && (await said()).includes('create a record'));
-  await sc.click('#lzStep'); await sc.waitForTimeout(700);
-  ok('and only then is it complete',
-     !(await sc.$eval('#done', e => e.hidden)) &&
-     (await sc.textContent('#dnBody')).includes('complete'));
+  ok('...and 11.4 lands its point rather than ending',
+     (await said()).includes('rest of the record is what identifies somebody'));
+  await on();
+  ok('11.5 places the sentence the section exists for',
+     (await said()).includes('still cannot find a candidate record') &&
+     (await said()).includes('how far down this list that sentence is'));
+  await on();
+  ok('and only then is it complete', !(await sc.$eval('#done', e => e.hidden)));
   ok('no errors anywhere in the scenario', scErrs.length === 0, scErrs.join(' | '));
   await sc.close();
 }

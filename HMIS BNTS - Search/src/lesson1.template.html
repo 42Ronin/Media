@@ -1274,10 +1274,12 @@ function rowsAre(test){
 /* What the scenario is, for the panel: it has steps, not tasks, and the learner
    works one person the whole way through. */
 var SCENARIO_META={
-11:{ title:"Somebody nobody can find",
-     steps:["He gives you a surname","You ask what else he is called",
-            "You drop the word doing the damage","You start from the other fact",
-            "You confirm it on the record","Only then, a new record"] }
+11:{ title:"When Search Comes Up Empty",
+     /* the document's own slide titles */
+     steps:["Somebody Nobody Can Find","Alternate Names","Alternate Spellings",
+            "Start Over From a Different Fact","Only Then, Create a Record"],
+     /* which beat each slide starts at, so the panel tracks the story */
+     at:[1,3,6,9,12] }
 };
 
 /* Run after the right record is open. The doc does not end on the record — it
@@ -1306,45 +1308,101 @@ var SCENARIO_CLOSE={
        'a second record for a man who already had one.</p>' }
 ]};
 
+/* Section 11, from the document and nothing else.
+
+   Its slides carry three kinds of text. The directive paragraph that opens 11.2,
+   11.3 and 11.4 is the instruction — that is what tells the learner what to do,
+   and it is deliberately sparse because they have done all of it already. The
+   Story is the narration. The Point is the teaching, and it lands after they have
+   acted, not before.
+
+   "Learner does" and "What happens" are storyboard: they are not shown to anybody,
+   they are the gate. The story moves when the search matches what the slide says
+   should happen, however the learner got there. */
 var SCENARIOS={
 11:[
-{ anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
-  wait:"Search for him.",
-  html:'<p>He gives his last name as <b>Carrow</b>. Try it.</p>',
+{ anchor:"panel", eyes:"open", mouth:"tip", move:"dropin", next:"Start",
+  html:'<p>You have searched and found nothing. Before you conclude the participant is new, work '+
+       'through this list \u2014 and this time you work it on one person, start to finish, choosing '+
+       'for yourself which step to reach for.</p>' },
+
+/* 11.1 — Somebody Nobody Can Find */
+{ anchor:"search", eyes:"open", mouth:"plain", wait:"Search for him.",
+  html:'<p>Second morning of the cleanup. You are packing up when you see him again \u2014 Desmond, '+
+       'the man who asked yesterday whether there was any news about interim housing. He has come '+
+       'back to find out whether you got anywhere. He gives his last name as Carrow.</p>',
   until:rowsAre(function(r,q){ return r.length===0 && q.indexOf("carrow")>-1; }) },
-
 { anchor:"zero", eyes:"glance", mouth:"hm", move:"shrug",
-  wait:"Ask him, then search again.",
-  html:'<p>Nothing, either way. And an empty result is not proof that somebody is new \u2014 you already have '+
-       'a reason to think he is not, because somebody took his details months ago. That record is somewhere.</p>'+
-       '<p>So you ask. Everyone calls him <b>Dez</b>. He has not used Carrow in years, and there was another '+
-       'name before it that he cannot remember. He was born in <b>1974</b>. He would rather not give a Social '+
-       'Security Number, and that is fine.</p>',
+  html:'<p>An empty result is not proof that somebody is new \u2014 and you already have a reason to '+
+       'think he is not. Somebody took his details months ago. That record is somewhere.</p>' },
+
+/* 11.2 — Alternate Names */
+{ anchor:"search", eyes:"open", mouth:"tip",
+  html:'<p>Ask the participant what else they have been called: a middle name, a second last name, '+
+       'a nickname, a shortened name. Confirm the spelling of each one.</p>'+
+       '<p>Some of what you hear will not be a nickname at all. A participant may give you the name '+
+       'they use \u2014 a chosen name, or the name that fits who they are \u2014 while the record was '+
+       'created under a different one. Ask for both, without making it a thing: the name they go by, '+
+       'and any other name a record might be under. Search on both, and address them by the one they '+
+       'gave you.</p>' },
+{ anchor:"search", eyes:"open", mouth:"plain", wait:"Search again.",
+  html:'<p>You tell him the search is not finding him, which is not the same as him not being there, '+
+       'and you ask what else he has been called. Everyone calls him Dez. He has not used Carrow in '+
+       'years \u2014 there was another name before it and he cannot remember which one the outreach '+
+       'worker wrote down. He was born in 1974 but does not know the day. He would rather not give '+
+       'his Social Security Number, and that is fine.</p>',
   until:rowsAre(function(r,q){ return q.indexOf("1974")>-1 || (q.indexOf("dez")>-1 && q.indexOf("carrow")>-1); }) },
-
 { anchor:"results", eyes:"droll", mouth:"hm", move:"still",
-  wait:"Drop the surname.",
-  html:'<p>Still nothing useful. Carrow reaches nobody, so any search holding it reaches nobody either \u2014 '+
-       'every word has to match. And the year on its own is a crowd.</p>'+
-       '<p>Dez is not a nickname. Somebody wrote his name down while listening rather than reading, and the '+
-       's came out as a z. The surname he gave you is the one he stopped using. It is the word doing the damage.</p>',
-  until:rowsAre(function(r,q){ return r.length>0 && r.length<=6 && r.every(function(c){ return /^dez/i.test(c.f); }); }) },
+  html:'<p>Asking got you three new facts and ruled out a fourth. None of them has found him yet, '+
+       'and that is still progress.</p>' },
 
+/* 11.3 — Alternate Spellings */
+{ anchor:"search", eyes:"open", mouth:"tip", point:true,
+  html:'<p>Try the spellings a previous provider might have used by mistake. For Katherine Johnson: '+
+       'catherine, cat, jonson, jon.</p>' },
+{ anchor:"search", eyes:"glance", mouth:"wry", wait:"Search what is left.",
+  html:'<p>Dez is not a nickname. Somebody wrote his name down while listening rather than reading, '+
+       'and the s came out as a z. And the surname he gave you is the one he stopped using \u2014 it '+
+       'is the word doing the damage. Drop it and search what is left.</p>',
+  until:rowsAre(function(r){ return r.length>0 && r.length<=6 && r.every(function(c){ return /^dez/i.test(c.f); }); }) },
 { anchor:"results", eyes:"wide", mouth:"plain", move:"hop",
-  wait:"Narrow it.",
-  html:'<p>Five. The fragment beat the full name, because a fragment does not have to be spelled the way '+
-       'somebody else typed it \u2014 and taking a word away is what let it work at all.</p>'+
-       '<p>Three of these are plainly not him. You started from his name and the name was wrong twice over, '+
-       'so start from the other thing he gave you.</p>',
-  until:rowsAre(function(r){ return r.length===2 && r.every(function(c){ return c.f==="Dezmond"; }); }) },
+  html:'<p>The fragment beats the full name, because a fragment does not have to be spelled the way '+
+       'somebody else typed it. And taking a word away is what let the fragment work at all.</p>' },
 
+/* 11.4 — Start Over From a Different Fact */
+{ anchor:"search", eyes:"open", mouth:"tip", point:true,
+  html:'<p>Go back to the beginning and start from a different piece of information. If you began '+
+       'with the date of birth, begin this time with the first three letters of the first and last '+
+       'name.</p>' },
+{ anchor:"results", eyes:"open", mouth:"plain", wait:"Narrow it.",
+  html:'<p>Five is readable and three of them are plainly not him. Two are not. You started from his '+
+       'name and the name was wrong twice over \u2014 so start from the other thing he gave you.</p>',
+  until:rowsAre(function(r){ return r.length===2 && r.every(function(c){ return c.f==="Dezmond"; }); }) },
 { anchor:"results", eyes:"open", mouth:"tip", move:"lean", point:true,
-  wait:"Open them and read the Location tab.",
-  html:'<p>Two. Both Dezmond, both born that year, neither with a Social Security Number on file. Nothing '+
-       'he has told you separates them.</p>'+
-       '<p>So you go back and ask him. Where have you been staying? <b>The underpass</b> \u2014 the same block '+
-       'your team has been working for two days.</p>',
+  wait:"Open both and read the Location tab.",
+  /* The second paragraph is the document's "Learner does next", verbatim. It is
+     written as a stage direction rather than as narration, and it carries the one
+     fact the step cannot be solved without — he says the underpass. Shown as it
+     stands rather than reworded; the voice is a question for the author. */
+  html:'<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on '+
+       'file. Nothing he has told you separates them.</p>'+
+       '<p>Goes back to him. Where have you been staying? The underpass \u2014 the same block your '+
+       'team has been working for two days. Opens both records and reads the Location tab.</p>',
   until:function(){ return !!S.open; } }
+]};
+
+var SCENARIO_CLOSE={
+11:[
+{ anchor:"record", eyes:"sparkle", mouth:"cheer", move:"bounce",
+  html:'<p>When the identifiers run out, the rest of the record is what identifies somebody. And '+
+       'there it is \u2014 the contact somebody logged the day they took his details, and the referral '+
+       'he has been asking about ever since. He was never missing. He was four searches away.</p>' },
+{ anchor:"record", eyes:"open", mouth:"tip", move:"lean", next:"Finish",
+  html:'<p>If you have worked through all of the above and still cannot find a candidate record, '+
+       'create a new one. At that point it is the right thing to do.</p>'+
+       '<p>Notice how far down this list that sentence is. Desmond was four searches from being a '+
+       'second record for a man who already had one \u2014 and every one of those searches was '+
+       'something you had already practiced.</p>' }
 ]};
 
 /* ============================================================
@@ -1776,8 +1834,9 @@ function renderCoach(){
     /* One person worked start to finish. Counting tasks would say "1 of 1", which
        is true and useless; what the learner wants to know is how far through the
        story they are. */
-    var pos=BEAT.pos(), step=S.closing ? meta.steps.length : (pos?Math.min(pos.i+1,meta.steps.length-1):1);
-    if(done) step=meta.steps.length;
+    var pos=BEAT.pos(), step=1;
+    if(pos){ meta.at.forEach(function(b,k){ if(pos.i>=b) step=k+1; }); }
+    if(S.closing||done) step=meta.steps.length;
     $("#taskNo").textContent=done?"Complete":("Step "+step+" of "+meta.steps.length);
     $("#barFill").style.width=(step/meta.steps.length*100)+"%";
   }else{
@@ -1804,7 +1863,9 @@ function renderTaskList(){
   var meta=SCENARIO_META[SECTION];
   if(meta){
     var pos=BEAT.pos();
-    var at=S.closing||S.finished ? meta.steps.length-1 : (pos?Math.min(pos.i,meta.steps.length-1):0);
+    var at=0;
+    if(pos) meta.at.forEach(function(b,k){ if(pos.i>=b) at=k; });
+    if(S.closing||S.finished) at=meta.steps.length-1;
     $("#tList").innerHTML=meta.steps.map(function(label,i){
       var cls=i<at?"done":(i===at?"cur":"");
       return '<li class="'+cls+'"><span>'+(i<at?"✔":"○")+'</span><span>'+esc(label)+'</span></li>';
