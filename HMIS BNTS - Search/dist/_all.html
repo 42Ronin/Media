@@ -371,6 +371,17 @@ html.dock-out .cwbar.drag{cursor:grabbing}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cwbtn{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:rgba(255,255,255,.8);flex:none}
 .cwbtn:hover{background:rgba(255,255,255,.18);color:#fff}
+/* The help marker and its tooltip. Hover or keyboard focus only — no click, no
+   state, nothing to undo. It hangs below the title bar and to the left, because
+   the panel is against the right edge and there is no room the other way. */
+.cwhelp{position:relative;cursor:default}
+.cwtip{position:absolute;top:calc(100% + 8px);right:-4px;width:250px;background:#fff;color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(40,30,90,.22);
+  padding:11px 13px;font-size:13.5px;line-height:1.5;text-align:left;font-weight:400;
+  opacity:0;visibility:hidden;transition:opacity .13s;z-index:200;pointer-events:none}
+.cwhelp:hover .cwtip,.cwhelp:focus-visible .cwtip{opacity:1;visibility:visible}
+.cwtip b{font-weight:600}
+@media(prefers-reduced-motion:reduce){.cwtip{transition:none}}
 .coach.min .cbody,.coach.min .cfoot,.coach.min .chead{display:none}
 .coach.min{max-height:none}
 .chead{padding:14px 18px 11px;border-bottom:1px solid var(--coach-line);flex:none}
@@ -414,6 +425,11 @@ html.dock-out .cwbar.drag{cursor:grabbing}
    clean the two have to overlap. Her being partly hidden is recoverable — drag the
    window. Her covering Next and Show hint is not. */
 .lzlayer{position:fixed;top:0;left:0;right:0;bottom:0;z-index:168;pointer-events:none;overflow:hidden}
+/* She normally sits BELOW the training panel, so a bubble that strays over it goes
+   behind rather than burying the task. The exception is when she is pointing at one
+   of the panel's own controls: there is nowhere to stand that is not over the panel,
+   and underneath it her own Next button cannot be clicked. */
+.lzlayer.over-panel{z-index:176}
 .lzlayer[hidden]{display:none !important}
 
 .lzchar{position:absolute;left:0;top:0;width:var(--lzsize,124px);height:var(--lzsize,124px);
@@ -809,8 +825,17 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 <aside class="coach" id="coachWin" aria-label="Training panel">
   <div class="cwbar" id="cwBar">
     <span class="lz" id="secTitle">Section 7 &mdash; Hands-on Simulations</span>
-    <button class="cwbtn" id="cwTour" title="Replay the tour" aria-label="Replay the tour">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 015 .9c0 1.7-2.5 2.1-2.5 3.6M12 17.2h.01"/></svg></button>
+    <!-- A reminder, not a button. It used to replay the whole orientation, which is
+         a lot to sit through when all you wanted was to remember what the two icons
+         beside it do. Hovering or focusing says that, and nothing else happens. -->
+    <span class="cwbtn cwhelp" id="cwHelp" tabindex="0" role="note" aria-describedby="cwTip">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 015 .9c0 1.7-2.5 2.1-2.5 3.6M12 17.2h.01"/></svg>
+      <span class="cwtip" id="cwTip" role="tooltip">
+        This panel is mine, not Clarity's. <b>Pop out</b> lifts it off the column so you
+        can drag it anywhere; <b>collapse</b> rolls it up to the title bar. Neither loses
+        your place.
+      </span>
+    </span>
     <button class="cwbtn" id="cwPop" title="Pop out" aria-pressed="false" aria-label="Pop the training panel out of its column">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
     <button class="cwbtn" id="cwMin" title="Collapse" aria-label="Collapse training panel" aria-expanded="true">
@@ -1183,7 +1208,7 @@ var LZ=(function(){
       record:".recwrap", tabs:"#recNav", columns:"#colBtn", filter:"#filterBtn", add:"#addBtn",
       panel:"#coachWin", rail:".rail", topbar:".who",
       magnifier:"#globalSearchBtn", clientsicon:".railbtn[aria-current]",
-      crumbs:"#crumbs"
+      crumbs:"#crumbs", popout:"#cwPop", minimise:"#cwMin", task:"#tAsk"
     };
     /* the card is laid out even when closed, so only anchor to it while it is up */
     if(name==="card") return card.classList.contains("on") ? card : null;
@@ -1199,7 +1224,7 @@ var LZ=(function(){
   /* Rects she must never sit on: the search box, the coach window, and whatever
      row the current task expects the learner to click. Covering any of those
      turns a guide into an obstacle. */
-  function keepClear(){
+  function keepClear(spec){
     var out=[], add=function(sel,w){
       var n=document.querySelector(sel);
       if(onScreen(n)){ var r=rectOf(n); r.w=w; out.push(r); }
@@ -1207,8 +1232,20 @@ var LZ=(function(){
     /* Weighted, because these are not equally bad to sit on. The window carries
        Next and Show hint; landing on those leaves the learner with no way out,
        and she is drawn above the window, so it is her job to avoid it. */
-    add("#coachWin",10);
+    /* Pointing at one of the panel's OWN controls is the one case where keeping
+       the panel clear is impossible: they sit at its top right, so any placement
+       close enough to point at them puts her bubble across it. Asking for the
+       impossible only makes the solver pick the least-bad corner, which was worse
+       than simply letting her overlap the thing she is talking about. */
+    if(spec!=="popout" && spec!=="minimise" && spec!=="task") add("#coachWin",10);
     add("#pill",4);
+    /* The top bar is a row of small buttons packed together. Pointing at one of
+       them used to put her cluster alongside it, which meant sitting on its
+       neighbours — she covered the dark-mode and new-window buttons to say a
+       sentence about the magnifier between them. Keeping the whole bar clear
+       drops her underneath it, pointing up, which is the only placement where
+       every icon in the row stays visible. */
+    add(".topbar",8);
     /* A step embed gives her a lane of her own beside the interface. Keeping the
        results clear is what puts her in it rather than on top of the rows. */
     if(STEP) add("#tbl",6);
@@ -1271,7 +1308,7 @@ var LZ=(function(){
       function(){ return cluster(cx,a.t-gy-ch,cx); }                        /* above it     */
     ];
     var chosen=0;
-    var clear=keepClear(), best=null, fallback=null, least=Infinity;
+    var clear=keepClear(spec), best=null, fallback=null, least=Infinity;
     for(var i=0;i<tries.length;i++){
       var c=tries[i]();
       /* how far this placement would have to be dragged back on screen */
@@ -1303,6 +1340,7 @@ var LZ=(function(){
       var dy=Math.max(0,pad-best.box.t)-Math.max(0,best.box.b-(b.h-pad));
       best.char.x+=dx; best.char.y+=dy; best.bub.x+=dx; best.bub.y+=dy;
     }
+    layer.classList.toggle("over-panel", spec==="popout" || spec==="minimise" || spec==="task");
     placeArrow(a, best);
     moveTo(best.char.x,best.char.y);
     if(showBub){
@@ -1335,20 +1373,25 @@ var LZ=(function(){
   var POINT={right:{deg:-90}, left:{deg:90}, below:{deg:0}, above:{deg:180}};
   function placeArrow(a,c){
     if(!pointing){ arrow.classList.remove("on"); return; }
-    var w=46, h=52, minGap=24, s0=size();
-    var charL=c.char.x, charT=c.char.y, charR=charL+s0, charB=charT+s0;
-    var gaps={right:a.l-charR, left:charL-a.r, below:a.t-charB, above:charT-a.b};
+    var w=46, h=52, minGap=24;
+    /* Measured against her whole CLUSTER — face and bubble together — not against
+       her face alone. The bubble sits beside the face, so a side picked from the
+       face can be the side the bubble is on, and the arrow then has to cross it to
+       reach the thing. Using the cluster means the side it picks is always one with
+       open space in it, and the arrow lands in that space by construction. */
+    var box=c.box;
+    var gaps={right:a.l-box.r, left:box.l-a.r, below:a.t-box.b, above:box.t-a.b};
     var side=null, bestGap=-Infinity;
     for(var k in gaps){ if(gaps[k]>bestGap){ bestGap=gaps[k]; side=k; } }
     if(bestGap<minGap){ arrow.classList.remove("on"); return; }
     var p=POINT[side], x, y;
     if(side==="right"||side==="left"){
-      x = side==="right" ? charR+(bestGap-w)/2 : charL-(bestGap+w)/2;
-      var oT=Math.max(charT,a.t), oB=Math.min(charB,a.b);
+      x = side==="right" ? box.r+(bestGap-w)/2 : box.l-(bestGap+w)/2;
+      var oT=Math.max(box.t,a.t), oB=Math.min(box.b,a.b);
       y = (oB>oT) ? (oT+oB)/2-h/2 : (a.t+a.b)/2-h/2;
     }else{
-      y = side==="below" ? charB+(bestGap-h)/2 : charT-(bestGap+h)/2;
-      var oL=Math.max(charL,a.l), oR=Math.min(charR,a.r);
+      y = side==="below" ? box.b+(bestGap-h)/2 : box.t-(bestGap+h)/2;
+      var oL=Math.max(box.l,a.l), oR=Math.min(box.r,a.r);
       x = (oR>oL) ? (oL+oR)/2-w/2 : (a.l+a.r)/2-w/2;
     }
     var b=bounds();
@@ -1563,8 +1606,21 @@ var TOURS={
 { anchor:"magnifier", eyes:"open", mouth:"plain", point:true,
   html:'<p>Opening a client takes you off the search screen. This magnifying glass in the '+
        'top bar brings you back to Client Search from anywhere in the system.</p>' },
-{ anchor:"clientsicon", eyes:"open", mouth:"plain", point:true, next:"Start",
-  html:'<p>So does this \u2014 the Clients icon at the top of the left rail. Either one works.</p>' }
+{ anchor:"clientsicon", eyes:"open", mouth:"plain", point:true,
+  html:'<p>So does this \u2014 the Clients icon at the top of the left rail. Either one works.</p>' },
+/* ALSO NOT IN THE SCRIPT, and flagged the same way as the two above. The panel is
+   ours rather than the product's, so nothing in 7.1 describes it; a learner who
+   cannot move it out of the way will work around it instead, and the last beat is
+   the only place to say where the work actually starts. Kept to one sentence each. */
+{ anchor:"popout", eyes:"open", mouth:"plain", point:true,
+  html:'<p>This panel is not part of Clarity \u2014 it is me. If it is ever in your way, '+
+       'this pops it out so you can drag it anywhere on the screen.</p>' },
+{ anchor:"minimise", eyes:"glance", mouth:"tip", point:true,
+  html:'<p>And this rolls it up to just the title bar, for when you want the whole '+
+       'interface to yourself. The same button brings it back.</p>' },
+{ anchor:"task", eyes:"sparkle", mouth:"cheer", point:true, next:"Start",
+  html:'<p>Your first situation is waiting here. Read who is in front of you, then '+
+       'search for them the way you would on the street.</p>' }
 ]};
 
 /* A real section gets its own orientation or none at all. The combined test page
@@ -3082,7 +3138,6 @@ $("#restartBtn").addEventListener("click",function(){
 /* ---------------- Lashes controls ---------------- */
 $("#lzCardGo").addEventListener("click",nextTask);
 $("#lzStep").addEventListener("click",function(){ BEAT.step(); });
-$("#cwTour").addEventListener("click",function(){ BEAT.cancel(); BEAT.run(TOUR, SCENARIOS[SECTION]?null:pulseWin); });
 
 /* Done means done. Leaving full screen is what returns the learner to the Rise
    card the launcher shows, which is where the course carries on. Outside the

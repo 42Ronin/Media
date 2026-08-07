@@ -53,7 +53,7 @@ const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
    back to search. Every task after the first begins by needing it, and the
    simulation only explains the two shortcuts once you click them, which is too
    late. Flagged in the template for scripted wording. */
-ok('slide 7.1, plus the two things it does not cover', tourLen === 5);
+ok("slide 7.1, the two ways back, and the panel that is ours not the product's", tourLen === 8, String(tourLen));
 
 const seen = [];
 let arrowSeen = 0, arrowUnderBubble = false, arrowBackwards = 0;
@@ -84,9 +84,15 @@ for (let n = 0; n < tourLen; n++) {
   const bad = await p.evaluate(() => {
     const a = document.querySelector('#lzBub').getBoundingClientRect();
     const w = document.querySelector('#coachWin').getBoundingClientRect();
-    const over = !(a.right <= w.left || a.left >= w.right || a.bottom <= w.top || a.top >= w.bottom);
     const off = a.left < 0 || a.top < 0 || a.right > innerWidth + 1 || a.bottom > innerHeight + 1;
-    return over || off;
+    /* Two beats point at the panel's own Pop out and Collapse buttons, which sit
+       at its top right. Nothing close enough to point at those is also clear of
+       the panel, so overlap is the correct outcome there rather than a failure —
+       she is drawn above it and her own Next button stays clickable. */
+    const beat = (TOURS[SECTION] || TOURS[7])[BEAT.pos().i];
+    const ownControl = ['popout', 'minimise', 'task'].includes(beat.anchor);
+    const over = !(a.right <= w.left || a.left >= w.right || a.bottom <= w.top || a.top >= w.bottom);
+    return off || (over && !ownControl);
   });
   ok(`tour step ${n + 1} is on screen and clear of the docked panel`, !bad);
   await p.click('#lzStep'); await p.waitForTimeout(420);
@@ -104,6 +110,20 @@ ok('...and both ways back to Client Search, before they are needed',
    seen.join(' ').includes('Clients icon at the top of the left rail'));
 ok('...each pointed out on its own, not both waved at from one spot',
    seen.filter(t => t.includes('magnifying glass') || t.includes('Clients icon')).length === 2);
+/* The panel is ours, not Clarity's, so nothing in the script describes it. A learner
+   who cannot move it out of the way works around it instead. */
+ok('...and both ways to get the panel out of the way',
+   seen.join(' ').includes('pops it out') && seen.join(' ').includes('rolls it up'));
+/* The tour used to stop with the learner facing an interface and no idea the work
+   had started. The last beat points at the task itself. */
+ok('the last beat sends them to the task rather than just ending',
+   await p.evaluate(() => {
+     const t = TOURS[SECTION] || TOURS[7];
+     const last = t[t.length - 1];
+     return last.anchor === 'task' && last.point === true && last.next === 'Start';
+   }));
+ok('...and that beat really does raise an arrow, which is the whole of its job',
+   arrowSeen >= 4, `${arrowSeen} of ${tourLen} steps pointed`);
 /* She has no hands and can never point, so the pointing is a prop — drawn in her
    own palette, standing in the gap between her and the thing, rotated at it. */
 ok('the arrow appears when she is pointing at something',
@@ -126,12 +146,27 @@ ok('finishing it puts her away', await p.evaluate(() =>
    !document.querySelector('#lzBub').classList.contains('on') &&
    !document.querySelector('#lzChar').classList.contains('on') &&
    document.querySelector('#lzFoot').hidden));
-ok('it can be replayed, because each lesson\'s is different', await p.evaluate(async () => {
-  document.querySelector('#cwTour').click();
-  await new Promise(r => setTimeout(r, 300));
-  return document.querySelector('#lzBub').classList.contains('on');
+/* The "?" is a reminder, not a replay. Sitting through the whole orientation again
+   is a lot to ask of someone who only wanted to remember what the two icons beside
+   it do, so it answers on hover and does nothing else — no click, no state. */
+ok('the help marker is not a button and starts nothing',
+   await p.$eval('#cwHelp', e => e.tagName !== 'BUTTON') &&
+   await p.$$eval('#cwTour', e => e.length === 0));
+ok('...and it is reachable by keyboard, not mouse only',
+   await p.$eval('#cwHelp', e => e.tabIndex === 0));
+ok('...its tip is hidden until hovered', await p.$eval('#cwTip', e => {
+  const s = getComputedStyle(e);
+  return s.visibility === 'hidden' && s.pointerEvents === 'none';
 }));
-await p.evaluate(() => BEAT.cancel()); await p.waitForTimeout(200);
+await p.hover('#cwHelp'); await p.waitForTimeout(220);
+ok('...and it names both panel controls when it does appear', await p.evaluate(() => {
+  const t = document.querySelector('#cwTip');
+  return getComputedStyle(t).visibility === 'visible' &&
+    /pop out/i.test(t.textContent) && /collapse/i.test(t.textContent);
+}));
+await p.mouse.move(0, 400); await p.waitForTimeout(200);
+ok('...and hovering it never woke the character',
+   await p.$eval('#lzBub', e => !e.classList.contains('on')));
 
 console.log('\n— initial state —');
 ok('nothing is shown before the first search', (await names()).length === 0);

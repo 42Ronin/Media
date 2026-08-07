@@ -210,6 +210,27 @@ available, not present.
   launcher** — a `srcdoc` frame has an opaque origin, so storage throws there and the lesson
   runs on defaults. The throw is caught; column changes still work for the session, they just
   are not persisted.
+- **The arrow's side comes from her whole cluster, not her face.** Her bubble sits beside the
+  face, so a side chosen from the face alone can be the side the bubble is on — the arrow then
+  has to cross it, and to dodge it ends up laid along the anchor's own row, covering the
+  anchor's neighbours in order to point at the anchor. That is what put it on top of the
+  dark-mode button while explaining the magnifier. Measured against the cluster, the side it
+  picks always has open space in it and the arrow lands there by construction.
+- **She is drawn *below* the training panel**, so a bubble that strays over it goes behind
+  rather than burying the task. The exception is a beat pointing at something *inside* the
+  panel (`popout`, `minimise`, `task`): there is nowhere to stand that is not over it, and
+  underneath it her own Next button cannot be clicked. Those beats add `.over-panel` to the
+  layer and drop `#coachWin` from keep-clear — asking the solver for the impossible only made
+  it pick the least-bad corner.
+- **The top bar is keep-clear.** It is a packed row of small buttons; pointing at one used to
+  park her cluster on its neighbours.
+- **The `?` in the panel bar is a hover, not a button.** It used to replay the whole
+  orientation, which is a lot to sit through when you only wanted to remember what the two
+  icons beside it do. It has no click handler and starts nothing.
+- **Section 7's orientation is eight beats**, the last of which points at the task box and
+  says to start. Before that the tour simply stopped, leaving the learner facing an interface
+  with no sign the work had begun. Beats 6 and 7 cover pop-out and collapse, because the panel
+  is ours rather than the product's and nothing in the script describes it.
 - **Lashes' pointing arrow: `side` names where the *anchor* is, relative to her.** It used to
   mean the opposite — which side of the anchor her cluster sat on — and when `placeArrow` was
   rewritten to derive the side from settled positions, the `POINT` degree map was left on the
