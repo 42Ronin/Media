@@ -71,7 +71,7 @@ ok('nobody in the roster answers to Lefty',
    await p.evaluate(() => CLIENTS.every(c =>
      !/^left/i.test(c.f) && !/^left/i.test(c.l) && !/^left/i.test(c.a || ''))));
 ok('empty state is plain: No clients found', (await zero()) === 'No clients found');
-ok('the coach drawer raises the real lesson instead',
+ok('Lashes raises the real lesson instead',
    (await p.textContent('#fb')).includes('not proof'));
 
 await type('Tor');
@@ -410,7 +410,8 @@ ok('progress reads task 1 of 13', (await p.textContent('#taskNo')).includes('1 o
 
 await p.click('#addBtn'); await p.waitForTimeout(150);
 const nt = await p.textContent('#ntBody');
-ok('Add Client defers to Lesson 2', nt.includes('Lesson 2'));
+ok('Add Client explains itself rather than deferring',
+   nt.includes('search, you fail to find them') && !nt.includes('Lesson 2'));
 ok('...and still flags the duplicate risk', nt.includes('already has a record'));
 await closeAll();
 
@@ -418,7 +419,9 @@ await type('Tor');
 await p.click('#tb tr[data-row]'); await p.waitForTimeout(200);
 ok('opening Michael Torres passes task 1', (await p.textContent('#fb')).includes('Correct'));
 ok('teaching point appears', (await p.textContent('#fb')).includes('no alias'));
-ok('score is no longer zero', !(await p.textContent('#scoreLbl')).includes('0%'));
+ok('the hint is withdrawn once the task is solved', await p.$eval('#hintBtn', e => e.hidden));
+ok('the practice shows no score at all', await p.$$eval('#scoreLbl', e => e.length === 0));
+ok('a solved task is ticked in the list', await p.$eval('#tList li', e => e.textContent.includes('\u2714')));
 await closeAll();
 await p.click('#nextBtn'); await p.waitForTimeout(150);
 ok('advances to task 2', (await p.textContent('#taskNo')).includes('2 of 13'));
@@ -430,7 +433,8 @@ ok('wrong James Wilson rejected with a specific reason',
    (await p.textContent('#fb')).includes('other James Wilson'));
 await closeAll();
 await p.click('#tb tr[data-row]:has-text("9/2/68")'); await p.waitForTimeout(200);
-ok('correct James Wilson passes (partial credit)', (await p.textContent('#fb')).includes('Correct'));
+ok('correct James Wilson passes', (await p.textContent('#fb')).includes('Correct'));
+ok('...and is not marked down for the wrong attempt', !(await p.textContent('#fb')).includes('partial'));
 await closeAll();
 
 // task 10 — the household is the only way to tell mother from daughter
@@ -518,7 +522,9 @@ ok('the flag control is present but obstructed, like the rest of what this lesso
    }));
 await p.click('#nextBtn'); await p.waitForTimeout(250);
 ok('completion modal appears after the final task', !(await p.$eval('#done', e => e.hidden)));
-ok('completion reports a percentage', (await p.textContent('#dnBody')).includes('%'));
+ok('completion reports what was done, not a mark',
+   (await p.textContent('#dnBody')).includes('All 13 tasks complete') &&
+   !(await p.textContent('#dnBody')).includes('%'));
 ok('completion points forward to Lesson 2', (await p.textContent('#dnBody')).includes('Lesson 2'));
 await closeAll();
 ok('free exploration unlocks after the last task', (await p.textContent('#tTitle')).includes('complete'));
@@ -527,11 +533,12 @@ console.log('\n— script alignment —');
 ok('lesson is titled Finding a Participant',
    (await p.textContent('.chead h2')).includes('Finding a Participant'));
 ok('the Skip button is gone', await p.$$eval('#skipBtn', e => e.length === 0));
-ok('the task panel sits on the left, the app on the right', await p.evaluate(() => {
-  const c = document.querySelector('.coach').getBoundingClientRect();
-  const a = document.querySelector('.app').getBoundingClientRect();
-  return c.left < a.left && c.right <= a.left + 1;
-}));
+ok('the training window floats over the interface, reserving no space from it',
+   await p.evaluate(() => {
+     const c = document.querySelector('.coach').getBoundingClientRect();
+     const a = document.querySelector('.app').getBoundingClientRect();
+     return a.left === 0 && c.left >= a.left && c.right <= a.right + 1 && c.bottom <= a.bottom + 1;
+   }));
 ok('coach copy uses "participant", not "client"', await p.evaluate(() =>
   TASKS.some(t => /participant/i.test(t.teach + t.brief + t.ask))));
 
@@ -551,18 +558,195 @@ ok('it marks the seam between searching and verifying',
 ok('the progress label marks it as a checkpoint', (await p.textContent('#taskNo')).includes('Checkpoint'));
 ok('the button says Continue', (await p.textContent('#nextBtn')).includes('Continue'));
 ok('no hint is offered on a checkpoint', await p.$eval('#hintBtn', e => e.hidden));
-const scoreAtCheckpoint = await p.textContent('#scoreLbl');
 await p.click('#nextBtn'); await p.waitForTimeout(200);
 ok('continuing lands on task 9', (await p.textContent('#taskNo')).includes('9 of 13'));
-ok('the checkpoint scored nothing', (await p.textContent('#scoreLbl')) === scoreAtCheckpoint);
+
+/* ------------------------------------------------------------------
+   The training furniture: a movable window, and Lashes floating over the
+   interface. She has no hands and cannot point, so being next to a thing is
+   how she refers to it — which only works if she is never on top of the thing
+   the learner has to click.
+   ------------------------------------------------------------------ */
+console.log('\n— the movable window —');
+/* Back to a clean task 1 without going through the completion modal, which is a
+   different thing to test and would leave a backdrop over everything. */
+const resetLesson = async () => {
+  await p.evaluate(() => {
+    S.idx = 0; S.results = []; S.attempts = 0; S.hinted = false; S.finished = false;
+    S.nudged = null; S.note = null; S.q = ''; S.chips = []; S.rows = null; S.page = 0;
+    S.expanded = {};
+    document.querySelector('#q').value = '';
+    document.querySelectorAll('.backdrop').forEach(b => { b.hidden = true; });
+    document.querySelector('#fb').innerHTML = '';
+    document.querySelector('#nextBtn').hidden = true;
+    if (S.open) closeProfile();
+    LZ.hush(); LZ.closeCard();
+    renderChips(); renderTable(); renderCoach();
+  });
+  await p.waitForTimeout(200);
+};
+await resetLesson();
+
+const rectOf = (sel) => p.$eval(sel, e => {
+  const r = e.getBoundingClientRect();
+  return { l: r.left, t: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height };
+}).catch(() => null);
+const hits = (a, b) => a && b && !(a.r <= b.l || a.l >= b.r || a.b <= b.t || a.t >= b.b);
+
+ok('the window is fully on screen', await p.evaluate(() => {
+  const r = document.querySelector('#coachWin').getBoundingClientRect();
+  return r.top >= 26 && r.bottom <= innerHeight + 1 && r.left >= 0 && r.right <= innerWidth + 1;
+}));
+
+await type('Garcia');
+ok('it does not cover the search bar',   !hits(await rectOf('#coachWin'), await rectOf('#pill')));
+ok('it does not cover the icon rail',    !hits(await rectOf('#coachWin'), await rectOf('.rail')));
+ok('it does not cover the pager',        !hits(await rectOf('#coachWin'), await rectOf('#pager')));
+ok('it does not cover the column selector', !hits(await rectOf('#coachWin'), await rectOf('#colBtn')));
+
+await p.click('#tb tr[data-row]'); await p.waitForTimeout(250);
+ok('and on the record page it clears the left nav',
+   !hits(await rectOf('#coachWin'), await rectOf('#recNav')));
+await p.click('.railbtn[aria-current]'); await p.waitForTimeout(200);
+
+const beforeDrag = await rectOf('#coachWin');
+await p.mouse.move(beforeDrag.l + 40, beforeDrag.t + 14);
+await p.mouse.down();
+await p.mouse.move(beforeDrag.l + 40 - 220, beforeDrag.t + 14 - 90, { steps: 8 });
+await p.mouse.up();
+await p.waitForTimeout(200);
+const afterDrag = await rectOf('#coachWin');
+ok('dragging the title bar moves it', Math.abs(afterDrag.l - beforeDrag.l) > 100);
+
+/* Auto-placement exists to keep it out of the way before anyone has touched it.
+   Once the learner has put it somewhere, that is where it stays. */
+await type('Wilson');
+const afterRerender = await rectOf('#coachWin');
+ok('once dragged, a re-render does not move it back',
+   Math.abs(afterRerender.l - afterDrag.l) < 2 && Math.abs(afterRerender.t - afterDrag.t) < 2);
+
+await p.click('#cwMin'); await p.waitForTimeout(150);
+ok('it collapses to its title bar', await p.evaluate(() =>
+  document.querySelector('#coachWin').classList.contains('min') &&
+  document.querySelector('#coachWin').getBoundingClientRect().height < 60));
+await p.click('#cwMin'); await p.waitForTimeout(150);
+ok('and expands again', await p.evaluate(() =>
+  !document.querySelector('#coachWin').classList.contains('min')));
+
+console.log('\n— Lashes —');
+ok('she is on screen', await p.evaluate(() => {
+  const c = document.querySelector('#lzChar');
+  return c.classList.contains('on') && !!c.querySelector('.m-rim');
+}));
+ok('she has no hands, arms, body or legs — face, rim, glass and shine only',
+   await p.evaluate(() => {
+     const ids = [...document.querySelectorAll('#lzChar svg *')].map(n => n.getAttribute('class') || '');
+     const allowed = ['m-body','m-rim','m-glass','m-face','m-eyes','m-eye','m-lash','m-mouth',
+                      'm-shine','m-arc','m-lidfill','m-lidline','m-spark',''];
+     return ids.every(c => allowed.includes(c));
+   }));
+ok('her background is transparent — she never sits on a card',
+   await p.evaluate(() => {
+     const bg = getComputedStyle(document.querySelector('#lzChar')).backgroundColor;
+     return bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent';
+   }));
+
+/* Her expression is the whole of her reaction to a search. No words: a character
+   narrating every keystroke is noise to someone typing one-handed on a phone. */
+const eyeKind = () => p.evaluate(() => {
+  const s = document.querySelector('#lzChar svg').innerHTML;
+  if (s.includes('m-spark')) return 'sparkle';
+  if (s.includes('m-lidfill')) return 'droll';
+  if (s.includes('m-arc')) return 'arcs-or-smug';
+  return 'circles';
+});
+const bubbleShown = () => p.$eval('#lzBub', e => e.classList.contains('on'));
+
+/* She is not a permanent fixture on the screen. Searching is the learner's own
+   work, and she stays out of it until there is something to say. */
+await resetLesson();
+ok('she is absent at the start of a task',
+   await p.$eval('#lzChar', e => !e.classList.contains('on')));
+await type('a');
+ok('a one-letter search returns far too much', (await p.evaluate(() => S.rows.length)) > 12);
+ok('...and she still says nothing about it', (await bubbleShown()) === false);
+await type('Michael Torres');
+ok('narrowing it to one is the learner\'s to do, uncommented',
+   (await p.evaluate(() => S.rows.length)) === 1 &&
+   (await bubbleShown()) === false &&
+   await p.$eval('#lzChar', e => !e.classList.contains('on')));
+
+/* The rule the placement solver exists to keep. */
+await type('Wilson');
+ok('she never stands on the record the task is asking for', await p.evaluate(() => {
+  const t = TASKS[S.idx]; if (!t || !t.expect || !t.expect.id) return true;
+  const row = document.querySelector('tr[data-row="' + t.expect.id + '"]');
+  if (!row) return true;
+  const a = document.querySelector('#lzBub').getBoundingClientRect();
+  const b = row.getBoundingClientRect();
+  const showing = document.querySelector('#lzBub').classList.contains('on');
+  return !showing || (a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+}));
+ok('while silent, her bubble is not a click target',
+   await p.$eval('#lzBub', e => {
+     const s = getComputedStyle(e);
+     return e.classList.contains('on') || (s.pointerEvents === 'none' && s.visibility === 'hidden');
+   }));
+
+await p.click('#hintBtn'); await p.waitForTimeout(300);
+ok('the hint is delivered by her, not by the window', await bubbleShown());
+ok('and the hint text is hers to say', (await p.textContent('#fb')).includes('Hint'));
+ok('the window keeps the standing brief', (await p.textContent('#tBrief')).length > 0);
+ok('she is on screen only while she has something to say',
+   await p.$eval('#lzChar', e => e.classList.contains('on')));
+await p.evaluate(() => LZ.hush());
+await p.waitForTimeout(200);
+ok('and leaves with the bubble', (await bubbleShown()) === false &&
+   await p.$eval('#lzChar', e => !e.classList.contains('on')));
+
+console.log('\n— the checkpoint card —');
+await p.evaluate(() => {
+  S.idx = 7; S.results = TASKS.slice(0, 7).map(t => ({ id: t.id, p: 10 }));
+  S.attempts = 0; S.hinted = false; S.nudged = null;
+  nextTask();
+});
+await p.waitForTimeout(400);
+ok('the seam between searching and verifying raises the card',
+   await p.$eval('#lzCard', e => e.classList.contains('on')));
+ok('the card does not dim the interface behind it', await p.evaluate(() => {
+  const layer = getComputedStyle(document.querySelector('#lzLayer'));
+  return layer.backgroundColor === 'rgba(0, 0, 0, 0)' || layer.backgroundColor === 'transparent';
+}));
+ok('the interface stays live underneath it',
+   await p.$eval('#q', e => !e.disabled));
+await p.click('#lzCardGo'); await p.waitForTimeout(300);
+ok('the card\'s own button continues the lesson',
+   await p.$eval('#lzCard', e => !e.classList.contains('on')) &&
+   (await p.textContent('#taskNo')).includes('9 of 13'));
+
+/* Regression: the search's idle marker used to be written into S.note, which is
+   the checkpoint slot. Clearing the box after solving a task then made Next read
+   "leaving a checkpoint" and never advance. */
+console.log('\n— clearing the box does not strand the learner —');
+await p.evaluate(() => { S.idx = 0; S.results = []; S.attempts = 0; S.hinted = false; S.note = null;
+                         S.nudged = null; LZ.hush(); renderCoach(); });
+await type('Torres');
+await p.click('#tb tr[data-row="357BF6714"]'); await p.waitForTimeout(250);
+await p.keyboard.press('Escape'); await p.waitForTimeout(150);
+await type('');
+await p.click('#nextBtn'); await p.waitForTimeout(250);
+ok('solve a task, clear the search, press Next — it advances',
+   (await p.textContent('#taskNo')).includes('2 of 13'));
 
 console.log('\n— accessibility / integrity —');
 ok('result count is an aria-live region',
    await p.$eval('#resultCount', e => e.getAttribute('aria-live') === 'polite'));
 ok('search input is labelled', await p.$$eval('label[for=q]', e => e.length === 1));
-ok('training banner is present', (await p.textContent('#simBanner')).includes('Training Simulation'));
-ok('non-affiliation disclaimer is present', (await p.textContent('.legal')).includes('Not affiliated'));
-ok('SSN safety note is shown to the learner', (await p.textContent('.legal')).includes('900'));
+ok('every SSN on screen is in the 900-999 range that was never issued',
+   await p.evaluate(() => CLIENTS.every(c => !c.s || (() => {
+     const a = c.s.split('-')[0];
+     return /[X0]/.test(a) || (+a >= 900 && +a <= 999);
+   })())));
 ok('every rail button has an accessible name',
    await p.$$eval('.railbtn', bs => bs.every(x => x.getAttribute('aria-label'))));
 ok('no JS errors during the entire run', errs.length === 0, errs.join(' | '));
@@ -652,8 +836,9 @@ await f.click('.cwrap'); await host.waitForTimeout(600);
 const taskMsg = await host.evaluate(() => simMsgs.find(m => m.type === 'task'));
 ok('a solved task is reported to the host', !!taskMsg && taskMsg.index === 1 && taskMsg.id === 'nickname',
    JSON.stringify(taskMsg));
-ok('the report carries the score and whether it was first-try',
-   !!taskMsg && taskMsg.points === 10 && taskMsg.firstTry === true && typeof taskMsg.percent === 'number',
+ok('the report says it was first-try and carries no score',
+   !!taskMsg && taskMsg.firstTry === true &&
+   !('points' in taskMsg) && !('percent' in taskMsg),
    JSON.stringify(taskMsg));
 ok('every message is tagged so a host can tell ours apart',
    await host.evaluate(() => simMsgs.every(m => m.source === 'hmis-sim' && m.lesson === 'hmis-bnts-search')));
