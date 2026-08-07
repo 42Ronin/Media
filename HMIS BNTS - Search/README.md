@@ -189,16 +189,18 @@ redesign targets Section 508, so the sim aims there too.
 Built against screenshots of the current interface, so layout, labels, column names, the chip
 filters, the column selector, pagination, and the ROI pills all match what was captured.
 
-The no-results state is deliberately plain — **No clients found** — so the app stays faithful.
-The coaching that belongs with an empty result ("no results is not an answer") is raised once
-per task in the training drawer instead, where coaching belongs.
+The no-results state is **No results yet!** over *Results will be displayed here when they are
+available.*, beside a magnifier-with-x — verified against the live account in August 2026, having
+been guessed (and guessed wrong) before that. The coaching that belongs with an empty result
+("no results is not an answer") is raised once per task by Lashes instead, where coaching belongs.
 
-**Unverified** — no screenshot was available, so this is designed rather than copied: the
-exact no-results wording.
+The record page masks the SSN as `***-**-####`, as the live account does. Every stored SSN is in
+the never-issued 900-999 range, so nothing real is exposed either way; masking is here because the
+product does it, not because it has to.
 
-**Known divergence:** the captured record page masks the SSN as `***-**-####`. This sim shows
-it in full, per the course decision to display SSNs unmasked. Every SSN is in the never-issued
-900-999 range, so nothing real is exposed either way — but say the word and masking goes back in.
+Deliberately **not** reproduced from the August captures, per the course owner: the four stat
+cards above the results table and the right-hand rail on the record page. Both belong to features
+these lessons do not teach, and they can arrive with the lesson that needs them.
 
 ---
 

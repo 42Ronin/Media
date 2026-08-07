@@ -25,6 +25,9 @@ const type = async (q) => { await p.fill('#q', q); await p.waitForTimeout(330); 
 // strip the inline pronouns span so assertions compare on the name itself
 const names = () => p.$$eval('#tb tr[data-row] .cname', els => els.map(e => e.textContent.replace(/\s*\(.*?\)\s*$/, '').trim()));
 const zero = () => p.$eval('#zero', e => e.hidden ? '' : e.textContent.trim());
+/* Verified against the live account, August 2026. It was guessed before, and guessed
+   wrong; pinning it here means a drift back to invented wording fails loudly. */
+const EMPTY_STATE = 'No results yet!Results will be displayed here when they are available.';
 const closeAll = async () => { await p.keyboard.press('Escape'); await p.waitForTimeout(120); };
 
 /* Every simulation in the series opens with a different ask, so each declares its
@@ -162,7 +165,7 @@ ok('"Lefty Torres" also returns nothing: extra words narrow, never widen',
 ok('nobody in the roster answers to Lefty',
    await p.evaluate(() => CLIENTS.every(c =>
      !/^left/i.test(c.f) && !/^left/i.test(c.l) && !/^left/i.test(c.a || ''))));
-ok('empty state is plain: No clients found', (await zero()) === 'No clients found');
+ok('empty state matches the live account, verbatim', (await zero()) === EMPTY_STATE, await zero());
 ok('Lashes raises the real lesson instead',
    (await p.textContent('#fb')).includes('not proof'));
 
@@ -181,7 +184,7 @@ for (const d of ['3/14/1979', '3.14.1979', '3-14-1979']) {
   ok(`separator ${d} gives the same result`, n.length === 1 && n[0] === 'Torres, Michael', JSON.stringify(n));
 }
 await type('13/45/1990');
-ok('an impossible date simply matches nobody', (await zero()) === 'No clients found');
+ok('an impossible date simply matches nobody', (await zero()) === EMPTY_STATE, await zero());
 
 await type('Cruz');
 ok('"Cruz" finds nobody — the surname was filed as one word', (await names()).length === 0);
@@ -610,8 +613,12 @@ ok('and lists each location with its type', await p.evaluate(() => {
   const t = document.querySelector('#locBody').textContent;
   return /6th Street bridge/.test(t) && /Encampment/.test(t) && /Field Interaction/.test(t);
 }));
-ok('Add Address is present but obstructed, since adding is not this lesson',
-   await p.$$eval('#locationPane .locbtn[data-locked]', e => e.length === 2));
+/* Rebuilt against the live account (August 2026): the pane carries an add button, a
+   kebab, its own search field and the two table tools. Every one of them is present
+   and obstructed — this lesson reads locations, it does not add or filter them. */
+ok('everything the pane offers besides reading is present but obstructed',
+   await p.$$eval('#locationPane [data-locked]', e => e.length === 5),
+   await p.$$eval('#locationPane [data-locked]', e => e.map(x => x.getAttribute('aria-label')).join(' | ')));
 ok('the teaching keeps location as one identifier among several',
    (await p.textContent('#fb')).includes('not as the answer on its own'));
 await closeAll();
@@ -1161,7 +1168,7 @@ console.log('\n— section 11: the running scenario —');
 console.log('\n— section 11 as inline step embeds —');
 {
   const STEP = [
-    ['step-11-1', 'Desmond Carrow', 'Searches Desmond Carrow', 'No clients found and that is all it says'],
+    ['step-11-1', 'Desmond Carrow', 'Searches Desmond Carrow', 'No results yet and that is all it says'],
     ['step-11-2', '1974',           'Searches Dez Carrow',     'there is no Carrow to find'],
     ['step-11-3', 'Dez',            'Searches Dez on its own', 'Dezirae, Dezra, Dezhawn'],
     ['step-11-4', 'Dez 1974',       'Adds 1974 to the fragment','Nothing he has told you separates them'],

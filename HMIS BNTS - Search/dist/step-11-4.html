@@ -146,6 +146,14 @@ tbody tr.open{background:var(--indigo-soft)}
 .xf > b{display:block;font-size:13px;color:var(--ink);font-weight:600;margin-bottom:2px}
 .xf > span{font-size:13.5px;color:var(--muted)}
 .hm{display:flex;align-items:center;gap:9px;margin-top:8px}
+.hhcell{display:flex;flex-direction:column;gap:2px;min-width:210px}
+.hhcell.alone{flex-direction:row;align-items:center;gap:10px}
+.hhcell.alone svg{color:var(--indigo);flex:none}
+.hhcell .hm{margin-top:0;padding:3px 0}
+.hhcell .av3{width:26px;height:26px;border-radius:50%;font-size:10.5px}
+.hhcount{font-size:12px;color:var(--muted);margin-top:4px}
+.hhcell .nm b{display:block;font-size:13.5px;font-weight:600;color:var(--ink)}
+.hhcell .nm > span{font-size:12.5px;color:var(--muted)}
 .av3{width:30px;height:30px;border-radius:7px;color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:700;flex:none}
 .hm .nm b{display:block;font-size:13.5px;font-weight:600;color:var(--ink)}
 .hm .nm > span{font-size:12.5px;color:var(--muted)}
@@ -153,9 +161,10 @@ tbody tr.open{background:var(--indigo-soft)}
 .pager button{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--indigo)}
 .pager button:disabled{color:#c3c2d6;cursor:default}
 .pager button:not(:disabled):hover{background:var(--indigo-soft)}
-.zero{padding:34px 22px 40px;text-align:center}
-.zero b{display:block;font-size:16px;margin-bottom:6px}
-.zero span{color:var(--muted);font-size:13.5px;display:block;max-width:520px;margin:0 auto}
+.zero{padding:26px 22px 32px;display:flex;align-items:center;gap:16px}
+.zero svg{color:var(--ink);flex:none}
+.zero b{display:block;font-size:15.5px;margin-bottom:2px}
+.zero span{color:var(--muted);font-size:13.5px;display:block}
 
 /* popovers */
 .pop{position:absolute;z-index:175;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(40,30,90,.24);
@@ -231,18 +240,21 @@ tbody tr.open{background:var(--indigo-soft)}
 .kv{display:grid;grid-template-columns:170px 1fr;gap:10px 16px;font-size:14px}
 .kv dt{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding-top:2px}
 .kv dd{margin:0}
-.lochead{display:flex;align-items:center;gap:12px;background:#5b6b83;color:#fff;
-  padding:11px 16px;font-size:13px;letter-spacing:.09em;text-transform:uppercase;font-weight:700}
-.locacts{margin-left:auto;display:flex;gap:8px;align-items:center}
-.locbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:#fff;
-  font:inherit;font-size:12px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer}
-.locmap{position:relative;height:300px;overflow:hidden;border-bottom:1px solid var(--line-2)}
+.lochead{display:flex;align-items:flex-start;gap:8px;padding:18px 22px 6px}
+.lochead h1{margin:0;font-size:21px;font-weight:600;color:var(--indigo);line-height:1.15}
+.lochead p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.lochead .addbtn{margin-left:auto}
+.locsearch{display:flex;align-items:center;gap:10px;padding:8px 22px 14px}
+.locsearch .pill{flex:1;min-width:0}
+.locsearch .pill input{width:100%;border:0;background:none;font-size:14px;padding:0}
+.locsearch .pill .act{color:var(--muted)}
+.locmap{position:relative;height:300px;overflow:hidden}
 .mapbase{position:absolute;inset:0;width:100%;height:100%;display:block}
 .pin{position:absolute;transform:translate(-50%,-100%);width:26px;height:26px;border-radius:50% 50% 50% 0;
   rotate:-45deg;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:12px;
   font-weight:700;box-shadow:0 2px 5px rgba(20,16,40,.4);border:2px solid #fff}
 .pin>*{rotate:45deg}
-.loclist{list-style:none;margin:0;padding:8px 16px 14px}
+.loclist{list-style:none;margin:0 22px 6px;padding:0}
 .loclist li{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:14px}
 .loclist li:last-child{border-bottom:0}
 .pinl{width:20px;height:20px;border-radius:50%;background:var(--indigo);color:#fff;display:grid;
@@ -250,7 +262,9 @@ tbody tr.open{background:var(--indigo-soft)}
 .locp{font-weight:600}
 .loct,.lock{font-size:12.5px;color:var(--muted)}
 .lock{margin-left:auto}
-.locempty{padding:22px 16px;color:var(--muted);margin:0}
+.locempty{margin:0 22px 16px;border:1px solid var(--line-2);border-radius:12px;padding:20px}
+.zero .zt{display:block}
+.locmap{margin:0 22px 22px;border-radius:12px;border:1px solid var(--line-2)}
 
 /* ---------------- coach window ----------------
    A movable window over the interface, not a drawer beside it. It carries the
@@ -594,14 +608,24 @@ html.dock-out .cwbar.drag{cursor:grabbing}
             <div class="profgrid" id="profGrid"></div>
           </div>
 
+          <!-- Client Location, rebuilt against the live account (August 2026). It is
+               the same shape as the Clients card, not the dark slate bar the older
+               help-centre article showed: title and subtitle, an add button and a
+               kebab, then a search field, then the list, and the map underneath it. -->
           <div class="card reccard" id="locationPane" hidden>
             <div class="lochead">
-              <span>Client Location</span>
-              <span class="locacts">
-                <button class="locbtn" data-locked>Add Address
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
-                <button class="locbtn ic" data-locked aria-label="Use current location"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 3L3 10l8 3 3 8z"/></svg></button>
-              </span>
+              <div><h1>Client Location</h1><p>View a list of the locations for the client</p></div>
+              <button class="addbtn" data-locked aria-label="Add location">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
+              <button class="tb" data-locked title="More actions" aria-label="More actions"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+            </div>
+            <div class="locsearch">
+              <div class="pill" data-locked>
+                <input type="text" tabindex="-1" aria-hidden="true" placeholder=" ">
+                <span class="act"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></span>
+              </div>
+              <button class="tool" data-locked aria-label="Add a filter"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
+              <button class="tool" data-locked aria-label="Choose columns"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5v15M15 4.5v15"/></svg></button>
             </div>
             <div id="locBody"></div>
           </div>
@@ -802,6 +826,16 @@ function age(iso){
   return a;
 }
 function last4(c){ return c.s ? c.s.slice(-4) : null; }
+/* The record page masks all but the last four, as the live account does. The
+   results column still shows the last four on its own, which is what the tasks
+   that search on an SSN fragment actually need — nothing is lost by masking here.
+   A segment the client could not recall is already X or 0 filled, and stays as
+   stored rather than being masked twice. */
+function maskSSN(s){
+  var p=String(s).split("-");
+  if(p.length!==3) return s;
+  return "***-**-"+p[2];
+}
 function pad(n){ return (n<10?"0":"")+n; }
 function parseDate(s){
   var m=String(s).trim().match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
@@ -1466,7 +1500,7 @@ var STEPS={
 "11.1":{ phases:[
   { does:'<p>Searches <b>Desmond Carrow</b>. Then <b>Carrow</b> on its own.</p>',
     until:rowsAre(function(r,q){ return r.length===0 && q.indexOf("carrow")>-1; }),
-    html:'<p>Nothing, either way. The empty state says No clients found and that is all it says.</p>' }
+    html:'<p>Nothing, either way. The empty state says No results yet and that is all it says.</p>' }
 ]},
 "11.2":{ phases:[
   { does:'<p>Searches <b>Dez Carrow</b>. Then the year on its own.</p>',
@@ -1888,7 +1922,25 @@ function cellHTML(c,k){
       return '<span class="dob"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>'+
         '<span><b>'+dobShort(c.d)+'</b><span>Age: '+age(c.d)+'</span></span></span>';
     case "alias": return c.a?esc(c.a):'<span class="novalue">(No value)</span>';
-    case "hh": return String(c.h);
+    case "hh":
+      /* Verified against the live account, August 2026. The column shows who the
+         household actually is, not a count: an icon and two lines for somebody
+         served alone, or a chip per member. Off by default — this lesson teaches
+         the household through the expanded row, and a fifth column crowds the
+         table — but it has to be right when it is switched on. */
+      if(!c.hm || !c.hm.length){
+        return '<span class="hhcell alone">'+
+          '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
+            'stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/>'+
+            '<path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>'+
+          '<span class="nm"><b>Individual client</b><span>No household members</span></span></span>';
+      }
+      return '<span class="hhcell">'+c.hm.map(function(m){
+        var pm=byId(m.i); if(!pm) return "";
+        return '<span class="hm"><span class="av3" style="background:'+PALETTE[pm.c%PALETTE.length]+'">'+
+          esc(initials(pm))+'</span><span class="nm"><b>'+esc(pm.f+" "+pm.l)+'</b>'+
+          '<span>'+esc(m.rel||"Not Set")+'</span></span></span>';
+      }).join("")+'<span class="hhcount">1 &ndash; '+c.hm.length+' of '+c.hm.length+'</span></span>';
     case "vet": return c.v?esc(c.v):'<span class="novalue">(No value)</span>';
   }
   return "";
@@ -1940,10 +1992,19 @@ function renderTable(){
     return;
   }
   if(S.rows!==null && all.length===0){
-    /* The app stays plain here. The coaching that belongs with an empty result is
-       raised in the training drawer instead — see nudgeEmpty(). */
+    /* Verified against the live account, August 2026 — see reference/. This was
+       previously guessed, and guessed wrong. The app stays plain; the coaching
+       that belongs with an empty result is Lashes' job, see nudgeEmpty(). */
     $("#tb").innerHTML=""; pager.hidden=true; zero.hidden=false;
-    zero.innerHTML='<b>No clients found</b>';
+    zero.innerHTML=
+      '<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" '+
+        'stroke-width="1.7" aria-hidden="true">'+
+        '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>'+
+        '<circle cx="5.2" cy="17" r="3.4" fill="currentColor" stroke="none"/>'+
+        '<path d="M4 15.8l2.4 2.4M6.4 15.8L4 18.2" stroke="#fff" stroke-width="1.5"/>'+
+      '</svg>'+
+      '<b>No results yet!</b>'+
+      '<span>Results will be displayed here when they are available.</span>';
     return;
   }
   zero.hidden=true;
@@ -2209,7 +2270,7 @@ function evaluate(action,payload){
    EVENTS
    ============================================================ */
 /* An empty result is the moment a learner wrongly concludes "new client". The app
-   itself just says No clients found; the reason it matters is raised by Lashes at
+   itself just says No results yet; the reason it matters is raised by Lashes at
    the empty table, once per task, so the product itself stays faithful. */
 function nudgeEmpty(){
   if(BEAT.active() || STEP) return;
@@ -2400,7 +2461,7 @@ function openProfile(id){
   }).join("");
 
   $("#profGrid").innerHTML=
-    field("Social Security Number", c.s?esc(c.s):'(No value)', !c.s)+
+    field("Social Security Number", c.s?esc(maskSSN(c.s)):'(No value)', !c.s)+
     field("Quality of SSN", esc(c.ql))+
     field("First name", esc(c.f))+
     field("Last name", esc(c.l))+
@@ -2491,27 +2552,41 @@ var MAP_SVG =
   '</g>'+
 '</svg>';
 
+/* The live account puts the list first and the map underneath it, and uses the
+   same empty state as Client Search rather than a sentence of its own. The
+   lettered pins come from the help-centre article — the live capture had no
+   locations on it, so that part is still the older reference. */
 function renderLocation(c){
   var lo = c.lo || [];
-  if(!lo.length){
-    $("#locBody").innerHTML = '<p class="locempty">No location data has been recorded for '+
-      esc(fullName(c))+'.</p>';
-    return;
-  }
-  $("#locBody").innerHTML =
+  var map =
     '<div class="locmap" role="img" aria-label="Map of central Los Angeles showing '+lo.length+
       ' recorded location'+(lo.length===1?"":"s")+'">'+ MAP_SVG +
       lo.map(function(e,i){
         return '<span class="pin" style="left:'+(e.x*100)+'%;top:'+(e.y*100)+'%"><b>'+
           PIN_LETTERS[i]+'</b></span>';
       }).join("")+
-    '</div>'+
+    '</div>';
+  if(!lo.length){
+    $("#locBody").innerHTML =
+      '<div class="zero locempty">'+
+        '<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" '+
+          'stroke-width="1.7" aria-hidden="true">'+
+          '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>'+
+          '<circle cx="5.2" cy="17" r="3.4" fill="currentColor" stroke="none"/>'+
+          '<path d="M4 15.8l2.4 2.4M6.4 15.8L4 18.2" stroke="#fff" stroke-width="1.5"/>'+
+        '</svg>'+
+        '<span class="zt"><b>No results yet!</b>'+
+        '<span>Results will be displayed here when they are available.</span></span>'+
+      '</div>'+ map;
+    return;
+  }
+  $("#locBody").innerHTML =
     '<ul class="loclist">'+lo.map(function(e,i){
       return '<li><span class="pinl">'+PIN_LETTERS[i]+'</span>'+
         '<span class="locp">'+esc(e.p)+'</span>'+
         '<span class="loct">'+esc(e.ty)+'</span>'+
         '<span class="lock">'+esc(e.k)+'</span></li>';
-    }).join("")+'</ul>';
+    }).join("")+'</ul>'+ map;
 }
 function showRecordTab(name, c){
   $$("#recNav button").forEach(function(b){

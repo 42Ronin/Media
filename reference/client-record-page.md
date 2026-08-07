@@ -58,13 +58,29 @@ Each card: title in indigo, one-line description, a count badge, and a chevron.
 | Active Contacts | View active contacts for this client | 1 |
 | Care Team | View care team for this client | 3 |
 
-## Two things our build diverges on — both deliberate, both worth revisiting
+## Two open questions — both settled, August 2026
 
-1. **SSN masking.** The real page masks it as `***-**-####`. Our sim shows the full number,
-   per an explicit decision by the owner. Safe either way, because every generated SSN uses
-   the never-issued 900–999 range — but it *is* a divergence from the product.
+Both were resolved against the owner's own live account. The captures are in
+`live-account-2026-08/`; this section records the answers so neither gets re-litigated.
 
-2. **Date of Birth.** The capture shows **Quality of DOB** but no Date of Birth field on
-   the profile card. That may be a crop, a permission, or a per-CoC configuration. Our sim
-   shows Date of Birth there, because a record page without a DOB would be strange in
-   training. Confirm against a live account before treating our version as correct.
+1. **SSN masking — settled, and the sim now matches.** The product masks it as
+   `***-**-####`, and captures 03–06 confirm the older screenshot was not a crop or a
+   permission quirk. The sim previously showed the full number by an explicit decision;
+   the owner reversed that once the live account confirmed the product's behaviour, so
+   `maskSSN()` now renders the same mask. Every stored SSN is still in the never-issued
+   900–999 range, so masking is fidelity rather than protection.
+
+2. **Date of Birth — settled in our favour.** The earlier capture showed *Quality of DOB*
+   with no Date of Birth field, which looked like our version might be invented. The live
+   account carries **both**, so the sim was right. No change needed.
+
+## Deliberately not reproduced
+
+Two things visible in the August captures are left out on the owner's instruction, and
+their absence is a decision rather than an omission:
+
+- the four **stat cards** above the results table, and
+- the **right-hand rail** on the record page.
+
+Both belong to features these lessons do not teach, and the standing rule is to dim or
+drop what the lesson does not need. They can arrive with the lesson that earns them.

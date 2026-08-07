@@ -117,17 +117,35 @@ client`, in-bar filter chips (First Name / Last Name / Alias only), column selec
 locked Client column and Collapsed Fields, pagination, ROI as a results column, the client
 record page, the expanded-row household list.
 
-Default column order is **Client · DOB · SSN · ROI**. Some captures show
+Default column order is **Client · DOB · SSN**. ROI was dropped from the default view on the
+owner's instruction — it is not blurred, it is simply not there. Some captures show
 `Client · SSN · ROI · DOB` — that is a demo account that had dragged DOB to the end.
 
-**Designed, not copied** (no screenshot available): the exact no-results wording.
+**August 2026 — the owner got access to the live interface** and supplied their own captures,
+archived in `reference/live-account-2026-08/` with a README saying what each one settles. Same
+restriction as the rest of `reference/`: internal only, and **the account holder's name and the
+test client in those captures must never appear in a build.** Four things changed as a result,
+and two were deliberately left alone:
 
-**Open questions for the user**, both on the record page and both recorded in
-`reference/client-record-page.md`:
-- The captured page masks SSN as `***-**-####`; this sim shows it in full, per an explicit
-  decision. Revisit if they change their mind.
-- The capture shows *Quality of DOB* but no *Date of Birth* field. This sim shows one.
-  Confirm against a live account before treating our version as correct.
+- **The no-results state was guessed, and guessed wrong.** It is `No results yet!` over
+  *Results will be displayed here when they are available.*, beside a magnifier-with-x. It is
+  now pinned in `test.mjs` as `EMPTY_STATE` so a drift back to invented wording fails loudly.
+  Section 11 is built on this state, so its step copy was updated with it.
+- **SSN is masked** on the record page — `***-**-####`, via `maskSSN()`. The earlier decision
+  to show it unmasked was reversed once the product's behaviour was confirmed. Every stored
+  SSN is still 900–999, so masking is fidelity, not protection.
+- **Date of Birth is real.** The old capture showed *Quality of DOB* alone; the live account
+  carries both. Our version was right — this is no longer an open question.
+- **Client Location** is the same shape as the Clients card (indigo title, subtitle, add button,
+  kebab, its own search row), not the dark slate bar the old help article showed. The list comes
+  first and the map sits under it.
+- **Not reproduced, by decision:** the four stat cards above the results table, and the record
+  page's right-hand rail. Both serve features these lessons do not teach. Don't add them back
+  as a fidelity fix — they can arrive with the lesson that needs them.
+
+The **Household Members** column renders properly now (member chips with relationships, or
+*Individual client / No household members*), but ships **off by default** — the owner wants it
+available, not present.
 
 ## Gotchas that cost time
 
