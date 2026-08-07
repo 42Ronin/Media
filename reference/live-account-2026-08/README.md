@@ -67,6 +67,30 @@ Two more were built from these captures afterwards:
   account's test client had all three blocks empty; ours carry invented staff, on fictional
   `213-555-01xx` numbers and `example.org` addresses, because an empty section teaches nothing.
 
+## A second batch, same session
+
+Five more captures the owner supplied after an adversarial fidelity review. They are
+described here rather than filed as images, because they arrived in conversation:
+
+| What it showed | What it settled |
+|---|---|
+| Client Location **with a row in it** | It is a table — `Address` (street over city/state/country/ZIP), `Date`, `Type` (record type over the field it came from), `Created by` (person over organisation), a scope chip and a star, with pagination beneath. Locations **do** carry dates; the earlier "no dates" note came from an article that did not show the column. |
+| The Location kebab **open** | Two items: **Add Address**, **Add Field Interaction**. The only product menu we have ever seen open. |
+| The profile between Demographics and ADA | Demographics continues with Primary Language, TB Clearance Date, Clinic, DPSS ID, *Reviewed for Covid-19 vulnerability and Project Room Key?* and **FEMA Registration Number** — which is the section's last field, not a heading of its own. Our invented `FEMA` section is gone. |
+| The filter menu, and the column selector | Filter order is **Alias, First Name, Last Name**. The selector's headings are sentence case, Client carries a padlock, and **Race and Ethnicity is a column**, not a collapsed-only field. |
+| Point of Contacts, in full | First block filled, second and third empty. **Category shows `Select` even on a filled block.** Dates are written out in full (`04/03/2026`) where the Location table abbreviates. |
+| The profile in **edit** mode, and the **Add Client** panel | Neither is taught in this lesson. The Add Client panel is a right-hand slide-over with the same fields, Cancel/Save — **the screenshot Lesson 2 has been waiting for.** |
+
+## Still not captured
+
+- The **Clients card** kebab and the **results row** kebab, opened. Both render a
+  placeholder that names itself rather than inventing items.
+- The **Point of Contact Category** options.
+- A record whose name quality is *Client refused*: the Add Client capture shows one
+  filed as **`Refused, 6CD53CE9A`** — surname "Refused", the unique identifier in
+  place of a given name. We do not reproduce that yet, and it would change what a
+  search finds, so it needs a decision before it is built.
+
 ## What they confirm we already had right
 
 - The record's left nav list and its order.

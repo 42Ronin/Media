@@ -210,9 +210,16 @@ and two were deliberately left alone:
 - **Not reproduced, by decision:** the four stat cards above the results table, and the record
   page's right-hand rail. Both serve features these lessons do not teach. Don't add them back
   as a fidelity fix — they can arrive with the lesson that needs them.
-- **Nothing in the product surface is invented.** Both kebabs name themselves rather than listing
-  made-up menu items; Point of Contact Category renders the `Select` placeholder because its
-  options have never been seen. If you want content there, get a capture first.
+- **Nothing in the product surface is invented.** The **Location** kebab is the one menu we have
+  seen open — *Add Address* and *Add Field Interaction*, both obstructed. The Clients-card,
+  profile-card and results-row kebabs name themselves rather than listing made-up items; Point of Contact Category renders the `Select` placeholder because its
+  options have never been seen — the live account shows `Select` even on a filled block. If you
+  want content there, get a capture first.
+- **Point of Contact dates are written out in full** (`04/03/2026`); the Location table
+  abbreviates (`6/2/26`). Same split as the profile against the results table.
+- **Race and Ethnicity is a column**, not a collapsed-only field. Column order decides what a
+  switched-off column looks like in the expander, which is why the order is `ROI · Household
+  Members · Race and Ethnicity · Veteran Status · Alias` — it reproduces capture 02.
 - **Counts to keep:** 12 rail icons + expand; 4 top-bar buttons (dark mode, search, new window,
   messages) plus the account chevron; 17 record-nav sections ending in Client Portal, plus a
   collapse control; 4 map controls. The filter menu is **Alias, First Name, Last Name** —

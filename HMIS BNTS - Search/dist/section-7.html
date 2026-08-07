@@ -162,6 +162,8 @@ tbody tr.open{background:var(--indigo-soft)}
 .novalue{color:#9a9ab0;font-size:13px}
 .hhicon{color:#7b7a95}
 .iconcell{display:flex;align-items:center;gap:12px;justify-content:flex-end;color:var(--muted);padding-right:12px}
+.rowkebab{display:grid;place-items:center;width:28px;height:28px;border-radius:50%}
+.rowkebab:hover{background:var(--indigo-soft)}
 .expand td{background:#fff;padding:0;border-left:3px solid var(--indigo-soft)}
 .expand .inner{padding:14px 22px 18px 74px}
 .xf{margin-bottom:14px}
@@ -757,7 +759,7 @@ html.dock-out .cwbar.drag{cursor:grabbing}
               <div><h1>Client Location</h1><p>View a list of the locations for the client</p></div>
               <button class="addbtn" data-locked aria-label="Add location">
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
-              <button class="tb" data-locked title="More actions" aria-label="More actions"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+              <button class="tb" id="locKebab" title="More actions" aria-label="More actions"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
             </div>
             <div class="locsearch">
               <div class="pill" data-locked>
@@ -1087,10 +1089,13 @@ var FIELDS = [
   {k:"client", label:"Client", locked:true, vis:true},
   {k:"dob",    label:"DOB",    vis:true},
   {k:"ssn",    label:"SSN",    vis:true},
+  /* Order matters: a switched-off column falls into the expanded row in this order,
+     and capture 02 shows Race and Ethnicity, then Veteran Status, then Alias. */
   {k:"roi",    label:"ROI",    vis:false},
-  {k:"alias",  label:"Alias",  vis:false},
   {k:"hh",     label:"Household Members", vis:false},
-  {k:"vet",    label:"Veteran Status", vis:false}
+  {k:"race",   label:"Race and Ethnicity", vis:false},
+  {k:"vet",    label:"Veteran Status", vis:false},
+  {k:"alias",  label:"Alias",  vis:false}
 ];
 /* Fields that are only ever in the expanded row — they are never offered as
    columns. Everything in FIELDS that is switched OFF joins them there, which is
@@ -1105,8 +1110,7 @@ var COLLAPSED = [
   {k:"cid", label:"Client ID", locked:true},
   {k:"upd", label:"Updated by"},
   {k:"updon", label:"Updated on"},
-  {k:"gen", label:"Gender"},
-  {k:"race", label:"Race and Ethnicity"}
+  {k:"gen", label:"Gender"}
 ];
 /* key is versioned: bumping it retires a saved order when the shipped default changes,
    otherwise anyone who already opened the lesson keeps the old columns forever */
@@ -2151,6 +2155,7 @@ function cellHTML(c,k){
           '<span>'+esc(m.rel||"Not Set")+'</span></span></span>';
       }).join("")+'<span class="hhcount">1 &ndash; '+c.hm.length+' of '+c.hm.length+'</span></span>';
     case "vet": return c.v?esc(c.v):'<span class="novalue">No value</span>';
+    case "race": return esc(c.rc);
   }
   return "";
 }
@@ -2165,7 +2170,6 @@ function collapsedHTML(c,k){
                    '<span class="nm"><b>'+esc(c.u)+'</b><span>System</span></span></span>';
     case "updon":return dobShort(c.t)+', '+esc(c.ut);
     case "gen":  return esc(c.g);
-    case "race": return esc(c.rc);
   }
   return "";
 }
@@ -2251,7 +2255,8 @@ function renderTable(){
          the Household Members column's, and that column ships off — capture 02
          shows nothing but the kebab at the end of a row. */
       '<td><span class="iconcell">'+
-        '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>'+
+        '<button class="rowkebab" data-locked="crisp" data-rowmenu aria-label="More actions for '+esc(fullName(c))+'">'+
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>'+
       '</span></td></tr>';
     if(!open) return main;
     /* The collapsed-only fields, then whatever the learner has switched off. On
@@ -2629,6 +2634,14 @@ $("#colVisible").addEventListener("drop",function(e){
 
 /* table interactions */
 $("#tb").addEventListener("click",function(e){
+  /* the row's own kebab, before anything else — it must not also open the record */
+  if(e.target.closest("[data-rowmenu]")){
+    e.stopPropagation();
+    notice("Blurred for now",
+      "<p>This menu holds actions on one client from the list. It is not part of what "+
+      "this lesson teaches, so it is closed here.</p>");
+    return;
+  }
   var exp=e.target.closest("[data-exp]");
   if(exp){ var id=exp.dataset.exp; S.expanded[id]=!S.expanded[id]; renderTable(); return; }
   var op=e.target.closest("[data-open]");
@@ -2729,7 +2742,7 @@ var POC_ORDINAL=["First","Second","Third"];
 function pocFields(p){
   function v(x){ return x ? esc(x) : null; }
   function f(label,val){ return field(label, val===null?"No value":val, val===null); }
-  return (p&&p.dt ? field("Point of Contact Date", dobShort(p.dt)) :
+  return (p&&p.dt ? field("Point of Contact Date", dobFull(p.dt)) :
                     '<div class="pf"><b>Point of Contact Date</b></div>')+
     f("Point of Contact Name", p?v(p.nm):null)+
     f("Point of Contact Phone", p?v(p.ph):null)+
@@ -3088,6 +3101,20 @@ $("#kebabBtn").addEventListener("click",function(){
     "<p>This menu holds actions on the record itself. It is not part of what this "+
     "lesson teaches, so it is closed here.</p>");
 });
+/* The Location card's kebab, from the owner's capture with it open. Its two items
+   are the product's, not invented; adding a location is simply not taught here. */
+$("#locKebab").addEventListener("click",function(e){
+  e.stopPropagation();
+  var p=$("#filterPop"), open=p.hidden;
+  closePops(); if(!open) return;
+  p.innerHTML='<button class="menuitem" data-locked role="menuitem">'+
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add Address</button>'+
+    '<button class="menuitem" data-locked role="menuitem">'+
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 3L10.5 13.5M21 3l-7 18-3.5-7.5L3 10z"/></svg>Add Field Interaction</button>';
+  place(p,this); p.hidden=false;
+  $$("#filterPop [data-locked]").forEach(bindLocked);
+});
+
 /* The Clients card's own kebab — same story as the record's. */
 $("#listKebab").addEventListener("click",function(){
   notice("Blurred for now",

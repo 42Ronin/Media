@@ -546,6 +546,23 @@ ok('the kebab says what it is rather than inventing a menu',
    (await p.$eval('#filterPop', e => e.hidden)));
 await closeAll();
 await type('Garcia');
+/* The row kebab used to be drawn and dead. It is a real control; what is behind it
+   we have not seen, so it says that rather than doing nothing at all — and it must
+   not also open the record underneath it. */
+ok('the row kebab is a control, and does not open the record',
+   await p.evaluate(async () => {
+     const before = S.open;
+     document.querySelector('#tb tr[data-row] [data-rowmenu]').click();
+     await new Promise(r => setTimeout(r, 140));
+     return !document.getElementById('notice').hidden && S.open === before;
+   }));
+await closeAll();
+ok('Race and Ethnicity is a column the learner can switch on, not collapsed-only',
+   await p.evaluate(() => {
+     const inCols = S.cols.some(c => c.k === 'race');
+     const inCollapsed = COLLAPSED.some(c => c.label === 'Race and Ethnicity');
+     return inCols && !inCollapsed;
+   }));
 ok('a row ends with the kebab alone — the person icon belonged to a column that is off',
    await p.$$eval('#tb tr[data-row] .iconcell', e =>
      e.length > 1 && e.every(c => c.querySelectorAll('svg').length === 1)));
@@ -565,7 +582,7 @@ const exp = await p.textContent('.expand');
    and then Alias and Veteran Status, the two columns that account had off. */
 ok('the expanded row carries the captured field set',
    await p.$$eval('.expand .xf > b', e => e.map(x => x.textContent.trim()).join('|')) ===
-   'Client ID|Updated by|Updated on|Gender|Race and Ethnicity|ROI|Alias|Household Members|Veteran Status',
+   'Client ID|Updated by|Updated on|Gender|ROI|Household Members|Race and Ethnicity|Veteran Status|Alias',
    await p.$$eval('.expand .xf > b', e => e.map(x => x.textContent.trim()).join('|')));
 ok('turning a column on takes it back out of the expanded row', await p.evaluate(() => {
   S.cols.find(c => c.k === 'vet').vis = true; renderTable();
@@ -764,6 +781,16 @@ ok('the zoom buttons actually zoom', await p.evaluate(async () => {
   await new Promise(r => setTimeout(r, 60));
   return before !== after && inner.style.transform === before;
 }));
+/* The one kebab menu the owner has captured open. Its two items are the product's,
+   not ours; adding a location simply is not taught here. */
+await p.click('#locKebab'); await p.waitForTimeout(200);
+ok('the Location kebab carries the two items the capture shows, both obstructed',
+   await p.$$eval('#filterPop .menuitem', e =>
+     e.map(x => x.textContent.trim()).join('|') === 'Add Address|Add Field Interaction' &&
+     e.every(x => x.hasAttribute('data-locked'))),
+   await p.$$eval('#filterPop .menuitem', e => e.map(x => x.textContent.trim()).join('|')));
+/* closePops, not Escape — Escape with no modal open closes the record itself. */
+await p.evaluate(() => closePops()); await p.waitForTimeout(120);
 /* Rebuilt against the live account (August 2026): the pane carries an add button, a
    kebab, its own search field and the two table tools. Every one of them is present
    and obstructed — this lesson reads locations, it does not add or filter them. */
@@ -898,6 +925,19 @@ ok('all three blocks are named, filled or not', await p.evaluate(() => {
 ok('the first one is open, the other two folded',
    await p.$$eval('#pocBlock .pocsec', e => e.length === 2 && e.every(d => !d.open)) &&
    await p.$$eval('#pocBlock > h3', e => e.length === 1));
+/* Point of Contact dates are written out in full, where the Location table
+   abbreviates — the same split as the profile and the results table. */
+ok('a Point of Contact date is spelled out in full', await p.evaluate(() => {
+  const c = CLIENTS.find(x => (x.poc || []).length);
+  openProfile(c.i);
+  const pf = [...document.querySelectorAll('#pocBlock .pf')]
+    .find(e => e.querySelector('b').textContent === 'Point of Contact Date');
+  const d = c.poc[0].dt.split('-');
+  return pf.querySelector('span').textContent.trim() === d[1] + '/' + d[2] + '/' + d[0];
+}));
+ok('Point of Contact Category shows the Select placeholder, never an invented option',
+   await p.evaluate(() => CLIENTS.every(c => (c.poc || []).every(b => b.cat === '')) &&
+     /Select/.test(document.querySelector('#pocBlock').textContent)));
 ok('a folded block says who is in it without being opened',
    await p.$eval('#pocBlock .pocsec .pocwho', e => e.textContent.trim().length > 0));
 /* Unlike capture 04's sections, nothing here is obstructed: this is real content a
