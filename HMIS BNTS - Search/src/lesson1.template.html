@@ -3137,11 +3137,16 @@ $("#locKebab").addEventListener("click",function(e){
   $$("#filterPop [data-locked]").forEach(bindLocked);
 });
 
-/* The Clients card's own kebab — same story as the record's. */
-$("#listKebab").addEventListener("click",function(){
-  notice("Blurred for now",
-    "<p>This menu holds actions on the client list as a whole. It is not part of what "+
-    "this lesson teaches, so it is closed here.</p>");
+/* The Clients card's kebab, from the owner's capture of it open: one item. */
+$("#listKebab").addEventListener("click",function(e){
+  e.stopPropagation();
+  var pop=$("#filterPop"), wasOpen=!pop.hidden;
+  closePops(); if(wasOpen) return;
+  pop.innerHTML='<button class="menuitem" data-locked role="menuitem">'+
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">'+
+    '<path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8M3 4v4h4M12 7.5V12l3 2"/></svg>Restore Deleted Data</button>';
+  place(pop,this); pop.hidden=false;
+  $$("#filterPop [data-locked]").forEach(bindLocked);
 });
 
 /* add client — out of scope for Lesson 1 */

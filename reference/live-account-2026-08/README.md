@@ -86,17 +86,19 @@ Services*, *View History*, a rule, then *Delete Client* in red. Built, obstructe
 same image also shows a **household glyph before the kebab**, present on clients who
 have a household and absent on those who do not; we had removed it.
 
-## Still not captured
+Two more closed it out: the **Clients-card kebab** (one item, *Restore Deleted Data*)
+and the **Point of Contact Category dropdown** — six real LAHSA and DHS programme
+names, used verbatim, and left unset on rather more than half of blocks, which is why
+`Select` is the ordinary sight there.
 
-- The **Clients card** kebab, opened. It renders a placeholder that names itself
-  rather than inventing items. (The profile card's kebab is the edit route, which
-  this lesson does not teach, so it needs no capture.)
-- The **Point of Contact Category** options. Moot in practice: the live account shows
-  `Select` even on a filled block, and that is what we render.
-- A record whose name quality is *Client refused*: the Add Client capture shows one
-  filed as **`Refused, 6CD53CE9A`** — surname "Refused", the unique identifier in
-  place of a given name. We do not reproduce that yet, and it would change what a
-  search finds, so it needs a decision before it is built.
+## Nothing outstanding
+
+Every kebab in the interface has now been captured open and built. The one thing
+found and deliberately **not** built is the *Client refused* name state: the Add
+Client capture shows a record filed as **`Refused, 6CD53CE9A`** — surname "Refused",
+the unique identifier standing in for a given name. It is real, but it belongs with a
+later lesson on participants declining to share data, and reproducing it here would
+change what a search finds. Leave it until that lesson exists.
 
 ## What they confirm we already had right
 

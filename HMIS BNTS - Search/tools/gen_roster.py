@@ -558,9 +558,17 @@ POC_L = ["Okonkwo", "Villalobos", "Ashworth", "Nguyen-Pratt", "Ramanathan",
          "Beaumont", "Escalante", "Whitlock", "Sorensen", "Bakr", "Ferreira",
          "Novikov", "Hallowell", "Adeyemi", "Castellanos", "Rahimi", "Duval",
          "Mendoza-Klein", "Aherne", "Bashir"]
-# Point of Contact Category is a Select whose options we have never seen. The
-# capture shows the placeholder, so that is what every record carries: the field is
-# real, its values are not ours to invent.
+# Point of Contact Category, from the owner's capture of the dropdown open. These are
+# real LAHSA and DHS programme names — organisations and programmes, not people — and
+# they are used verbatim because inventing programme names would be the same mistake
+# as inventing field labels. The live list is longer; these are the visible six.
+# The field is often left unset, and an unset one renders the Select placeholder.
+POC_CAT = ["LAHSA Funded Interim Housing (Crisis)",
+           "LAHSA Funded Interim Housing (Host Home)",
+           "LAHSA Funded Street Outreach Program",
+           "DHS Funded Countywide Benefits Entitlement Services Team (CBEST)",
+           "DHS Multi-Disciplinary Outreach Team",
+           "DHS Funded Interim Housing"]
 
 
 def poc_person(r):
@@ -588,7 +596,7 @@ def poc_block(r, when):
     p, sup = poc_person(r), poc_person(r)
     return {"dt": when, "nm": p["nm"], "ph": p["ph"], "ex": p["ex"], "em": p["em"],
             "snm": sup["nm"], "sph": sup["ph"], "sex": sup["ex"], "sem": sup["em"],
-            "cat": ""}
+            "cat": r.choice(POC_CAT) if r.random() < 0.45 else ""}
 
 
 QUALITY_LABEL = {

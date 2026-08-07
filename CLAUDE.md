@@ -210,14 +210,14 @@ and two were deliberately left alone:
 - **Not reproduced, by decision:** the four stat cards above the results table, and the record
   page's right-hand rail. Both serve features these lessons do not teach. Don't add them back
   as a fidelity fix — they can arrive with the lesson that needs them.
-- **Nothing in the product surface is invented.** Two kebab menus have been captured open and are
-  built from those captures, obstructed: **Location** (*Add Address*, *Add Field Interaction*) and
-  the **results row** (*View Enrollments*, *View Services*, *View History*, a rule, then
-  *Delete Client* in red). The Clients-card and profile-card kebabs name themselves rather than
-  listing made-up items — the profile one is the route into edit mode, which this lesson does not
-  teach; Point of Contact Category renders the `Select` placeholder because its
-  options have never been seen — the live account shows `Select` even on a filled block. If you
-  want content there, get a capture first.
+- **Nothing in the product surface is invented.** All four kebabs are settled and built from
+  captures, every item obstructed: **Clients card** (*Restore Deleted Data*), **results row**
+  (*View Enrollments*, *View Services*, *View History*, a rule, then *Delete Client* in red),
+  **Location** (*Add Address*, *Add Field Interaction*). The **profile card's** is the route into
+  edit mode, which this lesson does not teach, so it names itself instead; Point of Contact Category renders the `Select` placeholder because its
+  options are the six from the owner's capture of the dropdown open — real LAHSA and DHS
+  programme names, verbatim — and it is left unset on rather more than half of blocks, which is
+  why `Select` is the ordinary sight there.
 - **Point of Contact dates are written out in full** (`04/03/2026`); the Location table
   abbreviates (`6/2/26`). Same split as the profile against the results table.
 - **A household glyph sits before the row kebab, and only on a client who has a household.**

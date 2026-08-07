@@ -537,14 +537,15 @@ ok('the card head has the add button and the kebab, as capture 01 shows',
      e.map(x => x.id).join('|') === 'addBtn|listKebab'),
    await p.$$eval('#searchView .cardhead button', e => e.map(x => x.id).join('|')));
 /* Drawn crisp rather than blurred — three small dots under a 2px blur read as a
-   rendering fault. What is behind it we have never seen, so it says so instead of
-   showing invented menu items. */
+   rendering fault. Its menu is one item, from the owner's capture of it open. */
 await closeAll();   // a modal left open from an earlier check would swallow the click
 await p.click('#listKebab'); await p.waitForTimeout(250);
-ok('the kebab says what it is rather than inventing a menu',
-   !(await p.$eval('#notice', e => e.hidden)) &&
-   (await p.$eval('#filterPop', e => e.hidden)));
-await closeAll();
+ok('the kebab carries the single item the capture shows, obstructed',
+   await p.$$eval('#filterPop .menuitem', e =>
+     e.length === 1 && e[0].textContent.trim() === 'Restore Deleted Data' &&
+     e[0].hasAttribute('data-locked')),
+   await p.$$eval('#filterPop .menuitem', e => e.map(x => x.textContent.trim()).join('|')));
+await p.evaluate(() => closePops()); await p.waitForTimeout(120);
 await type('Garcia');
 /* The row kebab's menu, from the owner's capture of it open: three views, a rule,
    then the destructive one. All four obstructed — this lesson reads records, it does
@@ -950,9 +951,18 @@ ok('a Point of Contact date is spelled out in full', await p.evaluate(() => {
   const d = c.poc[0].dt.split('-');
   return pf.querySelector('span').textContent.trim() === d[1] + '/' + d[2] + '/' + d[0];
 }));
-ok('Point of Contact Category shows the Select placeholder, never an invented option',
-   await p.evaluate(() => CLIENTS.every(c => (c.poc || []).every(b => b.cat === '')) &&
-     /Select/.test(document.querySelector('#pocBlock').textContent)));
+/* Category options come from the owner's capture of the dropdown open — real LAHSA
+   and DHS programme names, used verbatim. The field is often left unset, and an unset
+   one renders the Select placeholder, which is what the live account mostly shows. */
+ok('Point of Contact Category uses only the captured options, or the Select placeholder',
+   await p.evaluate(() => {
+     const allowed = new Set(['', 'LAHSA Funded Interim Housing (Crisis)',
+       'LAHSA Funded Interim Housing (Host Home)', 'LAHSA Funded Street Outreach Program',
+       'DHS Funded Countywide Benefits Entitlement Services Team (CBEST)',
+       'DHS Multi-Disciplinary Outreach Team', 'DHS Funded Interim Housing']);
+     const all = CLIENTS.flatMap(c => (c.poc || []).map(b => b.cat));
+     return all.every(v => allowed.has(v)) && all.some(v => v) && all.some(v => !v);
+   }));
 ok('a folded block says who is in it without being opened',
    await p.$eval('#pocBlock .pocsec .pocwho', e => e.textContent.trim().length > 0));
 /* Unlike capture 04's sections, nothing here is obstructed: this is real content a
