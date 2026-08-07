@@ -14,4 +14,4 @@ tools/scene-editor/shot-*.png
 HMIS BNTS - Search/script/section-*.docx
 
 # the launcher's intermediate page — the zip beside it is the deliverable
-HMIS BNTS - Search/launcher/dist/index.html
+HMIS BNTS - Search/launcher/dist/section-*-index.html

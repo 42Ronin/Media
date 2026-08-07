@@ -197,6 +197,42 @@ SCRIPTED = [
     C("B5E1D8F43", "Dezirae", "Halvorsen", "1996-11-09", "943-28-1160", p="She/Her/Hers"),
     C("C9A3F7E64", "Dezra",   "Osterman",  "1988-05-23", "917-62-9084", p="She/Her/Hers"),
     C("E6B2C5A75", "Dezhawn", "Arrington", "2001-01-30", "955-40-3372"),
+
+    # ---- prefix decoys ------------------------------------------------------
+    # Typing the first few letters of a name is what everybody does first, and it
+    # was landing on exactly one record for most of the cast — the guards that keep
+    # a task answer unambiguous had also made every scenario name unique in the
+    # roster, so a three-letter prefix handed the answer over before the learner
+    # had done any of the thinking the task is for.
+    #
+    # Each of these shares a prefix with one scenario answer and nothing else. None
+    # of them can satisfy the task's own search: they differ on the other name, on
+    # the year, or on both. Checked by tools/obviousness.mjs.
+    C("T1A4B7C92", "Priya",     "Torrance",  "1986-02-11", "931-45-7712", p="She/Her/Hers"),
+    C("T2B5C8D03", "Andre",     "Torkelson", "1993-09-24", "946-18-2205"),
+    C("D3C6D9E14", "Daniel",    "Okafor",    "1984-07-19", "923-51-6640"),
+    C("D4D7E0F25", "Danika",    "Flores",    "1997-12-03", "958-33-1178", p="She/Her/Hers"),
+    C("K5E8F1A36", "Krzesimir", "Nowak",     "1977-05-28", "914-27-8853"),
+    C("W6F9A2B47", "Tomasz",    "Wojcik",    "1990-10-14", "962-05-4419"),
+    C("E7A0B3C58", "Esperanza", "Bennett",   "1995-03-07", "939-72-3306", p="She/Her/Hers"),
+    C("E8B1C4D69", "Espen",     "Halvorsen", "1971-11-21", "927-60-5514"),
+    C("A9C2D5E70", "Adriana",   "Flores",    "1992-06-30", "944-19-7723", p="She/Her/Hers"),
+    C("A0D3E6F81", "Adrienne",  "Carter",    "1981-01-13", "955-84-2260", p="She/Her/Hers"),
+    C("F1E4F7A92", "Rosa",      "Fenwick",   "1969-08-27", "918-42-9931", p="She/Her/Hers"),
+    C("F2F5A8B03", "Marisol",   "Fenton",    "1994-04-05", "936-27-1148", p="She/Her/Hers"),
+    C("B3A6B9C14", "Luis",      "Brennan",   "1978-02-16", "949-13-6672"),
+    C("B4B7C0D25", "Brenda",    "Alvarez",   "1987-11-08", "925-66-3390", p="She/Her/Hers"),
+    C("Y5C8D1E36", "Yolanda",   "Foster",    "1996-05-12", "941-70-8817", p="She/Her/Hers"),
+    C("Y6D9E2F47", "Yolanda",   "Ramirez",   "1973-09-01", "953-24-4408", p="She/Her/Hers"),
+    C("L7E0F3A58", "Elias",     "Thompson",  "1993-07-23", "917-38-5561"),
+    C("L8F1A4B69", "Elise",     "Johnson",   "1966-12-19", "934-51-2287", p="She/Her/Hers"),
+    C("M9A2B5C70", "Katarina",  "Morrissey", "1999-03-15", "928-47-9903", p="She/Her/Hers"),
+    C("M0B3C6D81", "Devon",     "Whitfield", "1975-10-06", "946-82-3315"),
+    # Two names the participant says out loud, which were reaching exactly one
+    # record and ending the task before it started: "Danielle" in task 3, and
+    # "Reyez" — one of the three spellings he offers — in task 12.
+    C("N1A5B8C26", "Danielle",  "Thompson",  "1986-09-11", "932-14-7708", p="She/Her/Hers"),
+    C("N2B6C9D37", "Consuelo",  "Reyez",     "1995-04-02", "948-31-2265", p="She/Her/Hers"),
 ]
 
 # Households that a scripted task depends on, by client id.

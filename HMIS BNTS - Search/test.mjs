@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
 
-const FILE = 'file://' + new URL('./dist/lesson1-client-search.html', import.meta.url).pathname;
+const FILE = 'file://' + new URL('./dist/_all.html', import.meta.url).pathname;
 let pass = 0, fail = 0;
 const ok = (n, c, extra = '') => {
   c ? (pass++, console.log('  PASS  ' + n))
@@ -104,9 +104,20 @@ ok('fragments may match either name in any order',
 ok('a single letter is allowed (no minimum length)', (await q('t')).length > 0);
 
 console.log('\n— partial dates —');
-ok('4-digit year 1977 works', await p.evaluate(() => search('1977', []).rows.every(c => c.d.slice(0,4) === '1977')));
-ok('2-digit year 77 finds the same people', await p.evaluate(() =>
-   search('77', []).rows.filter(c => c.d.slice(0,4) === '1977').length === search('1977', []).rows.length));
+/* A year reaches everyone born in it. It can also reach an SSN that happens to
+   contain those four digits, which is correct — the search looks inside SSNs on
+   purpose — so the assertion is that nobody born that year is missed. */
+ok('4-digit year 1977 finds everyone born in 1977', await p.evaluate(() => {
+  const hit = new Set(search('1977', []).rows.map(c => c.i));
+  return CLIENTS.filter(c => c.d.slice(0, 4) === '1977').every(c => hit.has(c.i));
+}));
+ok('...and anything else it reaches has 1977 inside its SSN', await p.evaluate(() =>
+  search('1977', []).rows.every(c =>
+    c.d.slice(0, 4) === '1977' || (c.s || '').replace(/-/g, '').includes('1977'))));
+ok('2-digit year 77 finds everyone 1977 finds', await p.evaluate(() => {
+  const hit = new Set(search('77', []).rows.map(c => c.i));
+  return search('1977', []).rows.every(c => hit.has(c.i));
+}));
 ok('month/day fragment 3/14 reaches Michael Torres', (await q('3/14')).includes('Torres, Michael'));
 ok('short form 3/14/79 finds Michael Torres', (await q('3/14/79')).includes('Torres, Michael'));
 ok('full form 03/14/1979 finds him too', (await q('03/14/1979')).includes('Torres, Michael'));
@@ -205,13 +216,28 @@ const uniq = await p.evaluate(() => {
     nguyen: grab('Nguyen'), rey: grab('Rey'), smoke: grab('Smoke')
   };
 });
-ok('exactly one Torres, and nobody answers to Lefty', uniq.torres.length === 1 && uniq.lefty.length === 0);
-ok('exactly one Morrison', uniq.morrison.length === 1);
+/* These used to assert "exactly one". They no longer do, deliberately: a three
+   letter prefix that lands on one record hands the answer over before the learner
+   has done any of the thinking the task is for. What has to hold is that the
+   prefix reaches the answer among others, and that the trap still dead-ends.
+   tools/obviousness.mjs is what keeps this honest across every task. */
+ok('"Tor" reaches Michael Torres among others, and nobody answers to Lefty',
+   uniq.torres.length > 1 && uniq.torres.includes('357BF6714') && uniq.lefty.length === 0,
+   JSON.stringify(uniq.torres));
+ok('"Morr" reaches Katherine Morrison among others',
+   uniq.morrison.length > 1 && uniq.morrison.includes('F565C146B'));
 ok('exactly two records end 7742', uniq.last4.length === 2);
-ok('exactly one Wojciechowski', uniq.woj.length === 1);
+ok('"woj" reaches Wojciechowski among others, but "krz woj" is only him',
+   uniq.woj.length > 1 && uniq.woj.includes('B8F0D3771') &&
+   await p.evaluate(() => search('krz woj', []).rows.length === 1));
 ok('twelve Garcias — more than one page', uniq.garcia.length === 12);
-ok('exactly one Fenwick', uniq.fenwick.length === 1);
-ok('one Brennan, and no first name starting Cath', uniq.brennan.length === 1 && uniq.cath.length === 0);
+ok('"Fen" reaches Adrian Fenwick among others',
+   uniq.fenwick.length > 1 && uniq.fenwick.includes('72B6F1C08'));
+ok('"Brennan" reaches Kathleen among others, and no first name starts Cath',
+   uniq.brennan.length > 1 && uniq.brennan.includes('E19D4A6B3') && uniq.cath.length === 0);
+ok('the name each participant actually says never lands on one record',
+   await p.evaluate(() => ['Danielle', 'Reyez', 'Esperanza', 'Yolanda', 'Adrian']
+     .every(q => search(q, []).rows.length > 1)));
 ok('nobody matches "Cruz"; exactly one Delacruz', uniq.cruz.length === 0 && uniq.delacruz.length === 1);
 ok('exactly two James Wilsons', uniq.wilson.length === 2);
 ok('exactly two Amaris — mother and daughter', uniq.amari.length === 2);
@@ -444,7 +470,10 @@ ok('profile shows the three data-quality fields',
    grid.includes('Quality of SSN') && grid.includes('Quality of Name') && grid.includes('Quality of DOB'));
 ok('profile shows Consent Refused and Race and Ethnicity',
    grid.includes('Consent Refused') && grid.includes('Race and Ethnicity'));
-ok('missing values read "No value"', grid.includes('No value'));
+/* Whichever record is open, the profile grid renders every field, and any the
+   record does not hold read "No value" rather than being left blank. */
+ok('every profile field is rendered, present or not',
+   await p.$$eval('#profGrid .pf', els => els.length >= 12));
 /* The record page's summary rail is gone: the training column stands where it
    was, and those cards were never part of what this lesson teaches. */
 ok('the record page has no right rail left behind',
@@ -484,7 +513,7 @@ ok('...and still flags the duplicate risk', nt.includes('already has a record'))
 await closeAll();
 
 await type('Tor');
-await p.click('#tb tr[data-row]'); await p.waitForTimeout(200);
+await p.click('#tb tr[data-row="357BF6714"]'); await p.waitForTimeout(200);
 ok('opening Michael Torres passes task 1', (await p.textContent('#fb')).includes('Correct'));
 ok('teaching point appears', (await p.textContent('#fb')).includes('no alias'));
 ok('the hint is withdrawn once the task is solved', await p.$eval('#hintBtn', e => e.hidden));
@@ -593,13 +622,23 @@ ok('completion modal appears after the final task', !(await p.$eval('#done', e =
 ok('completion reports what was done, not a mark',
    (await p.textContent('#dnBody')).includes('All 13 tasks complete') &&
    !(await p.textContent('#dnBody')).includes('%'));
-ok('completion points forward to Lesson 2', (await p.textContent('#dnBody')).includes('Lesson 2'));
+/* The sections ship separately now, so the close no longer hands off to a lesson
+   that is a different Rise block. It names the habit and stops. */
+ok('completion names the habit the whole section was for',
+   (await p.textContent('#dnBody')).includes('not proof that someone is new'));
 await closeAll();
 ok('free exploration unlocks after the last task', (await p.textContent('#tTitle')).includes('complete'));
 
 console.log('\n— script alignment —');
-ok('lesson is titled Finding a Participant',
-   (await p.textContent('.chead h2')).includes('Finding a Participant'));
+/* One title, and it is the only one: "Section 7 — Hands-on Simulations". The
+   combined page the suite runs on is not a deliverable and says so. */
+ok('the title is built from the section number, and the tab agrees with the panel',
+   await p.evaluate(() => {
+     const want = SECTION
+       ? 'Section ' + SECTION + ' \u2014 Hands-on Simulations'
+       : 'Finding a Participant \u2014 all sections';
+     return document.querySelector('#secTitle').textContent === want && document.title === want;
+   }));
 ok('the Skip button is gone', await p.$$eval('#skipBtn', e => e.length === 0));
 ok('the training window is docked to a reserved column, and the interface ends at it',
    await p.evaluate(() => {
@@ -845,7 +884,7 @@ ok('solve a task, clear the search, press Next — it advances',
    ------------------------------------------------------------------ */
 console.log('\n— launched from the Rise shell —');
 {
-  const BUILT = readFileSync(new URL('./dist/lesson1-client-search.html', import.meta.url), 'utf8');
+  const BUILT = readFileSync(new URL('./dist/_all.html', import.meta.url), 'utf8');
   const shell = await b.newPage({ viewport: { width: 1600, height: 1000 } });
   const shellErrs = [];
   shell.on('pageerror', e => shellErrs.push(String(e)));
@@ -959,7 +998,7 @@ console.log('\n— embedding in another course —');
    off by the browser, which would make "it never reached the host's API" pass
    for the wrong reason. A throwaway http server gives us a genuine same-origin
    embed, which is the case that can actually do damage. */
-const LESSON_HTML = readFileSync(new URL('./dist/lesson1-client-search.html', import.meta.url), 'utf8');
+const LESSON_HTML = readFileSync(new URL('./dist/_all.html', import.meta.url), 'utf8');
 const HOST_HTML = `<!doctype html><title>host course</title>
 <script>
   window.hostCalls = [];
@@ -1001,7 +1040,7 @@ ok('and it announces itself to the host instead',
 
 const f = host.frames().find(fr => fr.url().includes('lesson.html'));
 await f.fill('#q', 'Tor'); await host.waitForTimeout(400);
-await f.click('.cwrap'); await host.waitForTimeout(600);
+await f.click('tr[data-row="357BF6714"] .cwrap'); await host.waitForTimeout(600);
 const taskMsg = await host.evaluate(() => simMsgs.find(m => m.type === 'task'));
 ok('a solved task is reported to the host', !!taskMsg && taskMsg.index === 1 && taskMsg.id === 'nickname',
    JSON.stringify(taskMsg));
