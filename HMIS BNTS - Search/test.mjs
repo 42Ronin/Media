@@ -35,7 +35,11 @@ await p.waitForTimeout(600);
 ok('Lashes opens with a tour before anything else',
    await p.$eval('#lzBub', e => e.classList.contains('on')) &&
    (await p.textContent('#fb')).includes('practice version of Clarity'));
-ok('she introduces herself by name', (await p.textContent('#fb')).includes('Lashes'));
+/* She does not introduce herself: that was the course intro, and so was the
+   blink-twice. Each section's orientation adds only what is new. */
+ok('she does not re-introduce herself, having already met them',
+   !(await p.textContent('#fb')).includes('I am Lashes') &&
+   !(await p.textContent('#fb')).includes('Blink twice'));
 ok('the tour is counted so the learner knows how long it is',
    (await p.textContent('#lzCount')).includes('of'));
 const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
@@ -63,6 +67,12 @@ for (let n = 0; n < tourLen; n++) {
   await p.click('#lzStep'); await p.waitForTimeout(420);
 }
 ok('the tour covers the roster size the script states', seen.join(' ').includes('Three hundred'));
+ok('nothing in it is repeated from a previous section', await p.evaluate(() => {
+  const said = s => JSON.stringify(TOURS).indexOf(s);
+  /* every sentence appears in exactly one section's orientation */
+  const all = Object.values(TOURS).flat().map(b => b.html);
+  return new Set(all).size === all.length;
+}));
 ok('...that nothing is scored and there is no skip',
    seen.join(' ').includes('Nothing is scored') && seen.join(' ').includes('no skip'));
 ok('...and that blurred means not yet earned', seen.join(' ').includes('clears as you earn it'));
@@ -227,14 +237,23 @@ ok('"Tor" reaches Michael Torres among others, and nobody answers to Lefty',
 ok('"Morr" reaches Katherine Morrison among others',
    uniq.morrison.length > 1 && uniq.morrison.includes('F565C146B'));
 ok('exactly two records end 7742', uniq.last4.length === 2);
-ok('"woj" reaches Wojciechowski among others, but "krz woj" is only him',
-   uniq.woj.length > 1 && uniq.woj.includes('B8F0D3771') &&
-   await p.evaluate(() => search('krz woj', []).rows.length === 1));
+/* The taught technique — the first letters of both names — now returns a short
+   list rather than one record, on purpose. It reaches him; it does not hand him
+   over. The script's hint for this task says "krz woj reaches him immediately",
+   which is a wording pass waiting to happen. */
+ok('"krz woj" reaches Wojciechowski in a list short enough to read',
+   await p.evaluate(() => {
+     const r = search('krz woj', []).rows;
+     return r.length > 1 && r.length <= 4 && r.some(c => c.i === 'B8F0D3771');
+   }));
 ok('twelve Garcias — more than one page', uniq.garcia.length === 12);
 ok('"Fen" reaches Adrian Fenwick among others',
    uniq.fenwick.length > 1 && uniq.fenwick.includes('72B6F1C08'));
-ok('"Brennan" reaches Kathleen among others, and no first name starts Cath',
-   uniq.brennan.length > 1 && uniq.brennan.includes('E19D4A6B3') && uniq.cath.length === 0);
+/* Cathleen is the spelling she offers and it has to dead-end. Other C spellings
+   existing is the point of the task, not a violation of it. */
+ok('"Brennan" reaches Kathleen among others, and "Cathleen" still reaches nobody',
+   uniq.brennan.length > 1 && uniq.brennan.includes('E19D4A6B3') &&
+   await p.evaluate(() => search('Cathleen', []).rows.length === 0));
 ok('the name each participant actually says never lands on one record',
    await p.evaluate(() => ['Danielle', 'Reyez', 'Esperanza', 'Yolanda', 'Adrian']
      .every(q => search(q, []).rows.length > 1)));

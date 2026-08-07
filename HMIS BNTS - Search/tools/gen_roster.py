@@ -65,8 +65,23 @@ COMMON_F = """Maria Jose Anthony Angela Robert Linda Michelle Carlos Sandra Kevi
 Monica Andre Tanya Luis Rosa Eric Patricia Jamal Teresa Darnell""".split()
 COMMON_L = """Johnson Williams Lopez Smith Jackson Martinez Hernandez Brown Davis
 Thompson Robinson Walker Young Alvarez Ramirez Carter Flores Bennett Foster Freeman""".split()
-COMMON_RATE = 0.84          # how often a name is drawn from the small pool
-MAX_TWINS   = 26            # records allowed to share a full name with another
+
+# The same name, written down by two different people. This is how a duplicate
+# gets made, and it is what makes a search that looks decisive not be: type the
+# whole name and you find one of them, type the part they share and you find both.
+# Both spellings of each pair are in the pool, so the roster carries the texture
+# everywhere rather than only around the scenario cast.
+PHONETIC_F = """Sara Sarah Aisha Ayesha Stephen Steven Sean Shawn Carla Karla
+Cristina Christina Kristina Jon John Marc Mark Erik Erick Caitlin Kaitlin
+Mohamed Muhammad Ahmad Ahmed Hasan Hassan Nadia Nadya Sofia Sophia
+Jaqueline Jacqueline Latonya Latonia""".split()
+PHONETIC_L = """Sanchez Sanches Ramos Ramoz Perez Peres Gonzalez Gonzales
+Vasquez Vazquez Marques Marquez Ibrahim Ibraheem Nazir Nazeer Mensah Mensa
+Osei Osey Kabir Kabeer Shephard Sheppard Clarke Clark Stuart Stewart""".split()
+COMMON_F += PHONETIC_F
+COMMON_L += PHONETIC_L
+COMMON_RATE = 0.93          # how often a name is drawn from the small pool
+MAX_TWINS   = 34            # records allowed to share a full name with another
 
 PRONOUNS = ["She/Her/Hers", "He/Him/His", "They/Them/Theirs"]
 
@@ -194,8 +209,8 @@ SCRIPTED = [
     # leaves two, neither with an SSN, and only the Location tab separates them.
     C("D2F8A6C31", "Dezmond", "Ellery", "1974-08-16", None, q="refused"),
     C("A7C4E9B52", "Dezmond", "Achebe", "1974-03-02", None, q="unknown"),
-    C("B5E1D8F43", "Dezirae", "Halvorsen", "1996-11-09", "943-28-1160", p="She/Her/Hers"),
-    C("C9A3F7E64", "Dezra",   "Osterman",  "1988-05-23", "917-62-9084", p="She/Her/Hers"),
+    C("B5E1D8F43", "Dezirae", "Ellsworth", "1996-11-09", "943-28-1160", p="She/Her/Hers"),
+    C("C9A3F7E64", "Dezra",   "Achterberg","1988-05-23", "917-62-9084", p="She/Her/Hers"),
     C("E6B2C5A75", "Dezhawn", "Arrington", "2001-01-30", "955-40-3372"),
 
     # ---- prefix decoys ------------------------------------------------------
@@ -233,6 +248,52 @@ SCRIPTED = [
     # "Reyez" — one of the three spellings he offers — in task 12.
     C("N1A5B8C26", "Danielle",  "Thompson",  "1986-09-11", "932-14-7708", p="She/Her/Hers"),
     C("N2B6C9D37", "Consuelo",  "Reyez",     "1995-04-02", "948-31-2265", p="She/Her/Hers"),
+
+    # ---- both-prefix decoys -------------------------------------------------
+    # The pair above catches a learner who types the start of one name. These
+    # catch the one who types the start of both, which is the technique the
+    # lesson actually teaches — "krz woj", "kat joh". Each shares the first three
+    # letters of the first name AND of the surname with one scenario answer, and
+    # none of them can be mistaken for the answer: the rest of the surname
+    # differs, so the full name still reaches one record.
+    C("P1A6C1E48", "Michaela", "Torkington", "1991-04-22", "913-58-7729", p="She/Her/Hers"),
+    C("P2B7D2F59", "Katia",    "Moreno",     "1990-08-14", "947-21-3364", p="She/Her/Hers"),
+    C("P3C8E3A60", "Danika",   "Whitfield",  "1983-01-09", "926-74-5183", p="She/Her/Hers"),
+    C("P4D9F4B71", "Krzesimir","Wojda",      "1972-06-27", "935-19-8840"),
+    C("P5E0A5C82", "Espen",    "Garrido",    "1998-10-03", "959-47-2216"),
+    C("P6F1B6D93", "Adriana",  "Fenton",     "1996-03-18", "922-63-9075", p="She/Her/Hers"),
+    C("P7A2C7E04", "Katia",    "Brenner",    "1975-12-01", "944-08-1157", p="She/Her/Hers"),
+    C("P8B3D8F15", "Marco",    "Delgado",    "1969-07-16", "951-36-4428"),
+    C("P9C4E9A26", "Jamal",    "Wiltshire",  "1994-02-05", "938-90-6613"),
+    C("Q0D5F0B37", "Yolonda",  "Amaro",      "1987-11-29", "916-52-7704", p="She/Her/Hers"),
+    C("Q1E6A1C48", "Dave",     "Ngugi",      "1979-05-21", "963-14-3395"),
+    C("Q2F7B2D59", "Elena",    "Reynolds",   "1966-09-12", "929-77-2281", p="She/Her/Hers"),
+    C("Q3A8C3E60", "Rosario",  "Vegh",       "1992-12-24", "955-23-8867", p="She/Her/Hers"),
+
+    # ---- heard, not read ----------------------------------------------------
+    # How names actually diverge in HMIS: somebody wrote it down while listening.
+    # i and e, e and eh, a and ah, c and ch and s and sh, s and z, silent letters
+    # dropped. Each of these is one scenario answer misheard, so the fragment a
+    # learner types reaches both and the full name still reaches one.
+    C("R1B9D4F71", "Michele",   "Torrez",     "1988-07-04", "934-61-2290", p="She/Her/Hers"),
+    C("R2C0E5A82", "Catherine", "Morrisen",   "1993-02-18", "928-15-7736", p="She/Her/Hers"),
+    C("R3D1F6B93", "Daniela",   "Witmore",    "1977-09-26", "946-30-4419", p="She/Her/Hers"),
+    C("R4E2A7C04", "Kristof",   "Wojcieszak", "1985-11-12", "919-73-6628"),
+    C("R5F3B8D15", "Esperansa", "Gallardo",   "1970-06-08", "952-44-1183", p="She/Her/Hers"),
+    C("R6A4C9E26", "Adrien",    "Fenwyck",    "1994-01-31", "937-28-9950"),
+    C("R7B5D0F37", "Kathryn",   "Brennen",    "1968-04-14", "923-67-3305", p="She/Her/Hers"),
+    C("R8C6E1A48", "Mariah",    "Delacroix",  "1991-08-20", "958-12-7761", p="She/Her/Hers"),
+    C("R9D7F2B59", "Jaime",     "Wilsen",     "1980-03-27", "941-59-2274"),
+    C("S0E8A3C60", "Yolande",   "Amary",      "1965-10-11", "917-84-6642", p="She/Her/Hers"),
+    C("S1F9B4D71", "Davide",    "Nguyan",     "1997-05-06", "960-31-8815"),
+    C("S2A0C5E82", "Elyas",     "Rayas",      "1973-12-29", "944-26-5507"),
+    C("S4C2E7A04", "Elias",     "Reynolds",   "1990-02-08", "926-49-1172"),
+    C("S3B1D6F93", "Rosalyn",   "Veiga",      "1986-09-15", "931-70-3348", p="She/Her/Hers"),
+    # One partial SSN is pinned rather than left to the roll. The scenario cast has
+    # grown enough to crowd the generated records out, and a masked area segment is
+    # the case that proves a search cannot match across the gap.
+    C("V1A2B3C44", "Tanya",     "Freeman",    "1982-04-17", "XXX-45-8891",
+      q="approx", p="She/Her/Hers"),
 ]
 
 # Households that a scripted task depends on, by client id.
@@ -341,7 +402,7 @@ while len(clients) < TOTAL:
             continue
         twins += 1
 
-    q = weighted([("full", .80), ("approx", .05), ("refused", .07),
+    q = weighted([("full", .76), ("approx", .09), ("refused", .07),
                   ("unknown", .04), ("notcollected", .04)])
     has_ssn = q in ("full", "approx")
 

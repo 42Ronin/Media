@@ -1206,24 +1206,23 @@ var BEAT=(function(){
 /* ============================================================
    ORIENTATION
    ============================================================
-   Slide 7.1 of the script, delivered by Lashes against the interface itself
-   rather than read off a screen beforehand.
+   She has already introduced herself — that was the course intro, and so was the
+   blink-twice. Nothing here repeats it. Each section's orientation adds only what
+   that section brings that the learner has not already been shown, so they stack
+   rather than restate.
 
-   This is per-lesson on purpose. Every simulation in the series opens with a
-   different ask and unlocks different controls, so each one declares its own
-   list here and the engine above is what they share. */
-/* The tour is declared before the task list is filtered to this section, so the
-   count is a token and BEAT fills it in when the beat is actually shown. */
+   Section 7 introduces the simulator, because it is the first one.
+   Section 10 introduces verifying, and the parts of the record it needs.
+   A section with nothing new to say gets no orientation at all. */
 var NUMBER_WORDS=["No","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
                   "Eleven","Twelve","Thirteen","Fourteen"];
 function countWord(){ return NUMBER_WORDS[TASKS.length]||String(TASKS.length); }
 
-var TOUR=[
+var TOURS={
+7:[
 { anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
-  title:"Before we start",
-  html:'<p>I am Lashes. Yes, on the nose. I have made my peace with it.</p>'+
-       '<p>This is a practice version of Clarity. It behaves the way the real one does. '+
-       'Everyone in it is invented, so nothing you do here reaches a real person.</p>' },
+  html:'<p>This is the practice version of Clarity. It behaves the way the real one does, '+
+       'and everyone in it is invented, so nothing you do here reaches a real person.</p>' },
 { anchor:"search", eyes:"wide", mouth:"plain", point:true,
   html:'<p>One box does all of it. Part of a name, a date of birth, a few digits of a '+
        'Social Security Number. It searches while you type, so you do not press anything.</p>' },
@@ -1231,9 +1230,6 @@ var TOUR=[
   html:'<p>Results land here. Three hundred people in this roster.</p>'+
        '<p>The live system holds hundreds of thousands. So the habit worth building is to '+
        'narrow before you scan, not to scroll.</p>' },
-{ anchor:"results", eyes:"glance", mouth:"wry", point:true,
-  html:'<p>The arrow on the left of a row opens it without leaving the list. Household, '+
-       'veteran status, when it was last touched.</p>' },
 { anchor:"panel", eyes:"open", mouth:"tip", move:"lean",
   html:'<p>Your situation and your task live in there. {{COUNT}} of them. Each one is a '+
        'person in front of you and something they have told you.</p>'+
@@ -1241,11 +1237,26 @@ var TOUR=[
        'until you find it. You type the search yourself every time.</p>' },
 { anchor:"rail", eyes:"droll", mouth:"hm", move:"still", point:true,
   html:'<p>Anything blurred is not yours yet. It clears as you earn it.</p>' },
-{ anchor:"search", eyes:"sparkle", mouth:"cheer", move:"bounce",
-  next:"Let's go",
-  html:'<p>That is the tour. Ready? Blink twice if you are with me.</p>'+
-       '<p>Close enough.</p>' }
-];
+{ anchor:"search", eyes:"sparkle", mouth:"cheer", move:"bounce", next:"Start",
+  html:'<p>Right. Go and find someone.</p>' }
+],
+10:[
+{ anchor:"search", eyes:"glance", mouth:"wry", move:"dropin",
+  html:'<p>Same practice, same three hundred people. What changes is the question.</p>' },
+{ anchor:"panel", eyes:"open", mouth:"tip",
+  html:'<p>Finding a record was the easy half. {{COUNT}} situations this time, and in every '+
+       'one of them you have a candidate already. The question is whether it is the right '+
+       'person, and what to do when more than one could be.</p>' },
+{ anchor:"results", eyes:"wide", mouth:"plain", move:"hop", point:true,
+  html:'<p>The arrow on the left of a row opens it without leaving the list. Household, '+
+       'veteran status, when it was last touched. Faster than opening a record to rule it out.</p>' },
+{ anchor:"results", eyes:"smug", mouth:"wry", point:true,
+  html:'<p>And a record is more than its profile. Open one and there is a Location tab, '+
+       'which is where somebody has been contacted before. You will need it.</p>' },
+{ anchor:"search", eyes:"arcs", mouth:"cheer", move:"bounce", next:"Start",
+  html:'<p>Same rules as before. Off you go.</p>' }
+]};
+var TOUR=TOURS[SECTION]||TOURS[7];
 
 /* ============================================================
    LESSON 1 — tasks
