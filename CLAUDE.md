@@ -178,6 +178,17 @@ and two were deliberately left alone:
   ID, Maiden Name, Pronoun(s) and a **Demographics** subheading. Two date formats on purpose:
   the results table abbreviates (`4/26/93`), the record spells it out (`04/26/1993`). **Age is
   its own field**, not a suffix on the DOB. Empty reads `No value`, no brackets.
+  The capture's crop ends at *Additional Race and Ethnicity Detail*, so the four fields the
+  lesson needs and the capture does not show — Client ID, Unique Identifier, Release of
+  Information, Earliest enrollment — sit **after** it under a `Record` subheading rather than
+  interrupting a sequence there is evidence for. Don't fold them back into the middle.
+- **Point of Contacts: the first block is open, the second and third fold.** Three blocks of
+  ten fields is two and a half screens at the end of an already long page; folding took the
+  record from 3135px to 2064px. All three headings still show, because the guidance above them
+  is about what to do when all three are taken, and a folded block names who is in it so the
+  learner can tell whether to open it. Folding is ours, the same trade as capture 04's
+  sections — but unlike those, **nothing in Point of Contacts is obstructed**: it is real
+  content a learner may want, not a feature the lesson withholds.
 - **Capture 04's sections are built but closed** — FEMA, ADA Information, Veteran Information,
   For Veteran Case Conferencing, TLS Ramp Down Exit Pathway (with its amber read-only callout
   quoted as the product words it), Encampment Resolution. Their bodies are obstructed like
@@ -192,6 +203,18 @@ and two were deliberately left alone:
   as a fidelity fix — they can arrive with the lesson that needs them.
 - **Popovers clamp to the app's right edge, not the window's.** The training panel is docked
   right; a popover allowed the full window width opens underneath it.
+- **The Location map is drawn, not fetched** — the lesson is one self-contained file and makes
+  no network requests, so there are no tiles. It is built the way a map tile reads: the
+  background *is* the built-up ground and the streets are cut out of it in white, over a minor
+  grid, with arterials cased, freeway ribbons carrying numbered shields, the river, parks, and
+  a scale bar and zoom stack as furniture. Streets are **named after the ones `LOCATIONS`
+  refers to**, so a learner reading "Vermont Ave & 8th" can find both on the map; if you add a
+  location, add its streets. Zoom does nothing and is not meant to — a live zoom is a promise a
+  drawn map cannot keep.
+- **`data-locked="crisp"` is the escape hatch for small controls.** The blur reads as a
+  rendering fault on anything the size of a 26px zoom button or a three-dot kebab, so those
+  stay sharp and explain themselves on click instead. The point is that the lesson does not
+  teach them, not that they have to be illegible.
 
 The **Household Members** column renders properly now (member chips with relationships, or
 *Individual client / No household members*), but ships **off by default** — the owner wants it

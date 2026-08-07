@@ -59,6 +59,12 @@ html.dock-min,html.dock-out{--dock:0px}
    being able to read or use it. Each lesson clears the part it teaches, so the
    blur lifting is the reward. */
 [data-locked]{filter:blur(2.2px);opacity:.45;cursor:default;transition:filter .25s,opacity .25s}
+/* Some controls are too small for the blur to read as anything but a smudge — a
+   26px zoom button, a three-dot kebab. Those stay sharp and explain themselves on
+   click instead; the point is that the lesson does not teach them, not that they
+   have to be illegible. */
+[data-locked="crisp"]{filter:none;opacity:.75}
+[data-locked="crisp"]:hover{filter:none;opacity:1}
 [data-locked]:hover{filter:blur(1.6px);opacity:.6}
 [data-locked]:focus-visible{filter:none;opacity:1}
 @media(prefers-reduced-motion:reduce){[data-locked]{transition:none}}
@@ -270,6 +276,11 @@ tbody tr.open{background:var(--indigo-soft)}
 .poc h3{font-size:14px;color:var(--indigo);font-weight:600;margin:22px 0 12px}
 .poc .pocnote{font-size:14px;color:var(--indigo);line-height:1.5;margin:0 0 4px;max-width:74ch}
 .poc .pf{margin-bottom:14px}
+/* A folded Point of Contact still says who is in it, so the learner can see
+   whether it is worth opening without opening it. */
+.pocsec summary{font-size:14px}
+.pocwho{margin-left:auto;font-weight:400;font-size:13.5px;color:var(--muted)}
+.pocwho.none{font-style:italic}
 .backlink{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--indigo);font-weight:600;padding:6px 2px 4px}
 .backlink:hover{text-decoration:underline}
 
@@ -304,6 +315,16 @@ tbody tr.open{background:var(--indigo-soft)}
 .locsearch .pill input{width:100%;border:0;background:none;font-size:14px;padding:0}
 .locsearch .pill .act{color:var(--muted)}
 .locmap{position:relative;height:300px;overflow:hidden}
+/* Map furniture: the zoom stack and a scale bar. Both are what makes a drawn
+   panel read as a map rather than as an illustration of one. */
+.mapctl{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:1px;
+  background:#fff;border-radius:7px;box-shadow:0 1px 4px rgba(40,30,90,.28);overflow:hidden}
+.mapctl button{width:26px;height:26px;display:grid;place-items:center;font-size:15px;
+  color:#55606e;background:#fff}
+.mapctl button+button{border-top:1px solid #e6e3dc}
+.mapscale{position:absolute;left:12px;bottom:10px;display:flex;align-items:center;gap:6px;
+  font-size:10.5px;color:#6e6a62}
+.mapscale i{display:block;width:54px;height:6px;border:1.5px solid #6e6a62;border-top:0;background:rgba(255,255,255,.6)}
 .mapbase{position:absolute;inset:0;width:100%;height:100%;display:block}
 .pin{position:absolute;transform:translate(-50%,-100%);width:26px;height:26px;border-radius:50% 50% 50% 0;
   rotate:-45deg;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:12px;
@@ -2705,8 +2726,25 @@ function renderPOC(c){
     '<p class="pocnote">If three Points of Contact (PoC) are already recorded, please contact all '+
     'staff before removing a participant to discuss the most appropriate staff to serve as PoC. '+
     'The program(s) providing housing navigation-type services should serve as Point of Contact</p>';
-  for(var i=0;i<3;i++){
-    html+='<h3>'+POC_ORDINAL[i]+' Point of Contact</h3>'+pocFields(list[i]||null);
+  /* Ten fields x three blocks is two and a half screens of a page that is already
+     long, and it is the last thing on it. The first block stays open, because which
+     staff member already has the relationship is the reason to read this section at
+     all; the second and third fold away behind their own headings. All three
+     headings still show, which is what keeps the guidance above them legible — it
+     is about what to do when all three are taken.
+
+     Folding is ours, not the product's, and it is the same trade already made for
+     capture 04's sections. Unlike those, nothing here is obstructed: this is real
+     content the learner may want, not a feature the lesson does not teach. */
+  html+='<h3>'+POC_ORDINAL[0]+' Point of Contact</h3>'+pocFields(list[0]||null);
+  for(var i=1;i<3;i++){
+    html+='<details class="exsec pocsec"><summary>'+
+      '<svg class="caret" width="15" height="15" viewBox="0 0 24 24" fill="none" '+
+      'stroke="currentColor" stroke-width="2.2"><path d="M9 5l7 7-7 7"/></svg>'+
+      POC_ORDINAL[i]+' Point of Contact'+
+      (list[i] ? '<span class="pocwho">'+esc(list[i].nm)+'</span>'
+               : '<span class="pocwho none">Not recorded</span>')+
+      '</summary><div class="exbody">'+pocFields(list[i]||null)+'</div></details>';
   }
   $("#pocBlock").innerHTML=html;
 }
@@ -2750,18 +2788,25 @@ function openProfile(id){
     field("Date of Birth", dobFull(c.d))+
     field("Age", String(age(c.d)))+
     field("Consent Refused", esc(c.cr))+
-    field("Release of Information", esc(c.r))+
     opt("Legacy HMIS ID", c.lid)+
     opt("Maiden Name", c.mdn)+
     opt("Alias", c.a)+
-    field("Client ID", String(c.cid))+
-    field("Unique Identifier", esc(c.i))+
-    field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe)+
     '<div class="subhead">Demographics</div>'+
     field("Gender", esc(c.g))+
     opt("Pronoun(s)", c.p)+
     field("Race and Ethnicity", esc(c.rc))+
-    opt("Additional Race and Ethnicity Detail", c.rd);
+    opt("Additional Race and Ethnicity Detail", c.rd)+
+    /* Ours, not the capture's. Capture 03 runs Alias straight into Demographics and
+       its crop ends at the detail field, so anything after that is unevidenced —
+       which makes the end of the block the honest place for the four the lesson
+       needs. Client ID and Unique Identifier are the two identifiers a learner is
+       asked to tell apart; Release of Information and Earliest enrollment are read
+       during verification. */
+    '<div class="subhead">Record</div>'+
+    field("Client ID", String(c.cid))+
+    field("Unique Identifier", esc(c.i))+
+    field("Release of Information", esc(c.r))+
+    field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe);
 
   renderExtras(c);
   renderPOC(c);
@@ -2788,57 +2833,96 @@ var PIN_LETTERS = "ABCDEFGH";
    places in LOCATIONS sit where they would sit, west to east from Sepulveda
    through Vermont and Westlake to downtown and the river, north to south from
    Hollywood down past Adams to Slauson. */
-var MAP_SVG =
-'<svg class="mapbase" viewBox="0 0 1000 420" preserveAspectRatio="none" aria-hidden="true">'+
-  '<rect width="1000" height="420" fill="#f3f1ea"/>'+
-  /* parks and open space */
-  '<g fill="#cfe3c0">'+
-    '<rect x="292" y="146" width="74" height="44" rx="9"/>'+
-    '<path d="M648 30h140v88q-72 20-140-12z"/>'+
-    '<rect x="356" y="286" width="88" height="52" rx="9"/>'+
-    '<rect x="88" y="336" width="62" height="36" rx="8"/>'+
-  '</g>'+
-  /* the river */
-  '<path d="M735 0c-10 70 10 120 -6 176 -14 50 6 96 -4 154 -6 34 4 66 -2 90"'+
-    ' fill="none" stroke="#a9cfe4" stroke-width="15" stroke-linecap="round"/>'+
-  /* arterial grid, casing then fill */
-  '<g fill="none" stroke="#e2ded2" stroke-width="9">'+
-    '<path d="M0 60h1000M0 120h1000M0 186h1000M0 252h1000M0 318h1000M0 378h1000"/>'+
-    '<path d="M58 0v420M126 0v420M194 0v420M262 0v420M330 0v420M398 0v420M470 0v420M540 0v420M610 0v420M684 0v420M760 0v420M840 0v420M920 0v420"/>'+
-  '</g>'+
-  '<g fill="none" stroke="#ffffff" stroke-width="5.5">'+
-    '<path d="M0 60h1000M0 120h1000M0 186h1000M0 252h1000M0 318h1000M0 378h1000"/>'+
-    '<path d="M58 0v420M126 0v420M194 0v420M262 0v420M330 0v420M398 0v420M470 0v420M540 0v420M610 0v420M684 0v420M760 0v420M840 0v420M920 0v420"/>'+
-  '</g>'+
-  /* freeways: US-101 across the top of downtown, I-110 north-south, I-10 east-west */
-  '<g fill="none" stroke="#e6bf62" stroke-width="15" stroke-linecap="round">'+
-    '<path d="M96 44 Q400 96 700 128 T1000 150"/>'+
-    '<path d="M470 0 Q484 150 486 260 T500 420"/>'+
-    '<path d="M0 296 Q300 288 620 300 T1000 306"/>'+
-  '</g>'+
-  '<g fill="none" stroke="#f6dc9d" stroke-width="8.5" stroke-linecap="round">'+
-    '<path d="M96 44 Q400 96 700 128 T1000 150"/>'+
-    '<path d="M470 0 Q484 150 486 260 T500 420"/>'+
-    '<path d="M0 296 Q300 288 620 300 T1000 306"/>'+
-  '</g>'+
-  '<g font-size="11" font-weight="600" fill="#8d8a80" font-family="inherit">'+
-    '<text x="150" y="40">US-101</text>'+
-    '<text x="496" y="74">I-110</text>'+
-    '<text x="60" y="288">I-10</text>'+
-    '<text x="748" y="258">LA River</text>'+
-  '</g>'+
-  '<g font-size="11.5" fill="#7c7a72" font-family="inherit">'+
-    '<text x="292" y="134">MacArthur Park</text>'+
-    '<text x="672" y="28">Elysian Park</text>'+
-    '<text x="356" y="266">Exposition Park</text>'+
-    '<text x="12" y="112">Hollywood</text>'+
-    '<text x="206" y="212">Westlake</text>'+
-    '<text x="506" y="236">Downtown</text>'+
-    '<text x="792" y="352">Boyle Heights</text>'+
-    '<text x="12" y="326">West LA</text>'+
-    '<text x="368" y="400">South LA</text>'+
-  '</g>'+
-'</svg>';
+var MAP_SVG = (function(){
+  /* Streets are carved out of a built-up ground rather than drawn onto an empty
+     one, which is how map tiles actually read at this zoom: the background IS the
+     blocks, and the white is the road. Named after the streets the LOCATIONS list
+     refers to, so a learner reading "Vermont Ave & 8th" can find both on the map. */
+  var W=1000, H=420;
+  var AV=[[80,"Sepulveda Blvd"],[220,"Western Ave"],[260,"Vermont Ave"],[340,"Alvarado St"],
+          [440,"Figueroa St"],[520,"Grand Ave"],[580,"Central Ave"],[620,"Alameda St"],
+          [720,"Soto St"],[850,"Atlantic Blvd"]];
+  var ST=[[59,"Hollywood Blvd"],[110,"Beverly Blvd"],[150,"Wilshire Blvd"],[168,"5th St"],
+          [185,"8th St"],[215,"Olympic Blvd"],[260,"Adams Blvd"],[277,"Venice Blvd"],
+          [305,"Vernon Ave"],[328,"Slauson Ave"],[380,"Florence Ave"]];
+  var o=[];
+  function g(attr,body){ o.push("<g "+attr+">"+body+"</g>"); }
+
+  o.push('<rect width="'+W+'" height="'+H+'" fill="#ece7de"/>');
+
+  /* Parks and the river sit under the roads, as they do on a real sheet. */
+  g('fill="#cfe0bd"',
+    '<rect x="300" y="152" width="72" height="40" rx="8"/>'+
+    '<path d="M652 24h150v92q-78 20-150-14z"/>'+
+    '<rect x="360" y="286" width="86" height="50" rx="8"/>'+
+    '<rect x="86" y="336" width="60" height="34" rx="7"/>'+
+    '<rect x="742" y="196" width="54" height="34" rx="7"/>');
+  o.push('<path d="M735 0c-10 70 10 120 -6 176 -14 50 6 96 -4 154 -6 34 4 66 -2 90" '+
+         'fill="none" stroke="#a6cfe6" stroke-width="13" stroke-linecap="round"/>');
+
+  /* Minor streets: the fine texture that stops it looking like a diagram. */
+  var minor=[];
+  for(var x=26;x<W;x+=34) minor.push("M"+x+" 0v"+H);
+  for(var y=22;y<H;y+=26) minor.push("M0 "+y+"h"+W);
+  g('fill="none" stroke="#faf8f4" stroke-width="2.2"','<path d="'+minor.join("")+'"/>');
+
+  /* Arterials, casing then fill, so they sit above the minor grid. */
+  var art=AV.map(function(a){ return "M"+a[0]+" 0v"+H; })
+       .concat(ST.map(function(a){ return "M0 "+a[0]+"h"+W; })).join("");
+  g('fill="none" stroke="#ded8cc" stroke-width="8"','<path d="'+art+'"/>');
+  g('fill="none" stroke="#ffffff" stroke-width="5"','<path d="'+art+'"/>');
+
+  /* Freeways. US-101 skirts the top of downtown, I-110 runs north-south, I-10
+     east-west, I-5 down the east side past the river. */
+  var fwy="M96 44 Q400 96 700 128 T1000 150"+
+          "M470 0 Q484 150 486 260 T500 420"+
+          "M0 296 Q300 288 620 300 T1000 306"+
+          "M812 0 Q800 130 828 250 T846 420";
+  g('fill="none" stroke="#d9b45c" stroke-width="13" stroke-linecap="round"','<path d="'+fwy+'"/>');
+  g('fill="none" stroke="#f7dd9e" stroke-width="8" stroke-linecap="round"','<path d="'+fwy+'"/>');
+
+  /* The rail approach to Union Station. */
+  o.push('<path d="M700 420 L706 300 Q712 250 690 210 L676 150" fill="none" stroke="#b9b3a6" '+
+         'stroke-width="2.4" stroke-dasharray="7 5"/>');
+
+  /* Street names, set along the street the way a map sets them. */
+  var lab=[];
+  ST.forEach(function(a){
+    lab.push('<text x="150" y="'+(a[0]-4)+'">'+a[1]+'</text>');
+    lab.push('<text x="700" y="'+(a[0]-4)+'">'+a[1]+'</text>');
+  });
+  g('font-size="8.5" fill="#9a948a" font-family="inherit"', lab.join(""));
+  var vlab=AV.map(function(a){
+    return '<text transform="translate('+(a[0]-4)+',300) rotate(-90)">'+a[1]+'</text>';
+  }).join("");
+  g('font-size="8.5" fill="#9a948a" font-family="inherit"', vlab);
+
+  /* Freeway shields. */
+  function shield(x,y,n){
+    return '<g transform="translate('+x+','+y+')">'+
+      '<rect x="-13" y="-9" width="26" height="18" rx="4" fill="#fff" stroke="#c9a04e" stroke-width="1.6"/>'+
+      '<text x="0" y="4" text-anchor="middle" font-size="9.5" font-weight="700" fill="#8a6d24">'+n+'</text></g>';
+  }
+  o.push('<g font-family="inherit">'+shield(150,58,"101")+shield(480,86,"110")+shield(64,292,"10")+shield(820,120,"5")+'</g>');
+
+  /* District and park names, largest last so they read as the top layer. */
+  g('font-size="11" fill="#8b867c" font-family="inherit"',
+    '<text x="300" y="146">MacArthur Park</text>'+
+    '<text x="676" y="20">Elysian Park</text>'+
+    '<text x="360" y="280">Exposition Park</text>'+
+    '<text x="742" y="192">Hollenbeck Park</text>'+
+    '<text x="756" y="262">LA River</text>');
+  g('font-size="12.5" font-weight="600" fill="#7a746a" font-family="inherit" letter-spacing=".4"',
+    '<text x="116" y="96">HOLLYWOOD</text>'+
+    '<text x="196" y="206">WESTLAKE</text>'+
+    '<text x="496" y="238">DOWNTOWN</text>'+
+    '<text x="770" y="352">BOYLE HEIGHTS</text>'+
+    '<text x="14" y="322">WEST LA</text>'+
+    '<text x="372" y="402">SOUTH LA</text>');
+
+  return '<svg class="mapbase" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" '+
+         'aria-hidden="true">'+o.join("")+'</svg>';
+})();
 
 /* The live account puts the list first and the map underneath it, and uses the
    same empty state as Client Search rather than a sentence of its own. The
@@ -2853,6 +2937,17 @@ function renderLocation(c){
         return '<span class="pin" style="left:'+(e.x*100)+'%;top:'+(e.y*100)+'%"><b>'+
           PIN_LETTERS[i]+'</b></span>';
       }).join("")+
+      /* Zoom and layers, top left, as capture 07 has them. Obstructed like every
+         other control this lesson does not teach — a live zoom on a drawn map is
+         a promise the map cannot keep. */
+      '<div class="mapctl">'+
+        '<button data-locked="crisp" aria-label="Zoom in">+</button>'+
+        '<button data-locked="crisp" aria-label="Zoom out">\u2212</button>'+
+        '<button data-locked="crisp" aria-label="Map layers"><svg width="15" height="15" viewBox="0 0 24 24" '+
+          'fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 5-9 5-9-5z"/>'+
+          '<path d="M3 13l9 5 9-5"/></svg></button>'+
+      '</div>'+
+      '<div class="mapscale"><i></i><span>1 mi</span></div>'+
     '</div>';
   if(!lo.length){
     $("#locBody").innerHTML =
@@ -2866,6 +2961,7 @@ function renderLocation(c){
         '<span class="zt"><b>No results yet!</b>'+
         '<span>Results will be displayed here when they are available.</span></span>'+
       '</div>'+ map;
+    $$("#locBody [data-locked]").forEach(bindLocked);
     return;
   }
   $("#locBody").innerHTML =
@@ -2875,6 +2971,7 @@ function renderLocation(c){
         '<span class="loct">'+esc(e.ty)+'</span>'+
         '<span class="lock">'+esc(e.k)+'</span></li>';
     }).join("")+'</ul>'+ map;
+  $$("#locBody [data-locked]").forEach(bindLocked);
 }
 function showRecordTab(name, c){
   $$("#recNav button").forEach(function(b){

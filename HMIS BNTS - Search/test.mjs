@@ -739,8 +739,24 @@ ok('and lists each location with its type', await p.evaluate(() => {
    kebab, its own search field and the two table tools. Every one of them is present
    and obstructed — this lesson reads locations, it does not add or filter them. */
 ok('everything the pane offers besides reading is present but obstructed',
-   await p.$$eval('#locationPane [data-locked]', e => e.length === 5),
+   await p.$$eval('#locationPane [data-locked]', e => e.length === 8),
    await p.$$eval('#locationPane [data-locked]', e => e.map(x => x.getAttribute('aria-label')).join(' | ')));
+/* A 26px zoom button under a 2px blur is a smudge, not a control. The map furniture
+   stays sharp and explains itself on click instead — the point is that the lesson
+   does not teach panning a map, not that the button has to be illegible. */
+ok('...with the map furniture sharp rather than blurred, being too small to blur',
+   await p.$$eval('#locationPane .mapctl button', e =>
+     e.length === 3 && e.every(b => b.getAttribute('data-locked') === 'crisp')));
+ok('the map names the streets the locations are recorded against', await p.evaluate(() => {
+  const t = document.querySelector('#locationPane .mapbase').textContent;
+  return ['Vermont Ave', 'Figueroa St', 'Alameda St', 'Adams Blvd', 'Slauson Ave']
+    .every(n => t.includes(n));
+}));
+ok('...and its freeway shields carry numbers rather than undefined',
+   await p.evaluate(() => {
+     const t = document.querySelector('#locationPane .mapbase').textContent;
+     return /101/.test(t) && /110/.test(t) && !/undefined/.test(t);
+   }));
 ok('the teaching keeps location as one identifier among several',
    (await p.textContent('#fb')).includes('not as the answer on its own'));
 
@@ -775,11 +791,15 @@ await p.click('#tb tr[data-row="6C2D91B47"]'); await p.waitForTimeout(250);
 console.log('\n— the profile grid —');
 ok('the fields are in the captured order',
    await p.$$eval('#profGrid .pf > b, #profGrid .subhead', e => e.map(x => x.textContent.trim()).join('|')) ===
+   /* Capture 03 exactly, down to Demographics. Its crop ends at the detail field, so
+      the four after it are ours and sit past the evidence rather than inside it. */
    ['Social Security Number', 'Quality of SSN', 'First name', 'Last name', 'Middle name', 'Suffix',
     'Quality of Name', 'Quality of DOB', 'Date of Birth', 'Age', 'Consent Refused',
-    'Release of Information', 'Legacy HMIS ID', 'Maiden Name', 'Alias', 'Client ID',
-    'Unique Identifier', 'Earliest enrollment', 'Demographics', 'Gender', 'Pronoun(s)',
-    'Race and Ethnicity', 'Additional Race and Ethnicity Detail'].join('|'),
+    'Legacy HMIS ID', 'Maiden Name', 'Alias',
+    'Demographics', 'Gender', 'Pronoun(s)', 'Race and Ethnicity',
+    'Additional Race and Ethnicity Detail',
+    'Record', 'Client ID', 'Unique Identifier', 'Release of Information',
+    'Earliest enrollment'].join('|'),
    await p.$$eval('#profGrid .pf > b, #profGrid .subhead', e => e.map(x => x.textContent.trim()).join('|')));
 /* Two date formats on purpose: capture 02 shows 4/26/93 in a row, capture 03 shows
    04/26/1993 on the profile. */
@@ -833,9 +853,28 @@ ok('opening one reveals it rather than doing nothing', await p.evaluate(async ()
    blocks empty because its test client had none; empty teaches nothing, so ours
    carry invented staff. Every one of them has to stay unreachable. */
 console.log('\n— point of contacts —');
-ok('all three blocks are laid out, filled or not',
-   (await p.$$eval('#pocBlock h3', e => e.map(x => x.textContent.trim()))).join('|') ===
-   'First Point of Contact|Second Point of Contact|Third Point of Contact');
+/* Three blocks of ten fields is two and a half screens at the end of an already
+   long page. The first stays open — which staff member holds the relationship is
+   the reason to read this at all — and the other two fold. All three headings still
+   show, which is what keeps the guidance above them meaningful. */
+ok('all three blocks are named, filled or not', await p.evaluate(() => {
+  const name = el => {  // the heading's own words, without the who-is-in-it note
+    const c = el.cloneNode(true);
+    c.querySelectorAll('.pocwho, svg').forEach(x => x.remove());
+    return c.textContent.replace(/\s+/g, ' ').trim();
+  };
+  return [...document.querySelectorAll('#pocBlock h3, #pocBlock .pocsec summary')].map(name).join('|') ===
+    'First Point of Contact|Second Point of Contact|Third Point of Contact';
+}), await p.$$eval('#pocBlock h3, #pocBlock .pocsec summary', e => e.map(x => x.textContent.replace(/\s+/g,' ').trim()).join('|')));
+ok('the first one is open, the other two folded',
+   await p.$$eval('#pocBlock .pocsec', e => e.length === 2 && e.every(d => !d.open)) &&
+   await p.$$eval('#pocBlock > h3', e => e.length === 1));
+ok('a folded block says who is in it without being opened',
+   await p.$eval('#pocBlock .pocsec .pocwho', e => e.textContent.trim().length > 0));
+/* Unlike capture 04's sections, nothing here is obstructed: this is real content a
+   learner may want, not a feature the lesson does not teach. */
+ok('...and nothing in Point of Contacts is obstructed',
+   await p.$$eval('#pocBlock [data-locked]', e => e.length === 0));
 ok('the section carries the guidance about all three being taken',
    (await p.textContent('#pocBlock')).includes('If three Points of Contact (PoC) are already recorded'));
 ok('an unused block reads No value rather than sitting blank', await p.evaluate(() => {
