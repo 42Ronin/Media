@@ -975,6 +975,15 @@ console.log('\n— what to do next is where she says it —');
   await q2.waitForTimeout(600);
   for (let i = 0; i < 3; i++) { await q2.click('#lzStep'); await q2.waitForTimeout(300); }
 
+  /* Every bubble she raises has a way out. A learner who has read a wrong answer
+     and wants to get back to the table should not have to work out how. */
+  await q2.fill('#q', 'Zzzzzz'); await q2.waitForTimeout(800);
+  ok('the empty-result nudge can be dismissed',
+     await q2.$$eval('#lzActs button', e => e.length === 1 && e[0].textContent === 'Got it'));
+  await q2.click('#lzActs button'); await q2.waitForTimeout(300);
+  ok('...and dismissing it closes her', await q2.$eval('#lzBub', e => !e.classList.contains('on')));
+  await q2.fill('#q', ''); await q2.waitForTimeout(400);
+
   await q2.click('#hintBtn'); await q2.waitForTimeout(600);
   ok('a hint carries its own way out',
      await q2.$$eval('#lzActs button', e => e.length === 1 && e[0].textContent === 'Hide hint'));
@@ -1093,6 +1102,8 @@ console.log('\n— section 11: the running scenario —');
   await sc.click('tr[data-row="A7C4E9B52"]'); await sc.waitForTimeout(700);
   ok('the other Dezmond is rejected on his location, not his name',
      (await said()).includes('never been at the Alameda St underpass'));
+  ok('...and that rejection can be dismissed too',
+     await sc.$$eval('#lzActs button', e => e.some(x => x.textContent === 'Got it')));
   await sc.keyboard.press('Escape'); await sc.waitForTimeout(400);
   await sc.click('tr[data-row="D2F8A6C31"]'); await sc.waitForTimeout(800);
   ok('the one contacted there is the answer',

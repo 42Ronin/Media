@@ -512,33 +512,31 @@ html.dock-out .cwbar.drag{cursor:grabbing}
             <defs>
               <clipPath id="hclip"><circle cx="24" cy="24" r="24"/></clipPath>
               <linearGradient id="hbg" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#dfe9ef"/><stop offset="1" stop-color="#c3d4de"/>
+                <stop offset="0" stop-color="#e2ebf0"/><stop offset="1" stop-color="#c4d5df"/>
               </linearGradient>
             </defs>
             <g clip-path="url(#hclip)">
               <rect width="48" height="48" fill="url(#hbg)"/>
-              <!-- ears: dark outer, warm inner -->
-              <path d="M11.6 20.4 8.8 6.6l11.4 6.1z" fill="#2f3336"/>
-              <path d="M13.2 18.6 11.6 10l6.6 3.6z" fill="#e9a8a8"/>
-              <path d="M36.4 20.4 39.2 6.6l-11.4 6.1z" fill="#2f3336"/>
-              <path d="M34.8 18.6 36.4 10l-6.6 3.6z" fill="#e9a8a8"/>
-              <!-- head -->
-              <path d="M24 11c8.8 0 14.4 6.3 14.4 14.6 0 8.6-6.3 13.6-14.4 13.6S9.6 34.2 9.6 25.6C9.6 17.3 15.2 11 24 11z" fill="#33383c"/>
-              <!-- the husky mask -->
-              <path d="M24 15.4c3.1 0 5.4 2.4 6.2 6 .9 4.2-.3 9.1-1.7 11.9-1.2 2.4-2.8 3.3-4.5 3.3s-3.3-.9-4.5-3.3c-1.4-2.8-2.6-7.7-1.7-11.9.8-3.6 3.1-6 6.2-6z" fill="#fbfcfd"/>
-              <path d="M15.6 19.9c2.2-.7 4 .2 4.6 2 .5 1.6-.5 2.9-2.5 3.1-2.1.2-3.7-1-3.9-2.5-.2-1.3.6-2.3 1.8-2.6z" fill="#fbfcfd"/>
-              <path d="M32.4 19.9c-2.2-.7-4 .2-4.6 2-.5 1.6.5 2.9 2.5 3.1 2.1.2 3.7-1 3.9-2.5.2-1.3-.6-2.3-1.8-2.6z" fill="#fbfcfd"/>
-              <!-- eyes -->
-              <ellipse cx="17.9" cy="22.6" rx="2.1" ry="2.5" fill="#1d3b4a"/>
-              <ellipse cx="30.1" cy="22.6" rx="2.1" ry="2.5" fill="#1d3b4a"/>
-              <circle cx="18.6" cy="21.7" r=".75" fill="#fff"/>
-              <circle cx="30.8" cy="21.7" r=".75" fill="#fff"/>
-              <!-- muzzle -->
-              <path d="M24 28.3c1.9 0 3 1 3 1.9 0 1-1.3 1.9-3 1.9s-3-.9-3-1.9c0-.9 1.1-1.9 3-1.9z" fill="#20242700"/>
-              <path d="M24 28.2c1.8 0 2.9 1 2.9 1.9s-1.2 1.8-2.9 1.8-2.9-.9-2.9-1.8 1.1-1.9 2.9-1.9z" fill="#1b1f22"/>
-              <path d="M24 32v2.1" stroke="#1b1f22" stroke-width="1.15" stroke-linecap="round"/>
-              <path d="M24 34.1c-1.1 1.2-2.7 1.2-3.6.2M24 34.1c1.1 1.2 2.7 1.2 3.6.2"
-                    stroke="#1b1f22" stroke-width="1.15" fill="none" stroke-linecap="round"/>
+              <path d="M12.6 20.6 6.6 6.4l14.6 5.2z" fill="#2b2f32"/>
+              <path d="M13.9 18.4 10.4 10.2l8.2 2.9z" fill="#e7a3a3"/>
+              <path d="M35.4 20.6 41.4 6.4l-14.6 5.2z" fill="#2b2f32"/>
+              <path d="M34.1 18.4 37.6 10.2l-8.2 2.9z" fill="#e7a3a3"/>
+              <!-- the head stays black; only the snout is white -->
+              <path d="M24 10.4c9 0 14.8 6.4 14.8 15 0 8.8-6.5 14-14.8 14S9.2 34.2 9.2 25.4c0-8.6 5.8-15 14.8-15z" fill="#2f3437"/>
+              <ellipse cx="24" cy="31.6" rx="8.2" ry="5.8" fill="#fafcfd"/>
+              <ellipse cx="24" cy="27.6" rx="4.4" ry="3.6" fill="#fafcfd"/>
+              <!-- eyes, set wide on the dark fur -->
+              <ellipse cx="16.4" cy="22.4" rx="2.15" ry="2.6" fill="#2a6b86"/>
+              <ellipse cx="31.6" cy="22.4" rx="2.15" ry="2.6" fill="#2a6b86"/>
+              <circle cx="16.4" cy="22.7" r="1.15" fill="#12222b"/>
+              <circle cx="31.6" cy="22.7" r="1.15" fill="#12222b"/>
+              <circle cx="17.2" cy="21.4" r=".8" fill="#fff"/>
+              <circle cx="32.4" cy="21.4" r=".8" fill="#fff"/>
+              <!-- nose and mouth -->
+              <path d="M24 27.4c1.75 0 2.8.95 2.8 1.8 0 .9-1.15 1.75-2.8 1.75s-2.8-.85-2.8-1.75c0-.85 1.05-1.8 2.8-1.8z" fill="#16191b"/>
+              <path d="M24 31v2" stroke="#16191b" stroke-width="1.1" stroke-linecap="round"/>
+              <path d="M24 33c-1 1.15-2.5 1.15-3.3.2M24 33c1 1.15 2.5 1.15 3.3.2"
+                    stroke="#16191b" stroke-width="1.1" fill="none" stroke-linecap="round"/>
             </g>
           </svg>
           <b class="avin">HT</b>
@@ -2094,6 +2092,11 @@ function say(kind,title,body,teach){
   if(anchor==="record" && !S.open) anchor="results";
   if(anchor==="results" && S.open) anchor="record";
   LZ.say(anchor,html,k.o);
+  /* Every bubble she raises gets a way out of it. A learner who has read a wrong
+     answer and wants to get back to the table should not have to work out how.
+     Callers that have something better to offer — Next task, Hide hint — replace
+     this straight after. */
+  LZ.actions([{t:"Got it", quiet:true, fn:function(){ LZ.hush(); }}]);
 }
 function pass(){
   var t=task(), first=(S.attempts===0&&!S.hinted);
