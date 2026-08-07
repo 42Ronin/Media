@@ -738,6 +738,60 @@ await p.click('#nextBtn'); await p.waitForTimeout(250);
 ok('solve a task, clear the search, press Next — it advances',
    (await p.textContent('#taskNo')).includes('2 of 13'));
 
+/* ------------------------------------------------------------------
+   How it actually launches. The Rise Code block is a shell: it mounts the
+   lesson into a srcdoc iframe while that iframe is still display:none, then
+   reveals it and goes full screen. Two things about that are easy to break.
+   ------------------------------------------------------------------ */
+console.log('\n— launched from the Rise shell —');
+{
+  const BUILT = readFileSync(new URL('./dist/lesson1-client-search.html', import.meta.url), 'utf8');
+  const shell = await b.newPage({ viewport: { width: 1600, height: 1000 } });
+  const shellErrs = [];
+  shell.on('pageerror', e => shellErrs.push(String(e)));
+  await shell.setContent(`<style>html,body{margin:0;height:100%}
+    #stage{position:fixed;inset:0;background:#fff;display:none}
+    #stage.on{display:block}#stage iframe{width:100%;height:100%;border:0;display:block}</style>
+    <div id="stage"></div><script>window.msgs=[];addEventListener('message',e=>msgs.push(e.data));<\/script>`);
+  await shell.evaluate(html => {
+    const f = document.createElement('iframe');
+    f.setAttribute('allow', 'fullscreen');
+    f.srcdoc = html;
+    document.getElementById('stage').appendChild(f);
+  }, BUILT);
+  await shell.waitForTimeout(700);
+  await shell.evaluate(() => document.getElementById('stage').classList.add('on'));
+  await shell.waitForTimeout(600);
+  const lf = shell.frames().find(fr => fr !== shell.mainFrame());
+
+  /* Everything is positioned against measured rectangles, and at mount time
+     there are none — the stage is still display:none, so the viewport is 0x0. */
+  ok('the window recovers once the hidden stage is revealed', await lf.evaluate(() => {
+    const r = document.querySelector('#coachWin').getBoundingClientRect();
+    return r.width > 0 && r.left >= 0 && r.top >= 0 &&
+           r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1;
+  }));
+  ok('...and still clear of the search bar', await lf.evaluate(() => {
+    const a = document.querySelector('#coachWin').getBoundingClientRect();
+    const c = document.querySelector('#pill').getBoundingClientRect();
+    return a.right <= c.left || a.left >= c.right || a.bottom <= c.top || a.top >= c.bottom;
+  }));
+  ok('it reports through the shell, which relays to the course',
+     await shell.evaluate(() => window.msgs.some(m => m.source === 'hmis-sim' && m.type === 'ready')));
+
+  /* A srcdoc frame gets an opaque origin, so storage throws. It is caught, and
+     the lesson runs on defaults — but nothing the learner changes is persisted
+     across a reload when launched this way. */
+  ok('storage is unavailable under srcdoc, and that is survived not crashed',
+     await lf.evaluate(() => {
+       let threw = false;
+       try { localStorage.setItem('probe', '1'); } catch (e) { threw = true; }
+       return threw && Array.isArray(S.cols) && S.cols.length > 0 && S.cols[0].k === 'client';
+     }));
+  ok('no errors anywhere in the launch path', shellErrs.length === 0, shellErrs.join(' | '));
+  await shell.close();
+}
+
 console.log('\n— accessibility / integrity —');
 ok('result count is an aria-live region',
    await p.$eval('#resultCount', e => e.getAttribute('aria-live') === 'polite'));

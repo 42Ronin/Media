@@ -127,7 +127,10 @@ Default column order is **Client · DOB · SSN · ROI**. Some captures show
 - Piping `git push` into `tail` masks its exit status — a failed push reported success.
   Capture the output, don't pipe, when the exit code matters.
 - The `localStorage` key for saved columns is versioned. Bump it when the shipped default
-  changes, or existing users keep the old layout forever.
+  changes, or existing users keep the old layout forever. **This only matters outside the
+  launcher** — a `srcdoc` frame has an opaque origin, so storage throws there and the lesson
+  runs on defaults. The throw is caught; column changes still work for the session, they just
+  are not persisted.
 
 ## Delivery: Rise, with the simulation embedded
 
@@ -146,6 +149,21 @@ changing anything in this area:
 Reporting to a host goes over `postMessage` as `{source:"hmis-sim", type, …}` — `ready`,
 `task`, `complete`. Tests cover both halves: silent when embedded, reporting when launched
 as the package.
+
+**How it actually launches.** A Rise Code block holds a shell (`lesson1launcher.zip`): a slim
+card with Lashes, a title and a Begin button. Begin mounts the lesson into a **`srcdoc` iframe
+that is still `display:none`**, then reveals it and requests fullscreen on the shell's own
+document. Three consequences the sim has to live with, all covered by tests:
+
+- **It boots at 0×0.** Everything placed against measured rectangles — the movable window,
+  Lashes, her bubble — has to recover when the stage is revealed. A `resize` inside the frame
+  is what triggers that.
+- **`location.search` is empty**, so `?scorm=1` can never be set from the launcher. SCORM stays
+  off, which is correct: the shell relays every `postMessage` up to Rise, and `type:"complete"`
+  is what marks the block done.
+- **Esc leaves fullscreen but does not unmount the frame**, so the shell can show
+  "Paused — your progress is saved" and Resume genuinely resumes. In-session state survives;
+  a block reload still starts over.
 
 ## Where this lesson sits — HMIS Essentials
 
