@@ -1976,8 +1976,13 @@ $("#restartBtn").addEventListener("click",function(){
   window.placeCoachWin=autoPlace;
   function clamp(){
     var r=win.getBoundingClientRect(), pad=8;
+    /* A window the learner dragged may hang off the edge — that is their choice,
+       and 90px of it stays reachable. One nobody has touched must be wholly on
+       screen: inside the launcher the frame is briefly a different height while
+       the stage is revealed, and an auto-placed window kept the stale position. */
+    var keep=moved?90:r.height;
     var x=Math.max(pad,Math.min(r.left, window.innerWidth-r.width-pad));
-    var y=Math.max(32, Math.min(r.top,  window.innerHeight-Math.min(r.height,90)-pad));
+    var y=Math.max(32, Math.min(r.top,  window.innerHeight-Math.min(r.height,keep)-pad));
     win.style.left=x+"px"; win.style.top=y+"px"; win.style.bottom="auto"; win.style.right="auto";
   }
   function start(e){
@@ -2011,7 +2016,14 @@ $("#restartBtn").addEventListener("click",function(){
       : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
     autoPlace(); clamp(); LZ.relayout();
   });
-  window.addEventListener("resize",function(){ autoPlace(); clamp(); LZ.relayout(); });
+  function reflow(){ autoPlace(); clamp(); LZ.relayout(); }
+  window.addEventListener("resize",reflow);
+  /* The launcher mounts this frame while it is display:none, so it boots at 0x0
+     and everything is placed against rectangles that do not exist yet. resize
+     covers the reveal, but not reliably enough to be the only thing watching. */
+  if(window.ResizeObserver){
+    try{ new ResizeObserver(reflow).observe(document.documentElement); }catch(e){}
+  }
   autoPlace();
 })();
 

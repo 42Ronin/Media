@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 — Finding a Participant</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%;background:transparent;overflow:hidden}
+body{font:15px/1.55 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;color:#2a2a3c;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid #0b6fd4;outline-offset:2px;border-radius:4px}
+#launch{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:14px 18px;overflow:auto}
+#launch[hidden]{display:none!important}
+.lcard{width:100%;max-width:760px;background:transparent;border-radius:0;position:relative;padding:6px 0;display:flex;align-items:center;gap:18px}
+.lashy{flex:none;width:72px;height:72px;cursor:pointer;position:relative}
+.m-rim{fill:none;stroke:#066888;stroke-width:6}
+.m-glass{fill:#dceaee;opacity:.85}
+.m-eye{fill:#1b2430}
+.m-arc{fill:none;stroke:#1b2430;stroke-width:3.4;stroke-linecap:round}
+.m-lash path{fill:none;stroke:#1b2430;stroke-width:2.2;stroke-linecap:round}
+.m-mouth{fill:none;stroke:#1b2430;stroke-width:3;stroke-linecap:round}
+.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+.m-body{animation:mbob 3.2s ease-in-out infinite;transform-origin:44px 42px}
+@keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-4deg)}}
+.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
+@keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
+.m-face{animation:mscan 6.5s ease-in-out infinite}
+@keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+.lashy:hover .m-body{animation:mperk .5s ease-in-out}
+@keyframes mperk{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-8px) rotate(9deg)}65%{transform:translateY(-2px) rotate(-6deg)}}
+.ltext{flex:1;min-width:0}
+.lcard h2{margin:0;font-size:20.9px;font-weight:600;color:#066888;line-height:1.25}
+.lgo{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px}
+.lbtn{background:#066888;color:#fff;border-radius:24px;white-space:nowrap;padding:11px 30px;font-size:14.5px;font-weight:600;transition:background .15s}
+.lbtn:hover{background:#005676}
+.lnote{text-align:center;font-size:11px;color:#6b6b85}
+.lnote kbd{font:inherit;font-size:10px;border:1px solid #e4e3f2;border-bottom-width:2px;border-radius:4px;padding:0 4px;background:#fafaff}
+.lcard .lashy{opacity:0;animation:lashyIn .55s cubic-bezier(.34,1.56,.64,1) .1s forwards}
+.lcard .ltext{opacity:0;animation:wordsIn .45s ease .45s forwards}
+.lcard .lgo{opacity:0;animation:wordsIn .45s ease .65s forwards}
+@keyframes lashyIn{0%{opacity:0;transform:scale(.3) rotate(-25deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes wordsIn{0%{opacity:0;transform:translateX(-8px)}100%{opacity:1;transform:translateX(0)}}
+.lashy.hop{animation:poof 1.05s ease-in-out forwards;z-index:2;opacity:1}
+@keyframes poof{0%{transform:translateX(0) scale(1) rotate(0);opacity:1}32%{transform:translateX(0) scale(.15) rotate(150deg);opacity:0}48%{transform:translateX(var(--hop)) scale(.15) rotate(210deg);opacity:0}76%{transform:translateX(var(--hop)) scale(1.18) rotate(370deg);opacity:1}100%{transform:translateX(var(--hop)) scale(1) rotate(360deg);opacity:1}}
+.puff{position:absolute;top:50%;left:0;width:61.2px;height:61.2px;margin:-30.6px 0 0 5px;border-radius:50%;border:2px solid #066888;opacity:0;pointer-events:none;z-index:1}
+.puff.go{animation:puffOut .45s ease-out forwards}
+.puff.arrive{animation:puffOut .45s ease-out .48s forwards}
+@keyframes puffOut{0%{transform:scale(.3);opacity:.55}100%{transform:scale(1.5);opacity:0}}
+.lbtn.pulse{animation:btnPulse 1.4s ease-in-out 2}
+@keyframes btnPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}40%{box-shadow:0 0 0 7px #06688829}}
+#stage{position:fixed;inset:0;z-index:100;background:#fff;display:none}
+#stage.on{display:block}
+#stage iframe{width:100%;height:100%;border:0;display:block}
+@media(max-width:640px){.lcard{flex-wrap:wrap;gap:14px}.ltext{flex:1 1 auto}.lgo{flex:1 1 100%}.lbtn{width:100%}}
+@media(prefers-reduced-motion:reduce){.lcard .lashy,.lcard .ltext,.lcard .lgo{animation:none;opacity:1}.lashy.hop,.lbtn.pulse,.puff{animation:none;opacity:0}}
+</style>
+</head>
+<body>
+
+<div id="launch">
+  <div class="lcard">
+    <span class="puff" id="puffArrive"></span>
+    <div class="lashy" id="lashy" aria-hidden="true">
+      <span class="puff" id="puffGo"></span>
+      <svg viewBox="0 0 100 100" width="100%" height="100%">
+        <g class="m-body">
+          <circle class="m-rim" cx="44" cy="42" r="30"/>
+          <circle class="m-glass" cx="44" cy="42" r="25"/>
+          <g class="m-face">
+            <g class="m-eyes">
+              <circle class="m-eye" cx="35" cy="39" r="4"/>
+              <circle class="m-eye" cx="53" cy="39" r="4"/>
+              <g class="m-lash">
+                <path d="M30.5 34.5 l-3 -2.5"/>
+                <path d="M34.5 33.2 l-1 -3"/>
+                <path d="M38.5 34 l1.5 -2.8"/>
+                <path d="M48.5 34 l-1.5 -2.8"/>
+                <path d="M52.5 33.2 l1 -3"/>
+                <path d="M56.5 34.5 l3 -2.5"/>
+              </g>
+            </g>
+            <path class="m-mouth" d="M36 51 q8 7 16 0"/>
+          </g>
+          <path class="m-shine" d="M27 30 q7-9 17-10"/>
+        </g>
+      </svg>
+    </div>
+    <div class="ltext"><h2 id="lTitle">Lesson 1 — Finding a Participant</h2></div>
+    <div class="lgo">
+      <button id="lBtn" class="lbtn">Begin</button>
+      <span class="lnote" id="lNote">Opens full screen · <kbd>Esc</kbd> to exit</span>
+    </div>
+  </div>
+</div>
+
+<div id="stage"></div>
+
+<script id="payload" type="text/plain"></script>
+<script>
+var $=function(s){return document.querySelector(s)};
+var TITLE="Lesson 1 — Finding a Participant", BTN="Begin";
+var LAUNCHED=false, nudgeTimer=null, NUDGE_AFTER=7000;
+
+var FS=(function(){
+  var el=document.documentElement;
+  return {
+    supported:function(){return !!(document.fullscreenEnabled||document.webkitFullscreenEnabled)},
+    active:function(){return !!(document.fullscreenElement||document.webkitFullscreenElement)},
+    request:function(){var f=el.requestFullscreen||el.webkitRequestFullscreen;
+      if(!f)return Promise.reject();try{return Promise.resolve(f.call(el))}catch(e){return Promise.reject(e)}},
+    exit:function(){var f=document.exitFullscreen||document.webkitExitFullscreen;
+      if(f){try{f.call(document)}catch(e){}}}
+  };
+})();
+
+/* the activity is embedded, not hosted */
+function decodePayload(){
+  var b=document.getElementById("payload").textContent.trim();
+  if(!b) return "";
+  var bin=atob(b), bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+/* the activity posts to ITS parent, which is this shell — not Rise.
+   Pass anything it sends on up, so completion still lands. */
+window.addEventListener("message",function(e){
+  var d=e.data;
+  if(!d||typeof d!=="object") return;
+  try{ window.parent.postMessage(d,"*"); }catch(err){}
+});
+
+function mountStage(){
+  var st=$("#stage");
+  if(st.firstChild) return;
+  var f=document.createElement("iframe");
+  f.setAttribute("title",TITLE);
+  f.setAttribute("allow","fullscreen");
+  f.srcdoc=decodePayload();
+  st.appendChild(f);
+}
+
+function showLauncher(resuming){
+  $("#lTitle").textContent = resuming ? "Paused — your progress is saved" : TITLE;
+  $("#lBtn").textContent   = resuming ? "Resume" : BTN;
+  $("#lNote").hidden = !FS.supported();
+  $("#stage").classList.remove("on");
+  $("#launch").hidden=false;
+  ["#lashy","#launch .ltext","#launch .lgo"].forEach(function(sel){
+    var el=$(sel); if(!el) return;
+    el.style.animation="none"; void el.offsetWidth; el.style.animation="";
+  });
+  var m=$("#lashy"); if(m){m.classList.remove("hop");m.style.removeProperty("--hop")}
+  armNudge();
+}
+
+function startSim(){
+  clearNudge();
+  mountStage();
+  $("#launch").hidden=true;
+  $("#stage").classList.add("on");
+  LAUNCHED=true;
+  if(!FS.supported()) return;
+  FS.request().catch(function(){});
+}
+
+function clearNudge(){
+  if(nudgeTimer){clearTimeout(nudgeTimer);nudgeTimer=null}
+  var m=$("#lashy"), b=$("#lBtn");
+  if(m) m.classList.remove("hop");
+  if(b) b.classList.remove("pulse");
+  ["#puffGo","#puffArrive"].forEach(function(s){var p=$(s);if(p)p.classList.remove("go","arrive")});
+}
+
+function armNudge(){
+  clearNudge();
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  nudgeTimer=setTimeout(function(){
+    var m=$("#lashy"), b=$("#lBtn"), l=$("#launch"), c=document.querySelector(".lcard");
+    if(!m||!b||l.hidden||LAUNCHED) return;
+    var mr=m.getBoundingClientRect(), br=b.getBoundingClientRect();
+    var dist=Math.round(br.left - mr.right - 14);
+    if(dist<20) return;
+    m.style.setProperty("--hop",dist+"px");
+    var pa=$("#puffArrive"), pg=$("#puffGo");
+    if(pa&&c){
+      var cr=c.getBoundingClientRect();
+      pa.style.left=Math.round(mr.left-cr.left+(dist)+5)+"px";
+      pa.classList.remove("arrive");void pa.offsetWidth;pa.classList.add("arrive");
+    }
+    if(pg){pg.classList.remove("go");void pg.offsetWidth;pg.classList.add("go")}
+    m.classList.add("hop");
+    setTimeout(function(){b.classList.add("pulse")},1050);
+  },NUDGE_AFTER);
+}
+
+["fullscreenchange","webkitfullscreenchange"].forEach(function(ev){
+  document.addEventListener(ev,function(){
+    if(!FS.active()&&LAUNCHED&&FS.supported()) showLauncher(true);
+  });
+});
+
+$("#lBtn").addEventListener("click",startSim);
+$("#lashy").addEventListener("click",function(){
+  var m=$("#lashy");m.classList.remove("hop");void m.offsetWidth;
+});
+showLauncher(false);
+</script>
+</body>
+</html>

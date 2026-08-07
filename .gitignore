@@ -12,3 +12,6 @@ tools/scene-editor/shot-*.png
 
 # generated snippets for pasting into a hand-edited draft — regenerate, don't track
 HMIS BNTS - Search/script/section-*.docx
+
+# the launcher's intermediate page — the zip beside it is the deliverable
+HMIS BNTS - Search/launcher/dist/index.html
