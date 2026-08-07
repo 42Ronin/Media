@@ -264,8 +264,24 @@ html.step .coach{display:none}
    own beside it — no panel is competing for the space, so she can sit properly
    in it rather than tucking into a corner of a table. */
 html.step .app{top:0;left:0;right:344px;bottom:0}
-html.step .lzchar{--lzsize:132px}
-html.step .lzbub{max-width:none;min-width:0}
+html.step .lzlayer{display:none}
+.steppane{position:fixed;top:0;right:0;width:344px;bottom:0;z-index:170;
+  padding:18px 18px 18px 0;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.stepcard{background:#fff;border-radius:14px;padding:14px 16px;font-size:13.5px;line-height:1.55;
+  color:var(--coach-ink);box-shadow:0 8px 26px var(--teal-glow),0 1px 3px rgba(20,34,43,.08)}
+.stepcard b{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:7px}
+.stepcard p{margin:0 0 9px}
+.stepcard p:last-child{margin-bottom:0}
+.stepcard code{background:var(--lens);padding:1px 6px;border-radius:4px;font-size:12.5px}
+.stepcard.res{border-left:3px solid var(--teal);animation:stepin .42s cubic-bezier(.2,1.3,.4,1)}
+@keyframes stepin{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
+.stepcard .lzchat{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+.stepcard .lzchat p{margin:0;padding:8px 13px;border-radius:15px;max-width:92%;font-size:13px}
+.stepcard .lzchat .me{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
+.stepcard .lzchat .them{align-self:flex-start;background:#eaf2f6;border-bottom-left-radius:5px}
+.stepdone{margin-top:10px;font-size:12px;color:var(--teal);font-weight:650}
+@media(prefers-reduced-motion:reduce){.stepcard.res{animation:none}}
 /* Inline in a Rise block there is no room for chrome that is not doing work. */
 html.step .topbar{height:44px}
 html.step .rail{width:56px}
@@ -704,6 +720,15 @@ html.dock-out .cwbar.drag{cursor:grabbing}
   <div class="lzcardfoot"><button class="lzgo" id="lzCardGo">Continue →</button></div>
 </div>
 <div class="sr-only" id="lzLive" role="status" aria-live="polite"></div>
+
+<!-- Step embeds only. The lane beside the interface carries the instruction and,
+     once the learner has done it, the script's account of what happened. Plain
+     boxes: no character in here, because the block is one small thing to do and
+     she would be decoration. -->
+<aside class="steppane" id="stepPane" hidden>
+  <div class="stepcard do" id="stepDo"><b>Do this</b><div id="stepDoBody"></div></div>
+  <div class="stepcard res" id="stepRes" hidden></div>
+</aside>
 
 <script>
 "use strict";
@@ -1388,33 +1413,36 @@ var SCENARIO_CLOSE={
    empty state say No clients found and mean it. What she says when a step lands
    is the document's own "What happens" line, so the learner is told exactly that. */
 var STEPS={
+/* `does` is the slide's "Learner does", verbatim — that is the guiding
+   information, and it belongs in the block rather than being left blank.
+   `html` is its "What happens", shown once they have done it. */
 "11.1":{ phases:[
-  { until:rowsAre(function(r,q){ return r.length===0 && q.indexOf("carrow")>-1; }),
-    eyes:"glance", mouth:"hm", move:"shrug", anchor:"zero",
+  { does:'<p>Searches <b>Desmond Carrow</b>. Then <b>Carrow</b> on its own.</p>',
+    until:rowsAre(function(r,q){ return r.length===0 && q.indexOf("carrow")>-1; }),
     html:'<p>Nothing, either way. The empty state says No clients found and that is all it says.</p>' }
 ]},
 "11.2":{ phases:[
-  { until:rowsAre(function(r,q){ return q.indexOf("1974")>-1 || (q.indexOf("dez")>-1 && q.indexOf("carrow")>-1); }),
-    eyes:"droll", mouth:"hm", move:"still", anchor:"results",
+  { does:'<p>Searches <b>Dez Carrow</b>. Then the year on its own.</p>',
+    until:rowsAre(function(r,q){ return q.indexOf("1974")>-1 || (q.indexOf("dez")>-1 && q.indexOf("carrow")>-1); }),
     html:'<p>Nothing. Carrow reaches nobody, so any search containing it reaches nobody either \u2014 '+
          'every word has to match. The year returns a long list, and no Carrow is in it, because there '+
          'is no Carrow to find.</p>' }
 ]},
 "11.3":{ phases:[
-  { until:rowsAre(function(r){ return r.length===5 && r.every(function(c){ return /^dez/i.test(c.f); }); }),
-    eyes:"wide", mouth:"plain", move:"hop", anchor:"results",
+  { does:'<p>Searches <b>Dez</b> on its own.</p>',
+    until:rowsAre(function(r){ return r.length===5 && r.every(function(c){ return /^dez/i.test(c.f); }); }),
     html:'<p>Five records \u2014 Dezirae, Dezra, Dezhawn, and two men called Dezmond.</p>' }
 ]},
-"11.4":{ expect:"D2F8A6C31", phases:[
-  { until:rowsAre(function(r){ return r.length===2 && r.every(function(c){ return c.f==="Dezmond"; }); }),
-    eyes:"open", mouth:"tip", move:"lean", anchor:"results",
-    wait:"Opens both records and reads the Location tab.",
+"11.4":{ phases:[
+  { does:'<p>Adds <b>1974</b> to the fragment.</p>',
+    until:rowsAre(function(r){ return r.length===2 && r.every(function(c){ return c.f==="Dezmond"; }); }),
     html:'<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on '+
-         'file. Nothing he has told you separates them.</p>',
+         'file. Nothing he has told you separates them.</p>' },
+  { does:'<p>Goes back to him.</p>',
     chat:[{who:"me",   text:"Where have you been staying?"},
-          {who:"them", text:"The underpass \u2014 the same block your team has been working for two days."}] },
-  { until:function(){ return S.open==="D2F8A6C31"; },
-    eyes:"sparkle", mouth:"cheer", move:"bounce", anchor:"record",
+          {who:"them", text:"The underpass \u2014 the same block your team has been working for two days."}],
+    doesAfter:'<p>Opens both records and reads the Location tab.</p>',
+    until:function(){ return S.open==="D2F8A6C31"; },
     html:'<p>When the identifiers run out, the rest of the record is what identifies somebody. And there '+
          'it is \u2014 the contact somebody logged the day they took his details, and the referral he has '+
          'been asking about ever since. He was never missing. He was four searches away.</p>' }
@@ -1425,32 +1453,40 @@ var STEPS={
    happened to arrive in. */
 var STEPRUN=(function(){
   var def=null, i=0, at=0, finished=false;
+  function chatHTML(c){
+    return '<div class="lzchat">'+c.map(function(m){
+      return '<p class="'+(m.who==="me"?"me":"them")+'">'+esc(m.text)+'</p>';
+    }).join("")+'</div>';
+  }
+  function prompt(){
+    var ph=def.phases[i];
+    $("#stepDoBody").innerHTML=(ph.does||"")+(ph.chat?chatHTML(ph.chat):"")+(ph.doesAfter||"");
+    $("#stepDo").hidden=false;
+  }
   function land(){
     var ph=def.phases[i];
-    LZ.say(ph.anchor||"results", '<div class="fb tour">'+ph.html+"</div>",
-           {eyes:ph.eyes, mouth:ph.mouth, move:ph.move, point:!!ph.point});
-    if(ph.chat){
-      $("#fb").insertAdjacentHTML("beforeend",'<div class="lzchat">'+ph.chat.map(function(m){
-        return '<p class="'+(m.who==="me"?"me":"them")+'">'+esc(m.text)+'</p>';
-      }).join("")+'</div>');
-      LZ.relayout();
-    }
-    $("#lzFoot").hidden=false;
-    $("#lzCount").textContent="";
-    $("#lzStep").hidden=true;
-    var w=$("#lzFoot").querySelector(".lzwait");
-    if(!w){ w=document.createElement("span"); w.className="lzwait"; $("#lzFoot").appendChild(w); }
+    $("#stepRes").innerHTML="<b>What happens</b>"+ph.html;
+    $("#stepRes").hidden=false;
     i++;
-    if(i<def.phases.length){ w.hidden=false; w.textContent=ph.wait||""; at=S.tick; }
-    else { w.hidden=false; w.textContent="Done. Carry on below."; finished=true; EMBED.complete(true,1); }
+    if(i<def.phases.length){ at=S.tick; prompt(); }
+    else{
+      $("#stepDo").hidden=true;
+      $("#stepRes").insertAdjacentHTML("beforeend",'<p class="stepdone">Done. Carry on below.</p>');
+      finished=true;
+      EMBED.complete(true,1);
+    }
   }
   return {
-    start:function(){ def=STEPS[STEP]; if(def){ at=S.tick; } },
+    start:function(){
+      def=STEPS[STEP]; if(!def) return;
+      $("#stepPane").hidden=false;
+      at=S.tick; prompt();
+    },
     check:function(){
       if(!def||finished||S.tick<=at) return;
       var ph=def.phases[i], done=false;
       try{ done=!!ph.until(); }catch(e){ done=false; }
-      if(done) setTimeout(land, 420);
+      if(done) setTimeout(land, 380);
     },
     done:function(){ return finished; }
   };

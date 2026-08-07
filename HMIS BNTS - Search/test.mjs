@@ -1092,12 +1092,12 @@ console.log('\n— section 11: the running scenario —');
 console.log('\n— section 11 as inline step embeds —');
 {
   const STEP = [
-    ['step-11-1', 'Desmond Carrow', 'No clients found and that is all it says'],
-    ['step-11-2', '1974',           'there is no Carrow to find'],
-    ['step-11-3', 'Dez',            'Dezirae, Dezra, Dezhawn'],
-    ['step-11-4', 'Dez 1974',       'Nothing he has told you separates them'],
+    ['step-11-1', 'Desmond Carrow', 'Searches Desmond Carrow', 'No clients found and that is all it says'],
+    ['step-11-2', '1974',           'Searches Dez Carrow',     'there is no Carrow to find'],
+    ['step-11-3', 'Dez',            'Searches Dez on its own', 'Dezirae, Dezra, Dezhawn'],
+    ['step-11-4', 'Dez 1974',       'Adds 1974 to the fragment','Nothing he has told you separates them'],
   ];
-  for (const [file, query, lands] of STEP) {
+  for (const [file, query, asks, lands] of STEP) {
     const st = await b.newPage({ viewport: { width: 1000, height: 620 } });
     const stErrs = [];
     st.on('pageerror', e => stErrs.push(String(e)));
@@ -1106,20 +1106,20 @@ console.log('\n— section 11 as inline step embeds —');
 
     ok(`${file}: no training panel — the Rise text above it is the panel`,
        await st.$eval('#coachWin', e => getComputedStyle(e).display === 'none'));
-    ok(`${file}: she says nothing until the learner has done something`,
-       await st.$eval('#lzBub', e => !e.classList.contains('on')));
+    /* No character in a step block. It is one small thing to do, and she would be
+       decoration; she comes back where she earns her place. */
+    ok(`${file}: no character in the block`,
+       await st.$eval('#lzLayer', e => getComputedStyle(e).display === 'none'));
+    /* And the lane is never blank — the learner is told what to do. */
+    ok(`${file}: the block asks for something rather than sitting blank`,
+       (await st.textContent('#stepDo')).includes(asks));
+    ok(`${file}: and says nothing about the outcome yet`,
+       await st.$eval('#stepRes', e => e.hidden));
 
     await st.fill('#q', query);
-    await st.waitForTimeout(1100);
+    await st.waitForTimeout(1000);
     ok(`${file}: lands on the script's own account of what happens`,
-       (await st.textContent('#fb')).includes(lands));
-    /* She is not confined to the interface here: the block gives her a lane. */
-    ok(`${file}: she sits in her own lane, not on the results`,
-       await st.evaluate(() => {
-         const c = document.querySelector('#lzChar').getBoundingClientRect();
-         const a = document.querySelector('.app').getBoundingClientRect();
-         return c.left >= a.right - 1;
-       }));
+       (await st.textContent('#stepRes')).includes(lands));
     ok(`${file}: no errors`, stErrs.length === 0, stErrs.join(' | '));
     await st.close();
   }
@@ -1127,20 +1127,21 @@ console.log('\n— section 11 as inline step embeds —');
   /* 11.4 is the only step with two things in it: narrow, then compare. */
   const four = await b.newPage({ viewport: { width: 1000, height: 620 } });
   await four.goto('file://' + new URL('./dist/step-11-4.html', import.meta.url).pathname);
-  await four.fill('#q', 'Dez 1974'); await four.waitForTimeout(1100);
+  await four.fill('#q', 'Dez 1974'); await four.waitForTimeout(1000);
   ok('step-11-4: the exchange gives up the fact that separates them',
-     await four.$$eval('#fb .lzchat p', els => els.length === 2 &&
+     await four.$$eval('#stepDo .lzchat p', els => els.length === 2 &&
        els[1].textContent.includes('The underpass')));
-  ok('step-11-4: and it is not finished yet',
-     (await four.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Location tab'));
+  ok('step-11-4: and it asks for the next thing rather than finishing',
+     (await four.textContent('#stepDo')).includes('Location tab') &&
+     !(await four.textContent('#stepRes')).includes('Carry on below'));
   await four.click('tr[data-row="A7C4E9B52"]'); await four.waitForTimeout(900);
   ok('step-11-4: the wrong Dezmond does not complete it',
-     !(await four.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Done'));
+     !(await four.textContent('#stepRes')).includes('Carry on below'));
   await four.keyboard.press('Escape'); await four.waitForTimeout(400);
   await four.click('tr[data-row="D2F8A6C31"]'); await four.waitForTimeout(900);
   ok('step-11-4: the one contacted at the underpass finishes it',
-     (await four.textContent('#fb')).includes('rest of the record is what identifies somebody') &&
-     (await four.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Done'));
+     (await four.textContent('#stepRes')).includes('rest of the record is what identifies somebody') &&
+     (await four.textContent('#stepRes')).includes('Carry on below'));
   await four.close();
 }
 
