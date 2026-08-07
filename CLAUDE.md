@@ -294,7 +294,20 @@ available, not present.
 - **Anchor a beat at something small.** `#profGrid` and `#locBody` are whole panels; an arrow
   cannot point at a 600×800 block and the solver has nowhere to stand beside one. The card heads
   work because they are small and sit at the top of the thing being described.
-- **Section 7's orientation is twelve beats**, the last of which points at the task box and
+- **The orientation types its searches out**, a character at a time, through the real `input`
+  event — so the demo goes down the same path a learner does, debounce and all, and the list
+  narrows under the field instead of appearing all at once. It pauses at each space, which is
+  what lets the 220ms debounce fire once per word. `stopTyping()`'s generation counter kills
+  anything still in flight when the learner clicks Next, so two beats can never type into the
+  box at once. Borrowed from the RoninWrite tutorial, which does the same thing with a script.
+- **The task panel folds away for the walk** and comes back at the beat about the magnifier —
+  not at the very end, because folded its title bar sits over the top-bar icons and the next
+  two beats point at two of them. `setPanelMin` is the ONE entry point: the state lives in two
+  places (`#coachWin.min` and `html.dock-min`, which reserves the dock column) and they used to
+  be set in three, which drifted. The window came back while the column stayed reserved, so the
+  results table kept full width and its last rows sat under the panel where nothing could click
+  them. Asserted both ways in `test.mjs`.
+- **Section 7's orientation is fifteen beats**, the last of which points at the task box and
   says to start. Before that the tour simply stopped, leaving the learner facing an interface
   with no sign the work had begun. Beats 6 and 7 cover pop-out and collapse, because the panel
   is ours rather than the product's and nothing in the script describes it.

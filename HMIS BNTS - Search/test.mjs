@@ -53,8 +53,8 @@ const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
    back to search. Every task after the first begins by needing it, and the
    simulation only explains the two shortcuts once you click them, which is too
    late. Flagged in the template for scripted wording. */
-ok("slide 7.1, a walk through a record, the two ways back, and the panel that is ours",
-   tourLen === 12, String(tourLen));
+ok("slide 7.1, what the field takes, a walk through a record, the ways back, and the panel",
+   tourLen === 15, String(tourLen));
 
 const seen = [];
 let arrowSeen = 0, arrowUnderBubble = false, arrowBackwards = 0;
@@ -98,6 +98,58 @@ for (let n = 0; n < tourLen; n++) {
   ok(`tour step ${n + 1} is on screen and clear of the docked panel`, !bad);
   await p.click('#lzStep'); await p.waitForTimeout(420);
 }
+/* The orientation folds the task panel away while it demonstrates — nobody should be
+   reading a task they have not reached — and gives it back on the last beat. The two
+   halves of that state used to be set in three different places and drifted: the
+   window came back while the html class reserving the dock column stayed set, so the
+   results table kept the full width and its last rows sat under the panel where
+   nothing could click them. One entry point now, and it is asserted both ways. */
+ok('the panel is folded away for the walk and given back at the end',
+   await p.evaluate(() => {
+     const win = document.querySelector('#coachWin').classList.contains('min');
+     const dock = document.documentElement.classList.contains('dock-min');
+     return !win && !dock;
+   }));
+ok('...and cancelling halfway gives it back too', await p.evaluate(async () => {
+  BEAT.run(TOURS[SECTION] || TOURS[7]);
+  await new Promise(r => setTimeout(r, 250));
+  const folded = document.documentElement.classList.contains('dock-min');
+  BEAT.cancel();
+  await new Promise(r => setTimeout(r, 300));
+  return folded &&
+    !document.querySelector('#coachWin').classList.contains('min') &&
+    !document.documentElement.classList.contains('dock-min');
+}));
+ok('the two halves of the fold are never set apart', await p.evaluate(async () => {
+  setPanelMin(true);
+  const both = document.querySelector('#coachWin').classList.contains('min') &&
+               document.documentElement.classList.contains('dock-min');
+  setPanelMin(false);
+  await new Promise(r => setTimeout(r, 60));
+  return both && !document.querySelector('#coachWin').classList.contains('min') &&
+         !document.documentElement.classList.contains('dock-min');
+}));
+/* Typed a character at a time through the real input event, so the demo goes down
+   the same path a learner does — debounce and all — and the list narrows under it. */
+ok('the walk types its searches out rather than filling them in', await p.evaluate(async () => {
+  const el = document.querySelector('#q');
+  typeQuery('Alvarez');
+  await new Promise(r => setTimeout(r, 260));
+  const partial = el.value;                       // caught mid-word
+  await new Promise(r => setTimeout(r, 1200));
+  const whole = el.value;
+  stopTyping();
+  return partial.length > 0 && partial.length < whole.length && whole === 'Alvarez';
+}));
+ok('...and a beat that types cancels any typing still in flight', await p.evaluate(async () => {
+  typeQuery('Alvarez');
+  await new Promise(r => setTimeout(r, 200));
+  typeQuery('Vega');
+  await new Promise(r => setTimeout(r, 700));
+  stopTyping();
+  return document.querySelector('#q').value === 'Vega';   // not interleaved
+}));
+await p.evaluate(() => { stopTyping(); demoReset(); }); await p.waitForTimeout(200);
 ok('the tour covers the roster size the script states', seen.join(' ').includes('three hundred people'));
 ok('nothing in it is repeated from a previous section', await p.evaluate(() => {
   const said = s => JSON.stringify(TOURS).indexOf(s);

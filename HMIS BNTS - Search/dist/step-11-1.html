@@ -1592,6 +1592,8 @@ var BEAT=(function(){
     list=null; i=0;
     /* If a beat drove the interface, hand it back however the tour ended — cancelled
        halfway leaves a demo search and an open record otherwise. */
+    if(typeof stopTyping==="function") stopTyping();
+    if(typeof unfoldPanel==="function") unfoldPanel();
     if(typeof droveDemo!=="undefined" && droveDemo) demoDo(demoReset);
     $("#lzFoot").hidden=true;
     LZ.hush();
@@ -1648,7 +1650,7 @@ function countWord(){ return NUMBER_WORDS[TASKS.length]||String(TASKS.length); }
    time so it survives a reseed, and cached so every beat walks the same person. */
 var _demo=null;
 /* True only while a beat is putting the interface where it wants it. */
-var TOUR_DRIVING=false, droveDemo=false;
+var TOUR_DRIVING=false, droveDemo=false, foldedPanel=false;
 function demoDo(fn){
   TOUR_DRIVING=true;
   try{ fn(); } finally { TOUR_DRIVING=false; }
@@ -1667,12 +1669,53 @@ function demoClient(){
   })[0] || CLIENTS.find(function(c){ return !used[c.i]; });
   return _demo;
 }
+/* Typing, rather than filling. The learner watches the field fill a character at a
+   time and the results narrow underneath it, which is the whole behaviour this lesson
+   is about — a search that responds as you go, not when you press a button.
+
+   Time-based rather than one timer per character: each tick shows everything that
+   has elapsed, so a throttled background tab catches up in one frame instead of
+   drifting. A generation counter kills any typing still in flight when the learner
+   clicks Next, so two beats can never type into the field at once. */
+var typeGen=0, MS_PER_CHAR=95, MS_PER_WORD=520;
+function stopTyping(){ typeGen++; }
+/* Types through the real input event, so the demo goes down the same path a learner
+   does — the debounce, the clear button, the pill state, all of it. The field waits
+   220ms after the last keystroke before searching, so typing straight through would
+   land every result at the end; pausing at each space lets the list settle once per
+   word, which is both what the product does and what a person typing actually looks
+   like. A generation counter kills anything still in flight when the learner clicks
+   Next, so two beats can never type into the box at once. */
+function typeQuery(text,done){
+  var gen=++typeGen, el=$("#q"), i=0;
+  droveDemo=true;
+  demoDo(function(){
+    el.value=""; el.dispatchEvent(new Event("input",{bubbles:true}));
+  });
+  if(document.hidden){
+    demoDo(function(){ el.value=text; el.dispatchEvent(new Event("input",{bubbles:true})); });
+    if(done) done(); return;
+  }
+  (function tick(){
+    if(gen!==typeGen) return;
+    if(i>=text.length){ if(done) done(); return; }
+    var ch=text.charAt(i++);
+    demoDo(function(){ el.value+=ch; el.dispatchEvent(new Event("input",{bubbles:true})); });
+    setTimeout(tick, ch===" " ? MS_PER_WORD : MS_PER_CHAR);
+  })();
+}
 function demoSearch(){
   var d=demoClient(); if(!d) return;
-  droveDemo=true;
-  $("#q").value=d.l; rerun();
+  typeQuery(d.l);
+}
+function unfoldPanel(){
+  if(!foldedPanel) return;
+  foldedPanel=false;
+  if(window.setPanelMin) setPanelMin(false);
 }
 function demoReset(){
+  stopTyping();
+  unfoldPanel();
   droveDemo=false;
   if(S.open) closeProfile();
   /* and no trace of it in recently accessed: the learner did not open that person */
@@ -1682,19 +1725,39 @@ function demoReset(){
 var TOURS={
 7:[
 { anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
+  /* fold the task away: nobody should be reading a task they have not reached */
+  act:function(){ if(window.setPanelMin){ setPanelMin(true); foldedPanel=true; } },
   html:'<p>What follows is a practice version of Clarity. It behaves the way the real system '+
        'behaves. Everyone in it is invented \u2014 nothing you do here touches a real record.</p>' },
 { anchor:"panel", eyes:"open", mouth:"plain", move:"lean",
   html:'<p>You will be given {{COUNT_LOWER}} situations. Each one is a person standing in front '+
        'of you and something they have told you. Your job is to find their record \u2014 and, '+
        'later, to prove it is the right one.</p>' },
-{ anchor:"results", eyes:"wide", mouth:"plain", move:"hop", point:true,
-  /* Typed for them, so the beat about a long list has a long list under it. */
-  act:function(){ demoDo(demoSearch); },
+{ anchor:"search", eyes:"wide", mouth:"plain", move:"hop", point:true,
+  /* Typed a character at a time, so they watch the list narrow as it goes. */
+  act:function(){ demoSearch(); },
   html:'<p>The practice roster holds three hundred people. The live system holds hundreds of '+
        'thousands. A search that returns a readable handful here can return pages there \u2014 '+
        'so the habit to build is to narrow the search before you scan, not to scroll page '+
        'after page.</p>' },
+/* NOT IN THE SCRIPT, and requested rather than invented: three beats on what the
+   field will take, typed out live so the learner sees the list respond rather than
+   being told that it does. The grammar they demonstrate is the lesson's whole
+   technique, so it is worth the thirty seconds. */
+{ anchor:"results", eyes:"glance", mouth:"tip", point:true,
+  act:function(){ var d=demoClient(); if(d) typeQuery(d.l+" "+d.f.slice(0,3)); },
+  html:'<p>Add a second word and it narrows. Every word has to match, but each one may '+
+       'match a different field \u2014 a surname and the first few letters of a first name '+
+       'is usually enough.</p>' },
+{ anchor:"results", eyes:"open", mouth:"plain", point:true,
+  act:function(){ var d=demoClient(); if(d) typeQuery(d.d.slice(0,4)); },
+  html:'<p>It is not only names. A year of birth works. So does a full date, written any '+
+       'way round, and so do the last four digits of a Social Security Number \u2014 which '+
+       'is often all somebody can remember.</p>' },
+{ anchor:"results", eyes:"wide", mouth:"tip", point:true,
+  act:function(){ var d=demoClient(); if(d) typeQuery(d.l+" "+d.d.slice(0,4)); },
+  html:'<p>And they combine. A name and a year together will usually take a page of results '+
+       'down to a handful you can actually read.</p>' },
 /* NOT IN THE SCRIPT, and requested rather than invented: a walk through a record
    before the first task, so nobody meets the profile for the first time while being
    marked on it. She opens somebody who is not the answer to anything, names what is
@@ -1703,7 +1766,9 @@ var TOURS={
   act:function(){ demoDo(function(){ var d=demoClient(); if(d) openProfile(d.i); }); },
   html:'<p>Opening a row opens their record. This is not anybody you will be asked for \u2014 '+
        'it is just to show you the shape of the page before you need it.</p>' },
-{ anchor:"profile", eyes:"glance", mouth:"tip", point:true,
+/* No arrow on these two: they describe a whole panel rather than a control, and an
+   arrow aimed at a region lands on whichever field happens to be under it. */
+{ anchor:"profile", eyes:"glance", mouth:"tip",
   html:'<p>The top half is who they are: name, date of birth, age, Social Security Number and '+
        'the quality codes beside each one. Those codes say how good the information is, and '+
        'they are what tells you a record is thin rather than wrong.</p>' },
@@ -1712,7 +1777,7 @@ var TOURS={
   html:'<p>Down the left are the rest of their record. Most are dimmed \u2014 clicking a dimmed '+
        'control does nothing at all, and each lesson clears the part it teaches. Location is '+
        'open, because where somebody has been contacted is often what settles who they are.</p>' },
-{ anchor:"loclist", eyes:"wide", mouth:"plain", point:true,
+{ anchor:"loclist", eyes:"wide", mouth:"plain",
   html:'<p>Every place they have been recorded, with the date and who wrote it down. If somebody tells '+
        'you they have been sleeping under a bridge, this is where you find out whether the record '+
        'agrees with him.</p>' },
@@ -1724,6 +1789,7 @@ var TOURS={
    Two beats, one per control, so each gets pointed at rather than named in a
    sentence about the other one. */
 { anchor:"magnifier", eyes:"open", mouth:"plain", point:true,
+  act:function(){ unfoldPanel(); },
   html:'<p>Opening a client takes you off the search screen. This magnifying glass in the '+
        'top bar brings you back to Client Search from anywhere in the system.</p>' },
 { anchor:"clientsicon", eyes:"open", mouth:"plain", point:true,
@@ -1741,6 +1807,8 @@ var TOURS={
   html:'<p>And this rolls it up to just the title bar, for when you want the whole '+
        'interface to yourself. The same button brings it back.</p>' },
 { anchor:"task", eyes:"sparkle", mouth:"cheer", point:true, next:"Start",
+  /* the interface goes back the way the learner will find it */
+  act:function(){ demoDo(demoReset); },
   html:'<p>Your first situation is waiting here. Read who is in front of you, then '+
        'search for them the way you would on the street.</p>' }
 ]};
@@ -2499,7 +2567,8 @@ function pass(){
   S.results.push({id:t.id,first:first});
   EMBED.task(t,S.idx,first);
   $("#hintBtn").hidden=true;
-  $("#coachWin").classList.remove("min"); pulseWin();
+  if(window.setPanelMin) setPanelMin(false);
+  pulseWin();
   if(SCENARIO_CLOSE[SECTION]){
     /* A scenario does not end on the record. It ends on what the record proves,
        and then on the sentence the section exists to place. */
@@ -3406,15 +3475,26 @@ $("#restartBtn").addEventListener("click",function(){
       setTimeout(function(){ LZ.relayout(); },240);
     }
   });
-  $("#cwMin").addEventListener("click",function(){
-    var min=win.classList.toggle("min");
-    this.setAttribute("aria-expanded",String(!min));
-    this.title=min?"Expand":"Collapse";
-    this.innerHTML=min
+  function setMin(min){
+    win.classList.toggle("min",min);
+    var btn=$("#cwMin");
+    btn.setAttribute("aria-expanded",String(!min));
+    btn.title=min?"Expand":"Collapse";
+    btn.innerHTML=min
       ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
       : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
     root.classList.toggle("dock-min", min && !floating());
     setTimeout(function(){ autoPlace(); clamp(); LZ.relayout(); },240);
+  }
+  /* The orientation folds the panel away while it works, so the interface it is
+     talking about is not sharing the screen with a task nobody has read yet. */
+  window.setPanelMin=setMin;
+  /* One code path. The handler used to repeat setMin's body, and the two drifted:
+     the tour restored the window while the html class that reserves the dock column
+     stayed set, so the results table kept the full width and its last rows sat under
+     the panel where nothing could click them. */
+  $("#cwMin").addEventListener("click",function(){
+    setMin(!win.classList.contains("min"));
   });
   function reflow(){ autoPlace(); clamp(); LZ.relayout(); }
   window.addEventListener("resize",reflow);
