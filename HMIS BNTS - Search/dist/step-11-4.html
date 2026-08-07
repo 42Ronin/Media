@@ -512,31 +512,37 @@ html.dock-out .cwbar.drag{cursor:grabbing}
             <defs>
               <clipPath id="hclip"><circle cx="24" cy="24" r="24"/></clipPath>
               <linearGradient id="hbg" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#e2ebf0"/><stop offset="1" stop-color="#c4d5df"/>
+                <stop offset="0" stop-color="#e6eef3"/><stop offset="1" stop-color="#c6d7e1"/>
+              </linearGradient>
+              <linearGradient id="hfur" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#31373b"/><stop offset="1" stop-color="#1c2124"/>
               </linearGradient>
             </defs>
             <g clip-path="url(#hclip)">
               <rect width="48" height="48" fill="url(#hbg)"/>
-              <path d="M12.6 20.6 6.6 6.4l14.6 5.2z" fill="#2b2f32"/>
-              <path d="M13.9 18.4 10.4 10.2l8.2 2.9z" fill="#e7a3a3"/>
-              <path d="M35.4 20.6 41.4 6.4l-14.6 5.2z" fill="#2b2f32"/>
-              <path d="M34.1 18.4 37.6 10.2l-8.2 2.9z" fill="#e7a3a3"/>
-              <!-- the head stays black; only the snout is white -->
-              <path d="M24 10.4c9 0 14.8 6.4 14.8 15 0 8.8-6.5 14-14.8 14S9.2 34.2 9.2 25.4c0-8.6 5.8-15 14.8-15z" fill="#2f3437"/>
-              <ellipse cx="24" cy="31.6" rx="8.2" ry="5.8" fill="#fafcfd"/>
-              <ellipse cx="24" cy="27.6" rx="4.4" ry="3.6" fill="#fafcfd"/>
-              <!-- eyes, set wide on the dark fur -->
-              <ellipse cx="16.4" cy="22.4" rx="2.15" ry="2.6" fill="#2a6b86"/>
-              <ellipse cx="31.6" cy="22.4" rx="2.15" ry="2.6" fill="#2a6b86"/>
-              <circle cx="16.4" cy="22.7" r="1.15" fill="#12222b"/>
-              <circle cx="31.6" cy="22.7" r="1.15" fill="#12222b"/>
-              <circle cx="17.2" cy="21.4" r=".8" fill="#fff"/>
-              <circle cx="32.4" cy="21.4" r=".8" fill="#fff"/>
-              <!-- nose and mouth -->
-              <path d="M24 27.4c1.75 0 2.8.95 2.8 1.8 0 .9-1.15 1.75-2.8 1.75s-2.8-.85-2.8-1.75c0-.85 1.05-1.8 2.8-1.8z" fill="#16191b"/>
-              <path d="M24 31v2" stroke="#16191b" stroke-width="1.1" stroke-linecap="round"/>
+              <path d="M12.6 20.6 6.6 6.4l14.6 5.2z" fill="#23282b"/>
+              <path d="M13.9 18.4 10.4 10.2l8.2 2.9z" fill="#d9908f"/>
+              <path d="M35.4 20.6 41.4 6.4l-14.6 5.2z" fill="#23282b"/>
+              <path d="M34.1 18.4 37.6 10.2l-8.2 2.9z" fill="#d9908f"/>
+              <path d="M24 10.4c9 0 14.8 6.4 14.8 15 0 8.8-6.5 14-14.8 14S9.2 34.2 9.2 25.4c0-8.6 5.8-15 14.8-15z" fill="url(#hfur)"/>
+              <!-- white cheeks, muzzle and the eyebrow marks a black-and-white husky carries -->
+              <path d="M13.6 27.8c1.4 4.2 4.2 7.2 7.2 8.4-3.4.9-6.6-.6-8.3-3.6-.8-1.5-.6-3.4 1.1-4.8z" fill="#f4f8fa"/>
+              <path d="M34.4 27.8c-1.4 4.2-4.2 7.2-7.2 8.4 3.4.9 6.6-.6 8.3-3.6.8-1.5.6-3.4-1.1-4.8z" fill="#f4f8fa"/>
+              <ellipse cx="24" cy="31.6" rx="8.2" ry="5.8" fill="#f9fcfd"/>
+              <ellipse cx="24" cy="27.6" rx="4.4" ry="3.6" fill="#f9fcfd"/>
+              <ellipse cx="16.1" cy="18.5" rx="2.1" ry="1.4" fill="#e8eff3" opacity=".92"/>
+              <ellipse cx="31.9" cy="18.5" rx="2.1" ry="1.4" fill="#e8eff3" opacity=".92"/>
+              <!-- icy blue, set wide -->
+              <ellipse cx="16.4" cy="22.6" rx="2.3" ry="2.7" fill="#8fc4dd"/>
+              <ellipse cx="31.6" cy="22.6" rx="2.3" ry="2.7" fill="#8fc4dd"/>
+              <circle cx="16.4" cy="22.9" r="1.2" fill="#14202a"/>
+              <circle cx="31.6" cy="22.9" r="1.2" fill="#14202a"/>
+              <circle cx="17.2" cy="21.5" r=".85" fill="#fff"/>
+              <circle cx="32.4" cy="21.5" r=".85" fill="#fff"/>
+              <path d="M24 27.4c1.75 0 2.8.95 2.8 1.8 0 .9-1.15 1.75-2.8 1.75s-2.8-.85-2.8-1.75c0-.85 1.05-1.8 2.8-1.8z" fill="#14181a"/>
+              <path d="M24 31v2" stroke="#14181a" stroke-width="1.1" stroke-linecap="round"/>
               <path d="M24 33c-1 1.15-2.5 1.15-3.3.2M24 33c1 1.15 2.5 1.15 3.3.2"
-                    stroke="#16191b" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+                    stroke="#14181a" stroke-width="1.1" fill="none" stroke-linecap="round"/>
             </g>
           </svg>
           <b class="avin">HT</b>
@@ -1359,11 +1365,20 @@ var TOURS={
   html:'<p>You will be given {{COUNT_LOWER}} situations. Each one is a person standing in front '+
        'of you and something they have told you. Your job is to find their record \u2014 and, '+
        'later, to prove it is the right one.</p>' },
-{ anchor:"results", eyes:"wide", mouth:"plain", move:"hop", point:true, next:"Start",
+{ anchor:"results", eyes:"wide", mouth:"plain", move:"hop", point:true,
   html:'<p>The practice roster holds three hundred people. The live system holds hundreds of '+
        'thousands. A search that returns a readable handful here can return pages there \u2014 '+
        'so the habit to build is to narrow the search before you scan, not to scroll page '+
-       'after page.</p>' }
+       'after page.</p>' },
+/* NOT IN THE SCRIPT. Slide 7.1 does not cover getting back, and every task after
+   the first one starts by needing to: the learner opens a record, reads it, and
+   has to return to Client Search. The simulation explains both shortcuts when you
+   click them, which is too late to be useful. Written to match 7.1's register and
+   flagged here so it can be replaced with scripted wording or moved into 7.1. */
+{ anchor:"topbar", eyes:"open", mouth:"plain", point:true, next:"Start",
+  html:'<p>Opening a client takes you off the search screen. Two things bring you back: '+
+       'the magnifying glass in the top bar, and the Clients icon at the top of the left '+
+       'rail. Either one returns you to Client Search from anywhere in the system.</p>' }
 ]};
 
 /* A real section gets its own orientation or none at all. The combined test page

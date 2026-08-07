@@ -46,7 +46,11 @@ ok('she does not re-introduce herself, having already met them',
 ok('the tour is counted so the learner knows how long it is',
    (await p.textContent('#lzCount')).includes('of'));
 const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
-ok('it is the three paragraphs slide 7.1 has, and no more', tourLen === 3);
+/* Slide 7.1's three paragraphs, plus one that is not in the script: how to get
+   back to search. Every task after the first begins by needing it, and the
+   simulation only explains the two shortcuts once you click them, which is too
+   late. Flagged in the template for scripted wording. */
+ok('slide 7.1, plus the one thing it does not cover', tourLen === 4);
 
 const seen = [];
 let arrowSeen = 0, arrowUnderBubble = false;
@@ -77,6 +81,9 @@ ok('nothing in it is repeated from a previous section', await p.evaluate(() => {
   return new Set(all).size === all.length;
 }));
 ok('...and the job it states', seen.join(' ').includes('prove it is the right one'));
+ok('...and both ways back to Client Search, before they are needed',
+   seen.join(' ').includes('magnifying glass in the top bar') &&
+   seen.join(' ').includes('Clients icon at the top of the left rail'));
 /* She has no hands and can never point, so the pointing is a prop — drawn in her
    own palette, standing in the gap between her and the thing, rotated at it. */
 ok('the arrow appears when she is pointing at something',
@@ -973,7 +980,11 @@ console.log('\n— what to do next is where she says it —');
   const q2e = []; q2.on('pageerror', e => q2e.push(String(e)));
   await q2.goto('file://' + new URL('./dist/section-7.html', import.meta.url).pathname);
   await q2.waitForTimeout(600);
-  for (let i = 0; i < 3; i++) { await q2.click('#lzStep'); await q2.waitForTimeout(300); }
+  /* Walk the orientation out rather than counting clicks — it grows. */
+  while (await q2.$eval('#lzBub', e => e.classList.contains('on'))) {
+    if (await q2.$eval('#lzStep', e => e.hidden)) break;
+    await q2.click('#lzStep'); await q2.waitForTimeout(320);
+  }
 
   /* Every bubble she raises has a way out. A learner who has read a wrong answer
      and wants to get back to the table should not have to work out how. */
