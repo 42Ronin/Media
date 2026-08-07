@@ -105,6 +105,12 @@ GENDER = ["Woman (Girl, if child)", "Man (Boy, if child)", "Non-Binary",
           "Data not collected"]
 GENDER_W = [.42, .42, .04, .03, .02, .01, .01, .02, .02, .01]
 SUFFIX = ["Jr.", "Sr.", "II", "III"]
+LANGUAGE = ["English", "Spanish", "Armenian", "Korean", "Mandarin", "Tagalog",
+            "Russian", "Farsi", "Vietnamese", "American Sign Language"]
+# Invented clinics. Real clinic names belong to real organisations, and the same
+# rule applies here as everywhere else in this roster.
+CLINIC = ["Westlake Community Health", "Harbor Street Clinic", "Vermont Wellness Center",
+          "Eastside Family Health", "Central Avenue Health Partners"]
 MIDDLE = ["Ann", "Lee", "Marie", "James", "Rose", "Dean", "Grace", "Paul",
           "Elise", "Ray", "June", "Cole"]
 COLORS = 8
@@ -507,20 +513,34 @@ for c in clients:                                # everyone else is a household 
 # Invented locations. Clarity's ADD LOCATION search takes addresses, cross-streets,
 # landmarks and encampments, so a mix of those is right. Deliberately generic and
 # not tied to any real encampment. x/y position the pin on the schematic map.
+# The Location tab is a table: Address, Date, Type, Created by, and a scope chip.
+# The second address line is the city/state/country/ZIP the product shows beneath
+# the street. Encampments and cross-streets are how outreach records a place that
+# has no street number, which is why line one is often not a street address.
 LOCATIONS = [
-    ("6th Street bridge",        "Encampment", 0.55, 0.42),
-    ("Alameda St underpass",     "Encampment", 0.62, 0.55),
-    ("Slauson Ave & Central",    "Cross-street", 0.58, 0.78),
-    ("MacArthur Park north lawn","Landmark",   0.34, 0.38),
-    ("Vermont Ave & 8th",        "Cross-street", 0.26, 0.44),
-    ("LA River path, Elysian",   "Landmark",   0.70, 0.22),
-    ("Union Station forecourt",  "Landmark",   0.66, 0.34),
-    ("Adams Blvd & Figueroa",    "Cross-street", 0.44, 0.62),
-    ("Westlake metro portal",    "Landmark",   0.32, 0.46),
-    ("Hollywood & Western",      "Cross-street", 0.22, 0.14),
-    ("Venice Blvd & Sepulveda",  "Cross-street", 0.08, 0.66),
-    ("Grand Ave & 5th",          "Cross-street", 0.52, 0.40),
+    ("6th Street bridge",        "Los Angeles, CA, USA, 90021", 0.55, 0.42),
+    ("Alameda St underpass",     "Los Angeles, CA, USA, 90021", 0.62, 0.55),
+    ("Slauson Ave & Central",    "Los Angeles, CA, USA, 90011", 0.58, 0.78),
+    ("MacArthur Park north lawn","Los Angeles, CA, USA, 90057", 0.34, 0.38),
+    ("Vermont Ave & 8th",        "Los Angeles, CA, USA, 90005", 0.26, 0.44),
+    ("LA River path, Elysian",   "Los Angeles, CA, USA, 90031", 0.70, 0.22),
+    ("Union Station forecourt",  "Los Angeles, CA, USA, 90012", 0.66, 0.34),
+    ("Adams Blvd & Figueroa",    "Los Angeles, CA, USA, 90007", 0.44, 0.62),
+    ("Westlake metro portal",    "Los Angeles, CA, USA, 90057", 0.32, 0.46),
+    ("Hollywood & Western",      "Los Angeles, CA, USA, 90027", 0.22, 0.14),
+    ("Venice Blvd & Sepulveda",  "Los Angeles, CA, USA, 90066", 0.08, 0.66),
+    ("Grand Ave & 5th",          "Los Angeles, CA, USA, 90071", 0.52, 0.40),
 ]
+# Type is two lines in the product: what created the record, then the field it came
+# from. "Program Enrollment" over "Geolocation Field" is the pair the owner's
+# capture shows; "Field Interaction" is the other type Bitfocus's help article names
+# as visible without Outreach enabled. Nothing else is guessed at.
+LOC_TYPE = ["Program Enrollment", "Field Interaction"]
+LOC_SOURCE = "Geolocation Field"
+# The organisations a location record is created by. Invented, like every other
+# organisation in this roster — a real provider's name belongs to that provider.
+LOC_ORG = ["Harborlight Outreach", "Sixth Street Collective", "Vermont Care Network",
+           "Alameda Housing Partners", "Westlake Community Trust"]
 
 # Point of Contact. The profile carries three PoC blocks; the live capture had all
 # three empty because that account's test client had none recorded, but an empty
@@ -538,10 +558,9 @@ POC_L = ["Okonkwo", "Villalobos", "Ashworth", "Nguyen-Pratt", "Ramanathan",
          "Beaumont", "Escalante", "Whitlock", "Sorensen", "Bakr", "Ferreira",
          "Novikov", "Hallowell", "Adeyemi", "Castellanos", "Rahimi", "Duval",
          "Mendoza-Klein", "Aherne", "Bashir"]
-# Category is the PoC's role. The field is a Select in the product, so these are
-# the kind of option a LAHSA configuration would carry.
-POC_CAT = ["Housing Navigation", "Outreach", "Case Management",
-           "Interim Housing", "Emergency Shelter"]
+# Point of Contact Category is a Select whose options we have never seen. The
+# capture shows the placeholder, so that is what every record carries: the field is
+# real, its values are not ours to invent.
 
 
 def poc_person(r):
@@ -555,12 +574,21 @@ def poc_person(r):
     }
 
 
+def loc_row(place, city, x, y, kind):
+    """One row of the Location table, in the product's own columns."""
+    who = poc_person(rnd)
+    return {"p": place, "city": city, "x": x, "y": y,
+            "ty": kind, "src": LOC_SOURCE,
+            "d": iso(rnd.randint(2023, 2026), rnd.randint(1, 12), rnd.randint(1, 28)),
+            "by": who["nm"], "org": rnd.choice(LOC_ORG), "sc": "Individual"}
+
+
 def poc_block(r, when):
     """A filled Point of Contact block, supervisor and all."""
     p, sup = poc_person(r), poc_person(r)
     return {"dt": when, "nm": p["nm"], "ph": p["ph"], "ex": p["ex"], "em": p["em"],
             "snm": sup["nm"], "sph": sup["ph"], "sex": sup["ex"], "sem": sup["em"],
-            "cat": r.choice(POC_CAT)}
+            "cat": ""}
 
 
 QUALITY_LABEL = {
@@ -580,6 +608,16 @@ for c in clients:
     c["lid"] = str(rnd.randint(100000, 999999)) if rnd.random() < 0.18 else ""
     c["mdn"] = rnd.choice(COMMON_L) if rnd.random() < 0.07 else ""
     c["g"] = weighted(list(zip(GENDER, GENDER_W)))
+    # The rest of Demographics, from the owner's August capture of that part of the
+    # page. Mostly empty, which is what the capture shows and what makes "No value"
+    # the ordinary sight here rather than a sign something is missing.
+    c["lang"] = rnd.choice(LANGUAGE) if rnd.random() < 0.30 else ""
+    c["tb"] = iso(rnd.randint(2023, 2026), rnd.randint(1, 12), rnd.randint(1, 28)) \
+        if rnd.random() < 0.12 else ""
+    c["clinic"] = rnd.choice(CLINIC) if rnd.random() < 0.10 else ""
+    c["dpss"] = str(rnd.randint(1000000, 9999999)) if rnd.random() < 0.14 else ""
+    c["prk"] = "Yes" if rnd.random() < 0.08 else "No"
+    c["fema"] = str(rnd.randint(1000000000, 9999999999)) if rnd.random() < 0.04 else ""
     # "Updated on" is a timestamp on the record, not just a date.
     c["ut"] = "%d:%02d %s" % (rnd.randint(1, 12), rnd.randint(0, 59),
                               rnd.choice(["AM", "PM"]))
@@ -595,9 +633,7 @@ for c in clients:
     # Outreach enabled, so those are the two types modelled. No dates — the help
     # article does not show one, and inventing it would be guessing again.
     _picked = rnd.sample(LOCATIONS, weighted([(0, .30), (1, .34), (2, .22), (3, .14)]))
-    c["lo"] = [{"p": p, "ty": ty, "x": x, "y": y,
-                "k": "Address" if rnd.random() < .45 else "Field Interaction"}
-               for (p, ty, x, y) in _picked]
+    c["lo"] = [loc_row(p, city, x, y, rnd.choice(LOC_TYPE)) for (p, city, x, y) in _picked]
     # Nought to three Points of Contact, weighted so most records carry one and a
     # few carry the full three — the section's own guidance is about what to do
     # when three are already recorded, which only means anything if some records
@@ -630,13 +666,13 @@ if len(_vega) == 3:
 # the search stops separating them.
 _ngu = {c["i"]: c for c in clients if c["l"] == "Nguyen"}
 if len(_ngu) == 2:
-    _by_name = {p: (p, ty, x, y) for (p, ty, x, y) in LOCATIONS}
+    _by_name = {p: (p, city, x, y) for (p, city, x, y) in LOCATIONS}
     def _rec(name, kind):
-        p, ty, x, y = _by_name[name]
-        return {"p": p, "ty": ty, "x": x, "y": y, "k": kind}
+        p, city, x, y = _by_name[name]
+        return loc_row(p, city, x, y, kind)
     _ngu["6C2D91B47"]["lo"] = [_rec("6th Street bridge", "Field Interaction"),
                                _rec("Union Station forecourt", "Field Interaction")]
-    _ngu["D3A7E0C85"]["lo"] = [_rec("Hollywood & Western", "Address"),
+    _ngu["D3A7E0C85"]["lo"] = [_rec("Hollywood & Western", "Program Enrollment"),
                                _rec("Venice Blvd & Sepulveda", "Field Interaction")]
 for c in clients:
     if c["l"] != "Nguyen":
@@ -647,13 +683,13 @@ for c in clients:
 # the location only separates them if nobody else on the roster holds it.
 _dez = {c["i"]: c for c in clients if c["f"] == "Dezmond"}
 if len(_dez) == 2:
-    _by_name2 = {p: (p, ty, x, y) for (p, ty, x, y) in LOCATIONS}
+    _by_name2 = {p: (p, city, x, y) for (p, city, x, y) in LOCATIONS}
     def _rec2(name, kind):
-        p, ty, x, y = _by_name2[name]
-        return {"p": p, "ty": ty, "x": x, "y": y, "k": kind}
+        p, city, x, y = _by_name2[name]
+        return loc_row(p, city, x, y, kind)
     _dez["D2F8A6C31"]["lo"] = [_rec2("Alameda St underpass", "Field Interaction"),
                                _rec2("Grand Ave & 5th", "Field Interaction")]
-    _dez["A7C4E9B52"]["lo"] = [_rec2("Westlake metro portal", "Address")]
+    _dez["A7C4E9B52"]["lo"] = [_rec2("Westlake metro portal", "Program Enrollment")]
 for c in clients:
     if c["i"] != "D2F8A6C31":
         c["lo"] = [e for e in c["lo"] if e["p"] != "Alameda St underpass"]

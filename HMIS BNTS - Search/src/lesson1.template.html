@@ -89,6 +89,7 @@ html.dock-min,html.dock-out{--dock:0px}
 .crumbs>span{color:#3f4763;cursor:default}
 .crumbs>span svg{color:#7b83ab}
 .who{display:flex;align-items:center;gap:10px;padding-left:8px}
+.whoch{width:24px;height:24px;color:var(--indigo)}
 .who .av{width:38px;height:38px;border-radius:50%;overflow:hidden;display:block;position:relative;flex:none;
   background:var(--green);box-shadow:0 0 0 2px #fff,0 1px 3px rgba(60,50,140,.25)}
 .who .av svg{width:100%;height:100%;display:block}
@@ -200,7 +201,7 @@ tbody tr.open{background:var(--indigo-soft)}
 .pop{position:absolute;z-index:175;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(40,30,90,.24);
   border:1px solid var(--line);padding:8px;min-width:210px}
 .pop[hidden]{display:none}
-.pop .ph{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 10px 6px;background:#f7f6fd;border-radius:7px;margin:4px 0}
+.pop .ph{font-size:12px;font-weight:600;color:var(--ink);padding:8px 10px 6px;background:#f7f6fd;border-radius:7px;margin:4px 0}
 .menuitem{display:flex;align-items:center;gap:11px;width:100%;padding:11px 12px;border-radius:8px;font-size:14px;text-align:left}
 .menuitem:hover{background:var(--indigo-soft)}
 .menuitem svg{color:var(--indigo);flex:none}
@@ -240,6 +241,7 @@ tbody tr.open{background:var(--indigo-soft)}
 .recnav button:not([data-locked]):hover{background:#f5f4fd}
 .recnav button[aria-current="page"]{background:var(--indigo-soft);color:var(--indigo-dk);font-weight:600}
 .recnav svg{color:var(--indigo);flex:none;opacity:.85}
+.navcol{display:grid;place-items:center;padding:9px 0 4px;color:var(--indigo)}
 .reccard{padding:20px 0 6px}
 .profgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px;padding:16px 22px 22px}
 @media(max-width:620px){.profgrid{grid-template-columns:1fr}}
@@ -315,6 +317,9 @@ tbody tr.open{background:var(--indigo-soft)}
 .locsearch .pill input{width:100%;border:0;background:none;font-size:14px;padding:0}
 .locsearch .pill .act{color:var(--muted)}
 .locmap{position:relative;height:300px;overflow:hidden}
+.mapinner{position:absolute;inset:0;transform-origin:center;transition:transform .22s ease}
+.mapctl button:disabled{opacity:.35}
+@media(prefers-reduced-motion:reduce){.mapinner{transition:none}}
 /* Map furniture: the zoom stack and a scale bar. Both are what makes a drawn
    panel read as a map rather than as an illustration of one. */
 .mapctl{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:1px;
@@ -326,21 +331,34 @@ tbody tr.open{background:var(--indigo-soft)}
   font-size:10.5px;color:#6e6a62}
 .mapscale i{display:block;width:54px;height:6px;border:1.5px solid #6e6a62;border-top:0;background:rgba(255,255,255,.6)}
 .mapbase{position:absolute;inset:0;width:100%;height:100%;display:block}
-.pin{position:absolute;transform:translate(-50%,-100%);width:26px;height:26px;border-radius:50% 50% 50% 0;
-  rotate:-45deg;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:12px;
-  font-weight:700;box-shadow:0 2px 5px rgba(20,16,40,.4);border:2px solid #fff}
-.pin>*{rotate:45deg}
-.loclist{list-style:none;margin:0 22px 6px;padding:0}
-.loclist li{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:14px}
-.loclist li:last-child{border-bottom:0}
-.pinl{width:20px;height:20px;border-radius:50%;background:var(--indigo);color:#fff;display:grid;
-  place-items:center;font-size:11px;font-weight:700;flex:none}
-.locp{font-weight:600}
-.loct,.lock{font-size:12.5px;color:var(--muted)}
-.lock{margin-left:auto}
+.pin{position:absolute;transform:translate(-50%,-100%);width:22px;height:22px;border-radius:50% 50% 50% 0;
+  rotate:-45deg;background:#2f57c4;box-shadow:0 2px 5px rgba(20,16,40,.4);border:2px solid #fff}
+/* The Location table, in the product's columns. Same row rhythm as Client Search,
+   because it is the same table component. */
+.loctbl{width:100%;border-collapse:collapse;font-size:14px}
+.loctbl thead th{text-align:left;font-size:13px;font-weight:600;color:var(--ink);
+  padding:13px 14px;background:#faf9fd;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.loctbl td{padding:11px 14px;border-bottom:1px solid var(--line-2);vertical-align:middle;white-space:nowrap}
+.loctbl tr:last-child td{border-bottom:0}
+.loctbl .chev{width:40px;padding-left:18px}
+.locaddr,.locby{display:flex;align-items:center;gap:10px}
+.locaddr .nm,.locby .nm,.loctype{display:flex;flex-direction:column;line-height:1.35}
+.locaddr .nm span,.locby .nm span,.loctype span{font-size:12.5px;color:var(--muted)}
+.locpin{color:#c0392b;display:grid;place-items:center;flex:none}
+.locdate{display:inline-flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap}
+.locdate svg{color:var(--indigo);flex:none}
+.locby .av2{width:26px;height:26px;border-radius:50%;background:#b0245e;color:#fff;
+  display:grid;place-items:center;font-size:10.5px;font-weight:700;flex:none}
+.locend{text-align:right;white-space:nowrap}
+.locend svg{color:var(--muted);vertical-align:middle;margin-left:10px}
+.locscope{color:var(--indigo);font-size:13.5px}
+.locpager{display:flex;align-items:center;justify-content:flex-end;gap:4px;
+  padding:12px 20px 16px;font-size:13px;color:var(--muted)}
+.locpager button{width:30px;height:30px;display:grid;place-items:center;
+  border-radius:50%;color:var(--indigo)}
 /* Flush in the card body, as capture 07 has it — not boxed off in a sub-card. */
 .locempty{margin:0;padding:18px 22px 22px}
-.locmap{margin:0 22px 22px;border-radius:12px;border:1px solid var(--line-2)}
+.locmap{margin:14px 0 0;border-radius:12px;border:1px solid var(--line-2)}
 
 /* ---------------- coach window ----------------
    A movable window over the interface, not a drawer beside it. It carries the
@@ -605,15 +623,18 @@ html.dock-out .cwbar.drag{cursor:grabbing}
     <button class="railbtn" aria-current="page" title="Clients" aria-label="Clients">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="7" r="3.2"/><path d="M4 20c0-3.3 2.7-5.5 6-5.5"/><circle cx="16.5" cy="16.5" r="3.6"/><path d="M19.3 19.3L22 22"/></svg>
     </button>
+    <button class="railbtn" data-locked title="Add Client" aria-label="Add Client"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9.5" cy="8" r="3.6"/><path d="M3 19.5c.6-3.4 3.1-5.4 6.5-5.4 1.2 0 2.3.25 3.2.7"/><path d="M17.5 14v6M14.5 17h6"/></svg></button>
     <button class="railbtn" data-locked title="Reports" aria-label="Reports"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="4" height="9" rx="1"/><rect x="10" y="5" width="4" height="15" rx="1"/><rect x="17" y="8" width="4" height="12" rx="1"/></svg></button>
     <button class="railbtn" data-locked title="Calendar" aria-label="Calendar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3M9 14.5l2 2 4-4"/></svg></button>
-    <button class="railbtn" data-locked title="Referrals" aria-label="Referrals"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12H8M12 7l-5 5 5 5M3 4v16"/></svg></button>
+    <button class="railbtn" data-locked title="Appointments" aria-label="Appointments"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3M8.5 14.5l2.5 2.5 4.5-4.5"/></svg></button>
+    <button class="railbtn" data-locked title="Outreach" aria-label="Outreach"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="13" cy="4.6" r="1.9"/><path d="M11 21l1.6-5.2-2.6-2.2.8-4.4 3.4-1.2 3 2.4 2.4.8"/><path d="M6.5 12.4l3.3-2.2M8 21l2.6-4"/></svg></button>
     <button class="railbtn" data-locked title="Inbox" aria-label="Inbox"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 13h4l1.5 3h6l1.5-3h4"/></svg></button>
     <button class="railbtn" data-locked title="Locations" aria-label="Locations"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="10" r="2.2"/><path d="M12 12.5V17"/></svg></button>
     <button class="railbtn" data-locked title="Housing" aria-label="Housing"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-5h6v5"/></svg></button>
     <button class="railbtn" data-locked title="Setup" aria-label="Setup"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.5 6.5a3.5 3.5 0 01-4.6 4.6L5 16l3 3 4.9-4.9a3.5 3.5 0 004.6-4.6l-2.3 2.3-2.1-2.1z"/></svg></button>
     <button class="railbtn" data-locked title="Settings" aria-label="Settings"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4L5.6 5.6"/></svg></button>
     <div class="railspacer"></div>
+    <button class="railbtn" data-locked title="Staff" aria-label="Staff"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="16.5" cy="7" r="3"/><path d="M11 20c.5-3 2.6-4.8 5.5-4.8S21.5 17 22 20"/><path d="M2 7h6M2 12h6M2 17h6"/></svg></button>
     <button class="railbtn" data-locked title="Expand menu" aria-label="Expand menu"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 6l6 6-6 6M13 6l6 6-6 6"/></svg></button>
   </nav>
 
@@ -638,6 +659,7 @@ html.dock-out .cwbar.drag{cursor:grabbing}
       <button class="tb" data-locked title="Dark mode" aria-label="Dark mode"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg></button>
       <button class="tb" id="globalSearchBtn" title="Client search" aria-label="Go to client search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
       <button class="tb" data-locked title="Open in new window" aria-label="Open in new window"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
+      <button class="tb" data-locked title="Messages" aria-label="Messages"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.6 6.7L12 13l8.4-6.3"/></svg></button>
       <div class="who">
         <span class="av" title="HMIS Training">
           <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -680,6 +702,8 @@ html.dock-out .cwbar.drag{cursor:grabbing}
           <b class="avin">HT</b>
         </span>
         <span class="nm"><b>HMIS Training</b><span>Los Angeles, California</span></span>
+        <!-- the account menu's chevron, as capture 01 shows it -->
+        <button class="tb whoch" data-locked="crisp" aria-label="Account menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg></button>
       </div>
     </div>
 
@@ -710,7 +734,7 @@ html.dock-out .cwbar.drag{cursor:grabbing}
               <div><h1 id="recCardName"></h1><p>Client profile information</p></div>
               <div style="margin-left:auto;display:flex;gap:4px">
                 <button class="tb" data-locked title="Edit" aria-label="Edit profile"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>
-                <button class="tb" id="kebabBtn" title="More actions" aria-label="More actions" aria-expanded="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+                <button class="tb" id="kebabBtn" title="More actions" aria-label="More actions"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
               </div>
             </div>
             <div class="profgrid" id="profGrid"></div>
@@ -761,7 +785,7 @@ html.dock-out .cwbar.drag{cursor:grabbing}
                Drawn crisp and opening a menu whose items are obstructed, the same way
                the record card's kebab works: blurring three small dots turns them into
                a smudge that reads as a rendering fault rather than a control. -->
-          <button class="tb" id="listKebab" title="More actions" aria-label="More actions for the client list" aria-expanded="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+          <button class="tb" id="listKebab" title="More actions" aria-label="More actions for the client list"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
         </div>
 
         <div class="searchrow">
@@ -2235,14 +2259,11 @@ function renderTable(){
        person — an avatar chip with name over role — and "Updated on" is its own
        field with a date and a time, not a suffix on the name.
 
-       ROI is the one exception to the rule. Falling out of the columns and into
-       the expander is what the product would do with it, but the owner asked for
-       ROI gone from the view rather than dimmed, and reappearing here would put it
-       back in front of the learner by a side door. It stays selectable in the
-       column chooser, which is where the fidelity of capture 01 actually lives. */
+       ROI included: dropping it from the default columns was only ever safe because
+       columns are switchable, and a switched-off column belongs here. */
     return main+'<tr class="expand"><td colspan="'+(vis.length+2)+'"><div class="inner">'+
       COLLAPSED.map(function(f){ return xf(f.label, collapsedHTML(c,f.k)); }).join("")+
-      S.cols.filter(function(f){ return !f.locked && !f.vis && f.k!=="roi"; })
+      S.cols.filter(function(f){ return !f.locked && !f.vis; })
             .map(function(f){ return xf(f.label, cellHTML(c,f.k)); }).join("")+
       '</div></td></tr>';
   }).join("");
@@ -2264,7 +2285,9 @@ renderTable=function(){
 };
 
 /* ---------------- chips ---------------- */
-var FILTER_FIELDS=[{k:"first",label:"First Name"},{k:"last",label:"Last Name"},{k:"alias",label:"Alias"}];
+/* The live menu lists them Alias, First Name, Last Name — alphabetical, each with
+   a funnel icon. We had them in schema order. */
+var FILTER_FIELDS=[{k:"alias",label:"Alias"},{k:"first",label:"First Name"},{k:"last",label:"Last Name"}];
 function renderChips(){
   $("#chips").innerHTML=S.chips.map(function(ch,i){
     var f=FILTER_FIELDS.filter(function(x){return x.k===ch.key;})[0];
@@ -2641,7 +2664,8 @@ var REC_NAV=[
   ["Contact","M5 5h14v14H5zM5 9h14M9 13h6"],
   ["Location","M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z M12 10a2 2 0 100 .01"],
   ["Referrals","M21 12H8M12 7l-5 5 5 5M3 4v16"],
-  ["Restrictions","M12 3a9 9 0 109 9 9 9 0 00-9-9zM5.6 5.6l12.8 12.8"]
+  ["Restrictions","M12 3a9 9 0 109 9 9 9 0 00-9-9zM5.6 5.6l12.8 12.8"],
+  ["Client Portal","M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM3.5 12h17M12 3.5c2.2 2.3 3.4 5.3 3.4 8.5S14.2 18.2 12 20.5c-2.2-2.3-3.4-5.3-3.4-8.5S9.8 5.8 12 3.5z"]
 ];
 function field(label,val,muted){
   return '<div class="pf"><b>'+esc(label)+'</b><span'+(muted?' class="novalue"':'')+'>'+val+'</span></div>';
@@ -2657,7 +2681,6 @@ function field(label,val,muted){
    The TLS callout is quoted as the product words it, including the job-aid link,
    which is a real LAHSA URL and is not made clickable here. */
 var EXTRA_SECTIONS=[
-  { title:"FEMA", fields:[["FEMA Registration Number",""]] },
   { title:"ADA Information", fields:[
     ["Does the participant or anyone in this household have a disability?",""],
     ["Does the participant or anyone in this household have a disability and need or could "+
@@ -2770,7 +2793,11 @@ function openProfile(id){
     return '<button type="button" '+(n[0]==="Profile"?'aria-current="page"':"")+
       (open?' data-tab="'+esc(n[0])+'"':' data-locked')+'>'+
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="'+n[1]+'"/></svg>'+esc(n[0])+'</button>';
-  }).join("");
+  }).join("")+
+    /* the record menu collapses, as the live capture shows at the foot of the list */
+    '<button class="navcol" data-locked="crisp" aria-label="Collapse the record menu">'+
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">'+
+      '<path d="M17 6l-6 6 6 6M11 6l-6 6 6 6"/></svg></button>';
 
   /* Field order is capture 03's, top to bottom. Date of Birth is the full
      MM/DD/YYYY here even though the results table abbreviates it, and Age is its
@@ -2796,17 +2823,19 @@ function openProfile(id){
     opt("Pronoun(s)", c.p)+
     field("Race and Ethnicity", esc(c.rc))+
     opt("Additional Race and Ethnicity Detail", c.rd)+
-    /* Ours, not the capture's. Capture 03 runs Alias straight into Demographics and
-       its crop ends at the detail field, so anything after that is unevidenced —
-       which makes the end of the block the honest place for the four the lesson
-       needs. Client ID and Unique Identifier are the two identifiers a learner is
-       asked to tell apart; Release of Information and Earliest enrollment are read
-       during verification. */
-    '<div class="subhead">Record</div>'+
-    field("Client ID", String(c.cid))+
-    field("Unique Identifier", esc(c.i))+
-    field("Release of Information", esc(c.r))+
-    field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe);
+    /* The rest of Demographics, from the owner's capture of the gap between the
+       detail field and ADA Information. TB Clearance Date shows nothing at all when
+       empty, the way Point of Contact Date does. FEMA Registration Number closes the
+       section — it is not a section of its own, which is what we had guessed.
+       Client ID, Unique Identifier and Release of Information are NOT on this page:
+       the identifiers live in the results row and its expander, and ROI is a column. */
+    opt("Primary Language", c.lang)+
+    (c.tb ? field("TB Clearance Date", dobShort(c.tb))
+          : '<div class="pf"><b>TB Clearance Date</b></div>')+
+    opt("Clinic", c.clinic)+
+    opt("DPSS ID", c.dpss)+
+    field("Reviewed for Covid-19 vulnerability and Project Room Key?", esc(c.prk))+
+    opt("FEMA Registration Number", c.fema);
 
   renderExtras(c);
   renderPOC(c);
@@ -2932,17 +2961,23 @@ function renderLocation(c){
   var lo = c.lo || [];
   var map =
     '<div class="locmap" role="img" aria-label="Map of central Los Angeles showing '+lo.length+
-      ' recorded location'+(lo.length===1?"":"s")+'">'+ MAP_SVG +
+      ' recorded location'+(lo.length===1?"":"s")+'">'+
+      /* svg and pins scale together, so a pin stays on its street when you zoom */
+      '<div class="mapinner" id="mapInner">'+ MAP_SVG +
       lo.map(function(e,i){
-        return '<span class="pin" style="left:'+(e.x*100)+'%;top:'+(e.y*100)+'%"><b>'+
-          PIN_LETTERS[i]+'</b></span>';
+        return '<span class="pin" style="left:'+(e.x*100)+'%;top:'+(e.y*100)+'%"></span>';
       }).join("")+
+      '</div>'+
       /* Zoom and layers, top left, as capture 07 has them. Obstructed like every
          other control this lesson does not teach — a live zoom on a drawn map is
          a promise the map cannot keep. */
       '<div class="mapctl">'+
-        '<button data-locked="crisp" aria-label="Zoom in">+</button>'+
-        '<button data-locked="crisp" aria-label="Zoom out">\u2212</button>'+
+        '<button id="mapIn" aria-label="Zoom in">+</button>'+
+        '<button id="mapOut" aria-label="Zoom out">\u2212</button>'+
+        '<button id="mapFit" aria-label="Reset the view"><svg width="14" height="14" viewBox="0 0 24 24" '+
+          'fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 9V5.5A1.5 1.5 0 015.5 4H9"/>'+
+          '<path d="M15 4h3.5A1.5 1.5 0 0120 5.5V9"/><path d="M20 15v3.5a1.5 1.5 0 01-1.5 1.5H15"/>'+
+          '<path d="M9 20H5.5A1.5 1.5 0 014 18.5V15"/></svg></button>'+
         '<button data-locked="crisp" aria-label="Map layers"><svg width="15" height="15" viewBox="0 0 24 24" '+
           'fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 5-9 5-9-5z"/>'+
           '<path d="M3 13l9 5 9-5"/></svg></button>'+
@@ -2964,14 +2999,60 @@ function renderLocation(c){
     $$("#locBody [data-locked]").forEach(bindLocked);
     return;
   }
+  /* A table, in the product's own columns — Address over city, Date, Type over the
+     field it came from, Created by as a person with their organisation, then the
+     scope chip and a star. Pagination sits under it, as it does on Client Search. */
   $("#locBody").innerHTML =
-    '<ul class="loclist">'+lo.map(function(e,i){
-      return '<li><span class="pinl">'+PIN_LETTERS[i]+'</span>'+
-        '<span class="locp">'+esc(e.p)+'</span>'+
-        '<span class="loct">'+esc(e.ty)+'</span>'+
-        '<span class="lock">'+esc(e.k)+'</span></li>';
-    }).join("")+'</ul>'+ map;
+    '<div class="tablewrap"><table class="loctbl"><thead><tr>'+
+      '<th class="chev"></th><th>Address</th><th>Date</th><th>Type</th><th>Created by</th><th></th>'+
+    '</tr></thead><tbody>'+
+    lo.map(function(e,i){
+      return '<tr>'+
+        '<td class="chev"><button class="rowbtn" data-locked="crisp" aria-label="Show more for '+esc(e.p)+'">'+
+          '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5 5 5-5"/></svg></button></td>'+
+        '<td><span class="locaddr">'+
+          '<span class="locpin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" '+
+            'stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/>'+
+            '<circle cx="12" cy="10" r="2.4"/></svg></span>'+
+          '<span class="nm"><b>'+esc(e.p)+'</b><span>'+esc(e.city)+'</span></span></span></td>'+
+        '<td><span class="locdate">'+
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">'+
+          '<rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3"/></svg>'+
+          dobShort(e.d)+'</span></td>'+
+        '<td><span class="loctype"><b>'+esc(e.ty)+'</b><span>'+esc(e.src)+'</span></span></td>'+
+        '<td><span class="locby"><span class="av2">'+esc(staffInitials(e.by))+'</span>'+
+          '<span class="nm"><b>'+esc(e.by)+'</b><span>'+esc(e.org)+'</span></span></span></td>'+
+        '<td class="locend"><span class="locscope">'+esc(e.sc)+'</span>'+
+          '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">'+
+          '<path d="M12 3.8l2.5 5.1 5.6.8-4 4 .9 5.6-5-2.6-5 2.6.9-5.6-4-4 5.6-.8z"/></svg></td>'+
+      '</tr>';
+    }).join("")+
+    '</tbody></table></div>'+
+    '<div class="locpager"><span>1 &ndash; '+lo.length+' of '+lo.length+'</span>'+
+      '<button data-locked="crisp" aria-label="Previous page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></button>'+
+      '<button data-locked="crisp" aria-label="Next page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></button>'+
+    '</div>'+ map;
   $$("#locBody [data-locked]").forEach(bindLocked);
+  bindMap();
+}
+/* Zoom is real: the svg and the pins share one wrapper, so scaling the wrapper
+   moves both and a pin stays on its street. Three steps and a reset — enough to
+   read a cross-street, which is what the lesson ever asks of the map. */
+var MAP_ZOOM=[1,1.7,2.6,3.8], mapZ=0;
+function applyZoom(){
+  var el=$("#mapInner"); if(!el) return;
+  el.style.transform="scale("+MAP_ZOOM[mapZ]+")";
+  var i=$("#mapIn"), o=$("#mapOut");
+  if(i) i.disabled = mapZ>=MAP_ZOOM.length-1;
+  if(o) o.disabled = mapZ<=0;
+}
+function bindMap(){
+  var i=$("#mapIn"), o=$("#mapOut"), f=$("#mapFit");
+  if(!i) return;
+  mapZ=0; applyZoom();
+  i.addEventListener("click",function(){ if(mapZ<MAP_ZOOM.length-1){ mapZ++; applyZoom(); } });
+  o.addEventListener("click",function(){ if(mapZ>0){ mapZ--; applyZoom(); } });
+  f.addEventListener("click",function(){ mapZ=0; applyZoom(); });
 }
 function showRecordTab(name, c){
   $$("#recNav button").forEach(function(b){
@@ -2983,6 +3064,9 @@ function showRecordTab(name, c){
   $("#locationPane").hidden = !isLoc;
   /* the last crumb names the tab you are on, so it moves with the tabs */
   $("#crumbTab").querySelector("b").textContent=name;
+  $("#crumbTab").querySelector("svg").innerHTML = (name==="Location")
+    ? '<path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/>'
+    : '<circle cx="12" cy="8" r="3.4"/><path d="M5 19.5c.7-3.6 3.4-5.5 7-5.5s6.3 1.9 7 5.5"/>';
   if(isLoc) renderLocation(c);
 }
 function closeProfile(){
@@ -2997,30 +3081,18 @@ function closeProfile(){
 /* Kebab on the profile card. Reporting duplicates is not part of this training,
    so the control is present — it is on the real screen — but obstructed, the same
    as everything else this lesson does not teach. */
-$("#kebabBtn").addEventListener("click",function(e){
-  e.stopPropagation();
-  var p=$("#filterPop"), open=p.hidden;
-  closePops(); if(!open) return;
-  p.innerHTML='<button class="menuitem" data-locked role="menuitem">'+
-    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V4h9l-1 3h6v8h-7l-1-3H5"/></svg>Flag possible duplicate</button>'+
-    '<button class="menuitem" data-locked role="menuitem">'+
-    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>Add to household</button>';
-  place(p,this); p.hidden=false; this.setAttribute("aria-expanded","true");
-  $$("#filterPop [data-locked]").forEach(bindLocked);
+/* Both kebabs are real controls whose menus we have never seen. Rather than invent
+   their contents, they say what every other untaught control says. */
+$("#kebabBtn").addEventListener("click",function(){
+  notice("Blurred for now",
+    "<p>This menu holds actions on the record itself. It is not part of what this "+
+    "lesson teaches, so it is closed here.</p>");
 });
-
-/* The Clients card's own kebab. What sits behind it is list-level work — exporting
-   the result set, bulk actions — none of which this lesson teaches. */
-$("#listKebab").addEventListener("click",function(e){
-  e.stopPropagation();
-  var p=$("#filterPop"), open=p.hidden;
-  closePops(); if(!open) return;
-  p.innerHTML='<button class="menuitem" data-locked role="menuitem">'+
-    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"/></svg>Export results</button>'+
-    '<button class="menuitem" data-locked role="menuitem">'+
-    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M13 16.5h7M16.5 13v7"/></svg>Manage saved views</button>';
-  place(p,this); p.hidden=false; this.setAttribute("aria-expanded","true");
-  $$("#filterPop [data-locked]").forEach(bindLocked);
+/* The Clients card's own kebab — same story as the record's. */
+$("#listKebab").addEventListener("click",function(){
+  notice("Blurred for now",
+    "<p>This menu holds actions on the client list as a whole. It is not part of what "+
+    "this lesson teaches, so it is closed here.</p>");
 });
 
 /* add client — out of scope for Lesson 1 */
@@ -3273,10 +3345,6 @@ function closePops(){
   ["#filterPop","#chipPop","#colPop"].forEach(function(s){ $(s).hidden=true; });
   $("#filterBtn").setAttribute("aria-expanded","false");
   $("#colBtn").setAttribute("aria-expanded","false");
-  /* Both kebabs borrow #filterPop, so both have to be told it closed. */
-  ["#kebabBtn","#listKebab"].forEach(function(s){
-    var b=$(s); if(b) b.setAttribute("aria-expanded","false");
-  });
 }
 document.addEventListener("click",closePops);
 $$("[data-close]").forEach(function(b){ b.addEventListener("click",function(){ this.closest(".backdrop").hidden=true; }); });

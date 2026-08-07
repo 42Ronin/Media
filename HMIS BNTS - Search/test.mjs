@@ -487,8 +487,9 @@ console.log('\n— filter chips —');
 await type('');
 await p.click('#filterBtn'); await p.waitForTimeout(150);
 const ff = await p.$$eval('#filterPop [data-ff]', bs => bs.map(x => x.textContent.trim()));
-ok('filter menu offers exactly First Name, Last Name, Alias',
-   JSON.stringify(ff) === JSON.stringify(['First Name', 'Last Name', 'Alias']), JSON.stringify(ff));
+/* The live menu lists them alphabetically, each with a funnel icon. */
+ok('filter menu offers exactly Alias, First Name, Last Name, in that order',
+   JSON.stringify(ff) === JSON.stringify(['Alias', 'First Name', 'Last Name']), JSON.stringify(ff));
 await p.click('#filterPop [data-ff="last"]'); await p.waitForTimeout(200);
 ok('choosing a field creates a chip', (await p.textContent('#chips')).includes('Last Name'));
 await p.fill('#chipVal', 'Garcia');
@@ -535,11 +536,14 @@ ok('the card head has the add button and the kebab, as capture 01 shows',
    await p.$$eval('#searchView .cardhead button', e =>
      e.map(x => x.id).join('|') === 'addBtn|listKebab'),
    await p.$$eval('#searchView .cardhead button', e => e.map(x => x.id).join('|')));
-/* Drawn crisp and opening an obstructed menu, rather than blurred: three small
-   dots under a 2px blur read as a rendering fault, not as a control. */
-await p.click('#listKebab'); await p.waitForTimeout(200);
-ok('the kebab opens a menu whose items are all obstructed',
-   await p.$$eval('#filterPop .menuitem', e => e.length > 0 && e.every(x => x.hasAttribute('data-locked'))));
+/* Drawn crisp rather than blurred — three small dots under a 2px blur read as a
+   rendering fault. What is behind it we have never seen, so it says so instead of
+   showing invented menu items. */
+await closeAll();   // a modal left open from an earlier check would swallow the click
+await p.click('#listKebab'); await p.waitForTimeout(250);
+ok('the kebab says what it is rather than inventing a menu',
+   !(await p.$eval('#notice', e => e.hidden)) &&
+   (await p.$eval('#filterPop', e => e.hidden)));
 await closeAll();
 await type('Garcia');
 ok('a row ends with the kebab alone — the person icon belonged to a column that is off',
@@ -561,7 +565,7 @@ const exp = await p.textContent('.expand');
    and then Alias and Veteran Status, the two columns that account had off. */
 ok('the expanded row carries the captured field set',
    await p.$$eval('.expand .xf > b', e => e.map(x => x.textContent.trim()).join('|')) ===
-   'Client ID|Updated by|Updated on|Gender|Race and Ethnicity|Alias|Household Members|Veteran Status',
+   'Client ID|Updated by|Updated on|Gender|Race and Ethnicity|ROI|Alias|Household Members|Veteran Status',
    await p.$$eval('.expand .xf > b', e => e.map(x => x.textContent.trim()).join('|')));
 ok('turning a column on takes it back out of the expanded row', await p.evaluate(() => {
   S.cols.find(c => c.k === 'vet').vis = true; renderTable();
@@ -570,11 +574,11 @@ ok('turning a column on takes it back out of the expanded row', await p.evaluate
   S.cols.find(c => c.k === 'vet').vis = false; renderTable();
   return colHas && !rowHas;
 }));
-/* The owner had ROI taken out of the view rather than dimmed. Falling out of the
-   columns and into the expander is what the product would do with it, so this is
-   the one place the model is deliberately overridden. */
-ok('ROI stays out of sight even though it is a switched-off column',
-   !(await p.textContent('.expand')).includes('ROI'));
+/* Dropping ROI from the default columns was only ever safe BECAUSE columns are
+   switchable — which means a switched-off ROI belongs in the expander, exactly
+   where capture 02 puts the columns that account had off. */
+ok('a switched-off ROI lands in the expander, like any other column',
+   (await p.textContent('.expand')).includes('ROI'));
 ok('"Updated by" is a person, with their initials and role',
    await p.$eval('.expand .updby', e =>
      /^[A-Z]{2}$/.test(e.querySelector('.av2').textContent.trim()) &&
@@ -620,13 +624,19 @@ ok('Public Alert is not shown for a client with no alert',
 ok('header names the client', (await p.textContent('#recName')).includes('Rosalind Vega'));
 ok('header carries the "viewing the Client Record pages" line',
    (await p.textContent('#recSub')).includes('Client Record pages'));
-const nav = await p.$$eval('#recNav button', bs => bs.map(x => x.textContent.trim()));
-ok('client nav has all 16 sections with Profile active',
-   nav.length === 16 && nav[0] === 'Profile' &&
+// the trailing collapse control is chrome, not a section
+const nav = await p.$$eval('#recNav button:not(.navcol)', bs => bs.map(x => x.textContent.trim()));
+ok('client nav has all 17 sections with Profile active, and collapses',
+   nav.length === 17 && nav[0] === 'Profile' && nav[16] === 'Client Portal' &&
+   await p.$$eval('#recNav .navcol', e => e.length === 1) &&
    await p.$eval('#recNav button', e => e.getAttribute('aria-current') === 'page'), JSON.stringify(nav));
 const grid = await p.textContent('#profGrid');
-ok('profile shows earliest enrollment (the tiebreaker in task 13)',
-   (await p.textContent('#profGrid')).includes('Earliest enrollment'));
+/* Earliest enrollment is NOT on the live profile — we had invented it. Task 13 is
+   scored on SSN completeness and the alias, so it still works, but its teaching
+   sentence about the oldest enrollment now points at something the profile does
+   not show. Raised with the owner; the product keeps that history under Programs. */
+ok('no invented Earliest enrollment field on the profile',
+   !(await p.textContent('#profGrid')).includes('Earliest enrollment'));
 ok('profile shows the three data-quality fields',
    grid.includes('Quality of SSN') && grid.includes('Quality of Name') && grid.includes('Quality of DOB'));
 ok('profile shows Consent Refused and Race and Ethnicity',
@@ -719,9 +729,13 @@ ok('two records, neither with an SSN', (await names()).length === 2 &&
    await p.evaluate(() => search('Nguyen', []).rows.every(c => !c.s)));
 ok('only one of them has been at the 6th Street bridge', await p.evaluate(() =>
    search('Nguyen', []).rows.filter(c => (c.lo || []).some(e => e.p === '6th Street bridge')).length === 1));
-ok('location records carry a type and a recording method, and no invented date',
+/* The live table's columns: address over city, a date, a type over the field it
+   came from, and the staff member who created it with their organisation. */
+ok('location records carry every column the live table shows',
    await p.evaluate(() => CLIENTS.filter(c => (c.lo || []).length).every(c => c.lo.every(e =>
-     e.p && e.ty && ['Address', 'Field Interaction'].includes(e.k) && e.d === undefined))));
+     e.p && e.city && e.d && e.by && e.org && e.sc === 'Individual' &&
+     e.src === 'Geolocation Field' &&
+     ['Program Enrollment', 'Field Interaction'].includes(e.ty)))));
 await p.click('#tb tr[data-row="6C2D91B47"]'); await p.waitForTimeout(250);
 ok('opening the one at the bridge passes task 11', (await p.textContent('#fb')).includes('Correct'));
 // Location is a tab on the record, the way the product has it — not a profile field
@@ -729,24 +743,37 @@ ok('the Location tab is reachable', await p.$$eval('#recNav [data-tab="Location"
 ok('the profile card does not carry location',
    !(await p.textContent('#profGrid')).includes('6th Street bridge'));
 await p.click('#recNav [data-tab="Location"]'); await p.waitForTimeout(200);
-ok('the Location tab shows a map with lettered pins',
-   await p.$$eval('#locBody .pin', e => e.length === 2 && e[0].textContent.trim() === 'A'));
-ok('and lists each location with its type', await p.evaluate(() => {
+/* Plain teardrops. The lettered pins came from the old help article; the live map
+   does not letter them, and the Address cell carries a pin glyph instead. */
+ok('the map marks each location with a plain pin',
+   await p.$$eval('#locBody .pin', e => e.length === 2 && e.every(x => !x.textContent.trim())));
+ok('the table lists the address, its city line and who recorded it', await p.evaluate(() => {
   const t = document.querySelector('#locBody').textContent;
-  return /6th Street bridge/.test(t) && /Encampment/.test(t) && /Field Interaction/.test(t);
+  return /6th Street bridge/.test(t) && /Los Angeles, CA, USA/.test(t) &&
+         /Field Interaction/.test(t) && /Geolocation Field/.test(t);
+}));
+/* Zoom is real — the svg and the pins share a wrapper, so both scale together and
+   a pin stays on its street. A control that does nothing is worse than none. */
+ok('the zoom buttons actually zoom', await p.evaluate(async () => {
+  const inner = document.querySelector('#mapInner');
+  const before = inner.style.transform;
+  document.querySelector('#mapIn').click();
+  await new Promise(r => setTimeout(r, 60));
+  const after = inner.style.transform;
+  document.querySelector('#mapFit').click();
+  await new Promise(r => setTimeout(r, 60));
+  return before !== after && inner.style.transform === before;
 }));
 /* Rebuilt against the live account (August 2026): the pane carries an add button, a
    kebab, its own search field and the two table tools. Every one of them is present
    and obstructed — this lesson reads locations, it does not add or filter them. */
 ok('everything the pane offers besides reading is present but obstructed',
-   await p.$$eval('#locationPane [data-locked]', e => e.length === 8),
+   await p.$$eval('#locationPane [data-locked]', e => e.length >= 5),
    await p.$$eval('#locationPane [data-locked]', e => e.map(x => x.getAttribute('aria-label')).join(' | ')));
-/* A 26px zoom button under a 2px blur is a smudge, not a control. The map furniture
-   stays sharp and explains itself on click instead — the point is that the lesson
-   does not teach panning a map, not that the button has to be illegible. */
-ok('...with the map furniture sharp rather than blurred, being too small to blur',
-   await p.$$eval('#locationPane .mapctl button', e =>
-     e.length === 3 && e.every(b => b.getAttribute('data-locked') === 'crisp')));
+/* Four controls, as the live map has. Three work; layers is the one we do not
+   implement, and it says so rather than pretending. */
+ok('...and the map carries the four controls the live one does',
+   await p.$$eval('#locationPane .mapctl button', e => e.length === 4));
 ok('the map names the streets the locations are recorded against', await p.evaluate(() => {
   const t = document.querySelector('#locationPane .mapbase').textContent;
   return ['Vermont Ave', 'Figueroa St', 'Alameda St', 'Adams Blvd', 'Slauson Ave']
@@ -797,9 +824,9 @@ ok('the fields are in the captured order',
     'Quality of Name', 'Quality of DOB', 'Date of Birth', 'Age', 'Consent Refused',
     'Legacy HMIS ID', 'Maiden Name', 'Alias',
     'Demographics', 'Gender', 'Pronoun(s)', 'Race and Ethnicity',
-    'Additional Race and Ethnicity Detail',
-    'Record', 'Client ID', 'Unique Identifier', 'Release of Information',
-    'Earliest enrollment'].join('|'),
+    'Additional Race and Ethnicity Detail', 'Primary Language', 'TB Clearance Date',
+    'Clinic', 'DPSS ID', 'Reviewed for Covid-19 vulnerability and Project Room Key?',
+    'FEMA Registration Number'].join('|'),
    await p.$$eval('#profGrid .pf > b, #profGrid .subhead', e => e.map(x => x.textContent.trim()).join('|')));
 /* Two date formats on purpose: capture 02 shows 4/26/93 in a row, capture 03 shows
    04/26/1993 on the profile. */
@@ -825,14 +852,16 @@ ok('an empty field reads No value, without brackets',
 console.log('\n— the rest of the profile —');
 ok('every section from the capture is present, in order',
    await p.$$eval('#extras summary', e => e.map(x => x.textContent.trim()).join('|')) ===
-   ['FEMA', 'ADA Information', 'Veteran Information',
+   /* FEMA Registration Number is the last field of Demographics, not a section of
+      its own — we had invented that heading. */
+   ['ADA Information', 'Veteran Information',
     'For Veteran Case Conferencing (Updated by VA)', 'TLS Ramp Down Exit Pathway',
     'Encampment Resolution (Read Only)'].join('|'),
    await p.$$eval('#extras summary', e => e.map(x => x.textContent.trim()).join('|')));
 ok('they start closed, so Point of Contacts is not pushed off the page',
    await p.$$eval('#extras details', e => e.every(d => !d.open)));
 ok('...and every one of their bodies is obstructed',
-   await p.$$eval('#extras .exbody', e => e.length === 6 && e.every(x => x.hasAttribute('data-locked'))));
+   await p.$$eval('#extras .exbody', e => e.length === 5 && e.every(x => x.hasAttribute('data-locked'))));
 ok('the TLS section carries the read-only warning the product shows',
    (await p.textContent('#extras')).includes('This field is read-only, and is updated by LAHSA'));
 ok('Veteran Status inside Veteran Information is the record\'s own value',
@@ -935,14 +964,16 @@ ok('no task sends the learner to HMIS Support', await p.evaluate(() =>
   TASKS.every(t => !/HMIS Support/i.test((t.teach || '') + (t.hint || '') + (t.brief || '')))));
 ok('nothing tells the learner to merge or delete a record', await p.evaluate(() =>
   TASKS.every(t => !/\b(merge|delete)\b/i.test((t.teach || '') + (t.hint || '')))));
-ok('the flag control is present but obstructed, like the rest of what this lesson skips',
+/* The record kebab's menu is one we have never seen, so it names itself rather than
+   listing invented actions — "Flag possible duplicate" was ours. */
+ok('the record kebab is obstructed without inventing what is behind it',
    await p.evaluate(async () => {
      document.getElementById('kebabBtn').click();
-     await new Promise(r => setTimeout(r, 120));
-     const items = [...document.querySelectorAll('#filterPop .menuitem')];
-     const flag = items.find(x => /Flag possible duplicate/i.test(x.textContent));
-     return !!flag && flag.hasAttribute('data-locked');
+     await new Promise(r => setTimeout(r, 140));
+     return !document.getElementById('notice').hidden &&
+            document.getElementById('filterPop').hidden;
    }));
+await closeAll();   // it is a modal now, not a popover — it would block what follows
 await p.click('#nextBtn'); await p.waitForTimeout(250);
 ok('completion modal appears after the final task', !(await p.$eval('#done', e => e.hidden)));
 ok('completion reports what was done, not a mark',

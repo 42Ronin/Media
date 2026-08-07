@@ -136,9 +136,13 @@ and two were deliberately left alone:
   SSN is still 900–999, so masking is fidelity, not protection.
 - **Date of Birth is real.** The old capture showed *Quality of DOB* alone; the live account
   carries both. Our version was right — this is no longer an open question.
-- **Client Location** is the same shape as the Clients card (indigo title, subtitle, add button,
-  kebab, its own search row), not the dark slate bar the old help article showed. The list comes
-  first and the map sits under it.
+- **Client Location is a table**, columns `Address · Date · Type · Created by` plus a scope chip
+  and a star, with pagination under it and the map in its own bordered panel below. Address is two
+  lines (place over city/state/country/ZIP); Type is two lines (what created the record over the
+  field it came from). **Pins are plain teardrops and the Address cell carries a red pin glyph** —
+  the lettered A/B/C pins came from the old help article and the live product does not letter them.
+  **Map zoom works** (svg and pins share one wrapper so they scale together); layers is the one
+  control we do not implement and it says so.
 - **A breadcrumb** — `Client Search › Name › Profile` — sits at the left of the top bar, and
   **only on the record page**: capture 01 shows that side of the bar empty on the search
   landing. That is what makes it navigation rather than decoration, so don't render it on
@@ -171,17 +175,22 @@ and two were deliberately left alone:
   so the row showed Alias and Veteran Status, the two that account had off. A field appearing
   in both halves of the column selector is this model working, not a bug. **ROI is the one
   override** — the owner asked for it gone from the view rather than dimmed, so it never falls
-  into the expander; it stays selectable in the chooser, which is where capture 01's fidelity
-  actually lives. *Updated by* is a person (avatar chip, name over role); *Updated on* is its
+  into the expander — **no longer true:** dropping ROI from the default columns was only ever safe
+  because columns are switchable, so a switched-off ROI belongs in the expander like any other.
+  *Updated by* is a person (avatar chip, name over role); *Updated on* is its
   own field with a date **and a time**.
 - **The profile grid follows capture 03's order**, including Middle name, Suffix, Legacy HMIS
   ID, Maiden Name, Pronoun(s) and a **Demographics** subheading. Two date formats on purpose:
   the results table abbreviates (`4/26/93`), the record spells it out (`04/26/1993`). **Age is
   its own field**, not a suffix on the DOB. Empty reads `No value`, no brackets.
-  The capture's crop ends at *Additional Race and Ethnicity Detail*, so the four fields the
-  lesson needs and the capture does not show — Client ID, Unique Identifier, Release of
-  Information, Earliest enrollment — sit **after** it under a `Record` subheading rather than
-  interrupting a sequence there is evidence for. Don't fold them back into the middle.
+  Demographics continues past the detail field with Primary Language, TB Clearance Date, Clinic,
+  DPSS ID, *Reviewed for Covid-19 vulnerability and Project Room Key?* and **FEMA Registration
+  Number, which is the section's last field and not a section of its own** — we had invented a
+  FEMA heading. **Client ID, Unique Identifier, Release of Information and Earliest enrollment are
+  NOT on this page**; the identifiers live in the results row and its expander, ROI is a column,
+  and Earliest enrollment was ours entirely. Task 13 still works (it is scored on SSN completeness
+  and the alias) but its teaching sentence about the oldest enrollment now points at something the
+  profile does not show — open with the owner.
 - **Point of Contacts: the first block is open, the second and third fold.** Three blocks of
   ten fields is two and a half screens at the end of an already long page; folding took the
   record from 3135px to 2064px. All three headings still show, because the guidance above them
@@ -201,6 +210,13 @@ and two were deliberately left alone:
 - **Not reproduced, by decision:** the four stat cards above the results table, and the record
   page's right-hand rail. Both serve features these lessons do not teach. Don't add them back
   as a fidelity fix — they can arrive with the lesson that needs them.
+- **Nothing in the product surface is invented.** Both kebabs name themselves rather than listing
+  made-up menu items; Point of Contact Category renders the `Select` placeholder because its
+  options have never been seen. If you want content there, get a capture first.
+- **Counts to keep:** 12 rail icons + expand; 4 top-bar buttons (dark mode, search, new window,
+  messages) plus the account chevron; 17 record-nav sections ending in Client Portal, plus a
+  collapse control; 4 map controls. The filter menu is **Alias, First Name, Last Name** —
+  alphabetical, which is the live order.
 - **Popovers clamp to the app's right edge, not the window's.** The training panel is docked
   right; a popover allowed the full window width opens underneath it.
 - **The Location map is drawn, not fetched** — the lesson is one self-contained file and makes
