@@ -58,8 +58,7 @@ html.dock-min,html.dock-out{--dock:0px}
    see the real system is bigger than what they are being asked to do, without
    being able to read or use it. Each lesson clears the part it teaches, so the
    blur lifting is the reward. */
-[data-locked],.roilock{filter:blur(2.2px);opacity:.45;cursor:default;transition:filter .25s,opacity .25s}
-.roilock{pointer-events:none;user-select:none}
+[data-locked]{filter:blur(2.2px);opacity:.45;cursor:default;transition:filter .25s,opacity .25s}
 [data-locked]:hover{filter:blur(1.6px);opacity:.6}
 [data-locked]:focus-visible{filter:none;opacity:1}
 @media(prefers-reduced-motion:reduce){[data-locked]{transition:none}}
@@ -138,6 +137,7 @@ tbody tr.open{background:var(--indigo-soft)}
 .dob b{font-weight:500;font-size:13.5px}
 .dob span{display:block;font-size:11.5px;color:var(--muted)}
 .novalue{color:#9a9ab0;font-size:13px}
+.hhicon{color:#7b7a95}
 .iconcell{display:flex;align-items:center;gap:12px;justify-content:flex-end;color:var(--muted);padding-right:12px}
 .expand td{background:#fff;padding:0;border-left:3px solid var(--indigo-soft)}
 .expand .inner{padding:14px 22px 18px 74px}
@@ -236,13 +236,11 @@ tbody tr.open{background:var(--indigo-soft)}
 .locacts{margin-left:auto;display:flex;gap:8px;align-items:center}
 .locbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:#fff;
   font:inherit;font-size:12px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer}
-.locmap{position:relative;height:250px;background:
-  linear-gradient(0deg,rgba(0,0,0,.05) 1px,transparent 1px) 0 0/100% 34px,
-  linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px) 0 0/34px 100%,#eef1f4;
-  border-bottom:1px solid var(--line-2)}
-.pin{position:absolute;transform:translate(-50%,-100%);width:22px;height:22px;border-radius:50% 50% 50% 0;
-  rotate:-45deg;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:11px;
-  font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.locmap{position:relative;height:300px;overflow:hidden;border-bottom:1px solid var(--line-2)}
+.mapbase{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pin{position:absolute;transform:translate(-50%,-100%);width:26px;height:26px;border-radius:50% 50% 50% 0;
+  rotate:-45deg;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:12px;
+  font-weight:700;box-shadow:0 2px 5px rgba(20,16,40,.4);border:2px solid #fff}
 .pin>*{rotate:45deg}
 .loclist{list-style:none;margin:0;padding:8px 16px 14px}
 .loclist li{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:14px}
@@ -327,11 +325,6 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 .cbtn:hover{background:var(--coach-2)}
 .cbtn.go{background:var(--teal);border-color:var(--teal);color:#fff}
 .cbtn.go:hover{background:var(--teal-dk)}
-.tasklist{list-style:none;margin:16px 0 0;padding:0;font-size:12.5px}
-.tasklist{border-top:1px solid var(--coach-line);padding-top:12px}
-.tasklist li{display:flex;gap:9px;padding:5px 0;color:var(--coach-mut)}
-.tasklist li.cur{color:var(--teal);font-weight:700}
-.tasklist li.done{color:var(--ok)}
 
 /* ============================ LASHES ============================
    She has no hands, so she cannot point. Proximity is her only deictic: she
@@ -453,9 +446,14 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 .lzbub .lzfoot{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:10px;
   border-top:1px solid #dbe7ee}
 .lzbub .lzcount{font-size:11.5px;color:#6f8b9a;letter-spacing:.03em;flex:1}
-.lzbub .lzstep{background:#066888;color:#fff;border-radius:8px;padding:6px 14px;
+.lzbub .lzstep,.lzbub .lzact{background:var(--teal);color:#fff;border-radius:9px;padding:7px 15px;
   font-size:12.5px;font-weight:600}
-.lzbub .lzstep:hover{background:#044e66}
+.lzbub .lzstep:hover,.lzbub .lzact:hover{background:var(--teal-dk)}
+/* Whatever she is here to say, the thing to do next belongs with it rather than
+   across the screen in the panel. */
+.lzbub .lzacts{display:flex;gap:7px;margin-left:auto}
+.lzbub .lzact.quiet{background:none;color:var(--teal);border:1px solid #bfd9e4}
+.lzbub .lzact.quiet:hover{background:var(--coach-2);color:var(--teal-dk)}
 .lzbub .lzwait{font-size:11.5px;color:#6f8b9a;font-style:italic;flex:1;text-align:right}
 
 /* The card takes the moment without taking the screen: no dim behind it, the
@@ -510,19 +508,38 @@ html.dock-out .cwbar.drag{cursor:grabbing}
       <button class="tb" data-locked title="Open in new window" aria-label="Open in new window"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
       <div class="who">
         <span class="av" title="HMIS Training">
-          <svg viewBox="0 0 40 40" aria-hidden="true">
-            <circle cx="20" cy="20" r="20" fill="#dfe6ec"/>
-            <path d="M6.5 15.5 5 4.5l9 5.2z" fill="#2b2b2b"/><path d="M8.2 14.2 7.3 7.6l5.4 3.1z" fill="#f2b8b8"/>
-            <path d="M33.5 15.5 35 4.5l-9 5.2z" fill="#2b2b2b"/><path d="M31.8 14.2 32.7 7.6l-5.4 3.1z" fill="#f2b8b8"/>
-            <path d="M20 8c8 0 13 6 13 13s-5.6 11-13 11S7 29 7 21 12 8 20 8z" fill="#2b2b2b"/>
-            <path d="M20 12.5c3 0 5 2.4 5.6 5.6.7 3.9-.6 8-1.8 10.4-1 2-2.4 2.6-3.8 2.6s-2.8-.6-3.8-2.6c-1.2-2.4-2.5-6.5-1.8-10.4.6-3.2 2.6-5.6 5.6-5.6z" fill="#fff"/>
-            <path d="M12.6 16.6c1.9-.5 3.4.3 3.9 1.9.4 1.4-.5 2.5-2.2 2.6-1.8.1-3.1-.9-3.3-2.2-.1-1.1.5-2 1.6-2.3z" fill="#fff"/>
-            <path d="M27.4 16.6c-1.9-.5-3.4.3-3.9 1.9-.4 1.4.5 2.5 2.2 2.6 1.8.1 3.1-.9 3.3-2.2.1-1.1-.5-2-1.6-2.3z" fill="#fff"/>
-            <ellipse cx="14.6" cy="18.9" rx="1.7" ry="2" fill="#1b3a4b"/>
-            <ellipse cx="25.4" cy="18.9" rx="1.7" ry="2" fill="#1b3a4b"/>
-            <circle cx="15.2" cy="18.2" r=".6" fill="#fff"/><circle cx="26" cy="18.2" r=".6" fill="#fff"/>
-            <path d="M20 23.4c1.5 0 2.4.8 2.4 1.6 0 .9-1.1 1.6-2.4 1.6s-2.4-.7-2.4-1.6c0-.8.9-1.6 2.4-1.6z" fill="#1b1b1b"/>
-            <path d="M20 26.6v1.8M20 28.4c-.9 1-2.2 1-3 .2M20 28.4c.9 1 2.2 1 3 .2" stroke="#1b1b1b" stroke-width="1" fill="none" stroke-linecap="round"/>
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <defs>
+              <clipPath id="hclip"><circle cx="24" cy="24" r="24"/></clipPath>
+              <linearGradient id="hbg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#dfe9ef"/><stop offset="1" stop-color="#c3d4de"/>
+              </linearGradient>
+            </defs>
+            <g clip-path="url(#hclip)">
+              <rect width="48" height="48" fill="url(#hbg)"/>
+              <!-- ears: dark outer, warm inner -->
+              <path d="M11.6 20.4 8.8 6.6l11.4 6.1z" fill="#2f3336"/>
+              <path d="M13.2 18.6 11.6 10l6.6 3.6z" fill="#e9a8a8"/>
+              <path d="M36.4 20.4 39.2 6.6l-11.4 6.1z" fill="#2f3336"/>
+              <path d="M34.8 18.6 36.4 10l-6.6 3.6z" fill="#e9a8a8"/>
+              <!-- head -->
+              <path d="M24 11c8.8 0 14.4 6.3 14.4 14.6 0 8.6-6.3 13.6-14.4 13.6S9.6 34.2 9.6 25.6C9.6 17.3 15.2 11 24 11z" fill="#33383c"/>
+              <!-- the husky mask -->
+              <path d="M24 15.4c3.1 0 5.4 2.4 6.2 6 .9 4.2-.3 9.1-1.7 11.9-1.2 2.4-2.8 3.3-4.5 3.3s-3.3-.9-4.5-3.3c-1.4-2.8-2.6-7.7-1.7-11.9.8-3.6 3.1-6 6.2-6z" fill="#fbfcfd"/>
+              <path d="M15.6 19.9c2.2-.7 4 .2 4.6 2 .5 1.6-.5 2.9-2.5 3.1-2.1.2-3.7-1-3.9-2.5-.2-1.3.6-2.3 1.8-2.6z" fill="#fbfcfd"/>
+              <path d="M32.4 19.9c-2.2-.7-4 .2-4.6 2-.5 1.6.5 2.9 2.5 3.1 2.1.2 3.7-1 3.9-2.5.2-1.3-.6-2.3-1.8-2.6z" fill="#fbfcfd"/>
+              <!-- eyes -->
+              <ellipse cx="17.9" cy="22.6" rx="2.1" ry="2.5" fill="#1d3b4a"/>
+              <ellipse cx="30.1" cy="22.6" rx="2.1" ry="2.5" fill="#1d3b4a"/>
+              <circle cx="18.6" cy="21.7" r=".75" fill="#fff"/>
+              <circle cx="30.8" cy="21.7" r=".75" fill="#fff"/>
+              <!-- muzzle -->
+              <path d="M24 28.3c1.9 0 3 1 3 1.9 0 1-1.3 1.9-3 1.9s-3-.9-3-1.9c0-.9 1.1-1.9 3-1.9z" fill="#20242700"/>
+              <path d="M24 28.2c1.8 0 2.9 1 2.9 1.9s-1.2 1.8-2.9 1.8-2.9-.9-2.9-1.8 1.1-1.9 2.9-1.9z" fill="#1b1f22"/>
+              <path d="M24 32v2.1" stroke="#1b1f22" stroke-width="1.15" stroke-linecap="round"/>
+              <path d="M24 34.1c-1.1 1.2-2.7 1.2-3.6.2M24 34.1c1.1 1.2 2.7 1.2 3.6.2"
+                    stroke="#1b1f22" stroke-width="1.15" fill="none" stroke-linecap="round"/>
+            </g>
           </svg>
           <b class="avin">HT</b>
         </span>
@@ -656,11 +673,12 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 <!-- completion -->
 <div class="backdrop" id="done" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dnTitle">
-    <div class="mhead"><h2 id="dnTitle">Lesson 1 complete</h2></div>
+    <div class="mhead"><h2 id="dnTitle">Complete</h2></div>
     <div class="mbody" id="dnBody"></div>
     <div class="mfoot">
-      <button class="btn ghost" id="restartBtn">Restart lesson</button>
-      <button class="btn primary" data-close>Continue exploring</button>
+      <button class="btn ghost" id="restartBtn">Start again</button>
+      <button class="btn ghost" data-close>Keep exploring</button>
+      <button class="btn primary" id="closeSimBtn">Close simulator</button>
     </div>
   </div>
 </div>
@@ -684,7 +702,6 @@ html.dock-out .cwbar.drag{cursor:grabbing}
     <h3 class="tasktitle" id="tTitle"></h3>
     <p class="taskbrief" id="tBrief"></p>
     <div class="taskask" id="tAsk"></div>
-    <ul class="tasklist" id="tList"></ul>
   </div>
   <div class="cfoot">
     <button class="cbtn" id="hintBtn">Show hint</button>
@@ -708,6 +725,7 @@ html.dock-out .cwbar.drag{cursor:grabbing}
     <div id="fb"></div>
     <div class="lzfoot" id="lzFoot" hidden>
       <span class="lzcount" id="lzCount"></span>
+      <span class="lzacts" id="lzActs"></span>
       <button class="lzstep" id="lzStep">Next</button>
     </div>
   </div>
@@ -858,7 +876,7 @@ var FIELDS = [
   {k:"client", label:"Client", locked:true, vis:true},
   {k:"dob",    label:"DOB",    vis:true},
   {k:"ssn",    label:"SSN",    vis:true},
-  {k:"roi",    label:"ROI",    vis:true},
+  {k:"roi",    label:"ROI",    vis:false},
   {k:"alias",  label:"Alias",  vis:false},
   {k:"hh",     label:"Household Members", vis:false},
   {k:"vet",    label:"Veteran Status", vis:false}
@@ -873,7 +891,7 @@ var COLLAPSED = [
 ];
 /* key is versioned: bumping it retires a saved order when the shipped default changes,
    otherwise anyone who already opened the lesson keeps the old columns forever */
-var CKEY="hmisSim.l1.columns.v3";
+var CKEY="hmisSim.l1.columns.v4";
 function loadCols(){
   try{
     var saved=JSON.parse(localStorage.getItem(CKEY)||"null");
@@ -1153,6 +1171,8 @@ var LZ=(function(){
     arrow.classList.add("on");
   }
   function hideBub(){
+    $("#lzActs").innerHTML="";
+    $("#lzFoot").hidden=true;
     bub.classList.remove("on");
     el.classList.remove("on");
     arrow.classList.remove("on");
@@ -1181,6 +1201,22 @@ var LZ=(function(){
       lastAnchor=anchor;
       layout(anchor);
     },
+    /* Whatever she is here to say, the thing to do next belongs with it. Reaching
+       across to the panel for "next task" after reading her feedback is a trip the
+       learner should not have to make. */
+    actions:function(list){
+      var host=$("#lzActs");
+      host.innerHTML="";
+      (list||[]).forEach(function(a){
+        var btn=document.createElement("button");
+        btn.className="lzact"+(a.quiet?" quiet":"");
+        btn.textContent=a.t;
+        btn.addEventListener("click",a.fn);
+        host.appendChild(btn);
+      });
+      if(list&&list.length){ $("#lzFoot").hidden=false; $("#lzStep").hidden=true; $("#lzCount").textContent=""; }
+      LZ.relayout();
+    },
     say:function(anchor,html,o){
       var entering=!el.classList.contains("on");
       o=o||{};
@@ -1188,6 +1224,8 @@ var LZ=(function(){
       pointing=!!o.point && anchor!=="home" && anchor!=="panel";
       set(o);
       showBub(html);
+      $("#lzActs").innerHTML="";
+      if(!o.actions) $("#lzFoot").hidden=true;
       lastAnchor=anchor;
       /* measure after content, before placing */
       layout(anchor);
@@ -1835,12 +1873,8 @@ function cellHTML(c,k){
         ? '<span class="ssn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l-1 16M14 4l-1 16M4 9h16M3 15h16"/></svg>'+esc(last4(c))+'</span>'
         : '<span class="novalue">(No value)</span>';
     case "roi":
-      /* The column is real and stays on screen — it is on the captured screen and
-         taking it away would be a lie about the product. But the script lists ROI
-         as blurred and out of scope for this lesson, so it is legible as a column
-         and not as a value. */
       var cl=c.r==="Yes"?"yes":c.r==="Missing"?"missing":"no";
-      return '<span class="roi '+cl+' roilock">'+esc(c.r)+'</span>';
+      return '<span class="roi '+cl+'">'+esc(c.r)+'</span>';
     case "dob":
       return '<span class="dob"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>'+
         '<span><b>'+dobShort(c.d)+'</b><span>Age: '+age(c.d)+'</span></span></span>';
@@ -1917,7 +1951,12 @@ function renderTable(){
         '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate('+(open?180:0)+'deg)"><path d="M7 10l5 5 5-5"/></svg></button></td>'+
       vis.map(function(col){ return "<td>"+cellHTML(c,col.k)+"</td>"; }).join("")+
       '<td><span class="iconcell">'+
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" title="Household"><circle cx="9" cy="9" r="3"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5"/><path d="M16 7.5a3 3 0 010 5.5M18 19c0-2-.6-3.4-1.6-4.4"/></svg>'+
+        '<svg class="hhicon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'+
+          '<circle cx="9" cy="8.2" r="3.4"/>'+
+          '<path d="M2.4 18.6c0-3.2 2.9-5.4 6.6-5.4s6.6 2.2 6.6 5.4a.9.9 0 01-.9.9H3.3a.9.9 0 01-.9-.9z"/>'+
+          '<circle cx="17.4" cy="9.4" r="2.6"/>'+
+          '<path d="M17.4 13.6c-1 0-1.9.15-2.7.44 1.3 1.1 2.1 2.6 2.1 4.3v1.16h4.2a.8.8 0 00.8-.8v-.7c0-2.6-2-4.4-4.4-4.4z"/>'+
+        '</svg>'+
         '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>'+
       '</span></td></tr>';
     if(!open) return main;
@@ -2034,25 +2073,10 @@ function renderCoach(){
   }
   renderTaskList();
 }
-function renderTaskList(){
-  var meta=SCENARIO_META[SECTION];
-  if(meta){
-    var pos=BEAT.pos();
-    var at=0;
-    if(pos) meta.at.forEach(function(b,k){ if(pos.i>=b) at=k; });
-    if(S.closing||S.finished) at=meta.steps.length-1;
-    $("#tList").innerHTML=meta.steps.map(function(label,i){
-      var cls=i<at?"done":(i===at?"cur":"");
-      return '<li class="'+cls+'"><span>'+(i<at?"✔":"○")+'</span><span>'+esc(label)+'</span></li>';
-    }).join("");
-    return;
-  }
-  $("#tList").innerHTML=TASKS.map(function(t,i){
-    var r=S.results.filter(function(x){return x.id===t.id;})[0];
-    var mark=r?"✔":"○";
-    return '<li class="'+(r?"done":(i===S.idx?"cur":""))+'"><span>'+mark+"</span><span>"+esc(t.title)+"</span></li>";
-  }).join("");
-}
+/* The panel used to list every task. In a lesson the learner is inside, that is a
+   table of contents for work they have not reached, and it pushed the situation
+   they are actually on out of view. The count carries it. */
+function renderTaskList(){}
 /* Feedback is hers, and it is delivered next to whatever caused it: at the record
    she just opened, at the results she just narrowed, at the search bar when the
    advice is about what to type. The standing brief stays in the window. */
@@ -2087,6 +2111,8 @@ function pass(){
   }
   say("good","Correct","You found the right record.",t.teach);
   $("#nextBtn").hidden=false;
+  var last=(S.idx>=TASKS.length-1) && !INTERSTITIALS[S.idx];
+  LZ.actions([{t: last ? "Finish" : "Next task \u2192", fn:nextTask}]);
   renderCoach();
 }
 /* The window is small and can be anywhere on screen, so when something lands in
@@ -2389,6 +2415,64 @@ function openProfile(id){
    dates: the help article does not show one, and guessing is what got this
    wrong the first time. */
 var PIN_LETTERS = "ABCDEFGH";
+/* A drawn map of central Los Angeles. It has to be drawn rather than fetched:
+   the lesson is a single self-contained file and makes no network requests, so
+   there are no tiles to load. The geography is approximate but consistent — the
+   places in LOCATIONS sit where they would sit, west to east from Sepulveda
+   through Vermont and Westlake to downtown and the river, north to south from
+   Hollywood down past Adams to Slauson. */
+var MAP_SVG =
+'<svg class="mapbase" viewBox="0 0 1000 420" preserveAspectRatio="none" aria-hidden="true">'+
+  '<rect width="1000" height="420" fill="#f3f1ea"/>'+
+  /* parks and open space */
+  '<g fill="#cfe3c0">'+
+    '<rect x="292" y="146" width="74" height="44" rx="9"/>'+
+    '<path d="M648 30h140v88q-72 20-140-12z"/>'+
+    '<rect x="356" y="286" width="88" height="52" rx="9"/>'+
+    '<rect x="88" y="336" width="62" height="36" rx="8"/>'+
+  '</g>'+
+  /* the river */
+  '<path d="M735 0c-10 70 10 120 -6 176 -14 50 6 96 -4 154 -6 34 4 66 -2 90"'+
+    ' fill="none" stroke="#a9cfe4" stroke-width="15" stroke-linecap="round"/>'+
+  /* arterial grid, casing then fill */
+  '<g fill="none" stroke="#e2ded2" stroke-width="9">'+
+    '<path d="M0 60h1000M0 120h1000M0 186h1000M0 252h1000M0 318h1000M0 378h1000"/>'+
+    '<path d="M58 0v420M126 0v420M194 0v420M262 0v420M330 0v420M398 0v420M470 0v420M540 0v420M610 0v420M684 0v420M760 0v420M840 0v420M920 0v420"/>'+
+  '</g>'+
+  '<g fill="none" stroke="#ffffff" stroke-width="5.5">'+
+    '<path d="M0 60h1000M0 120h1000M0 186h1000M0 252h1000M0 318h1000M0 378h1000"/>'+
+    '<path d="M58 0v420M126 0v420M194 0v420M262 0v420M330 0v420M398 0v420M470 0v420M540 0v420M610 0v420M684 0v420M760 0v420M840 0v420M920 0v420"/>'+
+  '</g>'+
+  /* freeways: US-101 across the top of downtown, I-110 north-south, I-10 east-west */
+  '<g fill="none" stroke="#e6bf62" stroke-width="15" stroke-linecap="round">'+
+    '<path d="M96 44 Q400 96 700 128 T1000 150"/>'+
+    '<path d="M470 0 Q484 150 486 260 T500 420"/>'+
+    '<path d="M0 296 Q300 288 620 300 T1000 306"/>'+
+  '</g>'+
+  '<g fill="none" stroke="#f6dc9d" stroke-width="8.5" stroke-linecap="round">'+
+    '<path d="M96 44 Q400 96 700 128 T1000 150"/>'+
+    '<path d="M470 0 Q484 150 486 260 T500 420"/>'+
+    '<path d="M0 296 Q300 288 620 300 T1000 306"/>'+
+  '</g>'+
+  '<g font-size="11" font-weight="600" fill="#8d8a80" font-family="inherit">'+
+    '<text x="150" y="40">US-101</text>'+
+    '<text x="496" y="74">I-110</text>'+
+    '<text x="60" y="288">I-10</text>'+
+    '<text x="748" y="258">LA River</text>'+
+  '</g>'+
+  '<g font-size="11.5" fill="#7c7a72" font-family="inherit">'+
+    '<text x="292" y="134">MacArthur Park</text>'+
+    '<text x="672" y="28">Elysian Park</text>'+
+    '<text x="356" y="266">Exposition Park</text>'+
+    '<text x="12" y="112">Hollywood</text>'+
+    '<text x="206" y="212">Westlake</text>'+
+    '<text x="506" y="236">Downtown</text>'+
+    '<text x="792" y="352">Boyle Heights</text>'+
+    '<text x="12" y="326">West LA</text>'+
+    '<text x="368" y="400">South LA</text>'+
+  '</g>'+
+'</svg>';
+
 function renderLocation(c){
   var lo = c.lo || [];
   if(!lo.length){
@@ -2397,8 +2481,8 @@ function renderLocation(c){
     return;
   }
   $("#locBody").innerHTML =
-    '<div class="locmap" role="img" aria-label="Map showing '+lo.length+
-      ' recorded location'+(lo.length===1?"":"s")+'">'+
+    '<div class="locmap" role="img" aria-label="Map of central Los Angeles showing '+lo.length+
+      ' recorded location'+(lo.length===1?"":"s")+'">'+ MAP_SVG +
       lo.map(function(e,i){
         return '<span class="pin" style="left:'+(e.x*100)+'%;top:'+(e.y*100)+'%"><b>'+
           PIN_LETTERS[i]+'</b></span>';
@@ -2489,7 +2573,11 @@ $("#globalSearchBtn").addEventListener("click",function(){
 });
 
 /* coach buttons */
-$("#hintBtn").addEventListener("click",function(){ S.hinted=true; say("tip","Hint",task().hint); });
+$("#hintBtn").addEventListener("click",function(){
+  S.hinted=true;
+  say("tip","Hint",task().hint);
+  LZ.actions([{t:"Hide hint", quiet:true, fn:function(){ LZ.hush(); }}]);
+});
 $("#nextBtn").addEventListener("click",nextTask);
 $("#restartBtn").addEventListener("click",function(){
   S.idx=0; S.results=[]; S.attempts=0; S.hinted=false; S.finished=false; S.nudged=null; S.note=null;
@@ -2643,6 +2731,20 @@ $("#restartBtn").addEventListener("click",function(){
 $("#lzCardGo").addEventListener("click",nextTask);
 $("#lzStep").addEventListener("click",function(){ BEAT.step(); });
 $("#cwTour").addEventListener("click",function(){ BEAT.cancel(); BEAT.run(TOUR); });
+
+/* Done means done. Leaving full screen is what returns the learner to the Rise
+   card the launcher shows, which is where the course carries on. Outside the
+   launcher there is nothing to exit, so the modal simply closes. */
+$("#closeSimBtn").addEventListener("click",function(){
+  EMBED.complete(true, S.results.filter(function(r){ return r.first; }).length);
+  var ex=document.exitFullscreen||document.webkitExitFullscreen;
+  if(ex && (document.fullscreenElement||document.webkitFullscreenElement)){
+    try{ ex.call(document); }catch(e){}
+  }
+  try{ window.parent.postMessage({source:"hmis-sim",lesson:"hmis-bnts-search",
+    section:SECTION,type:"close"},"*"); }catch(e){}
+  $("#done").hidden=true;
+});
 
 /* popover plumbing */
 function place(pop,anchor,w){

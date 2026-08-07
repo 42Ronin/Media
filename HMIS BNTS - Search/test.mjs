@@ -303,8 +303,12 @@ ok('SSN data-quality codes present (refused records exist)',
 
 console.log('\n— default column order —');
 const hdr = await p.$$eval('#thr th', ts => ts.map(t => t.textContent.replace(/[↑↓]/g,'').trim()).filter(Boolean));
-ok('default column order is Client, DOB, SSN, ROI',
-   JSON.stringify(hdr) === JSON.stringify(['Client','DOB','SSN','ROI']), JSON.stringify(hdr));
+/* ROI is off by default. It is a real column and stays in the selector, but this
+   lesson never asks anybody to read it, and a column nobody uses is noise. */
+ok('default column order is Client, DOB, SSN',
+   JSON.stringify(hdr) === JSON.stringify(['Client','DOB','SSN']), JSON.stringify(hdr));
+ok('ROI is still available, just not shown',
+   await p.evaluate(() => S.cols.some(c => c.k === 'roi' && !c.vis)));
 
 console.log('\n— ROI + SSN columns —');
 await type('Vega');
@@ -312,19 +316,22 @@ ok('recently-accessed hint disappears once a search is active',
    await p.$eval('#hintRow', e => getComputedStyle(e).display === 'none'));
 ok('client ID renders on its own line under the name',
    await p.$eval('#tb .cid', e => getComputedStyle(e).display === 'block'));
-const roi = await p.$$eval('#tb tr[data-row]', rs => rs.map(r => ({
-  name: r.querySelector('.cname').textContent.trim(),
-  roi: r.querySelector('.roi') ? r.querySelector('.roi').textContent.trim() : null
-})));
-ok('every row renders a valid ROI pill',
+ok('no ROI column is rendered by default',
+   await p.$$eval('#tb .roi', e => e.length === 0));
+/* Turned on, it still renders the way the captured screen renders it. */
+const roi = await p.evaluate(() => {
+  S.cols.forEach(c => { if (c.k === 'roi') c.vis = true; });
+  renderTable();
+  const out = [...document.querySelectorAll('#tb tr[data-row]')].map(r => ({
+    name: r.querySelector('.cname').textContent.trim(),
+    roi: r.querySelector('.roi') ? r.querySelector('.roi').textContent.trim() : null
+  }));
+  S.cols.forEach(c => { if (c.k === 'roi') c.vis = false; });
+  renderTable();
+  return out;
+});
+ok('switched on, every row renders a valid ROI pill',
    roi.length === 3 && roi.every(r => ['Yes','Missing','No'].includes(r.roi)), JSON.stringify(roi));
-/* The script lists ROI as blurred and out of scope for this lesson. The column
-   stays — it is on the captured screen — but its values are not readable. */
-ok('ROI values are blurred, being out of scope for this lesson',
-   await p.$eval('#tb .roi', e => {
-     const f = getComputedStyle(e).filter;
-     return f.includes('blur') && getComputedStyle(e).pointerEvents === 'none';
-   }));
 
 await type('Vega');
 // locate the SSN cell by header position so column reordering can't break this
@@ -426,7 +433,7 @@ ok('field search filters the selector list', (await p.$$eval('#colVisible li', l
 await p.fill('#colQ', ''); await p.waitForTimeout(100);
 await p.click('#cb_alias'); await p.waitForTimeout(150);
 ok('column choice persists to localStorage',
-   await p.evaluate(() => !!localStorage.getItem('hmisSim.l1.columns.v3')));
+   await p.evaluate(() => !!localStorage.getItem('hmisSim.l1.columns.v4')));
 await closeAll();
 
 console.log('\n— row expand + household —');
@@ -538,7 +545,11 @@ ok('opening Michael Torres passes task 1', (await p.textContent('#fb')).includes
 ok('teaching point appears', (await p.textContent('#fb')).includes('no alias'));
 ok('the hint is withdrawn once the task is solved', await p.$eval('#hintBtn', e => e.hidden));
 ok('the practice shows no score at all', await p.$$eval('#scoreLbl', e => e.length === 0));
-ok('a solved task is ticked in the list', await p.$eval('#tList li', e => e.textContent.includes('\u2714')));
+/* The panel no longer lists every task. In a lesson the learner is inside, that
+   is a table of contents for work they have not reached; the count carries it. */
+ok('the panel counts tasks rather than listing them',
+   await p.$$eval('#tList li', e => e.length === 0) &&
+   (await p.textContent('#taskNo')).includes('of'));
 await closeAll();
 await p.click('#nextBtn'); await p.waitForTimeout(150);
 ok('advances to task 2', (await p.textContent('#taskNo')).includes('2 of 13'));
@@ -954,6 +965,40 @@ console.log('\n— launched from the Rise shell —');
 /* The training layer is built from the character bible's palette: the same light
    material as the interface so it belongs on screen, and teal rather than the
    product's indigo so it can never be mistaken for part of Clarity. */
+/* Whatever she is here to say, the thing to do next is in her bubble. Reaching
+   across to the panel after reading her feedback is a trip nobody should make. */
+console.log('\n— what to do next is where she says it —');
+{
+  const q2 = await b.newPage({ viewport: { width: 1500, height: 950 } });
+  const q2e = []; q2.on('pageerror', e => q2e.push(String(e)));
+  await q2.goto('file://' + new URL('./dist/section-7.html', import.meta.url).pathname);
+  await q2.waitForTimeout(600);
+  for (let i = 0; i < 3; i++) { await q2.click('#lzStep'); await q2.waitForTimeout(300); }
+
+  await q2.click('#hintBtn'); await q2.waitForTimeout(600);
+  ok('a hint carries its own way out',
+     await q2.$$eval('#lzActs button', e => e.length === 1 && e[0].textContent === 'Hide hint'));
+  await q2.click('#lzActs button'); await q2.waitForTimeout(400);
+  ok('...and it closes her', await q2.$eval('#lzBub', e => !e.classList.contains('on')));
+
+  await q2.fill('#q', 'Tor'); await q2.waitForTimeout(700);
+  await q2.click('tr[data-row="357BF6714"]'); await q2.waitForTimeout(800);
+  ok('a correct answer carries Next task',
+     await q2.$$eval('#lzActs button', e => e.length === 1 && e[0].textContent.includes('Next task')));
+  await q2.click('#lzActs button'); await q2.waitForTimeout(500);
+  ok('...and it advances', (await q2.textContent('#taskNo')).includes('2 of 8'));
+
+  /* And when the whole thing is done there is a way out of it. */
+  await q2.evaluate(() => { S.idx = TASKS.length; finish(); });
+  await q2.waitForTimeout(400);
+  ok('the close names finishing, not just dismissing',
+     (await q2.textContent('#closeSimBtn')).includes('Close simulator'));
+  await q2.click('#closeSimBtn'); await q2.waitForTimeout(300);
+  ok('...and closing puts the modal away', await q2.$eval('#done', e => e.hidden));
+  ok('no errors', q2e.length === 0, q2e.join(' | '));
+  await q2.close();
+}
+
 console.log('\n— the training layer looks like hers —');
 ok('the panel is light, like the interface, not a dark slab',
    await p.$eval('#coachWin', e => getComputedStyle(e).backgroundColor === 'rgb(255, 255, 255)'));

@@ -128,6 +128,9 @@ function decodePayload(){
 window.addEventListener("message",function(e){
   var d=e.data;
   if(!d||typeof d!=="object") return;
+  /* the activity asking to be closed: leave full screen, which brings the card
+     back, and let Rise carry on below */
+  if(d.type==="close"){ if(FS.active()) FS.exit(); else showLauncher(true); }
   try{ window.parent.postMessage(d,"*"); }catch(err){}
 });
 
