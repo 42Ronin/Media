@@ -136,7 +136,12 @@ await p.evaluate(() => BEAT.cancel()); await p.waitForTimeout(200);
 console.log('\n— initial state —');
 ok('nothing is shown before the first search', (await names()).length === 0);
 ok('no results table on load', await p.$eval('#pager', e => e.hidden));
-ok('no recently-accessed hint on load', await p.$eval('#hintRow', e => e.hidden));
+/* Capture 09: the landing is the hint over an empty table that still has its
+   column header. The header only disappears on a search that found nobody
+   (capture 08), which is a different state and asserted separately below. */
+ok('the recents hint is up on the landing, as the live one has it',
+   await p.$eval('#hintRow', e => !e.hidden));
+ok('...and the column header is still there', await p.$eval('#tbl', e => !e.tHead.hidden));
 
 console.log('\n— partial / mixed-fragment search —');
 const q = (s) => p.evaluate(x => search(x, []).rows.map(c => c.l + ', ' + c.f), s);
@@ -188,6 +193,12 @@ ok('nobody in the roster answers to Lefty',
    await p.evaluate(() => CLIENTS.every(c =>
      !/^left/i.test(c.f) && !/^left/i.test(c.l) && !/^left/i.test(c.a || ''))));
 ok('empty state matches the live account, verbatim', (await zero()) === EMPTY_STATE, await zero());
+/* Capture 08: a search that found nobody leaves the card as title, search field,
+   empty state. The column header goes with the results, so it goes too. */
+ok('...and the column header goes with the results it was heading',
+   await p.$eval('#tbl', e => e.tHead.hidden));
+ok('...with the two lines stacked beside the icon, not strung out on one',
+   await p.$eval('#zero .zt', e => getComputedStyle(e).flexDirection === 'column'));
 ok('Lashes raises the real lesson instead',
    (await p.textContent('#fb')).includes('not proof'));
 
@@ -456,6 +467,14 @@ ok('removing the chip clears the search', await p.evaluate(() => S.rows === null
 console.log('\n— column selector —');
 await p.click('#colBtn'); await p.waitForTimeout(150);
 ok('Client column is locked', await p.$eval('#cb_client', e => e.disabled));
+/* The training panel is docked to the right of the interface, so a popover clamped
+   to the window opens straight underneath it. Clamp to the app's edge instead. */
+ok('the panel opens inside the interface, not under the docked task window',
+   await p.evaluate(() => {
+     const pop = document.querySelector('#colPop').getBoundingClientRect();
+     const app = document.querySelector('.app').getBoundingClientRect();
+     return pop.right <= app.right + 1;
+   }));
 const collapsed = await p.textContent('#colCollapsed');
 ok('Collapsed Fields lists Client ID and Updated by',
    collapsed.includes('Client ID') && collapsed.includes('Updated by'));
@@ -470,6 +489,28 @@ ok('column choice persists to localStorage',
    await p.evaluate(() => !!localStorage.getItem('hmisSim.l1.columns.v4')));
 await closeAll();
 
+/* Small things the captures settle about the search card itself. */
+console.log('\n— the client list card —');
+ok('the field carries no placeholder and no floating label — the live one is plain',
+   await p.$eval('#q', e => !e.getAttribute('placeholder')) &&
+   await p.$eval('.pill .lab', e => getComputedStyle(e).display === 'none'));
+ok('...but it is still named for a screen reader',
+   await p.$$eval('label[for="q"]', e => e.length === 1 && e[0].textContent.trim().length > 0));
+ok('the card head has the add button and the kebab, as capture 01 shows',
+   await p.$$eval('#searchView .cardhead button', e =>
+     e.map(x => x.id).join('|') === 'addBtn|listKebab'),
+   await p.$$eval('#searchView .cardhead button', e => e.map(x => x.id).join('|')));
+/* Drawn crisp and opening an obstructed menu, rather than blurred: three small
+   dots under a 2px blur read as a rendering fault, not as a control. */
+await p.click('#listKebab'); await p.waitForTimeout(200);
+ok('the kebab opens a menu whose items are all obstructed',
+   await p.$$eval('#filterPop .menuitem', e => e.length > 0 && e.every(x => x.hasAttribute('data-locked'))));
+await closeAll();
+await type('Garcia');
+ok('a row ends with the kebab alone — the person icon belonged to a column that is off',
+   await p.$$eval('#tb tr[data-row] .iconcell', e =>
+     e.length > 1 && e.every(c => c.querySelectorAll('svg').length === 1)));
+
 console.log('\n— row expand + household —');
 const hoh = await p.evaluate(() => {
   const c = CLIENTS.find(x => x.hm && x.hm.length >= 3);
@@ -478,9 +519,33 @@ const hoh = await p.evaluate(() => {
 await type(hoh.q);
 await p.click(`#tb tr[data-row="${hoh.id}"] [data-exp]`); await p.waitForTimeout(200);
 const exp = await p.textContent('.expand');
-ok('chevron reveals the collapsed fields',
-   exp.includes('Client ID') && exp.includes('Veteran Status') &&
-   exp.includes('Household Members') && exp.includes('Updated by'), exp.slice(0, 80));
+/* Capture 02's field set, in its order. The expander is derived, not listed: the
+   collapsed-only fields, then every column the learner has switched off. That is
+   what explains the capture — ROI and Household Members were on as columns there,
+   so the row showed Client ID, Updated by, Updated on, Gender, Race and Ethnicity,
+   and then Alias and Veteran Status, the two columns that account had off. */
+ok('the expanded row carries the captured field set',
+   await p.$$eval('.expand .xf > b', e => e.map(x => x.textContent.trim()).join('|')) ===
+   'Client ID|Updated by|Updated on|Gender|Race and Ethnicity|Alias|Household Members|Veteran Status',
+   await p.$$eval('.expand .xf > b', e => e.map(x => x.textContent.trim()).join('|')));
+ok('turning a column on takes it back out of the expanded row', await p.evaluate(() => {
+  S.cols.find(c => c.k === 'vet').vis = true; renderTable();
+  const rowHas = [...document.querySelectorAll('.expand .xf > b')].some(b => b.textContent.trim() === 'Veteran Status');
+  const colHas = [...document.querySelectorAll('#tbl thead th')].some(t => t.textContent.trim() === 'Veteran Status');
+  S.cols.find(c => c.k === 'vet').vis = false; renderTable();
+  return colHas && !rowHas;
+}));
+/* The owner had ROI taken out of the view rather than dimmed. Falling out of the
+   columns and into the expander is what the product would do with it, so this is
+   the one place the model is deliberately overridden. */
+ok('ROI stays out of sight even though it is a switched-off column',
+   !(await p.textContent('.expand')).includes('ROI'));
+ok('"Updated by" is a person, with their initials and role',
+   await p.$eval('.expand .updby', e =>
+     /^[A-Z]{2}$/.test(e.querySelector('.av2').textContent.trim()) &&
+     e.querySelector('.nm span').textContent.trim() === 'System'));
+ok('"Updated on" carries a time as well as a date',
+   /\d+\/\d+\/\d+,\s*\d+:\d\d\s*(AM|PM)/.test(exp), exp.slice(0, 200));
 ok('expanded row shows the NUMERIC client id, not the unique identifier',
    exp.includes(String(hoh.cid)) && !exp.includes(hoh.id));
 const mem = await p.$$eval('.expand .hm', hs => hs.map(h => ({
@@ -669,6 +734,65 @@ ok('the first crumb goes back to Client Search', await p.$eval('#searchView', e 
 ok('and the breadcrumb is gone there, as the live search landing has it',
    await p.$eval('#crumbs', e => e.hidden));
 await p.click('#tb tr[data-row="6C2D91B47"]'); await p.waitForTimeout(250);
+
+/* The profile grid, against capture 03: its field order, and the two formats that
+   differ from the results table. */
+console.log('\n— the profile grid —');
+ok('the fields are in the captured order',
+   await p.$$eval('#profGrid .pf > b, #profGrid .subhead', e => e.map(x => x.textContent.trim()).join('|')) ===
+   ['Social Security Number', 'Quality of SSN', 'First name', 'Last name', 'Middle name', 'Suffix',
+    'Quality of Name', 'Quality of DOB', 'Date of Birth', 'Age', 'Consent Refused',
+    'Release of Information', 'Legacy HMIS ID', 'Maiden Name', 'Alias', 'Client ID',
+    'Unique Identifier', 'Earliest enrollment', 'Demographics', 'Gender', 'Pronoun(s)',
+    'Race and Ethnicity', 'Additional Race and Ethnicity Detail'].join('|'),
+   await p.$$eval('#profGrid .pf > b, #profGrid .subhead', e => e.map(x => x.textContent.trim()).join('|')));
+/* Two date formats on purpose: capture 02 shows 4/26/93 in a row, capture 03 shows
+   04/26/1993 on the profile. */
+ok('the record spells the date of birth out in full', await p.evaluate(() => {
+  const c = CLIENTS.find(x => x.i === S.open);
+  const want = c.d.split('-')[1] + '/' + c.d.split('-')[2] + '/' + c.d.split('-')[0];
+  const pf = [...document.querySelectorAll('#profGrid .pf')].find(e => e.querySelector('b').textContent === 'Date of Birth');
+  return pf.querySelector('span').textContent.trim() === want;
+}));
+ok('...and Age is its own field, not a suffix on it', await p.evaluate(() => {
+  const dob = [...document.querySelectorAll('#profGrid .pf')].find(e => e.querySelector('b').textContent === 'Date of Birth');
+  const age = [...document.querySelectorAll('#profGrid .pf')].find(e => e.querySelector('b').textContent === 'Age');
+  return !/age/i.test(dob.textContent) && /^\d+$/.test(age.querySelector('span').textContent.trim());
+}));
+ok('an empty field reads No value, without brackets',
+   (await p.textContent('#profGrid')).includes('No value') &&
+   !(await p.textContent('#profGrid')).includes('(No value)'));
+
+/* Capture 04's sections — everything between Demographics and Point of Contacts.
+   They belong to features these lessons do not teach, so the bodies are obstructed;
+   they are closed by default, which the product does NOT do, and that is the
+   deliberate trade so the page stays readable rather than endless. */
+console.log('\n— the rest of the profile —');
+ok('every section from the capture is present, in order',
+   await p.$$eval('#extras summary', e => e.map(x => x.textContent.trim()).join('|')) ===
+   ['FEMA', 'ADA Information', 'Veteran Information',
+    'For Veteran Case Conferencing (Updated by VA)', 'TLS Ramp Down Exit Pathway',
+    'Encampment Resolution (Read Only)'].join('|'),
+   await p.$$eval('#extras summary', e => e.map(x => x.textContent.trim()).join('|')));
+ok('they start closed, so Point of Contacts is not pushed off the page',
+   await p.$$eval('#extras details', e => e.every(d => !d.open)));
+ok('...and every one of their bodies is obstructed',
+   await p.$$eval('#extras .exbody', e => e.length === 6 && e.every(x => x.hasAttribute('data-locked'))));
+ok('the TLS section carries the read-only warning the product shows',
+   (await p.textContent('#extras')).includes('This field is read-only, and is updated by LAHSA'));
+ok('Veteran Status inside Veteran Information is the record\'s own value',
+   await p.evaluate(() => {
+     const c = CLIENTS.find(x => x.i === S.open);
+     const sec = [...document.querySelectorAll('#extras details')]
+       .find(d => d.querySelector('summary').textContent.trim() === 'Veteran Information');
+     return sec.querySelector('.pf span').textContent.trim() === (c.v || 'No value');
+   }));
+ok('opening one reveals it rather than doing nothing', await p.evaluate(async () => {
+  const d = document.querySelector('#extras details');
+  d.querySelector('summary').click();
+  await new Promise(r => setTimeout(r, 120));
+  return d.open && d.querySelector('.exbody').getBoundingClientRect().height > 0;
+}));
 
 /* Point of Contacts, from captures 05 and 06. The captured account had all three
    blocks empty because its test client had none; empty teaches nothing, so ours

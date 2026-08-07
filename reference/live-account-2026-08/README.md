@@ -48,6 +48,17 @@ All four were put to the owner rather than applied silently. The answers:
 3. **Stat cards** — stay removed. Not needed by anything these lessons teach.
 4. **Right rail** — stays removed, same reason. Both can return with the lesson that uses them.
 
+A later pass audited all nine captures against the build screen by screen and closed
+what was left: the no-results header row, the stacked empty state, the plain search
+field, the record's full date format and its separate Age field, the stray person icon
+on a row, the missing card kebab, the flush location empty state, and popovers clamping
+to the window instead of the app. Four larger calls went to the owner and are recorded
+in `../../CLAUDE.md`: reproduce **all** of capture 04's sections but closed and dimmed;
+match capture 02's expanded row exactly; show the recents hint and real recents on the
+landing; keep avatars varied (they confirmed the live account varies them, and also
+carries photos — ours stay on initials, since an invented participant cannot be given a
+real face).
+
 Two more were built from these captures afterwards:
 
 - **The breadcrumb** (capture 03), on the record page only — capture 01 shows that side of

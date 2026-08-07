@@ -104,8 +104,10 @@ html.dock-min,html.dock-out{--dock:0px}
 .pill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
   border:1.4px solid #cfcde8;border-radius:26px;padding:8px 14px;background:#fff;min-height:48px;position:relative}
 .pill.focus{border-color:var(--indigo);box-shadow:0 0 0 3px var(--indigo-soft)}
-.pill .lab{position:absolute;top:-8px;left:16px;background:var(--card);padding:0 5px;font-size:11px;color:var(--indigo);display:none}
-.pill.has .lab{display:block}
+/* No floating label and no placeholder: captures 01, 08 and 09 show the field
+   plain, whether empty or carrying typed text. The accessible name is on the
+   sr-only <label>, which is where it belongs anyway. */
+.pill .lab{display:none}
 .pill input{flex:1;min-width:110px;border:0;outline:0;font-size:15px;background:transparent;padding:3px 0}
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfcde8;border-radius:20px;padding:4px 8px 4px 6px;font-size:13px;background:#fff;white-space:nowrap}
 .chip .cv{font-weight:600}
@@ -160,6 +162,13 @@ tbody tr.open{background:var(--indigo-soft)}
 .xf > b{display:block;font-size:13px;color:var(--ink);font-weight:600;margin-bottom:2px}
 .xf > span{font-size:13.5px;color:var(--muted)}
 .hm{display:flex;align-items:center;gap:9px;margin-top:8px}
+/* "Updated by" in the expanded row is a person, not a string — capture 02 draws
+   an avatar chip with the name over their role. */
+.updby{display:flex;align-items:center;gap:9px}
+.updby .av2{width:26px;height:26px;border-radius:50%;background:var(--indigo);color:#fff;
+  display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.updby .nm{display:flex;flex-direction:column;line-height:1.3}
+.updby .nm span{font-size:12.5px;color:var(--muted)}
 .hhcell{display:flex;flex-direction:column;gap:2px;min-width:210px}
 .hhcell.alone{flex-direction:row;align-items:center;gap:10px}
 .hhcell.alone svg{color:var(--indigo);flex:none}
@@ -176,6 +185,7 @@ tbody tr.open{background:var(--indigo-soft)}
 .pager button:disabled{color:#c3c2d6;cursor:default}
 .pager button:not(:disabled):hover{background:var(--indigo-soft)}
 .zero{padding:26px 22px 32px;display:flex;align-items:center;gap:16px}
+.zero .zt{display:flex;flex-direction:column;gap:2px}
 .zero svg{color:var(--ink);flex:none}
 .zero b{display:block;font-size:15.5px;margin-bottom:2px}
 .zero span{color:var(--muted);font-size:13.5px;display:block}
@@ -221,7 +231,7 @@ tbody tr.open{background:var(--indigo-soft)}
 .recbody{display:grid;grid-template-columns:186px minmax(0,1fr);gap:16px;align-items:start}
 .recnav{background:var(--card);border-radius:14px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 6px 18px rgba(60,50,140,.06);padding:8px;display:flex;flex-direction:column;gap:1px}
 .recnav button{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;font-size:13.5px;text-align:left;color:var(--ink)}
-.recnav button:hover{background:#f5f4fd}
+.recnav button:not([data-locked]):hover{background:#f5f4fd}
 .recnav button[aria-current="page"]{background:var(--indigo-soft);color:var(--indigo-dk);font-weight:600}
 .recnav svg{color:var(--indigo);flex:none;opacity:.85}
 .reccard{padding:20px 0 6px}
@@ -229,6 +239,30 @@ tbody tr.open{background:var(--indigo-soft)}
 @media(max-width:620px){.profgrid{grid-template-columns:1fr}}
 .pf b{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:3px}
 .pf span{font-size:14px}
+/* A section heading inside the profile grid — "Demographics" in capture 03. It
+   spans both columns and starts a new band of fields. */
+.subhead{grid-column:1/-1;font-size:15px;color:var(--indigo);font-weight:600;margin:8px 0 -6px}
+/* The parts of the record this lesson does not teach. They are real sections and
+   the page is wrong without them, but reproducing them open would bury Point of
+   Contacts under a screen and a half of "No value". So each one keeps its real
+   heading, sits closed, and its body is obstructed like every other control the
+   lesson does not need. Closing them is our own doing, not the product's — the
+   trade the owner asked for, to keep the page honest without making it endless. */
+.extras{padding:0 22px 4px;display:flex;flex-direction:column;gap:8px}
+.exsec summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;
+  font-size:15px;color:var(--indigo);font-weight:600;padding:9px 2px;border-radius:8px}
+.exsec summary::-webkit-details-marker{display:none}
+.exsec summary:hover{background:var(--indigo-soft)}
+.exsec summary:focus-visible{outline:2px solid var(--indigo);outline-offset:1px}
+.exsec summary .caret{transition:transform .18s;flex:none;color:var(--indigo)}
+.exsec[open] summary .caret{transform:rotate(90deg)}
+.exsec .exbody{padding:4px 2px 14px 26px}
+.exsec .exbody .pf{margin-bottom:14px}
+/* The read-only warning Clarity shows above TLS Ramp Down. */
+.exnote{display:flex;gap:10px;background:#fdf6e3;border:1px solid #f0e0b0;border-radius:10px;
+  padding:11px 13px;font-size:13.5px;color:#6b5417;line-height:1.5;margin-bottom:14px}
+.exnote svg{flex:none;color:#c99a1e;margin-top:1px}
+@media(prefers-reduced-motion:reduce){.exsec summary .caret{transition:none}}
 /* Point of Contacts — one column, the width of the card, as the captures show. */
 .poc{padding:0 22px 22px}
 .poc hr{border:0;border-top:1px dashed #cfd2e6;margin:0 0 14px}
@@ -283,8 +317,8 @@ tbody tr.open{background:var(--indigo-soft)}
 .locp{font-weight:600}
 .loct,.lock{font-size:12.5px;color:var(--muted)}
 .lock{margin-left:auto}
-.locempty{margin:0 22px 16px;border:1px solid var(--line-2);border-radius:12px;padding:20px}
-.zero .zt{display:block}
+/* Flush in the card body, as capture 07 has it — not boxed off in a sub-card. */
+.locempty{margin:0;padding:18px 22px 22px}
 .locmap{margin:0 22px 22px;border-radius:12px;border:1px solid var(--line-2)}
 
 /* ---------------- coach window ----------------
@@ -643,6 +677,9 @@ html.dock-out .cwbar.drag{cursor:grabbing}
               </div>
             </div>
             <div class="profgrid" id="profGrid"></div>
+            <!-- Everything between Demographics and Point of Contacts (capture 04),
+                 kept closed so the page stays readable. See EXTRA_SECTIONS. -->
+            <div class="extras" id="extras"></div>
             <!-- Point of Contacts, from captures 05 and 06. It runs full width
                  below the grid rather than in two columns, and it is where a
                  worker finds out which staff member already has the relationship
@@ -683,6 +720,11 @@ html.dock-out .cwbar.drag{cursor:grabbing}
           <button class="addbtn" id="addBtn" title="Add Client" aria-label="Add Client">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 6v12M6 12h12"/></svg>
           </button>
+          <!-- The kebab sits beside the add button on the real card (captures 01, 09).
+               Drawn crisp and opening a menu whose items are obstructed, the same way
+               the record card's kebab works: blurring three small dots turns them into
+               a smudge that reads as a rendering fault rather than a control. -->
+          <button class="tb" id="listKebab" title="More actions" aria-label="More actions for the client list" aria-expanded="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
         </div>
 
         <div class="searchrow">
@@ -690,7 +732,7 @@ html.dock-out .cwbar.drag{cursor:grabbing}
             <span class="lab">Search</span>
             <span id="chips"></span>
             <label class="sr-only" for="q">Search for a client by name, date of birth, or year of birth</label>
-            <input id="q" type="text" autocomplete="off" placeholder="Search" aria-describedby="resultCount">
+            <input id="q" type="text" autocomplete="off" aria-describedby="resultCount">
             <span class="act">
               <button id="clearBtn" title="Clear search" aria-label="Clear search" hidden><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
               <button id="goBtn" title="Search" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
@@ -862,6 +904,15 @@ function byId(id){ for(var i=0;i<CLIENTS.length;i++) if(CLIENTS[i].i===id) retur
 function initials(c){ return (c.l[0]+c.f[0]).toUpperCase(); }
 function fullName(c){ return c.l+", "+c.f; }
 function dobShort(iso){ var p=iso.split("-"); return (+p[1])+"/"+(+p[2])+"/"+p[0].slice(2); }
+/* The results table abbreviates the date; the record page spells it out. Two
+   formats on purpose — capture 02 shows 4/26/93 in the row, capture 03 shows
+   04/26/1993 on the profile. */
+function dobFull(iso){ var p=iso.split("-"); return p[1]+"/"+p[2]+"/"+p[0]; }
+/* Staff are stored as "T. Okoye"; the avatar chip wants their initials. */
+function staffInitials(s){
+  var p=String(s).replace(/\./g,"").split(/\s+/).filter(Boolean);
+  return (p[0]||"").charAt(0).toUpperCase()+(p[1]||"").charAt(0).toUpperCase();
+}
 function age(iso){
   var b=new Date(iso+"T00:00:00"), a=TODAY.getFullYear()-b.getFullYear(), m=TODAY.getMonth()-b.getMonth();
   if(m<0||(m===0&&TODAY.getDate()<b.getDate())) a--;
@@ -971,13 +1022,21 @@ var FIELDS = [
   {k:"hh",     label:"Household Members", vis:false},
   {k:"vet",    label:"Veteran Status", vis:false}
 ];
-/* shown when the row chevron is opened, not as columns */
+/* Fields that are only ever in the expanded row — they are never offered as
+   columns. Everything in FIELDS that is switched OFF joins them there, which is
+   the product's actual model and the thing that explains capture 02: ROI and
+   Household Members were on as columns, so the expander showed Client ID,
+   Updated by, Updated on, Gender and Race and Ethnicity — plus Alias and Veteran
+   Status, the two columns that account had switched off. Deriving the expander
+   this way is why the same field can appear in the selector's two lists without
+   it being a contradiction: one list is "show me as a column", the other is
+   "here is what that leaves collapsed". */
 var COLLAPSED = [
   {k:"cid", label:"Client ID", locked:true},
-  {k:"vet", label:"Veteran Status"},
-  {k:"hhm", label:"Household Members"},
-  {k:"fe", label:"Earliest enrollment"},
-  {k:"upd", label:"Updated by"}
+  {k:"upd", label:"Updated by"},
+  {k:"updon", label:"Updated on"},
+  {k:"gen", label:"Gender"},
+  {k:"race", label:"Race and Ethnicity"}
 ];
 /* key is versioned: bumping it retires a saved order when the shipped default changes,
    otherwise anyone who already opened the lesson keeps the old columns forever */
@@ -1963,14 +2022,14 @@ function cellHTML(c,k){
     case "ssn":
       return c.s
         ? '<span class="ssn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l-1 16M14 4l-1 16M4 9h16M3 15h16"/></svg>'+esc(last4(c))+'</span>'
-        : '<span class="novalue">(No value)</span>';
+        : '<span class="novalue">No value</span>';
     case "roi":
       var cl=c.r==="Yes"?"yes":c.r==="Missing"?"missing":"no";
       return '<span class="roi '+cl+'">'+esc(c.r)+'</span>';
     case "dob":
       return '<span class="dob"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>'+
         '<span><b>'+dobShort(c.d)+'</b><span>Age: '+age(c.d)+'</span></span></span>';
-    case "alias": return c.a?esc(c.a):'<span class="novalue">(No value)</span>';
+    case "alias": return c.a?esc(c.a):'<span class="novalue">No value</span>';
     case "hh":
       /* Verified against the live account, August 2026. The column shows who the
          household actually is, not a count: an icon and two lines for somebody
@@ -1990,12 +2049,24 @@ function cellHTML(c,k){
           esc(initials(pm))+'</span><span class="nm"><b>'+esc(pm.f+" "+pm.l)+'</b>'+
           '<span>'+esc(m.rel||"Not Set")+'</span></span></span>';
       }).join("")+'<span class="hhcount">1 &ndash; '+c.hm.length+' of '+c.hm.length+'</span></span>';
-    case "vet": return c.v?esc(c.v):'<span class="novalue">(No value)</span>';
+    case "vet": return c.v?esc(c.v):'<span class="novalue">No value</span>';
   }
   return "";
 }
 function xf(label, val){
   return '<div class="xf"><b>'+esc(label)+'</b><span>'+val+'</span></div>';
+}
+/* The fields that only ever live in the expanded row. */
+function collapsedHTML(c,k){
+  switch(k){
+    case "cid":  return String(c.cid);
+    case "upd":  return '<span class="updby"><span class="av2">'+esc(staffInitials(c.u))+'</span>'+
+                   '<span class="nm"><b>'+esc(c.u)+'</b><span>System</span></span></span>';
+    case "updon":return dobShort(c.t)+', '+esc(c.ut);
+    case "gen":  return esc(c.g);
+    case "race": return esc(c.rc);
+  }
+  return "";
 }
 /* Household members are real clients from the same roster, each with their
    relationship to the head of household. */
@@ -2032,10 +2103,16 @@ function renderTable(){
 
   var all=liveRows();
   var zero=$("#zero"), pager=$("#pager");
-  /* the hint only makes sense once something has actually been opened */
-  $("#hintRow").hidden = (S.rows!==null || all.length===0);
+  /* The hint belongs to the landing, not to results — capture 09 shows it above an
+     empty table before anything has been searched. It stays up whether or not the
+     learner has opened anyone yet, because it is describing what the table is for. */
+  $("#hintRow").hidden = (S.rows!==null);
+  /* The column header goes with the results. Capture 09 keeps it over an empty
+     landing; capture 08 drops it entirely on a search that found nobody, leaving
+     the card as title, search field, empty state. */
+  $("#tbl").tHead.hidden = (S.rows!==null && all.length===0);
 
-  /* nothing searched yet and nothing opened yet: show an empty screen, not a table */
+  /* Landing with nothing opened yet: the header row over an empty table. */
   if(S.rows===null && all.length===0){
     $("#tb").innerHTML=""; pager.hidden=true; zero.hidden=true;
     return;
@@ -2052,8 +2129,8 @@ function renderTable(){
         '<circle cx="5.2" cy="17" r="3.4" fill="currentColor" stroke="none"/>'+
         '<path d="M4 15.8l2.4 2.4M6.4 15.8L4 18.2" stroke="#fff" stroke-width="1.5"/>'+
       '</svg>'+
-      '<b>No results yet!</b>'+
-      '<span>Results will be displayed here when they are available.</span>';
+      '<span class="zt"><b>No results yet!</b>'+
+      '<span>Results will be displayed here when they are available.</span></span>';
     return;
   }
   zero.hidden=true;
@@ -2069,22 +2146,27 @@ function renderTable(){
       '<td><button class="rowbtn" data-exp="'+c.i+'" aria-expanded="'+open+'" aria-label="Show more fields for '+esc(fullName(c))+'">'+
         '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate('+(open?180:0)+'deg)"><path d="M7 10l5 5 5-5"/></svg></button></td>'+
       vis.map(function(col){ return "<td>"+cellHTML(c,col.k)+"</td>"; }).join("")+
+      /* Only the kebab lives here. The person icon that used to sit beside it was
+         the Household Members column's, and that column ships off — capture 02
+         shows nothing but the kebab at the end of a row. */
       '<td><span class="iconcell">'+
-        '<svg class="hhicon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'+
-          '<circle cx="9" cy="8.2" r="3.4"/>'+
-          '<path d="M2.4 18.6c0-3.2 2.9-5.4 6.6-5.4s6.6 2.2 6.6 5.4a.9.9 0 01-.9.9H3.3a.9.9 0 01-.9-.9z"/>'+
-          '<circle cx="17.4" cy="9.4" r="2.6"/>'+
-          '<path d="M17.4 13.6c-1 0-1.9.15-2.7.44 1.3 1.1 2.1 2.6 2.1 4.3v1.16h4.2a.8.8 0 00.8-.8v-.7c0-2.6-2-4.4-4.4-4.4z"/>'+
-        '</svg>'+
         '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>'+
       '</span></td></tr>';
     if(!open) return main;
+    /* The collapsed-only fields, then whatever the learner has switched off. On
+       the shipped defaults that comes out as capture 02's list. "Updated by" is a
+       person — an avatar chip with name over role — and "Updated on" is its own
+       field with a date and a time, not a suffix on the name.
+
+       ROI is the one exception to the rule. Falling out of the columns and into
+       the expander is what the product would do with it, but the owner asked for
+       ROI gone from the view rather than dimmed, and reappearing here would put it
+       back in front of the learner by a side door. It stays selectable in the
+       column chooser, which is where the fidelity of capture 01 actually lives. */
     return main+'<tr class="expand"><td colspan="'+(vis.length+2)+'"><div class="inner">'+
-      xf("Client ID", String(c.cid))+
-      xf("Veteran Status", c.v?esc(c.v):'<span class="novalue">No value</span>')+
-      xf("Household Members", householdHTML(c))+
-      xf("Earliest enrollment", c.fe?dobShort(c.fe):'<span class="novalue">No value</span>')+
-      xf("Updated by", esc(c.u)+' <span class="novalue">· '+dobShort(c.t)+'</span>')+
+      COLLAPSED.map(function(f){ return xf(f.label, collapsedHTML(c,f.k)); }).join("")+
+      S.cols.filter(function(f){ return !f.locked && !f.vis && f.k!=="roi"; })
+            .map(function(f){ return xf(f.label, cellHTML(c,f.k)); }).join("")+
       '</div></td></tr>';
   }).join("");
 
@@ -2487,6 +2569,56 @@ var REC_NAV=[
 function field(label,val,muted){
   return '<div class="pf"><b>'+esc(label)+'</b><span'+(muted?' class="novalue"':'')+'>'+val+'</span></div>';
 }
+/* The rest of the live profile, from capture 04: everything between Demographics
+   and Point of Contacts. It belongs to programme features these lessons do not
+   teach — disability accommodations, veteran case conferencing, the TLS ramp-down
+   pathway, encampment resolution — so the bodies are obstructed. They are closed
+   by default, which the product does not do; that is the deliberate trade, so the
+   record reads as the long form it is without pushing Point of Contacts off the
+   bottom of the page.
+
+   The TLS callout is quoted as the product words it, including the job-aid link,
+   which is a real LAHSA URL and is not made clickable here. */
+var EXTRA_SECTIONS=[
+  { title:"FEMA", fields:[["FEMA Registration Number",""]] },
+  { title:"ADA Information", fields:[
+    ["Does the participant or anyone in this household have a disability?",""],
+    ["Does the participant or anyone in this household have a disability and need or could "+
+     "benefit from mobility features to accommodate access for a wheelchair, walker, cane, "+
+     "or other assistive device?",""],
+    ["Does the participant or anyone in this household have a disability and need or could "+
+     "benefit from other mobility features?",""],
+    ["Does the participant or anyone in this household have a disability and need or could "+
+     "benefit from sensory (hearing and/or visual) features?",""]] },
+  { title:"Veteran Information", vet:true, fields:[["Veteran Status",""]] },
+  { title:"For Veteran Case Conferencing (Updated by VA)", fields:[["Veteran VA Eligibility",""]] },
+  { title:"TLS Ramp Down Exit Pathway",
+    note:"This field is read-only, and is updated by LAHSA. For detailed instructions, please "+
+         "see the TLS Ramp Down Job Aid here: "+
+         "https://www.lahsa.org/documents?id=9813-time-limited-subsidy-participant-ramp-down-plan-assessment-job-aid",
+    fields:[["TLS Ramp Down Exit Pathway",""]] },
+  { title:"Encampment Resolution (Read Only)", fields:[["Encampment Resolution","No"]] }
+];
+function renderExtras(c){
+  $("#extras").innerHTML=EXTRA_SECTIONS.map(function(s){
+    var body=(s.note?
+      '<div class="exnote"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" '+
+      'stroke="currentColor" stroke-width="1.8"><path d="M12 4L2.5 20h19z"/>'+
+      '<path d="M12 10v4M12 17h.01"/></svg><span>'+esc(s.note)+'</span></div>':"")+
+      s.fields.map(function(f){
+        /* Veteran Status is the one value here the record actually carries. */
+        var v = s.vet ? (c.v||"") : f[1];
+        return field(f[0], v?esc(v):"No value", !v);
+      }).join("");
+    return '<details class="exsec"><summary>'+
+      '<svg class="caret" width="15" height="15" viewBox="0 0 24 24" fill="none" '+
+      'stroke="currentColor" stroke-width="2.2"><path d="M9 5l7 7-7 7"/></svg>'+
+      esc(s.title)+'</summary>'+
+      '<div class="exbody" data-locked>'+body+'</div></details>';
+  }).join("");
+  $$("#extras [data-locked]").forEach(bindLocked);
+}
+
 /* Point of Contacts. Three blocks always render, filled or not — the product lays
    out all three and says "No value" in the empty ones, and the section's guidance
    is about what to do when all three are taken, which only reads correctly if the
@@ -2546,24 +2678,36 @@ function openProfile(id){
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="'+n[1]+'"/></svg>'+esc(n[0])+'</button>';
   }).join("");
 
+  /* Field order is capture 03's, top to bottom. Date of Birth is the full
+     MM/DD/YYYY here even though the results table abbreviates it, and Age is its
+     own field rather than a suffix on the DOB — both as the live page has them. */
+  function opt(label,val){ return field(label, val?esc(val):'No value', !val); }
   $("#profGrid").innerHTML=
-    field("Social Security Number", c.s?esc(maskSSN(c.s)):'(No value)', !c.s)+
+    field("Social Security Number", c.s?esc(maskSSN(c.s)):'No value', !c.s)+
     field("Quality of SSN", esc(c.ql))+
     field("First name", esc(c.f))+
     field("Last name", esc(c.l))+
-    field("Alias", c.a?esc(c.a):'No value', !c.a)+
-    field("Date of Birth", dobShort(c.d)+' <span class="novalue">· Age '+age(c.d)+'</span>')+
+    opt("Middle name", c.mn)+
+    opt("Suffix", c.sfx)+
     field("Quality of Name", esc(c.qn))+
     field("Quality of DOB", esc(c.qd))+
+    field("Date of Birth", dobFull(c.d))+
+    field("Age", String(age(c.d)))+
     field("Consent Refused", esc(c.cr))+
     field("Release of Information", esc(c.r))+
-    field("Race and Ethnicity", esc(c.rc))+
-    field("Additional Race and Ethnicity Detail", c.rd?esc(c.rd):'No value', !c.rd)+
-    field("Veteran Status", c.v?esc(c.v):'No value', !c.v)+
-    field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe)+
+    opt("Legacy HMIS ID", c.lid)+
+    opt("Maiden Name", c.mdn)+
+    opt("Alias", c.a)+
     field("Client ID", String(c.cid))+
-    field("Unique Identifier", esc(c.i));
+    field("Unique Identifier", esc(c.i))+
+    field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe)+
+    '<div class="subhead">Demographics</div>'+
+    field("Gender", esc(c.g))+
+    opt("Pronoun(s)", c.p)+
+    field("Race and Ethnicity", esc(c.rc))+
+    opt("Additional Race and Ethnicity Detail", c.rd);
 
+  renderExtras(c);
   renderPOC(c);
 
   showRecordTab("Profile", c);
@@ -2708,6 +2852,20 @@ $("#kebabBtn").addEventListener("click",function(e){
     '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V4h9l-1 3h6v8h-7l-1-3H5"/></svg>Flag possible duplicate</button>'+
     '<button class="menuitem" data-locked role="menuitem">'+
     '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>Add to household</button>';
+  place(p,this); p.hidden=false; this.setAttribute("aria-expanded","true");
+  $$("#filterPop [data-locked]").forEach(bindLocked);
+});
+
+/* The Clients card's own kebab. What sits behind it is list-level work — exporting
+   the result set, bulk actions — none of which this lesson teaches. */
+$("#listKebab").addEventListener("click",function(e){
+  e.stopPropagation();
+  var p=$("#filterPop"), open=p.hidden;
+  closePops(); if(!open) return;
+  p.innerHTML='<button class="menuitem" data-locked role="menuitem">'+
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"/></svg>Export results</button>'+
+    '<button class="menuitem" data-locked role="menuitem">'+
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M13 16.5h7M16.5 13v7"/></svg>Manage saved views</button>';
   place(p,this); p.hidden=false; this.setAttribute("aria-expanded","true");
   $$("#filterPop [data-locked]").forEach(bindLocked);
 });
@@ -2947,7 +3105,14 @@ function place(pop,anchor,w){
   pop.style.visibility="hidden"; pop.hidden=false;
   var pw=pop.offsetWidth, ph=pop.offsetHeight;
   pop.hidden=true; pop.style.visibility="";
-  var left=Math.min(r.left, window.innerWidth-pw-12);
+  /* Clamp to the interface's own right edge, not the window's. The training panel
+     is docked to the right of the app, so a popover allowed the full window width
+     opens straight underneath it — which is how the column selector ended up half
+     hidden behind the task. Where the app does not fill the window, the app edge
+     is the real boundary. */
+  var app=document.querySelector(".app");
+  var edge=app ? app.getBoundingClientRect().right : window.innerWidth;
+  var left=Math.min(r.left, edge-pw-12);
   var top=r.bottom+6;
   if(top+ph>window.innerHeight-8) top=Math.max(8,r.top-ph-6);
   pop.style.left=Math.max(8,left)+"px"; pop.style.top=top+"px";
@@ -2956,6 +3121,10 @@ function closePops(){
   ["#filterPop","#chipPop","#colPop"].forEach(function(s){ $(s).hidden=true; });
   $("#filterBtn").setAttribute("aria-expanded","false");
   $("#colBtn").setAttribute("aria-expanded","false");
+  /* Both kebabs borrow #filterPop, so both have to be told it closed. */
+  ["#kebabBtn","#listKebab"].forEach(function(s){
+    var b=$(s); if(b) b.setAttribute("aria-expanded","false");
+  });
 }
 document.addEventListener("click",closePops);
 $$("[data-close]").forEach(function(b){ b.addEventListener("click",function(){ this.closest(".backdrop").hidden=true; }); });

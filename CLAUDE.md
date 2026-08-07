@@ -159,9 +159,39 @@ and two were deliberately left alone:
   are `213-555-01xx` (555-0100–0199 is the block reserved for fiction) and emails are at
   `example.org` (IANA-reserved, unregisterable). `test.mjs` asserts both ranges and that no
   PoC borrows a participant's name. Preserve this if you change PoC generation.
+- **The search card, from captures 01, 08 and 09.** The field has **no placeholder and no
+  floating label** — it is plain, empty or full. The card head carries the ⊕ *and a kebab*.
+  The **recents hint** ("Showing recently accessed clients…") sits on the landing whether or
+  not anyone has been opened yet, with the column header above an empty table. On a search
+  that found nobody the **column header disappears entirely** — title, field, empty state, and
+  nothing else. The empty state's two lines stack beside the icon.
+- **The expanded row is derived, not listed.** It is the collapsed-only fields (Client ID,
+  Updated by, Updated on, Gender, Race and Ethnicity) plus **every column currently switched
+  off**. That is what explains capture 02: ROI and Household Members were on as columns there,
+  so the row showed Alias and Veteran Status, the two that account had off. A field appearing
+  in both halves of the column selector is this model working, not a bug. **ROI is the one
+  override** — the owner asked for it gone from the view rather than dimmed, so it never falls
+  into the expander; it stays selectable in the chooser, which is where capture 01's fidelity
+  actually lives. *Updated by* is a person (avatar chip, name over role); *Updated on* is its
+  own field with a date **and a time**.
+- **The profile grid follows capture 03's order**, including Middle name, Suffix, Legacy HMIS
+  ID, Maiden Name, Pronoun(s) and a **Demographics** subheading. Two date formats on purpose:
+  the results table abbreviates (`4/26/93`), the record spells it out (`04/26/1993`). **Age is
+  its own field**, not a suffix on the DOB. Empty reads `No value`, no brackets.
+- **Capture 04's sections are built but closed** — FEMA, ADA Information, Veteran Information,
+  For Veteran Case Conferencing, TLS Ramp Down Exit Pathway (with its amber read-only callout
+  quoted as the product words it), Encampment Resolution. Their bodies are obstructed like
+  everything else the lesson does not teach. **Collapsing them is ours, not the product's** —
+  the owner's explicit trade, so the record reads as the long form it is without pushing Point
+  of Contacts off the bottom. Don't "fix" it by opening them.
+- **Avatars stay varied**, confirmed by the owner against the live account — the single navy in
+  the captures is one client, not the rule. Real records can also carry **photos**; ours stay on
+  initials, because a fictional participant cannot be given a real face.
 - **Not reproduced, by decision:** the four stat cards above the results table, and the record
   page's right-hand rail. Both serve features these lessons do not teach. Don't add them back
   as a fidelity fix — they can arrive with the lesson that needs them.
+- **Popovers clamp to the app's right edge, not the window's.** The training panel is docked
+  right; a popover allowed the full window width opens underneath it.
 
 The **Household Members** column renders properly now (member chips with relationships, or
 *Individual client / No household members*), but ships **off by default** — the owner wants it

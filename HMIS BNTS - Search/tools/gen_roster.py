@@ -97,6 +97,16 @@ QDOB  = ["Full DOB Reported", "Full DOB Reported", "Full DOB Reported",
          "Approximate or partial DOB reported", "Client refused"]
 STAFF = ["S. Ramirez", "T. Okoye", "M. Lindgren", "J. Whitfield", "A. Barnes",
          "K. Nakamura", "D. Ferreira", "L. Mbatha", "C. Yoon", "R. Delacroix"]
+# Gender, as the record page words it — the capture shows "Man (Boy, if child)",
+# so the parenthetical is part of the option rather than our gloss on it.
+GENDER = ["Woman (Girl, if child)", "Man (Boy, if child)", "Non-Binary",
+          "Transgender", "Culturally Specific Identity", "Questioning",
+          "Different Identity", "Client doesn't know", "Client refused",
+          "Data not collected"]
+GENDER_W = [.42, .42, .04, .03, .02, .01, .01, .02, .02, .01]
+SUFFIX = ["Jr.", "Sr.", "II", "III"]
+MIDDLE = ["Ann", "Lee", "Marie", "James", "Rose", "Dean", "Grace", "Paul",
+          "Elise", "Ray", "June", "Cole"]
 COLORS = 8
 
 def ssn():
@@ -562,6 +572,17 @@ for c in clients:
     c["rc"] = rnd.choice(RACE)
     c["rd"] = "" if rnd.random() < 0.85 else rnd.choice(
         ["Enrolled member of a federally recognized tribe", "Afro-Caribbean", "Central American"])
+    # Name and identity fields the live profile carries. Most are empty on most
+    # records, which is what the capture shows and what makes "No value" the
+    # normal sight on this page rather than a sign something is wrong.
+    c["mn"] = rnd.choice(MIDDLE) if rnd.random() < 0.22 else ""
+    c["sfx"] = rnd.choice(SUFFIX) if rnd.random() < 0.05 else ""
+    c["lid"] = str(rnd.randint(100000, 999999)) if rnd.random() < 0.18 else ""
+    c["mdn"] = rnd.choice(COMMON_L) if rnd.random() < 0.07 else ""
+    c["g"] = weighted(list(zip(GENDER, GENDER_W)))
+    # "Updated on" is a timestamp on the record, not just a date.
+    c["ut"] = "%d:%02d %s" % (rnd.randint(1, 12), rnd.randint(0, 59),
+                              rnd.choice(["AM", "PM"]))
     c["qn"] = rnd.choice(QNAME)
     c["qd"] = rnd.choice(QDOB)
     c["ql"] = QUALITY_LABEL[c["q"]]
