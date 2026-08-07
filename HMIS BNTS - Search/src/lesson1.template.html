@@ -11,8 +11,15 @@
   --indigo:#4f46b8; --indigo-dk:#3d3593; --indigo-soft:#eceafb;
   --green:#1a7a4a; --green-soft:#e8f5ee; --red:#b3261e; --red-soft:#fbeae9;
   --amber:#8a5a00;
-  --coach:#1b2430; --coach-2:#243040; --coach-ink:#e8eef5; --coach-mut:#93a4b8;
-  --ok:#3fb984; --bad:#ff7a70; --tip:#f5c26b;
+  /* Lashes' palette, from the character bible. The training layer is built out of
+     it so it reads as hers: the same light material as the interface, so it belongs
+     on the screen, and teal rather than the product's indigo, so it is never
+     mistaken for part of Clarity. */
+  --teal:#066888; --teal-dk:#044e66; --teal-lt:#3fa0c0; --lens:#e0eff5;
+  --teal-glow:rgba(6,104,136,.16);
+  --coach:#ffffff; --coach-2:#f1f8fb; --coach-ink:#14222b; --coach-mut:#5f7f8f;
+  --coach-line:#d9e8ef;
+  --ok:#0f6b45; --bad:#a3312a; --tip:#8a5a00;
   --focus:#0b6fd4;
 }
 *{box-sizing:border-box}
@@ -252,8 +259,9 @@ tbody tr.open{background:var(--indigo-soft)}
    standing brief and the controls; the live reaction is Lashes' job, and hers
    goes wherever the thing she is reacting to happens to be. */
 .coach{position:fixed;right:24px;top:24px;width:344px;background:var(--coach);color:var(--coach-ink);
-  display:flex;flex-direction:column;z-index:170;border-radius:14px;overflow:hidden;
-  max-height:calc(100vh - 48px);box-shadow:0 18px 44px rgba(20,16,40,.34),0 0 0 1px rgba(255,255,255,.06)}
+  display:flex;flex-direction:column;z-index:170;border-radius:17px;overflow:hidden;
+  max-height:calc(100vh - 48px);
+  box-shadow:0 14px 40px var(--teal-glow),0 2px 6px rgba(20,34,43,.10),0 0 0 1px rgba(6,104,136,.12)}
 html.dock-min .coach{width:auto}
 /* Popped out: it stops owning a column and starts being placed. The drag handle
    only exists in this mode — a docked panel that can be dragged is a lie. */
@@ -261,38 +269,40 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
 html.dock-out .cwbar{cursor:grab}
 html.dock-out .cwbar.drag{cursor:grabbing}
 .coach.pulse{animation:cwpulse 1.1s ease-out}
-@keyframes cwpulse{0%{box-shadow:0 18px 44px rgba(20,16,40,.34),0 0 0 1px rgba(255,255,255,.06),0 0 0 0 rgba(63,160,192,.55)}
-  100%{box-shadow:0 18px 44px rgba(20,16,40,.34),0 0 0 1px rgba(255,255,255,.06),0 0 0 16px rgba(63,160,192,0)}}
-.cwbar{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 13px;background:var(--coach-2);
-  flex:none;user-select:none;touch-action:none;border-bottom:1px solid #2c3a4b}
-.cwbar .lz{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--coach-mut);font-weight:700;flex:1;min-width:0}
-.cwbtn{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:var(--coach-mut);flex:none}
-.cwbtn:hover{background:#33445a;color:var(--coach-ink)}
+@keyframes cwpulse{0%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 0 rgba(63,160,192,.5)}
+  100%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 16px rgba(63,160,192,0)}}
+.cwbar{display:flex;align-items:center;gap:6px;padding:9px 8px 9px 15px;background:var(--teal);
+  color:#fff;flex:none;user-select:none;touch-action:none}
+.cwbar .lz{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.82);font-weight:700;flex:1;min-width:0}
+.cwbtn{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:rgba(255,255,255,.8);flex:none}
+.cwbtn:hover{background:rgba(255,255,255,.18);color:#fff}
 .coach.min .cbody,.coach.min .cfoot,.coach.min .chead{display:none}
 .coach.min{max-height:none}
-.chead{padding:13px 18px 12px;border-bottom:1px solid #2c3a4b;flex:none}
+.chead{padding:14px 18px 12px;border-bottom:1px solid var(--coach-line);flex:none}
 .chead h2{margin:0;font-size:16px;font-weight:600}
-.bar{height:5px;background:#2c3a4b;border-radius:99px;overflow:hidden;margin:12px 0 6px}
-.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .4s}
+.bar{height:6px;background:var(--lens);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--teal);width:0;transition:width .4s}
 .cmeta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--coach-mut)}
 .cbody{flex:1;overflow:auto;padding:16px 18px}
 .tasktitle{font-size:15px;font-weight:700;margin:0 0 8px}
-.taskbrief{font-size:13.5px;color:#cbd6e2;margin:0 0 12px}
-.taskbrief .q{color:#fff;font-style:italic}
-.taskbrief code{background:#2c3a4b;padding:1px 6px;border-radius:4px;font-size:12.5px}
-.taskask{background:var(--coach-2);border-left:3px solid var(--ok);padding:11px 13px;border-radius:0 8px 8px 0;font-size:13.5px}
+.taskbrief{font-size:13.5px;color:#41606f;margin:0 0 12px}
+.taskbrief .q{color:var(--coach-ink);font-style:italic}
+.taskbrief code{background:var(--lens);padding:1px 6px;border-radius:4px;font-size:12.5px}
+.taskask{background:var(--coach-2);border-left:3px solid var(--teal);padding:11px 13px;border-radius:0 9px 9px 0;font-size:13.5px}
 .fb{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;border-left:3px solid;background:var(--coach-2)}
+.fb.tour{border-color:var(--teal)}
 .fb.good{border-color:var(--ok)} .fb.bad{border-color:var(--bad)} .fb.tip{border-color:var(--tip)}
 .fb b{display:block;margin-bottom:5px;font-size:13.5px}
 .fb .teach{margin-top:9px;padding-top:9px;border-top:1px solid #35455a;color:#c3d0de}
-.cfoot{padding:12px 18px 16px;border-top:1px solid #2c3a4b;display:flex;gap:8px;flex-wrap:wrap;flex:none}
-.cbtn{border:1px solid #3a4a5e;border-radius:8px;padding:9px 13px;font-size:13px;font-weight:600;color:var(--coach-ink)}
+.cfoot{padding:12px 18px 16px;border-top:1px solid var(--coach-line);display:flex;gap:8px;flex-wrap:wrap;flex:none}
+.cbtn{border:1px solid #bfd9e4;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:600;color:var(--teal)}
 .cbtn:hover{background:var(--coach-2)}
-.cbtn.go{background:var(--ok);border-color:var(--ok);color:#08281a}
-.cbtn.go:hover{background:#54cd97}
+.cbtn.go{background:var(--teal);border-color:var(--teal);color:#fff}
+.cbtn.go:hover{background:var(--teal-dk)}
 .tasklist{list-style:none;margin:16px 0 0;padding:0;font-size:12.5px}
+.tasklist{border-top:1px solid var(--coach-line);padding-top:12px}
 .tasklist li{display:flex;gap:9px;padding:5px 0;color:var(--coach-mut)}
-.tasklist li.cur{color:#fff;font-weight:600}
+.tasklist li.cur{color:var(--teal);font-weight:700}
 .tasklist li.done{color:var(--ok)}
 
 /* ============================ LASHES ============================
@@ -310,6 +320,20 @@ html.dock-out .cwbar.drag{cursor:grabbing}
   opacity:0;transition:transform .58s cubic-bezier(.22,1.1,.36,1),opacity .3s;will-change:transform}
 .lzchar.on{opacity:1}
 .lzchar svg{width:100%;height:100%;display:block;overflow:visible}
+
+.lzarrow{position:absolute;left:0;top:0;width:46px;height:52px;opacity:0;
+  transition:transform .5s cubic-bezier(.22,1.1,.36,1),opacity .25s}
+.lzarrow.on{opacity:1}
+.lzarrow .spin{width:100%;height:100%;transition:transform .35s ease}
+.lzarrow .bob{width:100%;height:100%;animation:lzpoint 1.15s cubic-bezier(.4,0,.3,1) infinite;
+  transform-origin:50% 0%}
+@keyframes lzpoint{
+  0%,100%{transform:translateY(0) scaleY(1) scaleX(1)}
+  38%{transform:translateY(11px) scaleY(1.12) scaleX(.92)}
+  52%{transform:translateY(13px) scaleY(.82) scaleX(1.14)}
+  70%{transform:translateY(4px) scaleY(1.04) scaleX(.98)}}
+.lzarrow svg{display:block;filter:drop-shadow(0 5px 12px rgba(6,104,136,.28))}
+@media(prefers-reduced-motion:reduce){.lzarrow .bob{animation:none}.lzarrow{transition:opacity .25s}}
 
 .m-rim   {fill:none;stroke:#066888;stroke-width:6}
 /* The bible has this at .85. Over a working interface that reads as see-through
@@ -631,6 +655,15 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 <!-- ============================ LASHES ============================ -->
 <div class="lzlayer" id="lzLayer">
   <div class="lzchar" id="lzChar" aria-hidden="true"></div>
+  <!-- She has no hands and can never point, so the pointing is a prop, drawn in her
+       own palette: teal rim, lens fill, one white shine. -->
+  <div class="lzarrow" id="lzArrow" aria-hidden="true"><div class="spin"><div class="bob">
+    <svg width="46" height="52" viewBox="0 0 58 66">
+      <path d="M21 6 h16 q4 0 4 4 v20 h9 q5 0 2.5 4.5 L32.5 57 q-3.5 5 -7 0 L5.5 34.5 Q3 30 8 30 h9 V10 q0 -4 4 -4 z"
+            fill="#e0eff5" stroke="#066888" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M23 12 q0 -2.5 2.5 -2.5 l4 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+    </svg>
+  </div></div></div>
   <div class="lzbub" id="lzBub">
     <div id="fb"></div>
     <div class="lzfoot" id="lzFoot" hidden>
@@ -847,13 +880,14 @@ var LZ=(function(){
      placement calculation so she is centred on her face, not on empty margin. */
   var FX=0.44, FY=0.42, FR=0.30;
 
-  var el, bub, card, layer;
+  var el, bub, card, layer, arrow;
   var cur={eyes:"open", mouth:"tip"};
   var pos={x:0, y:0};                 /* top-left of the char box, layer coords */
   var homeSide="right";
   var dismissed=false;
   var lastBand=null;
   var lastAnchor="home";
+  var pointing=false;
 
   function svg(eyes,mouth){
     var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
@@ -974,12 +1008,18 @@ var LZ=(function(){
               box:{l:left, t:top, r:left+cw, b:top+ch}};
     }
     var mid=a.t+a.h/2-ch/2, cx=a.l+a.w/2-cw/2;
+    /* When she is pointing, the arrow stands in the gap between her and the thing,
+       so the gap has to be big enough to hold it — otherwise the bubble is placed
+       on top of the arrow and only its tip shows. */
+    var AW=46, AH=52, gx=pointing?(AW+14):10, gy=pointing?(AH+14):10;
+    var SIDES=["right","left","below","above"];
     var tries=[
-      function(){ var L=a.r+10; return cluster(L,mid,L); },                 /* right of it  */
-      function(){ var L=a.l-10-cw; return cluster(L,mid,L+bw+gap); },       /* left of it   */
-      function(){ return cluster(cx,a.b+10,cx); },                          /* below it     */
-      function(){ return cluster(cx,a.t-10-ch,cx); }                        /* above it     */
+      function(){ var L=a.r+gx; return cluster(L,mid,L); },                 /* right of it  */
+      function(){ var L=a.l-gx-cw; return cluster(L,mid,L+bw+gap); },       /* left of it   */
+      function(){ return cluster(cx,a.b+gy,cx); },                          /* below it     */
+      function(){ return cluster(cx,a.t-gy-ch,cx); }                        /* above it     */
     ];
+    var chosen=0;
     var clear=keepClear(), best=null, fallback=null, least=Infinity;
     for(var i=0;i<tries.length;i++){
       var c=tries[i]();
@@ -988,12 +1028,12 @@ var LZ=(function(){
               Math.max(0,c.box.r-(b.w-pad))+Math.max(0,c.box.b-(b.h-pad));
       var over=0;
       for(var j=0;j<clear.length;j++) over+=overlap(c.box,clear[j])*(clear[j].w||1);
-      if(!off && !over){ best=c; break; }
+      if(!off && !over){ best=c; chosen=i; break; }
       /* Score every candidate anyway. When nothing is clean, "least in the way"
          beats a fixed corner, which is how she ended up sitting on the one row
          the task wanted clicked. */
       var score=over+off*40;
-      if(score<least){ least=score; fallback=c; }
+      if(score<least){ least=score; fallback=c; chosen=i; }
     }
     if(!best){
       best=fallback;
@@ -1001,6 +1041,7 @@ var LZ=(function(){
       var dy=Math.max(0,pad-best.box.t)-Math.max(0,best.box.b-(b.h-pad));
       best.char.x+=dx; best.char.y+=dy; best.bub.x+=dx; best.bub.y+=dy;
     }
+    placeArrow(SIDES[chosen], a, best);
     moveTo(best.char.x,best.char.y);
     if(showBub){
       bub.style.transform="translate("+Math.max(pad,Math.min(best.bub.x,b.w-bw-pad))+"px,"+
@@ -1011,9 +1052,29 @@ var LZ=(function(){
   /* She is not a permanent fixture. She arrives to say something and leaves when
      it no longer applies, so the interface is the thing on screen and she is the
      interruption — which is the only way an interruption still reads as one. */
+  /* The arrow sits in the gap between her and the thing, rotated to point at it.
+     The base drawing points down, so each side is a quarter turn from there. The
+     bounce lives inside the rotation, which is what makes it bounce along the
+     direction it is pointing rather than always downwards. */
+  var POINT={right:{deg:90}, left:{deg:-90}, below:{deg:180}, above:{deg:0}};
+  function placeArrow(side,a,c){
+    if(!pointing){ arrow.classList.remove("on"); return; }
+    var p=POINT[side]||POINT.above, w=46, h=52, gap=6, x, y;
+    if(side==="right"){ x=a.r+gap;             y=a.t+a.h/2-h/2; }
+    else if(side==="left"){ x=a.l-gap-w;       y=a.t+a.h/2-h/2; }
+    else if(side==="below"){ x=a.l+a.w/2-w/2;  y=a.b+gap; }
+    else { x=a.l+a.w/2-w/2;                    y=a.t-gap-h; }
+    var b=bounds();
+    x=Math.max(2,Math.min(x,b.w-w-2)); y=Math.max(2,Math.min(y,b.h-h-2));
+    arrow.style.transform="translate("+x+"px,"+y+"px)";
+    arrow.querySelector(".spin").style.transform="rotate("+p.deg+"deg)";
+    arrow.classList.add("on");
+  }
   function hideBub(){
     bub.classList.remove("on");
     el.classList.remove("on");
+    arrow.classList.remove("on");
+    pointing=false;
   }
   function showBub(html){
     $("#fb").innerHTML=html;
@@ -1023,7 +1084,7 @@ var LZ=(function(){
 
   return {
     boot:function(){
-      layer=$("#lzLayer"); el=$("#lzChar"); bub=$("#lzBub"); card=$("#lzCard");
+      layer=$("#lzLayer"); el=$("#lzChar"); bub=$("#lzBub"); card=$("#lzCard"); arrow=$("#lzArrow");
       paint();
       var b=bounds();
       moveTo(b.w-size()-28, b.h-size()-28);
@@ -1032,7 +1093,9 @@ var LZ=(function(){
     /* Positioning without speech — used only for the card, where she is beside
        something that is already carrying the words. */
     go:function(anchor,o){
-      set(o||{});
+      o=o||{};
+      pointing=!!o.point;
+      set(o);
       lastAnchor=anchor;
       layout(anchor);
     },
@@ -1040,6 +1103,7 @@ var LZ=(function(){
       var entering=!el.classList.contains("on");
       o=o||{};
       if(entering && !o.move) o.move="dropin";
+      pointing=!!o.point && anchor!=="home" && anchor!=="panel";
       set(o);
       showBub(html);
       lastAnchor=anchor;
@@ -1084,7 +1148,7 @@ var BEAT=(function(){
     var b=cur(); if(!b) return;
     LZ.say(b.anchor||"search",
       '<div class="fb '+(b.kind||"tour")+'">'+(b.title?"<b>"+esc(b.title)+"</b>":"")+b.html+"</div>",
-      {eyes:b.eyes||"open", mouth:b.mouth||"tip", move:b.move});
+      {eyes:b.eyes||"open", mouth:b.mouth||"tip", move:b.move, point:b.point});
     $("#lzFoot").hidden=false;
     $("#lzCount").textContent=(list.length>1)?(i+1)+" of "+list.length:"";
     var gated=!!b.until;
@@ -1144,14 +1208,14 @@ var TOUR=[
   html:'<p>I am Lashes. Yes, on the nose. I have made my peace with it.</p>'+
        '<p>This is a practice version of Clarity. It behaves the way the real one does. '+
        'Everyone in it is invented, so nothing you do here reaches a real person.</p>' },
-{ anchor:"search", eyes:"wide", mouth:"plain",
+{ anchor:"search", eyes:"wide", mouth:"plain", point:true,
   html:'<p>One box does all of it. Part of a name, a date of birth, a few digits of a '+
        'Social Security Number. It searches while you type, so you do not press anything.</p>' },
-{ anchor:"results", eyes:"open", mouth:"plain", move:"hop",
+{ anchor:"results", eyes:"open", mouth:"plain", move:"hop", point:true,
   html:'<p>Results land here. Three hundred people in this roster.</p>'+
        '<p>The live system holds hundreds of thousands. So the habit worth building is to '+
        'narrow before you scan, not to scroll.</p>' },
-{ anchor:"results", eyes:"glance", mouth:"wry",
+{ anchor:"results", eyes:"glance", mouth:"wry", point:true,
   html:'<p>The arrow on the left of a row opens it without leaving the list. Household, '+
        'veteran status, when it was last touched.</p>' },
 { anchor:"panel", eyes:"open", mouth:"tip", move:"lean",
@@ -1159,7 +1223,7 @@ var TOUR=[
        'person in front of you and something they have told you.</p>'+
        '<p>Nothing is scored. Hints are free and there is no skip, so you work each one '+
        'until you find it. You type the search yourself every time.</p>' },
-{ anchor:"rail", eyes:"droll", mouth:"hm", move:"still",
+{ anchor:"rail", eyes:"droll", mouth:"hm", move:"still", point:true,
   html:'<p>Anything blurred is not yours yet. It clears as you earn it.</p>' },
 { anchor:"search", eyes:"sparkle", mouth:"cheer", move:"bounce",
   next:"Let's go",

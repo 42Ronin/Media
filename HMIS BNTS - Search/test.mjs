@@ -42,8 +42,16 @@ const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
 ok('it has more than one step', tourLen > 1);
 
 const seen = [];
+let arrowSeen = 0, arrowUnderBubble = false;
 for (let n = 0; n < tourLen; n++) {
   seen.push(await p.textContent('#fb'));
+  const arrow = await p.evaluate(() => {
+    const A = document.querySelector('#lzArrow');
+    if (!A.classList.contains('on')) return null;
+    const a = A.getBoundingClientRect(), b = document.querySelector('#lzBub').getBoundingClientRect();
+    return { over: !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom) };
+  });
+  if (arrow) { arrowSeen++; if (arrow.over) arrowUnderBubble = true; }
   const bad = await p.evaluate(() => {
     const a = document.querySelector('#lzBub').getBoundingClientRect();
     const w = document.querySelector('#coachWin').getBoundingClientRect();
@@ -58,6 +66,17 @@ ok('the tour covers the roster size the script states', seen.join(' ').includes(
 ok('...that nothing is scored and there is no skip',
    seen.join(' ').includes('Nothing is scored') && seen.join(' ').includes('no skip'));
 ok('...and that blurred means not yet earned', seen.join(' ').includes('clears as you earn it'));
+/* She has no hands and can never point, so the pointing is a prop — drawn in her
+   own palette, standing in the gap between her and the thing, rotated at it. */
+ok('the arrow appears when she is pointing at something',
+   arrowSeen > 0, `${arrowSeen} of ${tourLen} steps pointed`);
+ok('...and it never sits underneath her own bubble', !arrowUnderBubble);
+ok('...and it is drawn in her palette, not the product\'s',
+   await p.evaluate(() => {
+     const path = document.querySelector('#lzArrow svg path');
+     return path.getAttribute('stroke') === '#066888' && path.getAttribute('fill') === '#e0eff5';
+   }));
+
 ok('finishing it puts her away', await p.evaluate(() =>
    !document.querySelector('#lzBub').classList.contains('on') &&
    !document.querySelector('#lzChar').classList.contains('on') &&
@@ -872,6 +891,21 @@ console.log('\n— launched from the Rise shell —');
   ok('no errors anywhere in the launch path', shellErrs.length === 0, shellErrs.join(' | '));
   await shell.close();
 }
+
+/* The training layer is built from the character bible's palette: the same light
+   material as the interface so it belongs on screen, and teal rather than the
+   product's indigo so it can never be mistaken for part of Clarity. */
+console.log('\n— the training layer looks like hers —');
+ok('the panel is light, like the interface, not a dark slab',
+   await p.$eval('#coachWin', e => getComputedStyle(e).backgroundColor === 'rgb(255, 255, 255)'));
+ok('its header carries her teal',
+   await p.$eval('#cwBar', e => getComputedStyle(e).backgroundColor === 'rgb(6, 104, 136)'));
+ok('the product keeps its own indigo, so the two never read as one thing',
+   await p.evaluate(() => {
+     const teal = getComputedStyle(document.documentElement).getPropertyValue('--teal').trim();
+     const indigo = getComputedStyle(document.documentElement).getPropertyValue('--indigo').trim();
+     return teal === '#066888' && indigo !== teal;
+   }));
 
 console.log('\n— accessibility / integrity —');
 ok('result count is an aria-live region',
