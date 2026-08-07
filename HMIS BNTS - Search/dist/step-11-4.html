@@ -308,13 +308,23 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 .chead h2{margin:0;font-size:16px;font-weight:600}
 .bar{height:6px;background:var(--lens);border-radius:99px;overflow:hidden;margin:12px 0 6px}
 .bar i{display:block;height:100%;background:var(--teal);width:0;transition:width .4s}
-.cmeta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--coach-mut)}
-.cbody{flex:1;overflow:auto;padding:16px 18px}
-.tasktitle{font-size:17.5px;font-weight:700;margin:0 0 9px;line-height:1.35}
-.taskbrief{font-size:15.5px;line-height:1.6;color:#41606f;margin:0 0 13px}
-.taskbrief .q{color:var(--coach-ink);font-style:italic}
-.taskbrief code{background:var(--lens);padding:1px 6px;border-radius:4px;font-size:14.5px}
-.taskask{background:var(--coach-2);border-left:3px solid var(--teal);padding:12px 14px;border-radius:0 9px 9px 0;font-size:15.5px;line-height:1.55}
+.cmeta{display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;
+  letter-spacing:.01em;color:var(--teal)}
+.cbody{flex:1;overflow:auto;padding:20px 22px 22px}
+.tasktitle{font-size:20px;font-weight:800;margin:0 0 10px;line-height:1.3;letter-spacing:-.01em}
+.taskbrief{font-size:15.5px;line-height:1.65;color:#41606f;margin:0 0 16px}
+/* The line the participant actually says, picked out rather than just italic —
+   a soft highlight under the text reads faster than a font-style change alone.
+   box-decoration-break keeps the highlight consistent if the phrase wraps. */
+.taskbrief .q{color:var(--coach-ink);font-style:italic;font-weight:600;
+  background:linear-gradient(to bottom, transparent 60%, var(--lens) 60%);
+  padding:0 1px;border-radius:2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.taskbrief code{background:var(--lens);padding:2px 7px;border-radius:5px;font-size:14.5px}
+.taskask{display:flex;gap:11px;align-items:flex-start;background:var(--coach-2);
+  border:1px solid #d3e7ee;padding:14px 16px;border-radius:13px;font-size:15.5px;line-height:1.6;
+  box-shadow:0 3px 10px rgba(6,104,136,.07)}
+.taskask svg{flex:none;margin-top:2px;color:var(--teal)}
+.taskask b{color:var(--teal-dk)}
 .fb{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;border-left:3px solid;background:var(--coach-2)}
 .fb.tour{border-color:var(--teal)}
 .fb.good{border-color:var(--ok)} .fb.bad{border-color:var(--bad)} .fb.tip{border-color:var(--tip)}
@@ -1067,7 +1077,7 @@ var LZ=(function(){
        results clear is what puts her in it rather than on top of the rows. */
     if(STEP) add("#tbl",6);
     var t=(typeof task==="function") ? task() : null;
-    if(t && t.expect && t.expect.id) add('tr[data-row="'+t.expect.id+'"]',6);
+    if(t && t.expect && t.expect.id) add('tr[data-row="'+t.expect.id+'"]',14);
     return out;
   }
   function overlap(a,b){
@@ -1131,8 +1141,19 @@ var LZ=(function(){
       /* how far this placement would have to be dragged back on screen */
       var off=Math.max(0,pad-c.box.l)+Math.max(0,pad-c.box.t)+
               Math.max(0,c.box.r-(b.w-pad))+Math.max(0,c.box.b-(b.h-pad));
+      /* Score against the box AFTER the same clamp the fallback path applies below
+         — an anchor tucked in a screen corner can look clean pre-clamp and then
+         get dragged straight back onto itself once pulled on screen. Scoring the
+         clamped box is what catches that before it happens, rather than after. */
+      var cdx=Math.max(0,pad-c.box.l)-Math.max(0,c.box.r-(b.w-pad));
+      var cdy=Math.max(0,pad-c.box.t)-Math.max(0,c.box.b-(b.h-pad));
+      var cbox={l:c.box.l+cdx, t:c.box.t+cdy, r:c.box.r+cdx, b:c.box.b+cdy};
       var over=0;
-      for(var j=0;j<clear.length;j++) over+=overlap(c.box,clear[j])*(clear[j].w||1);
+      for(var j=0;j<clear.length;j++) over+=overlap(cbox,clear[j])*(clear[j].w||1);
+      /* Never park on top of the very thing she is pointing at. Weighted below the
+         expected row: covering the anchor is untidy, covering the row the learner
+         has to click is a dead end. */
+      over+=overlap(cbox,a)*4;
       if(!off && !over){ best=c; chosen=i; break; }
       /* Score every candidate anyway. When nothing is clean, "least in the way"
          beats a fixed corner, which is how she ended up sitting on the one row
@@ -1146,7 +1167,7 @@ var LZ=(function(){
       var dy=Math.max(0,pad-best.box.t)-Math.max(0,best.box.b-(b.h-pad));
       best.char.x+=dx; best.char.y+=dy; best.bub.x+=dx; best.bub.y+=dy;
     }
-    placeArrow(SIDES[chosen], a, best);
+    placeArrow(a, best);
     moveTo(best.char.x,best.char.y);
     if(showBub){
       bub.style.transform="translate("+Math.max(pad,Math.min(best.bub.x,b.w-bw-pad))+"px,"+
@@ -1160,15 +1181,34 @@ var LZ=(function(){
   /* The arrow sits in the gap between her and the thing, rotated to point at it.
      The base drawing points down, so each side is a quarter turn from there. The
      bounce lives inside the rotation, which is what makes it bounce along the
-     direction it is pointing rather than always downwards. */
+     direction it is pointing rather than always downwards.
+
+     It is placed from where she actually ended up, not from the side the layout
+     solver originally reached for. When an anchor sits in a screen corner, none
+     of the four tries fits cleanly and the fallback drags her cluster wherever
+     is least bad — which can be nowhere near the side that was picked. An arrow
+     drawn from that stale guess landed on top of her instead of in a gap. If
+     there genuinely is no gap once she has settled, the honest thing is no
+     arrow at all, not one lying across her face. */
   var POINT={right:{deg:90}, left:{deg:-90}, below:{deg:180}, above:{deg:0}};
-  function placeArrow(side,a,c){
+  function placeArrow(a,c){
     if(!pointing){ arrow.classList.remove("on"); return; }
-    var p=POINT[side]||POINT.above, w=46, h=52, gap=6, x, y;
-    if(side==="right"){ x=a.r+gap;             y=a.t+a.h/2-h/2; }
-    else if(side==="left"){ x=a.l-gap-w;       y=a.t+a.h/2-h/2; }
-    else if(side==="below"){ x=a.l+a.w/2-w/2;  y=a.b+gap; }
-    else { x=a.l+a.w/2-w/2;                    y=a.t-gap-h; }
+    var w=46, h=52, minGap=24, s0=size();
+    var charL=c.char.x, charT=c.char.y, charR=charL+s0, charB=charT+s0;
+    var gaps={right:a.l-charR, left:charL-a.r, below:a.t-charB, above:charT-a.b};
+    var side=null, bestGap=-Infinity;
+    for(var k in gaps){ if(gaps[k]>bestGap){ bestGap=gaps[k]; side=k; } }
+    if(bestGap<minGap){ arrow.classList.remove("on"); return; }
+    var p=POINT[side], x, y;
+    if(side==="right"||side==="left"){
+      x = side==="right" ? charR+(bestGap-w)/2 : charL-(bestGap+w)/2;
+      var oT=Math.max(charT,a.t), oB=Math.min(charB,a.b);
+      y = (oB>oT) ? (oT+oB)/2-h/2 : (a.t+a.b)/2-h/2;
+    }else{
+      y = side==="below" ? charB+(bestGap-h)/2 : charT-(bestGap+h)/2;
+      var oL=Math.max(charL,a.l), oR=Math.min(charR,a.r);
+      x = (oR>oL) ? (oL+oR)/2-w/2 : (a.l+a.r)/2-w/2;
+    }
     var b=bounds();
     x=Math.max(2,Math.min(x,b.w-w-2)); y=Math.max(2,Math.min(y,b.h-h-2));
     arrow.style.transform="translate("+x+"px,"+y+"px)";
@@ -1992,6 +2032,10 @@ function renderColPanel(){
 /* ============================================================
    COACH
    ============================================================ */
+var ASK_ICON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
+  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+  '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h11"/></svg>';
+function askBox(html){ return ASK_ICON+"<span>"+html+"</span>"; }
 function renderCoach(){
   var done=S.idx>=TASKS.length;
   if(S.note){                                   /* a checkpoint between tasks */
@@ -1999,7 +2043,7 @@ function renderCoach(){
     $("#taskNo").textContent="Checkpoint";
     $("#tTitle").textContent=S.note.title;
     $("#tBrief").innerHTML=S.note.html;
-    $("#tAsk").innerHTML="Read this, then carry on.";
+    $("#tAsk").innerHTML=askBox("Read this, then carry on.");
     $("#hintBtn").hidden=true;
     $("#nextBtn").hidden=false; $("#nextBtn").textContent="Continue →";
     renderTaskList();
@@ -2029,13 +2073,13 @@ function renderCoach(){
   if(done){
     $("#tTitle").textContent="Lesson complete";
     $("#tBrief").innerHTML="You can keep searching the roster freely.";
-    $("#tAsk").innerHTML="Try the column selector, the filter chips, and a few searches of your own.";
+    $("#tAsk").innerHTML=askBox("Try the column selector, the filter chips, and a few searches of your own.");
     $("#hintBtn").hidden=true;
   }else{
     var t=task();
     $("#tTitle").textContent=t.title;
     $("#tBrief").innerHTML=t.brief;
-    $("#tAsk").innerHTML="<b>Your task:</b> "+esc(t.ask);
+    $("#tAsk").innerHTML=askBox("<b>Your task:</b> "+esc(t.ask));
     /* pass() hides the hint; this runs after it, so it has to respect that or the
        button comes straight back on a task the learner has already solved */
     $("#hintBtn").hidden=S.results.some(function(r){ return r.id===t.id; });
@@ -2052,7 +2096,7 @@ function renderTaskList(){}
 var SAY_LOOK={
   good:{anchor:"record",  o:{eyes:"sparkle",mouth:"cheer",move:"bounce"}},
   bad: {anchor:"results", o:{eyes:"glance", mouth:"wry",  move:"shrug"}},
-  tip: {anchor:"search",  o:{eyes:"open",   mouth:"tip",  move:"hop"}}
+  tip: {anchor:"search",  o:{eyes:"open",   mouth:"tip",  move:"hop", point:true}}
 };
 function say(kind,title,body,teach){
   BEAT.cancel();
@@ -2704,7 +2748,7 @@ $("#restartBtn").addEventListener("click",function(){
 /* ---------------- Lashes controls ---------------- */
 $("#lzCardGo").addEventListener("click",nextTask);
 $("#lzStep").addEventListener("click",function(){ BEAT.step(); });
-$("#cwTour").addEventListener("click",function(){ BEAT.cancel(); BEAT.run(TOUR); });
+$("#cwTour").addEventListener("click",function(){ BEAT.cancel(); BEAT.run(TOUR, SCENARIOS[SECTION]?null:pulseWin); });
 
 /* Done means done. Leaving full screen is what returns the learner to the Rise
    card the launcher shows, which is where the course carries on. Outside the
@@ -2755,8 +2799,12 @@ if(STEP) document.documentElement.classList.add("step");
 LZ.boot();
 renderChips(); renderTable();
 if(!STEP) renderCoach();
+/* When the orientation finishes into a task bank rather than straight into a
+   scenario, the first situation is already sitting in the window behind her —
+   she just leaves. Pulse it once so the learner's eye goes there instead of
+   to an empty screen. */
 if(STEP){ STEPRUN.start(); }
-else if(TOUR) BEAT.run(TOUR, SCENARIOS[SECTION] ? function(){ BEAT.run(SCENARIOS[SECTION]); } : null);
+else if(TOUR) BEAT.run(TOUR, SCENARIOS[SECTION] ? function(){ BEAT.run(SCENARIOS[SECTION]); } : pulseWin);
 else if(SCENARIOS[SECTION]) BEAT.run(SCENARIOS[SECTION]);
 EMBED.ready(TASKS.length);
 </script>
