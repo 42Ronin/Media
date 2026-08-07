@@ -210,13 +210,20 @@ and two were deliberately left alone:
 - **Not reproduced, by decision:** the four stat cards above the results table, and the record
   page's right-hand rail. Both serve features these lessons do not teach. Don't add them back
   as a fidelity fix — they can arrive with the lesson that needs them.
-- **Nothing in the product surface is invented.** The **Location** kebab is the one menu we have
-  seen open — *Add Address* and *Add Field Interaction*, both obstructed. The Clients-card,
-  profile-card and results-row kebabs name themselves rather than listing made-up items; Point of Contact Category renders the `Select` placeholder because its
+- **Nothing in the product surface is invented.** Two kebab menus have been captured open and are
+  built from those captures, obstructed: **Location** (*Add Address*, *Add Field Interaction*) and
+  the **results row** (*View Enrollments*, *View Services*, *View History*, a rule, then
+  *Delete Client* in red). The Clients-card and profile-card kebabs name themselves rather than
+  listing made-up items — the profile one is the route into edit mode, which this lesson does not
+  teach; Point of Contact Category renders the `Select` placeholder because its
   options have never been seen — the live account shows `Select` even on a filled block. If you
   want content there, get a capture first.
 - **Point of Contact dates are written out in full** (`04/03/2026`); the Location table
   abbreviates (`6/2/26`). Same split as the profile against the results table.
+- **A household glyph sits before the row kebab, and only on a client who has a household.**
+  It is not the Household Members column — that is further left and switches independently.
+  Capture 01 shows an individual client without it; the row-menu capture shows it on two
+  clients who have one.
 - **Race and Ethnicity is a column**, not a collapsed-only field. Column order decides what a
   switched-off column looks like in the expander, which is why the order is `ROI · Household
   Members · Race and Ethnicity · Veteran Status · Alias` — it reproduces capture 02.

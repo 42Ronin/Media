@@ -546,26 +546,41 @@ ok('the kebab says what it is rather than inventing a menu',
    (await p.$eval('#filterPop', e => e.hidden)));
 await closeAll();
 await type('Garcia');
-/* The row kebab used to be drawn and dead. It is a real control; what is behind it
-   we have not seen, so it says that rather than doing nothing at all — and it must
-   not also open the record underneath it. */
-ok('the row kebab is a control, and does not open the record',
+/* The row kebab's menu, from the owner's capture of it open: three views, a rule,
+   then the destructive one. All four obstructed — this lesson reads records, it does
+   not enrol, service or delete anybody. And it must not open the record underneath. */
+ok('the row kebab opens the captured menu, and does not open the record',
    await p.evaluate(async () => {
      const before = S.open;
      document.querySelector('#tb tr[data-row] [data-rowmenu]').click();
      await new Promise(r => setTimeout(r, 140));
-     return !document.getElementById('notice').hidden && S.open === before;
-   }));
-await closeAll();
+     const items = [...document.querySelectorAll('#filterPop .menuitem')];
+     return S.open === before &&
+       items.map(x => x.textContent.trim()).join('|') ===
+         'View Enrollments|View Services|View History|Delete Client' &&
+       items.every(x => x.hasAttribute('data-locked')) &&
+       document.querySelectorAll('#filterPop .mensep').length === 1 &&
+       items[3].classList.contains('danger');
+   }),
+   await p.$$eval('#filterPop .menuitem', e => e.map(x => x.textContent.trim()).join('|')));
+await p.evaluate(() => closePops()); await p.waitForTimeout(120);
 ok('Race and Ethnicity is a column the learner can switch on, not collapsed-only',
    await p.evaluate(() => {
      const inCols = S.cols.some(c => c.k === 'race');
      const inCollapsed = COLLAPSED.some(c => c.label === 'Race and Ethnicity');
      return inCols && !inCollapsed;
    }));
-ok('a row ends with the kebab alone — the person icon belonged to a column that is off',
-   await p.$$eval('#tb tr[data-row] .iconcell', e =>
-     e.length > 1 && e.every(c => c.querySelectorAll('svg').length === 1)));
+/* The household glyph sits before the kebab, and ONLY on a client who has one —
+   the capture shows it on two clients with households, and capture 01 shows an
+   individual client without it. It is not the Household Members column, which is
+   further left and switches on and off independently. */
+ok('the household glyph appears exactly on the rows whose client has a household',
+   await p.evaluate(() => [...document.querySelectorAll('#tb tr[data-row]')].every(tr => {
+     const c = byId(tr.getAttribute('data-row'));
+     return !!tr.querySelector('.iconcell .hhicon') === !!(c.hm && c.hm.length);
+   })));
+ok('...and every row ends with the kebab',
+   await p.$$eval('#tb tr[data-row] .iconcell [data-rowmenu]', e => e.length > 1));
 
 console.log('\n— row expand + household —');
 const hoh = await p.evaluate(() => {

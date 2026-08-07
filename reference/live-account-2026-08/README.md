@@ -81,11 +81,18 @@ described here rather than filed as images, because they arrived in conversation
 | Point of Contacts, in full | First block filled, second and third empty. **Category shows `Select` even on a filled block.** Dates are written out in full (`04/03/2026`) where the Location table abbreviates. |
 | The profile in **edit** mode, and the **Add Client** panel | Neither is taught in this lesson. The Add Client panel is a right-hand slide-over with the same fields, Cancel/Save — **the screenshot Lesson 2 has been waiting for.** |
 
+A sixth capture followed: the **results-row kebab open** — *View Enrollments*, *View
+Services*, *View History*, a rule, then *Delete Client* in red. Built, obstructed. The
+same image also shows a **household glyph before the kebab**, present on clients who
+have a household and absent on those who do not; we had removed it.
+
 ## Still not captured
 
-- The **Clients card** kebab and the **results row** kebab, opened. Both render a
-  placeholder that names itself rather than inventing items.
-- The **Point of Contact Category** options.
+- The **Clients card** kebab, opened. It renders a placeholder that names itself
+  rather than inventing items. (The profile card's kebab is the edit route, which
+  this lesson does not teach, so it needs no capture.)
+- The **Point of Contact Category** options. Moot in practice: the live account shows
+  `Select` even on a filled block, and that is what we render.
 - A record whose name quality is *Client refused*: the Add Client capture shows one
   filed as **`Refused, 6CD53CE9A`** — surname "Refused", the unique identifier in
   place of a given name. We do not reproduce that yet, and it would change what a
