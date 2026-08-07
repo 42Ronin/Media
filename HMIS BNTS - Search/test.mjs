@@ -996,6 +996,7 @@ console.log('\n— section 11: the running scenario —');
 
   ok('it opens on the list the section is built around',
      (await said()).includes('work through this list'));
+
   await on();
   ok('11.1 gives the surname he actually offers', (await said()).includes('Carrow'));
   ok('...and waits for a search rather than a button', await gated());
@@ -1061,6 +1062,25 @@ console.log('\n— section 11: the running scenario —');
   ok('and only then is it complete', !(await sc.$eval('#done', e => e.hidden)));
   ok('no errors anywhere in the scenario', scErrs.length === 0, scErrs.join(' | '));
   await sc.close();
+}
+
+/* A gate asks about the state of the search, and the learner may already have
+   reached that state two steps earlier. A beat waits for something new rather
+   than firing the moment it appears — without that, searching ahead made several
+   beats flash past at once and the story ran to the end. */
+{
+  const ahead = await b.newPage({ viewport: { width: 1500, height: 940 } });
+  await ahead.goto('file://' + new URL('./dist/section-11.html', import.meta.url).pathname);
+  await ahead.waitForTimeout(700);
+  await ahead.click('#lzStep'); await ahead.waitForTimeout(450);
+  const before = await ahead.evaluate(() => BEAT.pos().i);
+  await ahead.fill('#q', 'Dez 1974'); await ahead.waitForTimeout(800);
+  ok('searching ahead does not run the story to the end',
+     await ahead.evaluate(i => BEAT.pos().i === i, before));
+  await ahead.fill('#q', 'Desmond Carrow'); await ahead.waitForTimeout(800);
+  ok('...and the step it was on still completes on its own condition',
+     await ahead.evaluate(i => BEAT.pos().i === i + 1, before));
+  await ahead.close();
 }
 
 console.log('\n— accessibility / integrity —');

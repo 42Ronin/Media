@@ -1164,10 +1164,15 @@ var LZ=(function(){
    That second form is what a spiralling scenario needs — she narrates, the
    learner searches, and she picks the story up again when the search lands. */
 var BEAT=(function(){
-  var list=null, i=0, after=null, pending=null;
+  var list=null, i=0, after=null, pending=null, startedAt=0;
   function cur(){ return list ? list[i] : null; }
   function show(){
     var b=cur(); if(!b) return;
+    /* A gate asks about the state of the search, and the learner may already have
+       reached that state two steps ago. Stamping the tick means a beat waits for
+       something new to happen rather than firing the moment it appears — without
+       it, typing "Dez 1974" early made three beats flash past in one go. */
+    startedAt=S.tick;
     if(typeof renderCoach==="function" && typeof SCENARIO_META!=="undefined" && SCENARIO_META[SECTION]) renderCoach();
     LZ.say(b.anchor||"search",
       '<div class="fb '+(b.kind||"tour")+'">'+(b.title?"<b>"+esc(b.title)+"</b>":"")+
@@ -1213,6 +1218,7 @@ var BEAT=(function(){
   function check(){
     var b=cur();
     if(!b || !b.until || pending) return;
+    if(S.tick<=startedAt) return;          /* nothing has happened since it appeared */
     var done=false;
     try{ done=!!b.until(); }catch(e){ done=false; }
     if(done) pending=setTimeout(step, b.pause||450);
@@ -1571,6 +1577,7 @@ var INTERSTITIALS = SECTION ? {} : INTERSTITIALS_ALL;
    ============================================================ */
 var S = {
   closing:false,
+  tick:0,          /* bumped by anything a beat's gate could be asking about */
   q:"", chips:[], cols:loadCols(), sort:{k:"client",dir:1}, page:0, per:10,
   rows:null, expanded:{},
   recent:[],   /* starts empty: nothing is shown until the learner searches */
@@ -2026,6 +2033,7 @@ function rerun(resetPage){
      the learner on a solved task: clear the box, press Next, and nextTask read
      the string as "leaving a checkpoint" and never advanced S.idx. */
   S.rows=r.rows;
+  S.tick++;
   if(resetPage!==false) S.page=0;
   renderTable();
   if(S.rows && S.rows.length===0) nudgeEmpty();
@@ -2175,7 +2183,7 @@ function field(label,val,muted){
 }
 function openProfile(id){
   var c=byId(id); if(!c) return;
-  S.open=id;
+  S.open=id; S.tick++;
   S.recent=[id].concat(S.recent.filter(function(x){return x!==id;})).slice(0,5);
 
   $("#recAv").textContent=initials(c);
