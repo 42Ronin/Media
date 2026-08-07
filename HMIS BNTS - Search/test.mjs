@@ -50,7 +50,7 @@ const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
    back to search. Every task after the first begins by needing it, and the
    simulation only explains the two shortcuts once you click them, which is too
    late. Flagged in the template for scripted wording. */
-ok('slide 7.1, plus the one thing it does not cover', tourLen === 4);
+ok('slide 7.1, plus the two things it does not cover', tourLen === 5);
 
 const seen = [];
 let arrowSeen = 0, arrowUnderBubble = false;
@@ -84,6 +84,8 @@ ok('...and the job it states', seen.join(' ').includes('prove it is the right on
 ok('...and both ways back to Client Search, before they are needed',
    seen.join(' ').includes('magnifying glass in the top bar') &&
    seen.join(' ').includes('Clients icon at the top of the left rail'));
+ok('...each pointed out on its own, not both waved at from one spot',
+   seen.filter(t => t.includes('magnifying glass') || t.includes('Clients icon')).length === 2);
 /* She has no hands and can never point, so the pointing is a prop — drawn in her
    own palette, standing in the gap between her and the thing, rotated at it. */
 ok('the arrow appears when she is pointing at something',
