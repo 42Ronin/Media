@@ -40,7 +40,7 @@ input,select{font:inherit}
    at its edge — including the top bar, so the account chip and the icons line up
    with the content beneath them rather than running under the dock. Lashes still
    floats, because she has to be able to reach the thing she is talking about. */
-:root{--dock:392px}
+:root{--dock:428px}
 html.dock-min,html.dock-out{--dock:0px}
 .app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
   transition:right .22s ease}
@@ -261,29 +261,29 @@ html.step .coach{display:none}
 /* She is not confined to the interface here. The block gives her a lane of her
    own beside it — no panel is competing for the space, so she can sit properly
    in it rather than tucking into a corner of a table. */
-html.step .app{top:0;left:0;right:344px;bottom:0}
+html.step .app{top:0;left:0;right:380px;bottom:0}
 html.step .lzlayer{display:none}
-.steppane{position:fixed;top:0;right:0;width:344px;bottom:0;z-index:170;
+.steppane{position:fixed;top:0;right:0;width:380px;bottom:0;z-index:170;
   padding:18px 18px 18px 0;display:flex;flex-direction:column;gap:12px;overflow:auto}
-.stepcard{background:#fff;border-radius:14px;padding:14px 16px;font-size:13.5px;line-height:1.55;
+.stepcard{background:#fff;border-radius:14px;padding:16px 18px;font-size:15.5px;line-height:1.6;
   color:var(--coach-ink);box-shadow:0 8px 26px var(--teal-glow),0 1px 3px rgba(20,34,43,.08)}
-.stepcard b{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+.stepcard b{display:block;font-size:12px;letter-spacing:.09em;text-transform:uppercase;
   color:var(--teal);margin-bottom:7px}
 .stepcard p{margin:0 0 9px}
 .stepcard p:last-child{margin-bottom:0}
-.stepcard code{background:var(--lens);padding:1px 6px;border-radius:4px;font-size:12.5px}
+.stepcard code{background:var(--lens);padding:1px 6px;border-radius:4px;font-size:14.5px}
 .stepcard.res{border-left:3px solid var(--teal);animation:stepin .42s cubic-bezier(.2,1.3,.4,1)}
 @keyframes stepin{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
 .stepcard .lzchat{margin-top:10px;display:flex;flex-direction:column;gap:7px}
-.stepcard .lzchat p{margin:0;padding:8px 13px;border-radius:15px;max-width:92%;font-size:13px}
+.stepcard .lzchat p{margin:0;padding:9px 14px;border-radius:16px;max-width:92%;font-size:15px;line-height:1.5}
 .stepcard .lzchat .me{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
 .stepcard .lzchat .them{align-self:flex-start;background:#eaf2f6;border-bottom-left-radius:5px}
-.stepdone{margin-top:10px;font-size:12px;color:var(--teal);font-weight:650}
+.stepdone{margin-top:11px;font-size:13.5px;color:var(--teal);font-weight:650}
 @media(prefers-reduced-motion:reduce){.stepcard.res{animation:none}}
 /* Inline in a Rise block there is no room for chrome that is not doing work. */
 html.step .topbar{height:44px}
 html.step .rail{width:56px}
-.coach{position:fixed;right:24px;top:24px;width:344px;background:var(--coach);color:var(--coach-ink);
+.coach{position:fixed;right:24px;top:24px;width:380px;background:var(--coach);color:var(--coach-ink);
   display:flex;flex-direction:column;z-index:170;border-radius:17px;overflow:hidden;
   max-height:calc(100vh - 48px);
   box-shadow:0 14px 40px var(--teal-glow),0 2px 6px rgba(20,34,43,.10),0 0 0 1px rgba(6,104,136,.12)}
@@ -298,7 +298,7 @@ html.dock-out .cwbar.drag{cursor:grabbing}
   100%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 16px rgba(63,160,192,0)}}
 .cwbar{display:flex;align-items:center;gap:6px;padding:9px 8px 9px 15px;background:var(--teal);
   color:#fff;flex:none;user-select:none;touch-action:none}
-.cwbar .lz{font-size:11.5px;letter-spacing:.02em;color:#fff;font-weight:650;flex:1;min-width:0;
+.cwbar .lz{font-size:12.5px;letter-spacing:.02em;color:#fff;font-weight:650;flex:1;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cwbtn{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:rgba(255,255,255,.8);flex:none}
 .cwbtn:hover{background:rgba(255,255,255,.18);color:#fff}
@@ -308,20 +308,20 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 .chead h2{margin:0;font-size:16px;font-weight:600}
 .bar{height:6px;background:var(--lens);border-radius:99px;overflow:hidden;margin:12px 0 6px}
 .bar i{display:block;height:100%;background:var(--teal);width:0;transition:width .4s}
-.cmeta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--coach-mut)}
+.cmeta{display:flex;justify-content:space-between;font-size:12.5px;color:var(--coach-mut)}
 .cbody{flex:1;overflow:auto;padding:16px 18px}
-.tasktitle{font-size:15px;font-weight:700;margin:0 0 8px}
-.taskbrief{font-size:13.5px;color:#41606f;margin:0 0 12px}
+.tasktitle{font-size:17.5px;font-weight:700;margin:0 0 9px;line-height:1.35}
+.taskbrief{font-size:15.5px;line-height:1.6;color:#41606f;margin:0 0 13px}
 .taskbrief .q{color:var(--coach-ink);font-style:italic}
-.taskbrief code{background:var(--lens);padding:1px 6px;border-radius:4px;font-size:12.5px}
-.taskask{background:var(--coach-2);border-left:3px solid var(--teal);padding:11px 13px;border-radius:0 9px 9px 0;font-size:13.5px}
+.taskbrief code{background:var(--lens);padding:1px 6px;border-radius:4px;font-size:14.5px}
+.taskask{background:var(--coach-2);border-left:3px solid var(--teal);padding:12px 14px;border-radius:0 9px 9px 0;font-size:15.5px;line-height:1.55}
 .fb{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;border-left:3px solid;background:var(--coach-2)}
 .fb.tour{border-color:var(--teal)}
 .fb.good{border-color:var(--ok)} .fb.bad{border-color:var(--bad)} .fb.tip{border-color:var(--tip)}
 .fb b{display:block;margin-bottom:5px;font-size:13.5px}
 .fb .teach{margin-top:9px;padding-top:9px;border-top:1px solid #35455a;color:#c3d0de}
 .cfoot{padding:12px 18px 16px;border-top:1px solid var(--coach-line);display:flex;gap:8px;flex-wrap:wrap;flex:none}
-.cbtn{border:1px solid #bfd9e4;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:600;color:var(--teal)}
+.cbtn{border:1px solid #bfd9e4;border-radius:9px;padding:10px 16px;font-size:14.5px;font-weight:600;color:var(--teal)}
 .cbtn:hover{background:var(--coach-2)}
 .cbtn.go{background:var(--teal);border-color:var(--teal);color:#fff}
 .cbtn.go:hover{background:var(--teal-dk)}
@@ -408,9 +408,9 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 /* Bubbles: white, 17px radius, springy, and no tails — tails misalign, and the
    pairing reads on its own. */
 .lzbub{position:absolute;left:0;top:0;box-sizing:border-box;
-  width:max-content;max-width:min(304px,74vw);min-width:186px;
+  width:max-content;max-width:min(368px,74vw);min-width:200px;
   background:#fff;color:#14222b;border-radius:17px;padding:13px 15px 13px 16px;
-  font-size:13.5px;line-height:1.5;
+  font-size:15.5px;line-height:1.6;
   box-shadow:0 10px 30px rgba(6,104,136,.24),0 1px 4px rgba(6,104,136,.18);
   transform:scale(.82);opacity:0;transform-origin:50% 60%;
   transition:transform .34s cubic-bezier(.2,1.5,.4,1),opacity .18s;
@@ -421,12 +421,12 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 .lzbub b{display:block;margin-bottom:5px;font-weight:700}
 .lzbub .lzteach{margin-top:9px;padding-top:9px;border-top:1px solid #dbe7ee;color:#3c5262}
 .lzbub .lzteach b{display:inline;margin:0}
-.lzbub code{background:#e0eff5;padding:1px 6px;border-radius:4px;font-size:12.5px}
+.lzbub code{background:#e0eff5;padding:1px 6px;border-radius:4px;font-size:14.5px}
 .lzbub .q{font-style:italic}
 /* .fb is styled for the dark window. Inside her bubble it has to be plain text on
    white — it was rendering as near-black on the dark panel colour. */
 .lzbub .fb{margin:0;padding:0;background:none;border:0;border-radius:0;
-  font-size:13.5px;color:#14222b}
+  font-size:15.5px;line-height:1.6;color:#14222b}
 .lzbub .fb.good b{color:#0f6b45}
 .lzbub .fb.bad b{color:#a3312a}
 .lzbub .fb.tip b{color:#8a5a00}
@@ -435,8 +435,8 @@ html.dock-out .cwbar.drag{cursor:grabbing}
    written as a stage direction — showing it as one keeps every word and drops
    the third person. */
 .lzbub .lzchat{margin-top:11px;display:flex;flex-direction:column;gap:7px}
-.lzbub .lzchat p{margin:0;padding:8px 13px;border-radius:15px;max-width:88%;
-  font-size:13px;line-height:1.45;opacity:0;animation:chatpop .4s cubic-bezier(.25,1.4,.4,1) forwards}
+.lzbub .lzchat p{margin:0;padding:9px 14px;border-radius:16px;max-width:88%;
+  font-size:15px;line-height:1.5;opacity:0;animation:chatpop .4s cubic-bezier(.25,1.4,.4,1) forwards}
 .lzbub .lzchat .me{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
 .lzbub .lzchat .them{align-self:flex-start;background:#eaf2f6;color:#14222b;border-bottom-left-radius:5px;
   animation-delay:.5s}
@@ -445,16 +445,16 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 
 .lzbub .lzfoot{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:10px;
   border-top:1px solid #dbe7ee}
-.lzbub .lzcount{font-size:11.5px;color:#6f8b9a;letter-spacing:.03em;flex:1}
+.lzbub .lzcount{font-size:12.5px;color:#6f8b9a;letter-spacing:.03em;flex:1}
 .lzbub .lzstep,.lzbub .lzact{background:var(--teal);color:#fff;border-radius:9px;padding:7px 15px;
-  font-size:12.5px;font-weight:600}
+  font-size:14px;font-weight:600}
 .lzbub .lzstep:hover,.lzbub .lzact:hover{background:var(--teal-dk)}
 /* Whatever she is here to say, the thing to do next belongs with it rather than
    across the screen in the panel. */
 .lzbub .lzacts{display:flex;gap:7px;margin-left:auto}
 .lzbub .lzact.quiet{background:none;color:var(--teal);border:1px solid #bfd9e4}
 .lzbub .lzact.quiet:hover{background:var(--coach-2);color:var(--teal-dk)}
-.lzbub .lzwait{font-size:11.5px;color:#6f8b9a;font-style:italic;flex:1;text-align:right}
+.lzbub .lzwait{font-size:12.5px;color:#6f8b9a;font-style:italic;flex:1;text-align:right}
 
 /* The card takes the moment without taking the screen: no dim behind it, the
    interface stays legible and live. */
@@ -464,10 +464,10 @@ html.dock-out .cwbar.drag{cursor:grabbing}
   box-shadow:0 26px 70px rgba(6,104,136,.3),0 0 0 1px rgba(6,104,136,.1);
   transition:transform .38s cubic-bezier(.2,1.2,.4,1),opacity .26s}
 .lzcard.on{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
-.lzcard h3{margin:0 0 10px;font-size:19px;font-weight:700}
-.lzcard p{margin:0 0 11px}
+.lzcard h3{margin:0 0 11px;font-size:21px;font-weight:700}
+.lzcard p{margin:0 0 12px;font-size:16px;line-height:1.6}
 .lzcard .lzcardfoot{margin-top:6px;display:flex;justify-content:flex-end}
-.lzcard .lzgo{background:#066888;color:#fff;border-radius:9px;padding:9px 16px;font-weight:600;font-size:13.5px}
+.lzcard .lzgo{background:#066888;color:#fff;border-radius:9px;padding:10px 18px;font-weight:600;font-size:15px}
 .lzcard .lzgo:hover{background:#044e66}
 
 @media(prefers-reduced-motion:reduce){
