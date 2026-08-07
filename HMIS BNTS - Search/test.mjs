@@ -27,6 +27,48 @@ const names = () => p.$$eval('#tb tr[data-row] .cname', els => els.map(e => e.te
 const zero = () => p.$eval('#zero', e => e.hidden ? '' : e.textContent.trim());
 const closeAll = async () => { await p.keyboard.press('Escape'); await p.waitForTimeout(120); };
 
+/* Every simulation in the series opens with a different ask, so each declares its
+   own orientation and the beat engine is what they share. It has to run first and
+   get out of the way cleanly. */
+console.log('\n— orientation —');
+await p.waitForTimeout(600);
+ok('Lashes opens with a tour before anything else',
+   await p.$eval('#lzBub', e => e.classList.contains('on')) &&
+   (await p.textContent('#fb')).includes('practice version of Clarity'));
+ok('she introduces herself by name', (await p.textContent('#fb')).includes('Lashes'));
+ok('the tour is counted so the learner knows how long it is',
+   (await p.textContent('#lzCount')).includes('of'));
+const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
+ok('it has more than one step', tourLen > 1);
+
+const seen = [];
+for (let n = 0; n < tourLen; n++) {
+  seen.push(await p.textContent('#fb'));
+  const bad = await p.evaluate(() => {
+    const a = document.querySelector('#lzBub').getBoundingClientRect();
+    const w = document.querySelector('#coachWin').getBoundingClientRect();
+    const over = !(a.right <= w.left || a.left >= w.right || a.bottom <= w.top || a.top >= w.bottom);
+    const off = a.left < 0 || a.top < 0 || a.right > innerWidth + 1 || a.bottom > innerHeight + 1;
+    return over || off;
+  });
+  ok(`tour step ${n + 1} is on screen and clear of the docked panel`, !bad);
+  await p.click('#lzStep'); await p.waitForTimeout(420);
+}
+ok('the tour covers the roster size the script states', seen.join(' ').includes('Three hundred'));
+ok('...that nothing is scored and there is no skip',
+   seen.join(' ').includes('Nothing is scored') && seen.join(' ').includes('no skip'));
+ok('...and that blurred means not yet earned', seen.join(' ').includes('clears as you earn it'));
+ok('finishing it puts her away', await p.evaluate(() =>
+   !document.querySelector('#lzBub').classList.contains('on') &&
+   !document.querySelector('#lzChar').classList.contains('on') &&
+   document.querySelector('#lzFoot').hidden));
+ok('it can be replayed, because each lesson\'s is different', await p.evaluate(async () => {
+  document.querySelector('#cwTour').click();
+  await new Promise(r => setTimeout(r, 300));
+  return document.querySelector('#lzBub').classList.contains('on');
+}));
+await p.evaluate(() => BEAT.cancel()); await p.waitForTimeout(200);
+
 console.log('\n— initial state —');
 ok('nothing is shown before the first search', (await names()).length === 0);
 ok('no results table on load', await p.$eval('#pager', e => e.hidden));
@@ -211,6 +253,13 @@ const roi = await p.$$eval('#tb tr[data-row]', rs => rs.map(r => ({
 })));
 ok('every row renders a valid ROI pill',
    roi.length === 3 && roi.every(r => ['Yes','Missing','No'].includes(r.roi)), JSON.stringify(roi));
+/* The script lists ROI as blurred and out of scope for this lesson. The column
+   stays — it is on the captured screen — but its values are not readable. */
+ok('ROI values are blurred, being out of scope for this lesson',
+   await p.$eval('#tb .roi', e => {
+     const f = getComputedStyle(e).filter;
+     return f.includes('blur') && getComputedStyle(e).pointerEvents === 'none';
+   }));
 
 await type('Vega');
 // locate the SSN cell by header position so column reordering can't break this

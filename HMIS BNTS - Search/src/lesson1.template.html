@@ -51,7 +51,8 @@ html.dock-min,html.dock-out{--dock:0px}
    see the real system is bigger than what they are being asked to do, without
    being able to read or use it. Each lesson clears the part it teaches, so the
    blur lifting is the reward. */
-[data-locked]{filter:blur(2.2px);opacity:.45;cursor:default;transition:filter .25s,opacity .25s}
+[data-locked],.roilock{filter:blur(2.2px);opacity:.45;cursor:default;transition:filter .25s,opacity .25s}
+.roilock{pointer-events:none;user-select:none}
 [data-locked]:hover{filter:blur(1.6px);opacity:.6}
 [data-locked]:focus-visible{filter:none;opacity:1}
 @media(prefers-reduced-motion:reduce){[data-locked]{transition:none}}
@@ -384,6 +385,13 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 .lzbub .fb.good b{color:#0f6b45}
 .lzbub .fb.bad b{color:#a3312a}
 .lzbub .fb.tip b{color:#8a5a00}
+.lzbub .lzfoot{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:10px;
+  border-top:1px solid #dbe7ee}
+.lzbub .lzcount{font-size:11.5px;color:#6f8b9a;letter-spacing:.03em;flex:1}
+.lzbub .lzstep{background:#066888;color:#fff;border-radius:8px;padding:6px 14px;
+  font-size:12.5px;font-weight:600}
+.lzbub .lzstep:hover{background:#044e66}
+.lzbub .lzwait{font-size:11.5px;color:#6f8b9a;font-style:italic;flex:1;text-align:right}
 
 /* The card takes the moment without taking the screen: no dim behind it, the
    interface stays legible and live. */
@@ -596,6 +604,8 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 <aside class="coach" id="coachWin" aria-label="Training panel">
   <div class="cwbar" id="cwBar">
     <span class="lz">Lesson 1 of 2</span>
+    <button class="cwbtn" id="cwTour" title="Replay the tour" aria-label="Replay the tour">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 015 .9c0 1.7-2.5 2.1-2.5 3.6M12 17.2h.01"/></svg></button>
     <button class="cwbtn" id="cwPop" title="Pop out" aria-pressed="false" aria-label="Pop the training panel out of its column">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
     <button class="cwbtn" id="cwMin" title="Collapse" aria-label="Collapse training panel" aria-expanded="true">
@@ -623,6 +633,10 @@ html.dock-out .cwbar.drag{cursor:grabbing}
   <div class="lzchar" id="lzChar" aria-hidden="true"></div>
   <div class="lzbub" id="lzBub">
     <div id="fb"></div>
+    <div class="lzfoot" id="lzFoot" hidden>
+      <span class="lzcount" id="lzCount"></span>
+      <button class="lzstep" id="lzStep">Next</button>
+    </div>
   </div>
 </div>
 <!-- outside the layer: the card is a moment, and it has to sit above the movable
@@ -891,6 +905,11 @@ var LZ=(function(){
      Named targets in the real interface, resolved live. A name that resolves to
      nothing falls back to home rather than throwing, because the record page and
      the results table are never on screen at the same time. */
+  /* offsetParent is null for anything position:fixed, so it cannot be used to ask
+     whether an element is on screen — it silently reported the docked panel as
+     absent, which took it out of the keep-clear set and let her sit on top of it.
+     Rects are the honest test: display:none has none, fixed has one. */
+  function onScreen(n){ return !!(n && n.getClientRects().length); }
   function anchorEl(name){
     if(!name||name==="home") return null;
     if(name.indexOf("row:")===0){
@@ -898,14 +917,14 @@ var LZ=(function(){
     }
     var map={
       search:"#pill", results:"#tbl", zero:"#zero", pager:"#pager",
-      record:".recwrap", tabs:"#recNav", columns:"#colBtn", filter:"#filterBtn", add:"#addBtn"
+      record:".recwrap", tabs:"#recNav", columns:"#colBtn", filter:"#filterBtn", add:"#addBtn",
+      panel:"#coachWin", rail:".rail", topbar:".who"
     };
     /* the card is laid out even when closed, so only anchor to it while it is up */
     if(name==="card") return card.classList.contains("on") ? card : null;
     var sel=map[name];
     if(!sel) return null;
-    var n=document.querySelector(sel);
-    return (n && n.offsetParent!==null) ? n : null;
+    return onScreen(document.querySelector(sel)) ? document.querySelector(sel) : null;
   }
   function rectOf(node){
     var r=node.getBoundingClientRect(), lr=layer.getBoundingClientRect();
@@ -918,7 +937,7 @@ var LZ=(function(){
   function keepClear(){
     var out=[], add=function(sel,w){
       var n=document.querySelector(sel);
-      if(n && n.offsetParent!==null){ var r=rectOf(n); r.w=w; out.push(r); }
+      if(onScreen(n)){ var r=rectOf(n); r.w=w; out.push(r); }
     };
     /* Weighted, because these are not equally bad to sit on. The window carries
        Next and Show hint; landing on those leaves the learner with no way out,
@@ -1042,6 +1061,111 @@ var LZ=(function(){
     relayout:function(){ if(layer && el.classList.contains("on")) layout(lastAnchor); }
   };
 })();
+
+/* ============================================================
+   BEATS — a run of things Lashes says, in order
+   ============================================================
+   The orientation at the top of a lesson and the story beats inside a running
+   scenario are the same mechanism: a list she walks, one bubble at a time,
+   anchored to whatever part of the interface each one is about.
+
+   A beat advances one of two ways.
+
+     next:  the learner reads it and presses on. Orientation works like this.
+     until: the learner does something, and the beat clears when they have.
+            No button, because pressing one would let them past without doing it.
+
+   That second form is what a spiralling scenario needs — she narrates, the
+   learner searches, and she picks the story up again when the search lands. */
+var BEAT=(function(){
+  var list=null, i=0, after=null;
+  function cur(){ return list ? list[i] : null; }
+  function show(){
+    var b=cur(); if(!b) return;
+    LZ.say(b.anchor||"search",
+      '<div class="fb '+(b.kind||"tour")+'">'+(b.title?"<b>"+esc(b.title)+"</b>":"")+b.html+"</div>",
+      {eyes:b.eyes||"open", mouth:b.mouth||"tip", move:b.move});
+    $("#lzFoot").hidden=false;
+    $("#lzCount").textContent=(list.length>1)?(i+1)+" of "+list.length:"";
+    var gated=!!b.until;
+    $("#lzStep").hidden=gated;
+    $("#lzStep").textContent=b.next||(i===list.length-1?"Got it":"Next →");
+    var w=$("#lzFoot").querySelector(".lzwait");
+    if(gated){
+      if(!w){ w=document.createElement("span"); w.className="lzwait"; $("#lzFoot").appendChild(w); }
+      w.textContent=b.wait||"Your turn.";
+      w.hidden=false;
+    }else if(w){ w.hidden=true; }
+    check();                       /* a gate that is already satisfied should not stall */
+  }
+  function step(){
+    if(!list) return;
+    i++;
+    if(i>=list.length) return stop(true);
+    show();
+  }
+  function stop(finished){
+    list=null; i=0;
+    $("#lzFoot").hidden=true;
+    LZ.hush();
+    var f=after; after=null;
+    if(finished && f) f();
+  }
+  /* Called wherever the interface changes — a gated beat is a question about
+     the state of the app, so it is re-asked whenever the app moves. */
+  function check(){
+    var b=cur();
+    if(!b || !b.until) return;
+    var done=false;
+    try{ done=!!b.until(); }catch(e){ done=false; }
+    if(done) setTimeout(step, b.pause||450);
+  }
+  return {
+    run:function(l,onDone){ if(!l||!l.length) return; list=l; i=0; after=onDone||null; show(); },
+    step:step,
+    check:check,
+    cancel:function(){ if(list) stop(false); },
+    active:function(){ return !!list; }
+  };
+})();
+
+/* ============================================================
+   ORIENTATION
+   ============================================================
+   Slide 7.1 of the script, delivered by Lashes against the interface itself
+   rather than read off a screen beforehand.
+
+   This is per-lesson on purpose. Every simulation in the series opens with a
+   different ask and unlocks different controls, so each one declares its own
+   list here and the engine above is what they share. */
+var TOUR=[
+{ anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
+  title:"Before we start",
+  html:'<p>I am Lashes. Yes, on the nose. I have made my peace with it.</p>'+
+       '<p>This is a practice version of Clarity. It behaves the way the real one does. '+
+       'Everyone in it is invented, so nothing you do here reaches a real person.</p>' },
+{ anchor:"search", eyes:"wide", mouth:"plain",
+  html:'<p>One box does all of it. Part of a name, a date of birth, a few digits of a '+
+       'Social Security Number. It searches while you type, so you do not press anything.</p>' },
+{ anchor:"results", eyes:"open", mouth:"plain", move:"hop",
+  html:'<p>Results land here. Three hundred people in this roster.</p>'+
+       '<p>The live system holds hundreds of thousands. So the habit worth building is to '+
+       'narrow before you scan, not to scroll.</p>' },
+{ anchor:"results", eyes:"glance", mouth:"wry",
+  html:'<p>The arrow on the left of a row opens it without leaving the list. Household, '+
+       'veteran status, when it was last touched.</p>' },
+{ anchor:"panel", eyes:"open", mouth:"tip", move:"lean",
+  html:'<p>Your situation and your task live in there. Thirteen of them. Each one is a '+
+       'person in front of you and something they have told you.</p>'+
+       '<p>Nothing is scored. Hints are free and there is no skip, so you work each one '+
+       'until you find it. You type the search yourself every time.</p>' },
+{ anchor:"rail", eyes:"droll", mouth:"hm", move:"still",
+  html:'<p>Anything blurred is not yours yet. It clears as you earn it.</p>' },
+{ anchor:"search", eyes:"sparkle", mouth:"cheer", move:"bounce",
+  next:"Let's go",
+  html:'<p>That is the tour. Ready? Blink twice if you are with me.</p>'+
+       '<p>Close enough.</p>' }
+];
 
 /* ============================================================
    LESSON 1 — tasks
@@ -1271,8 +1395,12 @@ function cellHTML(c,k){
         ? '<span class="ssn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l-1 16M14 4l-1 16M4 9h16M3 15h16"/></svg>'+esc(last4(c))+'</span>'
         : '<span class="novalue">(No value)</span>';
     case "roi":
+      /* The column is real and stays on screen — it is on the captured screen and
+         taking it away would be a lie about the product. But the script lists ROI
+         as blurred and out of scope for this lesson, so it is legible as a column
+         and not as a value. */
       var cl=c.r==="Yes"?"yes":c.r==="Missing"?"missing":"no";
-      return '<span class="roi '+cl+'">'+esc(c.r)+'</span>';
+      return '<span class="roi '+cl+' roilock">'+esc(c.r)+'</span>';
     case "dob":
       return '<span class="dob"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>'+
         '<span><b>'+dobShort(c.d)+'</b><span>Age: '+age(c.d)+'</span></span></span>';
@@ -1375,6 +1503,7 @@ var renderTableRaw=renderTable;
 renderTable=function(){
   renderTableRaw.apply(this,arguments);
   LZ.relayout();
+  BEAT.check();
 };
 
 /* ---------------- chips ---------------- */
@@ -1469,6 +1598,7 @@ var SAY_LOOK={
   tip: {anchor:"search",  o:{eyes:"open",   mouth:"tip",  move:"hop"}}
 };
 function say(kind,title,body,teach){
+  BEAT.cancel();
   var html='<div class="fb '+kind+'"><b>'+esc(title)+"</b>"+body+
     (teach?'<div class="lzteach">'+teach+"</div>":"")+"</div>";
   var k=SAY_LOOK[kind]||SAY_LOOK.tip;
@@ -1559,6 +1689,7 @@ function evaluate(action,payload){
    itself just says No clients found; the reason it matters is raised by Lashes at
    the empty table, once per task, so the product itself stays faithful. */
 function nudgeEmpty(){
+  if(BEAT.active()) return;
   if(S.note || S.idx>=TASKS.length || S.nudged===task().id) return;
   var e=task().expect;
   if(e.type!=="open" && e.type!=="flag") return;
@@ -1578,6 +1709,7 @@ function rerun(resetPage){
   if(resetPage!==false) S.page=0;
   renderTable();
   if(S.rows && S.rows.length===0) nudgeEmpty();
+  BEAT.check();
 }
 
 var deb=null;
@@ -1768,6 +1900,7 @@ function openProfile(id){
   $$("#recNav [data-tab]").forEach(function(b){
     b.addEventListener("click", function(){ showRecordTab(b.getAttribute("data-tab"), c); });
   });
+  BEAT.check();
   evaluate("open",id);
 }
 /* The Location tab. Locations are shown collectively for one client, as a map of
@@ -1910,7 +2043,7 @@ $("#restartBtn").addEventListener("click",function(){
   }
   function liveRect(sel){
     var n=document.querySelector(sel);
-    return (n && n.offsetParent!==null) ? n.getBoundingClientRect() : null;
+    return (n && n.getClientRects().length) ? n.getBoundingClientRect() : null;
   }
   /* Not the whole table — most of a results table is harmless to overlap, and
      scoring it by area let a huge, mostly-empty rectangle outvote a 34px button.
@@ -2028,6 +2161,8 @@ $("#restartBtn").addEventListener("click",function(){
 
 /* ---------------- Lashes controls ---------------- */
 $("#lzCardGo").addEventListener("click",nextTask);
+$("#lzStep").addEventListener("click",function(){ BEAT.step(); });
+$("#cwTour").addEventListener("click",function(){ BEAT.cancel(); BEAT.run(TOUR); });
 
 /* popover plumbing */
 function place(pop,anchor,w){
@@ -2060,6 +2195,7 @@ document.addEventListener("keydown",function(e){
 /* boot */
 LZ.boot();
 renderChips(); renderTable(); renderCoach();
+BEAT.run(TOUR);
 EMBED.ready(TASKS.length);
 </script>
 </body>
