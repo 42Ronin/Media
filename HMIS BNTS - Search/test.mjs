@@ -56,16 +56,31 @@ const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
 ok('slide 7.1, plus the two things it does not cover', tourLen === 5);
 
 const seen = [];
-let arrowSeen = 0, arrowUnderBubble = false;
+let arrowSeen = 0, arrowUnderBubble = false, arrowBackwards = 0;
 for (let n = 0; n < tourLen; n++) {
   seen.push(await p.textContent('#fb'));
   const arrow = await p.evaluate(() => {
     const A = document.querySelector('#lzArrow');
     if (!A.classList.contains('on')) return null;
     const a = A.getBoundingClientRect(), b = document.querySelector('#lzBub').getBoundingClientRect();
-    return { over: !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom) };
+    /* Which way it actually points, worked out from the rendered rotation rather
+       than from the constant that produced it — a wrong constant is the failure
+       being watched for, so reading it back would prove nothing. The drawing's tip
+       is its bottom edge; CSS rotates clockwise, so rotating (0,1) by deg gives
+       (-sin, cos). The arrow always stands in the gap between her and the thing,
+       which makes "tip is farther from her than the arrow's own centre" the whole
+       test: every way of getting the rotation wrong is 180 degrees out, and turns
+       the arrow back on her face. */
+    const deg = Number((/rotate\(([-0-9.]+)deg\)/.exec(A.querySelector('.spin').style.transform) || [0, 0])[1]);
+    const t = deg * Math.PI / 180;
+    const cx = a.left + a.width / 2, cy = a.top + a.height / 2;
+    const tipx = cx - Math.sin(t) * a.height / 2, tipy = cy + Math.cos(t) * a.height / 2;
+    const h = document.querySelector('#lzChar').getBoundingClientRect();
+    const hx = h.left + h.width / 2, hy = h.top + h.height / 2;
+    return { over: !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom),
+             backwards: Math.hypot(tipx - hx, tipy - hy) <= Math.hypot(cx - hx, cy - hy) };
   });
-  if (arrow) { arrowSeen++; if (arrow.over) arrowUnderBubble = true; }
+  if (arrow) { arrowSeen++; if (arrow.over) arrowUnderBubble = true; if (arrow.backwards) arrowBackwards++; }
   const bad = await p.evaluate(() => {
     const a = document.querySelector('#lzBub').getBoundingClientRect();
     const w = document.querySelector('#coachWin').getBoundingClientRect();
@@ -94,6 +109,13 @@ ok('...each pointed out on its own, not both waved at from one spot',
 ok('the arrow appears when she is pointing at something',
    arrowSeen > 0, `${arrowSeen} of ${tourLen} steps pointed`);
 ok('...and it never sits underneath her own bubble', !arrowUnderBubble);
+/* The canary for the rotation. `side` names where the anchor is relative to her;
+   it once meant the opposite, and the map that turns it into degrees was left
+   behind when that flipped — so every arrow pointed back at her face instead of
+   at the thing. Nothing caught it, because "the arrow is on screen" was all that
+   was being asked. */
+ok('...and it points at the thing, never back at her',
+   arrowBackwards === 0, `${arrowBackwards} of ${arrowSeen} pointed the wrong way`);
 ok('...and it is drawn in her palette, not the product\'s',
    await p.evaluate(() => {
      const path = document.querySelector('#lzArrow svg path');
@@ -621,6 +643,65 @@ ok('everything the pane offers besides reading is present but obstructed',
    await p.$$eval('#locationPane [data-locked]', e => e.map(x => x.getAttribute('aria-label')).join(' | ')));
 ok('the teaching keeps location as one identifier among several',
    (await p.textContent('#fb')).includes('not as the answer on its own'));
+
+/* The breadcrumb, from capture 03. It is the third way back to Client Search and
+   the only one that also says where you are, so it has to track the open tab. It
+   exists on the record page ONLY — capture 01 shows the search landing with that
+   side of the top bar empty, which is what stops it being decoration. */
+console.log('\n— the breadcrumb —');
+ok('on the record it names the client and the open tab', await p.evaluate(() => {
+  const c = CLIENTS.find(x => x.i === S.open);
+  return document.querySelector('#crumbs').textContent.replace(/\s+/g, ' ').trim() ===
+    'Client Search ' + c.f + ' ' + c.l + ' Location';
+}), await p.$eval('#crumbs', e => e.textContent.replace(/\s+/g, ' ').trim()));
+await p.click('#recNav [data-tab="Profile"]'); await p.waitForTimeout(150);
+ok('the last crumb follows the tab back to Profile',
+   (await p.textContent('#crumbTab')).trim() === 'Profile');
+await p.click('#recNav [data-tab="Location"]'); await p.waitForTimeout(150);
+ok('the name crumb is a step up, not a way out — it returns to the record\'s own first page',
+   await p.evaluate(async () => {
+     document.querySelector('#crumbName').click();
+     return document.querySelector('#crumbTab').textContent.trim() === 'Profile' &&
+            !document.querySelector('#recordView').hidden;
+   }));
+await p.click('#crumbSearch'); await p.waitForTimeout(250);
+ok('the first crumb goes back to Client Search', await p.$eval('#searchView', e => !e.hidden));
+ok('and the breadcrumb is gone there, as the live search landing has it',
+   await p.$eval('#crumbs', e => e.hidden));
+await p.click('#tb tr[data-row="6C2D91B47"]'); await p.waitForTimeout(250);
+
+/* Point of Contacts, from captures 05 and 06. The captured account had all three
+   blocks empty because its test client had none; empty teaches nothing, so ours
+   carry invented staff. Every one of them has to stay unreachable. */
+console.log('\n— point of contacts —');
+ok('all three blocks are laid out, filled or not',
+   (await p.$$eval('#pocBlock h3', e => e.map(x => x.textContent.trim()))).join('|') ===
+   'First Point of Contact|Second Point of Contact|Third Point of Contact');
+ok('the section carries the guidance about all three being taken',
+   (await p.textContent('#pocBlock')).includes('If three Points of Contact (PoC) are already recorded'));
+ok('an unused block reads No value rather than sitting blank', await p.evaluate(() => {
+  const c = CLIENTS.find(x => (x.poc || []).length === 1);
+  openProfile(c.i);
+  const t = document.querySelector('#pocBlock').textContent;
+  return t.split('Second Point of Contact')[1].includes('No value');
+}));
+/* Staff, not participants, and every one of them invented. A PoC phone that could
+   ring a real desk is the same class of mistake as a real SSN, so the ranges are
+   asserted rather than trusted: 555-0100..0199 is the block reserved for fiction,
+   and example.org is reserved by IANA and can never be registered. */
+ok('every Point of Contact phone is in the 555-01xx range reserved for fiction',
+   await p.evaluate(() => CLIENTS.every(c => (c.poc || []).every(b =>
+     /^213-555-01\d\d$/.test(b.ph) && /^213-555-01\d\d$/.test(b.sph)))));
+ok('every Point of Contact email is at example.org, which cannot be registered',
+   await p.evaluate(() => CLIENTS.every(c => (c.poc || []).every(b =>
+     b.em.endsWith('@example.org') && b.sem.endsWith('@example.org')))));
+ok('no Point of Contact borrows a participant\'s name', await p.evaluate(() => {
+  const people = new Set(CLIENTS.map(c => (c.f + ' ' + c.l).toLowerCase()));
+  return CLIENTS.every(c => (c.poc || []).every(b =>
+    !people.has(b.nm.toLowerCase()) && !people.has(b.snm.toLowerCase())));
+}));
+ok('some records carry all three, so the guidance describes a state that exists',
+   await p.evaluate(() => CLIENTS.some(c => (c.poc || []).length === 3)));
 await closeAll();
 
 // task 12 — the hard one: street name, three spellings, year and veteran only

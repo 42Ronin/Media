@@ -38,6 +38,24 @@ and were raised with the owner rather than applied silently:
   Active services / Recent Services and Events / Active Contacts / Care Team, each with a
   count and a chevron. Removed from the sim when the training panel took that column.
 
+## Resolved, and how
+
+All four were put to the owner rather than applied silently. The answers:
+
+1. **No-results wording** — changed, in the sim *and* in slide 11.1's copy, which quoted
+   the guess. Pinned in `test.mjs` as `EMPTY_STATE`.
+2. **SSN masking** — the earlier decision reversed; the sim masks now, via `maskSSN()`.
+3. **Stat cards** — stay removed. Not needed by anything these lessons teach.
+4. **Right rail** — stays removed, same reason. Both can return with the lesson that uses them.
+
+Two more were built from these captures afterwards:
+
+- **The breadcrumb** (capture 03), on the record page only — capture 01 shows that side of
+  the top bar empty on the search landing, which is what keeps it honest as navigation.
+- **Point of Contacts** (captures 05 and 06), full width below the profile grid. The captured
+  account's test client had all three blocks empty; ours carry invented staff, on fictional
+  `213-555-01xx` numbers and `example.org` addresses, because an empty section teaches nothing.
+
 ## What they confirm we already had right
 
 - The record's left nav list and its order.

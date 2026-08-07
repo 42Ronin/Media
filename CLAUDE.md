@@ -139,6 +139,26 @@ and two were deliberately left alone:
 - **Client Location** is the same shape as the Clients card (indigo title, subtitle, add button,
   kebab, its own search row), not the dark slate bar the old help article showed. The list comes
   first and the map sits under it.
+- **A breadcrumb** — `Client Search › Name › Profile` — sits at the left of the top bar, and
+  **only on the record page**: capture 01 shows that side of the bar empty on the search
+  landing. That is what makes it navigation rather than decoration, so don't render it on
+  search. The first crumb returns to Client Search, the name crumb is a step *up* to the
+  record's own first page (not a way out), and the last crumb tracks the open tab and is text
+  rather than a link. It is the third way back; the orientation still calls out only the
+  magnifier and the Clients icon, because those are the two the tour can point at from the
+  search page, and adding a third would mean inventing copy the script does not have.
+- **Point of Contacts** runs full width below the profile grid: a guidance paragraph, then
+  three blocks (First / Second / Third), each with date, name, phone, extension, email,
+  supervisor name / phone / extension / email, and category. All three always render — the
+  guidance is about what to do when all three are taken, which only reads correctly if the
+  learner can see how many are used. An empty date shows *nothing*, not "No value"; an empty
+  category falls back to `Select`. The captured account had all three empty; ours carry
+  invented staff, because an empty section teaches nothing and *which staff member already
+  has the relationship* is a real reason to open the record.
+  **PoC people are staff, not participants, and the safety rule matches the SSN one:** phones
+  are `213-555-01xx` (555-0100–0199 is the block reserved for fiction) and emails are at
+  `example.org` (IANA-reserved, unregisterable). `test.mjs` asserts both ranges and that no
+  PoC borrows a participant's name. Preserve this if you change PoC generation.
 - **Not reproduced, by decision:** the four stat cards above the results table, and the record
   page's right-hand rail. Both serve features these lessons do not teach. Don't add them back
   as a fidelity fix — they can arrive with the lesson that needs them.
@@ -160,6 +180,15 @@ available, not present.
   launcher** — a `srcdoc` frame has an opaque origin, so storage throws there and the lesson
   runs on defaults. The throw is caught; column changes still work for the session, they just
   are not persisted.
+- **Lashes' pointing arrow: `side` names where the *anchor* is, relative to her.** It used to
+  mean the opposite — which side of the anchor her cluster sat on — and when `placeArrow` was
+  rewritten to derive the side from settled positions, the `POINT` degree map was left on the
+  old meaning. Every arrow then pointed 180° out, back at her own face. The base drawing's tip
+  is its bottom edge and CSS rotates clockwise, so reaching *right* is `-90`. `test.mjs` now
+  measures the rendered rotation and asserts the tip is farther from her than the arrow's own
+  centre; since the arrow always stands in the gap between her and the thing, that single
+  invariant catches every way of getting the rotation wrong. Asserting "the arrow is visible"
+  was what let it through the first time.
 
 ## Delivery: Rise, with the simulation embedded
 

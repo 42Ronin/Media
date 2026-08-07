@@ -512,6 +512,47 @@ LOCATIONS = [
     ("Grand Ave & 5th",          "Cross-street", 0.52, 0.40),
 ]
 
+# Point of Contact. The profile carries three PoC blocks; the live capture had all
+# three empty because that account's test client had none recorded, but an empty
+# section teaches nothing — the reason a worker reads this part of the record is to
+# find out which staff member already has the relationship.
+#
+# These are STAFF, not participants, and they are invented like everything else.
+# Phone numbers use 213-555-01xx: 555-0100 through 555-0199 is the block reserved
+# for fiction, so nothing here can ring a real person. Emails use example.org,
+# which IANA reserves for documentation and which can never be registered.
+POC_F = ["Adaeze", "Marisol", "Terrence", "Bao", "Priya", "Roland", "Ximena",
+         "Devon", "Ingrid", "Hakim", "Noelle", "Sergei", "Tamsin", "Obadiah",
+         "Lucinda", "Farhan", "Odette", "Gustavo", "Neve", "Rashida"]
+POC_L = ["Okonkwo", "Villalobos", "Ashworth", "Nguyen-Pratt", "Ramanathan",
+         "Beaumont", "Escalante", "Whitlock", "Sorensen", "Bakr", "Ferreira",
+         "Novikov", "Hallowell", "Adeyemi", "Castellanos", "Rahimi", "Duval",
+         "Mendoza-Klein", "Aherne", "Bashir"]
+# Category is the PoC's role. The field is a Select in the product, so these are
+# the kind of option a LAHSA configuration would carry.
+POC_CAT = ["Housing Navigation", "Outreach", "Case Management",
+           "Interim Housing", "Emergency Shelter"]
+
+
+def poc_person(r):
+    """One staff member: name, a reachable-looking but unreachable phone, an email."""
+    f, l = r.choice(POC_F), r.choice(POC_L)
+    return {
+        "nm": f + " " + l,
+        "ph": "213-555-01%02d" % r.randint(0, 99),
+        "ex": str(r.randint(200, 899)) if r.random() < 0.35 else "",
+        "em": (f + "." + l.replace("-", "").replace("'", "") + "@example.org").lower(),
+    }
+
+
+def poc_block(r, when):
+    """A filled Point of Contact block, supervisor and all."""
+    p, sup = poc_person(r), poc_person(r)
+    return {"dt": when, "nm": p["nm"], "ph": p["ph"], "ex": p["ex"], "em": p["em"],
+            "snm": sup["nm"], "sph": sup["ph"], "sex": sup["ex"], "sem": sup["em"],
+            "cat": r.choice(POC_CAT)}
+
+
 QUALITY_LABEL = {
     "full": "Full SSN Reported", "approx": "Approximate or partial SSN reported",
     "refused": "Client refused", "unknown": "Client doesn't know",
@@ -536,6 +577,12 @@ for c in clients:
     c["lo"] = [{"p": p, "ty": ty, "x": x, "y": y,
                 "k": "Address" if rnd.random() < .45 else "Field Interaction"}
                for (p, ty, x, y) in _picked]
+    # Nought to three Points of Contact, weighted so most records carry one and a
+    # few carry the full three — the section's own guidance is about what to do
+    # when three are already recorded, which only means anything if some records
+    # actually have three. Dates run from the year after intake to now.
+    c["poc"] = [poc_block(rnd, iso(rnd.randint(2023, 2026), rnd.randint(1, 12), rnd.randint(1, 28)))
+                for _ in range(weighted([(0, .22), (1, .48), (2, .21), (3, .09)]))]
     c["n"] = {                                            # right-rail accordion counts
         "pr": weighted([(0, .45), (1, .2), (2, .15), (3, .1), (6, .1)]),
         "cq": weighted([(0, .6), (1, .3), (2, .1)]),

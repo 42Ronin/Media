@@ -68,6 +68,20 @@ html.dock-min,html.dock-out{--dock:0px}
 .topbar{height:56px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 20px}
 .tb{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--indigo)}
 .tb:hover{background:rgba(255,255,255,.7)}
+/* Breadcrumb. margin-right:auto is what pushes it left without disturbing the
+   flex-end the rest of the bar relies on, so the bar is unchanged when it is
+   hidden — which on the search page it always is. */
+.crumbs{margin-right:auto;display:flex;align-items:center;gap:8px;min-width:0;font-size:14.5px}
+.crumbs button,.crumbs>span{display:flex;align-items:center;gap:7px;border-radius:7px;
+  padding:4px 7px;color:var(--indigo);white-space:nowrap;min-width:0}
+.crumbs button{font-weight:600}
+.crumbs button:hover{background:rgba(255,255,255,.75);text-decoration:underline}
+.crumbs button:focus-visible{outline:2px solid var(--indigo);outline-offset:1px}
+#crumbName{overflow:hidden;text-overflow:ellipsis;display:inline-flex}
+.crumbs .csep{color:#a9aede;flex:none}
+/* The last crumb is where you already are, so it is text, not a target. */
+.crumbs>span{color:#3f4763;cursor:default}
+.crumbs>span svg{color:#7b83ab}
 .who{display:flex;align-items:center;gap:10px;padding-left:8px}
 .who .av{width:38px;height:38px;border-radius:50%;overflow:hidden;display:block;position:relative;flex:none;
   background:var(--green);box-shadow:0 0 0 2px #fff,0 1px 3px rgba(60,50,140,.25)}
@@ -215,6 +229,13 @@ tbody tr.open{background:var(--indigo-soft)}
 @media(max-width:620px){.profgrid{grid-template-columns:1fr}}
 .pf b{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:3px}
 .pf span{font-size:14px}
+/* Point of Contacts — one column, the width of the card, as the captures show. */
+.poc{padding:0 22px 22px}
+.poc hr{border:0;border-top:1px dashed #cfd2e6;margin:0 0 14px}
+.poc h2{font-size:15px;color:var(--indigo);font-weight:600;margin:0 0 10px}
+.poc h3{font-size:14px;color:var(--indigo);font-weight:600;margin:22px 0 12px}
+.poc .pocnote{font-size:14px;color:var(--indigo);line-height:1.5;margin:0 0 4px;max-width:74ch}
+.poc .pf{margin-bottom:14px}
 .backlink{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--indigo);font-weight:600;padding:6px 2px 4px}
 .backlink:hover{text-decoration:underline}
 
@@ -527,6 +548,22 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 
   <div class="body">
     <div class="topbar">
+      <!-- The breadcrumb, verified against the live account (capture 03). It is only
+           on the record page — the search landing (capture 01) has an empty top bar
+           on this side — which makes it a real way back rather than decoration. The
+           first crumb returns to Client Search; the last names the open tab and is
+           not a link, because you are already there. -->
+      <nav class="crumbs" id="crumbs" aria-label="Breadcrumb" hidden>
+        <button type="button" id="crumbSearch">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="8" r="3.2"/><path d="M4.5 19c.6-3.2 2.9-5 5.5-5 1 0 1.9.3 2.7.8"/><circle cx="17" cy="16.5" r="3"/><path d="M19.3 18.8L21.5 21"/></svg>
+          Client Search</button>
+        <svg class="csep" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        <button type="button" id="crumbName"></button>
+        <svg class="csep" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        <span id="crumbTab" aria-current="page">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.4"/><path d="M5 19.5c.7-3.6 3.4-5.5 7-5.5s6.3 1.9 7 5.5"/></svg>
+          <b>Profile</b></span>
+      </nav>
       <button class="tb" data-locked title="Dark mode" aria-label="Dark mode"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg></button>
       <button class="tb" id="globalSearchBtn" title="Client search" aria-label="Go to client search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
       <button class="tb" data-locked title="Open in new window" aria-label="Open in new window"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
@@ -606,6 +643,11 @@ html.dock-out .cwbar.drag{cursor:grabbing}
               </div>
             </div>
             <div class="profgrid" id="profGrid"></div>
+            <!-- Point of Contacts, from captures 05 and 06. It runs full width
+                 below the grid rather than in two columns, and it is where a
+                 worker finds out which staff member already has the relationship
+                 — which is exactly what this lesson sends them to the record for. -->
+            <div class="poc" id="pocBlock"></div>
           </div>
 
           <!-- Client Location, rebuilt against the live account (August 2026). It is
@@ -1081,7 +1123,8 @@ var LZ=(function(){
       search:"#pill", results:"#tbl", zero:"#zero", pager:"#pager",
       record:".recwrap", tabs:"#recNav", columns:"#colBtn", filter:"#filterBtn", add:"#addBtn",
       panel:"#coachWin", rail:".rail", topbar:".who",
-      magnifier:"#globalSearchBtn", clientsicon:".railbtn[aria-current]"
+      magnifier:"#globalSearchBtn", clientsicon:".railbtn[aria-current]",
+      crumbs:"#crumbs"
     };
     /* the card is laid out even when closed, so only anchor to it while it is up */
     if(name==="card") return card.classList.contains("on") ? card : null;
@@ -1224,7 +1267,13 @@ var LZ=(function(){
      drawn from that stale guess landed on top of her instead of in a gap. If
      there genuinely is no gap once she has settled, the honest thing is no
      arrow at all, not one lying across her face. */
-  var POINT={right:{deg:90}, left:{deg:-90}, below:{deg:180}, above:{deg:0}};
+  /* `side` names where the ANCHOR is relative to her, so the arrow turns toward it.
+     The base drawing points down (its tip is the bottom of the path), and CSS
+     rotates clockwise: +90 takes a downward tip to the left, so reaching right is
+     -90. This map read the other way round when `side` meant which side of the
+     anchor her cluster sat on; the rewrite flipped that and left the map behind,
+     which pointed all four directions at exactly the wrong thing. */
+  var POINT={right:{deg:-90}, left:{deg:90}, below:{deg:0}, above:{deg:180}};
   function placeArrow(a,c){
     if(!pointing){ arrow.classList.remove("on"); return; }
     var w=46, h=52, minGap=24, s0=size();
@@ -2438,6 +2487,41 @@ var REC_NAV=[
 function field(label,val,muted){
   return '<div class="pf"><b>'+esc(label)+'</b><span'+(muted?' class="novalue"':'')+'>'+val+'</span></div>';
 }
+/* Point of Contacts. Three blocks always render, filled or not — the product lays
+   out all three and says "No value" in the empty ones, and the section's guidance
+   is about what to do when all three are taken, which only reads correctly if the
+   learner can see how many are used. An empty Date shows nothing at all rather
+   than "No value", and Category falls back to the Select placeholder; both are
+   how the captures have it. */
+var POC_ORDINAL=["First","Second","Third"];
+function pocFields(p){
+  function v(x){ return x ? esc(x) : null; }
+  function f(label,val){ return field(label, val===null?"No value":val, val===null); }
+  return (p&&p.dt ? field("Point of Contact Date", dobShort(p.dt)) :
+                    '<div class="pf"><b>Point of Contact Date</b></div>')+
+    f("Point of Contact Name", p?v(p.nm):null)+
+    f("Point of Contact Phone", p?v(p.ph):null)+
+    f("Extension", p?v(p.ex):null)+
+    f("Point of Contact Email", p?v(p.em):null)+
+    f("Point of Contact Supervisor or Manager Name", p?v(p.snm):null)+
+    f("Point of Contact Supervisor or Manager Phone Number", p?v(p.sph):null)+
+    f("Extension", p?v(p.sex):null)+
+    f("Point of Contact Supervisor or Manager Email", p?v(p.sem):null)+
+    '<div class="pf"><b>Point of Contact Category</b><span'+(p&&p.cat?'':' class="novalue"')+'>'+
+      (p&&p.cat?esc(p.cat):"Select")+'</span></div>';
+}
+function renderPOC(c){
+  var list=c.poc||[];
+  var html='<hr>'+
+    '<h2>Point of Contacts</h2>'+
+    '<p class="pocnote">If three Points of Contact (PoC) are already recorded, please contact all '+
+    'staff before removing a participant to discuss the most appropriate staff to serve as PoC. '+
+    'The program(s) providing housing navigation-type services should serve as Point of Contact</p>';
+  for(var i=0;i<3;i++){
+    html+='<h3>'+POC_ORDINAL[i]+' Point of Contact</h3>'+pocFields(list[i]||null);
+  }
+  $("#pocBlock").innerHTML=html;
+}
 function openProfile(id){
   var c=byId(id); if(!c) return;
   S.open=id; S.tick++;
@@ -2448,6 +2532,8 @@ function openProfile(id){
   $("#recName").textContent=c.f+" "+c.l;
   $("#recSub").textContent="You are currently viewing the Client Record pages for "+c.f+" "+c.l+".";
   $("#recCardName").textContent=c.f+" "+c.l;
+  $("#crumbName").textContent=c.f+" "+c.l;
+  $("#crumbs").hidden=false;
 
   var alerts=(c.r!=="Yes")?1:0;
   $("#alertBtn").hidden=!alerts;
@@ -2477,6 +2563,8 @@ function openProfile(id){
     field("Earliest enrollment", c.fe?dobShort(c.fe):'No value', !c.fe)+
     field("Client ID", String(c.cid))+
     field("Unique Identifier", esc(c.i));
+
+  renderPOC(c);
 
   showRecordTab("Profile", c);
   $("#searchView").hidden=true;
@@ -2596,10 +2684,13 @@ function showRecordTab(name, c){
   var isLoc = name==="Location";
   $("#profilePane").hidden = isLoc;
   $("#locationPane").hidden = !isLoc;
+  /* the last crumb names the tab you are on, so it moves with the tabs */
+  $("#crumbTab").querySelector("b").textContent=name;
   if(isLoc) renderLocation(c);
 }
 function closeProfile(){
   S.open=null;
+  $("#crumbs").hidden=true;
   $("#recordView").hidden=true;
   $("#searchView").hidden=false;
   renderTable();
@@ -2654,6 +2745,16 @@ $$("[data-locked]").forEach(bindLocked);
 /* the global Clients button returns to the search screen from a record */
 $(".railbtn[aria-current]").addEventListener("click",function(){
   if(S.open) closeProfile();
+});
+
+/* The breadcrumb is the third way back, and the one that says where you are while
+   it does it. The name crumb returns to the record's own first page, which is what
+   the product does — it is a step back up, not a way out. */
+$("#crumbSearch").addEventListener("click",function(){
+  if(S.open){ closeProfile(); $("#q").focus(); }
+});
+$("#crumbName").addEventListener("click",function(){
+  var c=byId(S.open); if(c) showRecordTab("Profile", c);
 });
 
 /* the magnifier in the top bar is the way back to Client Search from anywhere */
