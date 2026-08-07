@@ -1155,9 +1155,11 @@ var BEAT=(function(){
   function cur(){ return list ? list[i] : null; }
   function show(){
     var b=cur(); if(!b) return;
+    if(typeof renderCoach==="function" && typeof SCENARIO_META!=="undefined" && SCENARIO_META[SECTION]) renderCoach();
     LZ.say(b.anchor||"search",
       '<div class="fb '+(b.kind||"tour")+'">'+(b.title?"<b>"+esc(b.title)+"</b>":"")+
-        String(b.html).replace(/\{\{COUNT\}\}/g, countWord())+"</div>",
+        String(b.html).replace(/\{\{COUNT\}\}/g, countWord())
+                       .replace(/\{\{COUNT_LOWER\}\}/g, countWord().toLowerCase())+"</div>",
       {eyes:b.eyes||"open", mouth:b.mouth||"tip", move:b.move, point:b.point});
     $("#lzFoot").hidden=false;
     $("#lzCount").textContent=(list.length>1)?(i+1)+" of "+list.length:"";
@@ -1204,7 +1206,8 @@ var BEAT=(function(){
     step:step,
     check:check,
     cancel:function(){ if(list) stop(false); },
-    active:function(){ return !!list; }
+    active:function(){ return !!list; },
+    pos:function(){ return list ? {i:i, n:list.length} : null; }
   };
 })();
 
@@ -1223,55 +1226,32 @@ var NUMBER_WORDS=["No","One","Two","Three","Four","Five","Six","Seven","Eight","
                   "Eleven","Twelve","Thirteen","Fourteen"];
 function countWord(){ return NUMBER_WORDS[TASKS.length]||String(TASKS.length); }
 
+/* Slide 7.1, in the script's own words. The only edit is the number of situations,
+   which the split into per-section deliverables forces — "thirteen" is no longer
+   true of a section that holds eight. Everything else is the document verbatim.
+
+   Sections 10 and 11 have no 7.1 of their own in the script, so they get no
+   orientation until one is written. They do not get one invented for them. */
 var TOURS={
 7:[
 { anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
-  html:'<p>This is the practice version of Clarity. It behaves the way the real one does, '+
-       'and everyone in it is invented, so nothing you do here reaches a real person.</p>' },
-{ anchor:"search", eyes:"wide", mouth:"plain", point:true,
-  html:'<p>One box does all of it. Part of a name, a date of birth, a few digits of a '+
-       'Social Security Number. It searches while you type, so you do not press anything.</p>' },
-{ anchor:"results", eyes:"open", mouth:"plain", move:"hop", point:true,
-  html:'<p>Results land here. Three hundred people in this roster.</p>'+
-       '<p>The live system holds hundreds of thousands. So the habit worth building is to '+
-       'narrow before you scan, not to scroll.</p>' },
-{ anchor:"panel", eyes:"open", mouth:"tip", move:"lean",
-  html:'<p>Your situation and your task live in there. {{COUNT}} of them. Each one is a '+
-       'person in front of you and something they have told you.</p>'+
-       '<p>Nothing is scored. Hints are free and there is no skip, so you work each one '+
-       'until you find it. You type the search yourself every time.</p>' },
-{ anchor:"rail", eyes:"droll", mouth:"hm", move:"still", point:true,
-  html:'<p>Anything blurred is not yours yet. It clears as you earn it.</p>' },
-{ anchor:"search", eyes:"sparkle", mouth:"cheer", move:"bounce", next:"Start",
-  html:'<p>Right. Go and find someone.</p>' }
-],
-10:[
-{ anchor:"search", eyes:"glance", mouth:"wry", move:"dropin",
-  html:'<p>Same practice, same three hundred people. What changes is the question.</p>' },
-{ anchor:"panel", eyes:"open", mouth:"tip",
-  html:'<p>Finding a record was the easy half. {{COUNT}} situations this time, and in every '+
-       'one of them you have a candidate already. The question is whether it is the right '+
-       'person, and what to do when more than one could be.</p>' },
-{ anchor:"results", eyes:"wide", mouth:"plain", move:"hop", point:true,
-  html:'<p>The arrow on the left of a row opens it without leaving the list. Household, '+
-       'veteran status, when it was last touched. Faster than opening a record to rule it out.</p>' },
-{ anchor:"results", eyes:"smug", mouth:"wry", point:true,
-  html:'<p>And a record is more than its profile. Open one and there is a Location tab, '+
-       'which is where somebody has been contacted before. You will need it.</p>' },
-{ anchor:"search", eyes:"arcs", mouth:"cheer", move:"bounce", next:"Start",
-  html:'<p>Same rules as before. Off you go.</p>' }
-],
-11:[
-{ anchor:"panel", eyes:"glance", mouth:"wry", move:"dropin",
-  html:'<p>This one is not a list. It is one person, start to finish, and you do not close a record and '+
-       'come back to a fresh situation between goes.</p>' },
-{ anchor:"search", eyes:"open", mouth:"tip",
-  html:'<p>I am not going to tell you which technique each step needs. You have all of them by now. '+
-       'Choosing is the part worth practising.</p>'+
-       '<p>Hints are still free, and I will pick the story back up when a search lands.</p>',
-  next:"Start" }
+  html:'<p>What follows is a practice version of Clarity. It behaves the way the real system '+
+       'behaves. Everyone in it is invented \u2014 nothing you do here touches a real record.</p>' },
+{ anchor:"panel", eyes:"open", mouth:"plain", move:"lean",
+  html:'<p>You will be given {{COUNT_LOWER}} situations. Each one is a person standing in front '+
+       'of you and something they have told you. Your job is to find their record \u2014 and, '+
+       'later, to prove it is the right one.</p>' },
+{ anchor:"results", eyes:"wide", mouth:"plain", move:"hop", point:true, next:"Start",
+  html:'<p>The practice roster holds three hundred people. The live system holds hundreds of '+
+       'thousands. A search that returns a readable handful here can return pages there \u2014 '+
+       'so the habit to build is to narrow the search before you scan, not to scroll page '+
+       'after page.</p>' }
 ]};
-var TOUR=TOURS[SECTION]||TOURS[7];
+
+/* A real section gets its own orientation or none at all. The combined test page
+   is the two task banks, so it takes 7.1 — and its count comes out as "thirteen",
+   which is what the script says. */
+var TOUR=TOURS[SECTION] || (SECTION ? null : TOURS[7]);
 
 /* ============================================================
    SECTION 11 — the running scenario
@@ -1291,6 +1271,41 @@ function rowsAre(test){
     return test(S.rows, (S.q||"").toLowerCase());
   };
 }
+/* What the scenario is, for the panel: it has steps, not tasks, and the learner
+   works one person the whole way through. */
+var SCENARIO_META={
+11:{ title:"Somebody nobody can find",
+     steps:["He gives you a surname","You ask what else he is called",
+            "You drop the word doing the damage","You start from the other fact",
+            "You confirm it on the record","Only then, a new record"] }
+};
+
+/* Run after the right record is open. The doc does not end on the record — it
+   ends on what the record proves, and then on the sentence the whole section
+   exists to place: this is the point at which you create one, and not before. */
+var SCENARIO_CLOSE={
+11:[
+{ anchor:"record", eyes:"sparkle", mouth:"cheer", move:"bounce",
+  title:"That is him",
+  html:'<p>The contact somebody logged the day they took his details, and the referral he has '+
+       'been asking about ever since.</p>'+
+       '<p>He was never missing. He was four searches away, and every one of them was something '+
+       'you had already practised.</p>' },
+{ anchor:"record", eyes:"open", mouth:"tip", move:"lean",
+  title:"What you actually did",
+  html:'<p>You did not treat an empty result as an answer. You asked instead of guessing. You '+
+       'dropped the word that was doing the damage. And when the identifiers ran out, you used '+
+       'the rest of the record.</p>'+
+       '<p>Nobody told you which of those to reach for. That was the whole point.</p>' },
+{ anchor:"record", eyes:"droll", mouth:"hm", move:"still",
+  title:"Only then, a new record",
+  next:"Finish",
+  html:'<p>If you had worked all of that and still found nothing, <b>then</b> you create a record. '+
+       'At that point it is the right thing to do.</p>'+
+       '<p>Notice how far down the list that sentence comes. Desmond was four searches from being '+
+       'a second record for a man who already had one.</p>' }
+]};
+
 var SCENARIOS={
 11:[
 { anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
@@ -1480,6 +1495,7 @@ var INTERSTITIALS = SECTION ? {} : INTERSTITIALS_ALL;
    STATE
    ============================================================ */
 var S = {
+  closing:false,
   q:"", chips:[], cols:loadCols(), sort:{k:"client",dir:1}, page:0, per:10,
   rows:null, expanded:{},
   recent:[],   /* starts empty: nothing is shown until the learner searches */
@@ -1755,8 +1771,19 @@ function renderCoach(){
     return;
   }
   $("#nextBtn").textContent="Next task →";
-  $("#barFill").style.width=(S.results.length/TASKS.length*100)+"%";
-  $("#taskNo").textContent=done?"All tasks complete":("Task "+(S.idx+1)+" of "+TASKS.length);
+  var meta=SCENARIO_META[SECTION];
+  if(meta){
+    /* One person worked start to finish. Counting tasks would say "1 of 1", which
+       is true and useless; what the learner wants to know is how far through the
+       story they are. */
+    var pos=BEAT.pos(), step=S.closing ? meta.steps.length : (pos?Math.min(pos.i+1,meta.steps.length-1):1);
+    if(done) step=meta.steps.length;
+    $("#taskNo").textContent=done?"Complete":("Step "+step+" of "+meta.steps.length);
+    $("#barFill").style.width=(step/meta.steps.length*100)+"%";
+  }else{
+    $("#barFill").style.width=(S.results.length/TASKS.length*100)+"%";
+    $("#taskNo").textContent=done?"All tasks complete":("Task "+(S.idx+1)+" of "+TASKS.length);
+  }
   if(done){
     $("#tTitle").textContent="Lesson complete";
     $("#tBrief").innerHTML="You can keep searching the roster freely.";
@@ -1774,6 +1801,16 @@ function renderCoach(){
   renderTaskList();
 }
 function renderTaskList(){
+  var meta=SCENARIO_META[SECTION];
+  if(meta){
+    var pos=BEAT.pos();
+    var at=S.closing||S.finished ? meta.steps.length-1 : (pos?Math.min(pos.i,meta.steps.length-1):0);
+    $("#tList").innerHTML=meta.steps.map(function(label,i){
+      var cls=i<at?"done":(i===at?"cur":"");
+      return '<li class="'+cls+'"><span>'+(i<at?"✔":"○")+'</span><span>'+esc(label)+'</span></li>';
+    }).join("");
+    return;
+  }
   $("#tList").innerHTML=TASKS.map(function(t,i){
     var r=S.results.filter(function(x){return x.id===t.id;})[0];
     var mark=r?"✔":"○";
@@ -1802,9 +1839,18 @@ function pass(){
   var t=task(), first=(S.attempts===0&&!S.hinted);
   S.results.push({id:t.id,first:first});
   EMBED.task(t,S.idx,first);
-  say("good","Correct","You found the right record.",t.teach);
-  $("#nextBtn").hidden=false; $("#hintBtn").hidden=true;
+  $("#hintBtn").hidden=true;
   $("#coachWin").classList.remove("min"); pulseWin();
+  if(SCENARIO_CLOSE[SECTION]){
+    /* A scenario does not end on the record. It ends on what the record proves,
+       and then on the sentence the section exists to place. */
+    S.closing=true;
+    renderCoach();
+    BEAT.run(SCENARIO_CLOSE[SECTION], function(){ S.closing=false; S.idx=TASKS.length; finish(); });
+    return;
+  }
+  say("good","Correct","You found the right record.",t.teach);
+  $("#nextBtn").hidden=false;
   renderCoach();
 }
 /* The window is small and can be anywhere on screen, so when something lands in
@@ -1842,7 +1888,9 @@ function finish(){
   S.finished=true;
   var clean=S.results.filter(function(r){return r.first;}).length;
   $("#dnBody").innerHTML=
-    '<p style="margin:0 0 16px;font-size:17px"><b>All '+TASKS.length+' tasks complete.</b></p>'+
+    '<p style="margin:0 0 16px;font-size:17px"><b>'+
+      (SCENARIO_META[SECTION] ? esc(SCENARIO_META[SECTION].title)+' \u2014 complete.'
+                              : 'All '+TASKS.length+' tasks complete.')+'</b></p>'+
     (CLOSING[SECTION]||'')+
     '<div class="banner warn"><div><b>The habit underneath all of it</b><br>'+
     'An empty result is not proof that someone is new. Search the surname fragment, search the year of birth, '+
@@ -2391,7 +2439,8 @@ document.title=SECTION_TITLE;
 $("#secTitle").textContent=SECTION_TITLE;
 LZ.boot();
 renderChips(); renderTable(); renderCoach();
-BEAT.run(TOUR, SCENARIOS[SECTION] ? function(){ BEAT.run(SCENARIOS[SECTION]); } : null);
+if(TOUR) BEAT.run(TOUR, SCENARIOS[SECTION] ? function(){ BEAT.run(SCENARIOS[SECTION]); } : null);
+else if(SCENARIOS[SECTION]) BEAT.run(SCENARIOS[SECTION]);
 EMBED.ready(TASKS.length);
 </script>
 </body>

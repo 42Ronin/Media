@@ -32,7 +32,10 @@ const closeAll = async () => { await p.keyboard.press('Escape'); await p.waitFor
    get out of the way cleanly. */
 console.log('\n— orientation —');
 await p.waitForTimeout(600);
-ok('Lashes opens with a tour before anything else',
+/* The orientation is slide 7.1 of the script, in the script's own words. The only
+   edit is the number of situations, which the split into per-section deliverables
+   forces. Sections without a 7.1 of their own get no orientation. */
+ok('the orientation is present where the script has one',
    await p.$eval('#lzBub', e => e.classList.contains('on')) &&
    (await p.textContent('#fb')).includes('practice version of Clarity'));
 /* She does not introduce herself: that was the course intro, and so was the
@@ -43,7 +46,7 @@ ok('she does not re-introduce herself, having already met them',
 ok('the tour is counted so the learner knows how long it is',
    (await p.textContent('#lzCount')).includes('of'));
 const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
-ok('it has more than one step', tourLen > 1);
+ok('it is the three paragraphs slide 7.1 has, and no more', tourLen === 3);
 
 const seen = [];
 let arrowSeen = 0, arrowUnderBubble = false;
@@ -66,16 +69,14 @@ for (let n = 0; n < tourLen; n++) {
   ok(`tour step ${n + 1} is on screen and clear of the docked panel`, !bad);
   await p.click('#lzStep'); await p.waitForTimeout(420);
 }
-ok('the tour covers the roster size the script states', seen.join(' ').includes('Three hundred'));
+ok('the tour covers the roster size the script states', seen.join(' ').includes('three hundred people'));
 ok('nothing in it is repeated from a previous section', await p.evaluate(() => {
   const said = s => JSON.stringify(TOURS).indexOf(s);
   /* every sentence appears in exactly one section's orientation */
   const all = Object.values(TOURS).flat().map(b => b.html);
   return new Set(all).size === all.length;
 }));
-ok('...that nothing is scored and there is no skip',
-   seen.join(' ').includes('Nothing is scored') && seen.join(' ').includes('no skip'));
-ok('...and that blurred means not yet earned', seen.join(' ').includes('clears as you earn it'));
+ok('...and the job it states', seen.join(' ').includes('prove it is the right one'));
 /* She has no hands and can never point, so the pointing is a prop — drawn in her
    own palette, standing in the gap between her and the thing, rotated at it. */
 ok('the arrow appears when she is pointing at something',
@@ -982,10 +983,10 @@ console.log('\n— section 11: the running scenario —');
   const key = async (q) => { await sc.fill('#q', q); await sc.waitForTimeout(800); };
 
   await sc.waitForTimeout(700);
-  ok('its orientation does not repeat the earlier sections',
-     (await said()).includes('not a list') && !(await said()).includes('practice version of Clarity'));
-  await sc.click('#lzStep'); await sc.waitForTimeout(400);
-  await sc.click('#lzStep'); await sc.waitForTimeout(700);
+  /* Section 11 has no orientation of its own in the script, so it has none here.
+     It opens straight into the scenario. */
+  ok('it opens straight into the story, having no 7.1 of its own',
+     await sc.evaluate(() => TOUR === null));
 
   ok('it opens on the surname he actually gives', (await said()).includes('Carrow'));
   ok('...and waits for the learner rather than offering a button',
@@ -1019,10 +1020,19 @@ console.log('\n— section 11: the running scenario —');
      (await said()).includes('never been at the Alameda St underpass'));
   await sc.keyboard.press('Escape'); await sc.waitForTimeout(400);
   await sc.click('tr[data-row="D2F8A6C31"]'); await sc.waitForTimeout(600);
-  ok('the one contacted at the underpass is the answer', (await said()).includes('Correct'));
+  ok('the one contacted at the underpass is the answer',
+     await sc.evaluate(() => S.results.some(r => r.id === 'desmond')));
+  /* The scenario does not end on the record. It runs its closing beats — what the
+     record proves, then the sentence the section exists to place. */
+  ok('...and the story does not end there', (await said()).includes('That is him'));
+  await sc.click('#lzStep'); await sc.waitForTimeout(500);
+  await sc.click('#lzStep'); await sc.waitForTimeout(500);
   ok('the close names creating a record as the last resort it is',
-     (await said()).includes('creating a record is the right thing to do') &&
-     (await said()).includes('not before'));
+     (await said()).includes('then') && (await said()).includes('create a record'));
+  await sc.click('#lzStep'); await sc.waitForTimeout(700);
+  ok('and only then is it complete',
+     !(await sc.$eval('#done', e => e.hidden)) &&
+     (await sc.textContent('#dnBody')).includes('complete'));
   ok('no errors anywhere in the scenario', scErrs.length === 0, scErrs.join(' | '));
   await sc.close();
 }
