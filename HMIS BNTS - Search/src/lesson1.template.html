@@ -273,9 +273,6 @@ tbody tr.open{background:var(--indigo-soft)}
 .coach.min{max-height:none}
 .chead{padding:13px 18px 12px;border-bottom:1px solid #2c3a4b;flex:none}
 .chead h2{margin:0;font-size:16px;font-weight:600}
-@media(max-width:820px){
-  .coach{left:8px !important;right:8px;top:auto !important;bottom:8px;width:auto;max-height:46vh}
-}
 .bar{height:5px;background:#2c3a4b;border-radius:99px;overflow:hidden;margin:12px 0 6px}
 .bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .4s}
 .cmeta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--coach-mut)}
@@ -1949,7 +1946,6 @@ $("#restartBtn").addEventListener("click",function(){
     if(moved) return;
     var r=win.getBoundingClientRect(), w=r.width, h=r.height, pad=18, top=36;
     var W=window.innerWidth, H=window.innerHeight;
-    if(W<=820) return;                                  /* the media query owns it */
     var xs=[], ys=[], i, j;
     for(i=0;i<=4;i++){
       xs.push(Math.round(pad+(W-w-2*pad)*i/4));

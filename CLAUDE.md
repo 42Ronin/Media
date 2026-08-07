@@ -180,8 +180,13 @@ with sources and external links.
 - **Search order is first name, last name, DOB. SSN comes later.** The vetted draft says to
   start with DOB *or SSN* because names get misspelled. That is not what staff do. Where the
   draft and the user disagree about practice, the user wins; the draft still governs policy.
-- **It happens on a phone or a tablet, standing up.** Not at a desk. Anything the lesson asks
-  of a learner has to be plausible one-handed on a small screen.
+- **The work happens on a phone or a tablet, standing up.** Not at a desk. That is a fact about
+  the job the lesson depicts, and it shapes the *content* — what a worker can realistically do
+  one-handed at a cleanup.
+  **It is not a fact about taking the training.** The simulation is launched full screen on a
+  desktop. It was built responsive on a misreading of the note above; the narrow-viewport branch
+  has been removed rather than left in untested. Do not reintroduce it, and do not raise mobile
+  layout as a gap again.
 - **The usual opening is a city cleanup, and the participant approaches them** — most often
   asking whether there is an update on interim housing. It is not a quiet first contact
   initiated by the worker. The request for information is what makes pulling the record
