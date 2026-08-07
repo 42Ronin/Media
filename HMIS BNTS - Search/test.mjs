@@ -377,15 +377,15 @@ ok('profile shows the three data-quality fields',
 ok('profile shows Consent Refused and Race and Ethnicity',
    grid.includes('Consent Refused') && grid.includes('Race and Ethnicity'));
 ok('missing values read "No value"', grid.includes('No value'));
-const rail = await p.$$eval('#recRail .rc b', bs => bs.map(x => x.textContent.trim()));
-ok('right rail lists all eight record sections',
-   rail.length === 8 && rail[0] === 'Program referrals' && rail.includes('Care Team'), JSON.stringify(rail));
-const pill = await p.$eval('#recRail .pillnum', e => {
-  const r = e.getBoundingClientRect();
-  return { w: Math.round(r.width), h: Math.round(r.height) };
-});
-ok('count pills stay circular (no class collision with the empty state)',
-   pill.w === pill.h && pill.w < 30, JSON.stringify(pill));
+/* The record page's summary rail is gone: the training column stands where it
+   was, and those cards were never part of what this lesson teaches. */
+ok('the record page has no right rail left behind',
+   await p.$$eval('#recRail, .recrail, .railcard', e => e.length === 0));
+ok('the record content ends where the docked column begins', await p.evaluate(() => {
+  const a = document.querySelector('.recwrap').getBoundingClientRect();
+  const w = document.querySelector('#coachWin').getBoundingClientRect();
+  return a.right <= w.left;
+}));
 await p.click('.railbtn[aria-current]'); await p.waitForTimeout(200);
 ok('the global Clients button returns to search', !(await p.$eval('#searchView', e => e.hidden)));
 
@@ -533,11 +533,11 @@ console.log('\n— script alignment —');
 ok('lesson is titled Finding a Participant',
    (await p.textContent('.chead h2')).includes('Finding a Participant'));
 ok('the Skip button is gone', await p.$$eval('#skipBtn', e => e.length === 0));
-ok('the training window floats over the interface, reserving no space from it',
+ok('the training window is docked to a reserved column, and the interface ends at it',
    await p.evaluate(() => {
      const c = document.querySelector('.coach').getBoundingClientRect();
      const a = document.querySelector('.app').getBoundingClientRect();
-     return a.left === 0 && c.left >= a.left && c.right <= a.right + 1 && c.bottom <= a.bottom + 1;
+     return a.left === 0 && a.right <= c.left && c.right <= innerWidth;
    }));
 ok('coach copy uses "participant", not "client"', await p.evaluate(() =>
   TASKS.some(t => /participant/i.test(t.teach + t.brief + t.ask))));
@@ -595,20 +595,39 @@ const hits = (a, b) => a && b && !(a.r <= b.l || a.l >= b.r || a.b <= b.t || a.t
 
 ok('the window is fully on screen', await p.evaluate(() => {
   const r = document.querySelector('#coachWin').getBoundingClientRect();
-  return r.top >= 26 && r.bottom <= innerHeight + 1 && r.left >= 0 && r.right <= innerWidth + 1;
+  return r.top >= 0 && r.bottom <= innerHeight + 1 && r.left >= 0 && r.right <= innerWidth + 1;
 }));
 
+/* Docked, nothing has to be solved at runtime: the interface is laid out against
+   --dock, so no part of it can end up underneath. */
 await type('Garcia');
-ok('it does not cover the search bar',   !hits(await rectOf('#coachWin'), await rectOf('#pill')));
-ok('it does not cover the icon rail',    !hits(await rectOf('#coachWin'), await rectOf('.rail')));
-ok('it does not cover the pager',        !hits(await rectOf('#coachWin'), await rectOf('#pager')));
-ok('it does not cover the column selector', !hits(await rectOf('#coachWin'), await rectOf('#colBtn')));
+for (const [what, sel] of [['the account chip', '.who'], ['the search bar', '#pill'],
+                           ['the results table', '#tbl'], ['the pager', '#pager'],
+                           ['the icon rail', '.rail']]) {
+  ok(`${what} ends before the column begins`, await p.evaluate(s => {
+    const a = document.querySelector(s).getBoundingClientRect();
+    const w = document.querySelector('#coachWin').getBoundingClientRect();
+    return a.right <= w.left;
+  }, sel));
+}
 
-await p.click('#tb tr[data-row]'); await p.waitForTimeout(250);
-ok('and on the record page it clears the left nav',
-   !hits(await rectOf('#coachWin'), await rectOf('#recNav')));
-await p.click('.railbtn[aria-current]'); await p.waitForTimeout(200);
+/* Popped out, it surrenders the column and the interface reflows to full width. */
+const dockedRight = await p.$eval('#tbl', e => Math.round(e.getBoundingClientRect().right));
+await p.click('#cwPop'); await p.waitForTimeout(500);
+const poppedRight = await p.$eval('#tbl', e => Math.round(e.getBoundingClientRect().right));
+ok('popping it out gives the column back to the results', poppedRight > dockedRight + 200,
+   `${dockedRight} -> ${poppedRight}`);
+ok('...and it places itself somewhere fully on screen', await p.evaluate(() => {
+  const r = document.querySelector('#coachWin').getBoundingClientRect();
+  return r.top >= 0 && r.bottom <= innerHeight + 1 && r.left >= 0 && r.right <= innerWidth + 1;
+}));
+ok('...still clear of the search bar', await p.evaluate(() => {
+  const a = document.querySelector('#coachWin').getBoundingClientRect();
+  const c = document.querySelector('#pill').getBoundingClientRect();
+  return a.right <= c.left || a.left >= c.right || a.bottom <= c.top || a.top >= c.bottom;
+}));
 
+/* Drag only exists popped out. A docked panel that can be dragged is a lie. */
 const beforeDrag = await rectOf('#coachWin');
 await p.mouse.move(beforeDrag.l + 40, beforeDrag.t + 14);
 await p.mouse.down();
@@ -616,14 +635,20 @@ await p.mouse.move(beforeDrag.l + 40 - 220, beforeDrag.t + 14 - 90, { steps: 8 }
 await p.mouse.up();
 await p.waitForTimeout(200);
 const afterDrag = await rectOf('#coachWin');
-ok('dragging the title bar moves it', Math.abs(afterDrag.l - beforeDrag.l) > 100);
+ok('popped out, dragging the title bar moves it', Math.abs(afterDrag.l - beforeDrag.l) > 100);
 
-/* Auto-placement exists to keep it out of the way before anyone has touched it.
-   Once the learner has put it somewhere, that is where it stays. */
 await type('Wilson');
 const afterRerender = await rectOf('#coachWin');
 ok('once dragged, a re-render does not move it back',
    Math.abs(afterRerender.l - afterDrag.l) < 2 && Math.abs(afterRerender.t - afterDrag.t) < 2);
+
+await p.click('#cwPop'); await p.waitForTimeout(500);
+ok('docking it again returns it to the column, wherever it had been dragged to',
+   await p.evaluate(() => {
+     const c = document.querySelector('#coachWin').getBoundingClientRect();
+     const a = document.querySelector('.app').getBoundingClientRect();
+     return a.right <= c.left && c.right <= innerWidth;
+   }));
 
 await p.click('#cwMin'); await p.waitForTimeout(150);
 ok('it collapses to its title bar', await p.evaluate(() =>
@@ -634,10 +659,17 @@ ok('and expands again', await p.evaluate(() =>
   !document.querySelector('#coachWin').classList.contains('min')));
 
 console.log('\n— Lashes —');
-ok('she is on screen', await p.evaluate(() => {
-  const c = document.querySelector('#lzChar');
-  return c.classList.contains('on') && !!c.querySelector('.m-rim');
-}));
+/* Presence is covered further down — she is only here when she has something to
+   say. This is about how she is drawn when she does turn up. */
+await p.click('#hintBtn'); await p.waitForTimeout(400);
+ok('she arrives to speak, drawn from the character bible\'s own geometry',
+   await p.evaluate(() => {
+     const c = document.querySelector('#lzChar');
+     const rim = c.querySelector('.m-rim');
+     return c.classList.contains('on') && rim &&
+            rim.getAttribute('cx') === '44' && rim.getAttribute('cy') === '42' &&
+            rim.getAttribute('r') === '30';
+   }));
 ok('she has no hands, arms, body or legs — face, rim, glass and shine only',
    await p.evaluate(() => {
      const ids = [...document.querySelectorAll('#lzChar svg *')].map(n => n.getAttribute('class') || '');

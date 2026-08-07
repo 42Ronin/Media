@@ -29,9 +29,14 @@ input,select{font:inherit}
 :focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:4px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
-/* The simulated product owns the whole viewport. Training furniture floats over it:
-   a movable window, and Lashes with her bubble. Nothing reserves space from the app. */
-.app{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;overflow:hidden}
+/* The task window is docked to a reserved column on the right. The interface ends
+   at its edge — including the top bar, so the account chip and the icons line up
+   with the content beneath them rather than running under the dock. Lashes still
+   floats, because she has to be able to reach the thing she is talking about. */
+:root{--dock:392px}
+html.dock-min,html.dock-out{--dock:0px}
+.app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
+  transition:right .22s ease}
 
 /* ---------------- left rail ---------------- */
 .rail{width:70px;flex:none;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;gap:4px;overflow:hidden}
@@ -182,8 +187,7 @@ tbody tr.open{background:var(--indigo-soft)}
 .alertpill{display:flex;align-items:center;gap:7px;border:1px solid #e0b9b5;color:var(--red);background:#fff;
   border-radius:20px;padding:7px 13px;font-size:13.5px;font-weight:600}
 .badge2{background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;display:grid;place-items:center;font-size:11px}
-.recbody{display:grid;grid-template-columns:186px minmax(0,1fr) 250px;gap:16px;align-items:start}
-@media(max-width:1240px){.recbody{grid-template-columns:170px minmax(0,1fr)}.recrail{grid-column:1/-1}}
+.recbody{display:grid;grid-template-columns:186px minmax(0,1fr);gap:16px;align-items:start}
 .recnav{background:var(--card);border-radius:14px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 6px 18px rgba(60,50,140,.06);padding:8px;display:flex;flex-direction:column;gap:1px}
 .recnav button{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;font-size:13.5px;text-align:left;color:var(--ink)}
 .recnav button:hover{background:#f5f4fd}
@@ -194,15 +198,6 @@ tbody tr.open{background:var(--indigo-soft)}
 @media(max-width:620px){.profgrid{grid-template-columns:1fr}}
 .pf b{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:3px}
 .pf span{font-size:14px}
-.recrail{display:flex;flex-direction:column;gap:10px}
-.railcard{background:var(--card);border-radius:12px;box-shadow:0 1px 2px rgba(60,50,140,.06),0 6px 18px rgba(60,50,140,.06);
-  padding:12px 13px;display:flex;align-items:center;gap:10px}
-.railcard .rc{flex:1;min-width:0}
-.railcard .rc b{display:block;font-size:13px;font-weight:600;color:var(--indigo)}
-.railcard .rc span{display:block;font-size:11px;color:var(--muted);line-height:1.35}
-.pillnum{background:var(--indigo);color:#fff;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:12px;font-weight:600;flex:none}
-.pillnum.is-zero{background:#c9c7e0}
-.railcard .cv2{color:var(--muted);flex:none}
 .backlink{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--indigo);font-weight:600;padding:6px 2px 4px}
 .backlink:hover{text-decoration:underline}
 
@@ -255,17 +250,20 @@ tbody tr.open{background:var(--indigo-soft)}
    A movable window over the interface, not a drawer beside it. It carries the
    standing brief and the controls; the live reaction is Lashes' job, and hers
    goes wherever the thing she is reacting to happens to be. */
-.coach{position:fixed;right:18px;bottom:18px;width:344px;background:var(--coach);color:var(--coach-ink);
+.coach{position:fixed;right:24px;top:24px;width:344px;background:var(--coach);color:var(--coach-ink);
   display:flex;flex-direction:column;z-index:170;border-radius:14px;overflow:hidden;
-  max-height:min(48vh,404px);box-shadow:0 18px 44px rgba(20,16,40,.34),0 0 0 1px rgba(255,255,255,.06)}
+  max-height:calc(100vh - 48px);box-shadow:0 18px 44px rgba(20,16,40,.34),0 0 0 1px rgba(255,255,255,.06)}
+html.dock-min .coach{width:auto}
+/* Popped out: it stops owning a column and starts being placed. The drag handle
+   only exists in this mode — a docked panel that can be dragged is a lie. */
+html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
+html.dock-out .cwbar{cursor:grab}
+html.dock-out .cwbar.drag{cursor:grabbing}
 .coach.pulse{animation:cwpulse 1.1s ease-out}
 @keyframes cwpulse{0%{box-shadow:0 18px 44px rgba(20,16,40,.34),0 0 0 1px rgba(255,255,255,.06),0 0 0 0 rgba(63,160,192,.55)}
   100%{box-shadow:0 18px 44px rgba(20,16,40,.34),0 0 0 1px rgba(255,255,255,.06),0 0 0 16px rgba(63,160,192,0)}}
-.cwbar{display:flex;align-items:center;gap:9px;padding:8px 8px 8px 13px;background:var(--coach-2);
-  flex:none;cursor:grab;touch-action:none;user-select:none;border-bottom:1px solid #2c3a4b}
-.cwbar.drag{cursor:grabbing}
-.cwbar .grab{display:flex;flex-direction:column;gap:2.5px;opacity:.5;flex:none}
-.cwbar .grab i{display:block;width:13px;height:1.5px;background:currentColor;border-radius:2px}
+.cwbar{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 13px;background:var(--coach-2);
+  flex:none;user-select:none;touch-action:none;border-bottom:1px solid #2c3a4b}
 .cwbar .lz{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--coach-mut);font-weight:700;flex:1;min-width:0}
 .cwbtn{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:var(--coach-mut);flex:none}
 .cwbtn:hover{background:#33445a;color:var(--coach-ink)}
@@ -504,7 +502,6 @@ tbody tr.open{background:var(--indigo-soft)}
             <div id="locBody"></div>
           </div>
 
-          <div class="recrail" id="recRail"></div>
         </div>
       </div>
     </div>
@@ -598,8 +595,9 @@ tbody tr.open{background:var(--indigo-soft)}
 <!-- ============================ COACH ============================ -->
 <aside class="coach" id="coachWin" aria-label="Training panel">
   <div class="cwbar" id="cwBar">
-    <span class="grab" aria-hidden="true"><i></i><i></i><i></i></span>
     <span class="lz">Lesson 1 of 2</span>
+    <button class="cwbtn" id="cwPop" title="Pop out" aria-pressed="false" aria-label="Pop the training panel out of its column">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
     <button class="cwbtn" id="cwMin" title="Collapse" aria-label="Collapse training panel" aria-expanded="true">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg></button>
   </div>
@@ -1376,7 +1374,6 @@ function renderTable(){
 var renderTableRaw=renderTable;
 renderTable=function(){
   renderTableRaw.apply(this,arguments);
-  if(window.placeCoachWin) window.placeCoachWin();
   LZ.relayout();
 };
 
@@ -1721,16 +1718,6 @@ var REC_NAV=[
   ["Referrals","M21 12H8M12 7l-5 5 5 5M3 4v16"],
   ["Restrictions","M12 3a9 9 0 109 9 9 9 0 00-9-9zM5.6 5.6l12.8 12.8"]
 ];
-var RAIL=[
-  ["pr","Program referrals","View programs that the client is currently referred to"],
-  ["cq","Community queues","View community queues that the client is currently referred to"],
-  ["hh","Household","View clients that are currently in the same household"],
-  ["ap","Active programs","View programs that the client is currently enrolled in"],
-  ["as","Active services","View services that the client is currently receiving"],
-  ["rs","Recent Services and Events","View services and events that the client has recently received"],
-  ["ac","Active Contacts","View active contacts for this client"],
-  ["ct","Care Team","View care team for this client"]
-];
 function field(label,val,muted){
   return '<div class="pf"><b>'+esc(label)+'</b><span'+(muted?' class="novalue"':'')+'>'+val+'</span></div>';
 }
@@ -1774,13 +1761,6 @@ function openProfile(id){
     field("Client ID", String(c.cid))+
     field("Unique Identifier", esc(c.i));
 
-  $("#recRail").innerHTML=RAIL.map(function(r){
-    var n = r[0]==="hh" ? c.h : (c.n&&c.n[r[0]])||0;
-    return '<div class="railcard"><div class="rc"><b>'+esc(r[1])+'</b><span>'+esc(r[2])+'</span></div>'+
-      '<span class="pillnum'+(n?"":" is-zero")+'">'+n+'</span>'+
-      '<svg class="cv2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5 5 5-5"/></svg></div>';
-  }).join("");
-
   showRecordTab("Profile", c);
   $("#searchView").hidden=true;
   $("#recordView").hidden=false;
@@ -1788,9 +1768,6 @@ function openProfile(id){
   $$("#recNav [data-tab]").forEach(function(b){
     b.addEventListener("click", function(){ showRecordTab(b.getAttribute("data-tab"), c); });
   });
-  /* the record page puts a tall nav down the left, so the window may need to move
-     before the feedback that follows is placed against it */
-  if(window.placeCoachWin) window.placeCoachWin();
   evaluate("open",id);
 }
 /* The Location tab. Locations are shown collectively for one client, as a map of
@@ -1911,10 +1888,15 @@ $("#restartBtn").addEventListener("click",function(){
 });
 
 /* ---------------- the coach window ----------------
-   Movable, because it floats over a working interface and there is no one place
-   it can sit that is never in the way. Collapsible for the same reason. */
+   Two modes. Docked is the default: it owns a reserved column, the interface is
+   laid out against --dock, and the two can never overlap. Popped out, it floats
+   over the interface and the column is given back — which is worth having when
+   the learner wants the results at full width, and is the same window either way.
+
+   The placement solver only matters in the popped-out mode. */
 (function(){
-  var win=$("#coachWin"), bar=$("#cwBar"), drag=null, moved=false;
+  var win=$("#coachWin"), bar=$("#cwBar"), root=document.documentElement, drag=null, moved=false;
+  function floating(){ return root.classList.contains("dock-out"); }
 
   /* Controls the window must not sit on. Scored as the fraction of each control
      covered, not by area — covering half of a 34px icon button has to outweigh
@@ -1943,7 +1925,7 @@ $("#restartBtn").addEventListener("click",function(){
      nothing moves it again — a window that keeps relocating itself is worse than
      one that is occasionally in the way. */
   function autoPlace(){
-    if(moved) return;
+    if(moved || !floating()) return;
     var r=win.getBoundingClientRect(), w=r.width, h=r.height, pad=18, top=36;
     var W=window.innerWidth, H=window.innerHeight;
     var xs=[], ys=[], i, j;
@@ -1975,6 +1957,7 @@ $("#restartBtn").addEventListener("click",function(){
   }
   window.placeCoachWin=autoPlace;
   function clamp(){
+    if(!floating()) return;
     var r=win.getBoundingClientRect(), pad=8;
     /* A window the learner dragged may hang off the edge — that is their choice,
        and 90px of it stays reachable. One nobody has touched must be wholly on
@@ -1986,7 +1969,7 @@ $("#restartBtn").addEventListener("click",function(){
     win.style.left=x+"px"; win.style.top=y+"px"; win.style.bottom="auto"; win.style.right="auto";
   }
   function start(e){
-    if(e.target.closest("button")) return;
+    if(e.target.closest("button") || !floating()) return;
     moved=true;
     var r=win.getBoundingClientRect();
     drag={dx:(e.clientX!=null?e.clientX:e.touches[0].clientX)-r.left,
@@ -2007,6 +1990,21 @@ $("#restartBtn").addEventListener("click",function(){
   window.addEventListener("pointermove",moveIt);
   window.addEventListener("pointerup",end);
   window.addEventListener("pointercancel",end);
+  /* Pop out / dock. Popping out surrenders the reserved column, so the interface
+     reflows to full width and the window has to find somewhere to be. */
+  $("#cwPop").addEventListener("click",function(){
+    var out=root.classList.toggle("dock-out");
+    this.setAttribute("aria-pressed",String(out));
+    this.title=out?"Dock to the right":"Pop out";
+    if(out){
+      moved=false;
+      win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
+      requestAnimationFrame(function(){ autoPlace(); clamp(); LZ.relayout(); });
+    }else{
+      win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
+      setTimeout(function(){ LZ.relayout(); },240);
+    }
+  });
   $("#cwMin").addEventListener("click",function(){
     var min=win.classList.toggle("min");
     this.setAttribute("aria-expanded",String(!min));
@@ -2014,7 +2012,8 @@ $("#restartBtn").addEventListener("click",function(){
     this.innerHTML=min
       ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
       : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
-    autoPlace(); clamp(); LZ.relayout();
+    root.classList.toggle("dock-min", min && !floating());
+    setTimeout(function(){ autoPlace(); clamp(); LZ.relayout(); },240);
   });
   function reflow(){ autoPlace(); clamp(); LZ.relayout(); }
   window.addEventListener("resize",reflow);
