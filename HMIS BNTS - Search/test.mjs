@@ -965,6 +965,68 @@ ok('the product keeps its own indigo, so the two never read as one thing',
      return teal === '#066888' && indigo !== teal;
    }));
 
+/* ------------------------------------------------------------------
+   Section 11 is not a task bank. One person, one attempt at finding him,
+   four spiralling steps played without closing anything in between. Every
+   beat is gated on the state of the search rather than on a button, so the
+   story only moves when the learner has actually done the thing.
+   ------------------------------------------------------------------ */
+console.log('\n— section 11: the running scenario —');
+{
+  const sc = await b.newPage({ viewport: { width: 1600, height: 1000 } });
+  const scErrs = [];
+  sc.on('pageerror', e => scErrs.push(String(e)));
+  await sc.goto('file://' + new URL('./dist/section-11.html', import.meta.url).pathname);
+  const said = () => sc.textContent('#fb');
+  const prompt = () => sc.$eval('#lzFoot .lzwait', e => (e.hidden ? '' : e.textContent)).catch(() => '');
+  const key = async (q) => { await sc.fill('#q', q); await sc.waitForTimeout(800); };
+
+  await sc.waitForTimeout(700);
+  ok('its orientation does not repeat the earlier sections',
+     (await said()).includes('not a list') && !(await said()).includes('practice version of Clarity'));
+  await sc.click('#lzStep'); await sc.waitForTimeout(400);
+  await sc.click('#lzStep'); await sc.waitForTimeout(700);
+
+  ok('it opens on the surname he actually gives', (await said()).includes('Carrow'));
+  ok('...and waits for the learner rather than offering a button',
+     (await prompt()).length > 0 && await sc.$eval('#lzStep', e => e.hidden));
+
+  await key('Desmond Carrow');
+  ok('what he leads with reaches nobody', await sc.evaluate(() => S.rows.length === 0));
+  ok('the story moves on the empty result, not on a click',
+     (await said()).includes('not proof that somebody is new'));
+
+  /* One search changes the interface more than once — rerun and the table repaint
+     both re-ask the gate. A satisfied gate must still advance exactly one beat. */
+  await key('Carrow');
+  ok('a second search that changes nothing does not skip a beat',
+     (await prompt()).includes('Ask him'));
+
+  await key('Dez Carrow');
+  ok('the word doing the damage is named once he has tried it',
+     (await said()).includes('word doing the damage'));
+  await key('Dez');
+  ok('the fragment alone returns a readable five', await sc.evaluate(() => S.rows.length === 5));
+  ok('...and the story picks that up', (await said()).includes('Five'));
+  await key('Dez 1974');
+  ok('adding the year leaves two Dezmonds, neither with an SSN',
+     await sc.evaluate(() => S.rows.length === 2 && S.rows.every(c => c.f === 'Dezmond' && !c.s)));
+  ok('...and nothing he has said can separate them',
+     (await said()).includes('Nothing he has told you separates them'));
+
+  await sc.click('tr[data-row="A7C4E9B52"]'); await sc.waitForTimeout(600);
+  ok('the other Dezmond is rejected on the location, not on the name',
+     (await said()).includes('never been at the Alameda St underpass'));
+  await sc.keyboard.press('Escape'); await sc.waitForTimeout(400);
+  await sc.click('tr[data-row="D2F8A6C31"]'); await sc.waitForTimeout(600);
+  ok('the one contacted at the underpass is the answer', (await said()).includes('Correct'));
+  ok('the close names creating a record as the last resort it is',
+     (await said()).includes('creating a record is the right thing to do') &&
+     (await said()).includes('not before'));
+  ok('no errors anywhere in the scenario', scErrs.length === 0, scErrs.join(' | '));
+  await sc.close();
+}
+
 console.log('\n— accessibility / integrity —');
 ok('result count is an aria-live region',
    await p.$eval('#resultCount', e => e.getAttribute('aria-live') === 'polite'));

@@ -65,6 +65,9 @@ const TAUGHT = {
   // he says "Smoke"; Elias is on the record and nowhere in the conversation
   smoke:     ['eli', 'elias', 'elias reyez'],
   several:   ['1173'],
+  // he gives Carrow, a surname he stopped using. Ellery is on the record and
+  // nowhere in the conversation — he never says it and cannot remember it.
+  desmond:   ['ell', 'ellery', 'dezmond ellery'],
 };
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });

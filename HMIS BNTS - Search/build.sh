@@ -14,7 +14,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-SECTIONS=(7 10)
+SECTIONS=(7 10 11)
 # 0 is the combined page the test suite walks. Not a deliverable; prefixed so it
 # never gets mistaken for one.
 TEST_BUILD=0

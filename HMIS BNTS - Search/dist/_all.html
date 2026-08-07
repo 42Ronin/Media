@@ -1151,7 +1151,7 @@ var LZ=(function(){
    That second form is what a spiralling scenario needs — she narrates, the
    learner searches, and she picks the story up again when the search lands. */
 var BEAT=(function(){
-  var list=null, i=0, after=null;
+  var list=null, i=0, after=null, pending=null;
   function cur(){ return list ? list[i] : null; }
   function show(){
     var b=cur(); if(!b) return;
@@ -1173,12 +1173,14 @@ var BEAT=(function(){
     check();                       /* a gate that is already satisfied should not stall */
   }
   function step(){
+    pending=null;
     if(!list) return;
     i++;
     if(i>=list.length) return stop(true);
     show();
   }
   function stop(finished){
+    clearTimeout(pending); pending=null;
     list=null; i=0;
     $("#lzFoot").hidden=true;
     LZ.hush();
@@ -1187,12 +1189,15 @@ var BEAT=(function(){
   }
   /* Called wherever the interface changes — a gated beat is a question about
      the state of the app, so it is re-asked whenever the app moves. */
+  /* Every change to the interface re-asks the gate, and a single search changes it
+     more than once — rerun and the table repaint both call this. Without the guard
+     one satisfied gate scheduled two steps and the story skipped a beat. */
   function check(){
     var b=cur();
-    if(!b || !b.until) return;
+    if(!b || !b.until || pending) return;
     var done=false;
     try{ done=!!b.until(); }catch(e){ done=false; }
-    if(done) setTimeout(step, b.pause||450);
+    if(done) pending=setTimeout(step, b.pause||450);
   }
   return {
     run:function(l,onDone){ if(!l||!l.length) return; list=l; i=0; after=onDone||null; show(); },
@@ -1255,8 +1260,77 @@ var TOURS={
        'which is where somebody has been contacted before. You will need it.</p>' },
 { anchor:"search", eyes:"arcs", mouth:"cheer", move:"bounce", next:"Start",
   html:'<p>Same rules as before. Off you go.</p>' }
+],
+11:[
+{ anchor:"panel", eyes:"glance", mouth:"wry", move:"dropin",
+  html:'<p>This one is not a list. It is one person, start to finish, and you do not close a record and '+
+       'come back to a fresh situation between goes.</p>' },
+{ anchor:"search", eyes:"open", mouth:"tip",
+  html:'<p>I am not going to tell you which technique each step needs. You have all of them by now. '+
+       'Choosing is the part worth practising.</p>'+
+       '<p>Hints are still free, and I will pick the story back up when a search lands.</p>',
+  next:"Start" }
 ]};
 var TOUR=TOURS[SECTION]||TOURS[7];
+
+/* ============================================================
+   SECTION 11 — the running scenario
+   ============================================================
+   Not a task bank. One person, one attempt at finding him, four spiralling steps
+   played without opening and closing between them. Each step needs everything the
+   step before it needed and one thing more, and the learner is never told which
+   technique this is — they have all of them by now, and choosing is the skill.
+
+   So every beat is gated on the state of the search rather than on a button. She
+   narrates, the learner works, and the story moves when the search lands. A route
+   we did not predict still satisfies the gate, because the gate asks what is on
+   screen and not how they got there. */
+function rowsAre(test){
+  return function(){
+    if(S.rows===null) return false;
+    return test(S.rows, (S.q||"").toLowerCase());
+  };
+}
+var SCENARIOS={
+11:[
+{ anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
+  wait:"Search for him.",
+  html:'<p>He gives his last name as <b>Carrow</b>. Try it.</p>',
+  until:rowsAre(function(r,q){ return r.length===0 && q.indexOf("carrow")>-1; }) },
+
+{ anchor:"zero", eyes:"glance", mouth:"hm", move:"shrug",
+  wait:"Ask him, then search again.",
+  html:'<p>Nothing, either way. And an empty result is not proof that somebody is new \u2014 you already have '+
+       'a reason to think he is not, because somebody took his details months ago. That record is somewhere.</p>'+
+       '<p>So you ask. Everyone calls him <b>Dez</b>. He has not used Carrow in years, and there was another '+
+       'name before it that he cannot remember. He was born in <b>1974</b>. He would rather not give a Social '+
+       'Security Number, and that is fine.</p>',
+  until:rowsAre(function(r,q){ return q.indexOf("1974")>-1 || (q.indexOf("dez")>-1 && q.indexOf("carrow")>-1); }) },
+
+{ anchor:"results", eyes:"droll", mouth:"hm", move:"still",
+  wait:"Drop the surname.",
+  html:'<p>Still nothing useful. Carrow reaches nobody, so any search holding it reaches nobody either \u2014 '+
+       'every word has to match. And the year on its own is a crowd.</p>'+
+       '<p>Dez is not a nickname. Somebody wrote his name down while listening rather than reading, and the '+
+       's came out as a z. The surname he gave you is the one he stopped using. It is the word doing the damage.</p>',
+  until:rowsAre(function(r,q){ return r.length>0 && r.length<=6 && r.every(function(c){ return /^dez/i.test(c.f); }); }) },
+
+{ anchor:"results", eyes:"wide", mouth:"plain", move:"hop",
+  wait:"Narrow it.",
+  html:'<p>Five. The fragment beat the full name, because a fragment does not have to be spelled the way '+
+       'somebody else typed it \u2014 and taking a word away is what let it work at all.</p>'+
+       '<p>Three of these are plainly not him. You started from his name and the name was wrong twice over, '+
+       'so start from the other thing he gave you.</p>',
+  until:rowsAre(function(r){ return r.length===2 && r.every(function(c){ return c.f==="Dezmond"; }); }) },
+
+{ anchor:"results", eyes:"open", mouth:"tip", move:"lean", point:true,
+  wait:"Open them and read the Location tab.",
+  html:'<p>Two. Both Dezmond, both born that year, neither with a Social Security Number on file. Nothing '+
+       'he has told you separates them.</p>'+
+       '<p>So you go back and ask him. Where have you been staying? <b>The underpass</b> \u2014 the same block '+
+       'your team has been working for two days.</p>',
+  until:function(){ return !!S.open; } }
+]};
 
 /* ============================================================
    LESSON 1 — tasks
@@ -1353,6 +1427,25 @@ var TASKS=[
         "Veteran status is worth remembering precisely because it is the kind of thing people tell you without being asked. When the identifiers are thin, the thing they mentioned in passing is often what closes it. "+
         "And notice what you did not do: you did not conclude he was new because a search came back empty. You cleared the box and typed something else, and then did it again."
 },
+{ id:"desmond", sec:11, title:"Somebody nobody can find",
+  brief:'Second morning of the cleanup. You are packing up when you see him again \u2014 <span class="q">Desmond</span>, '+
+        'the man who asked yesterday whether there was any news about interim housing. He has come back to find out '+
+        'whether you got anywhere. He gives his last name as <b>Carrow</b>.',
+  ask:"Find him, and open the record that matches where he has been staying.",
+  hint:"Nothing he leads with reaches anybody. Ask what else he has been called, drop the surname he stopped using, "+
+       "and search the fragment on its own \u2014 <code>Dez</code>. Then add the year, and read the Location tab.",
+  expect:{type:"open", id:"D2F8A6C31"},
+  wrong:{"A7C4E9B52":"That is the other Dezmond. Same name, same year of birth, no Social Security Number on either. "+
+                     "His record has never been at the Alameda St underpass.",
+         "B5E1D8F43":"Not him. Read the first name, not just the fragment.",
+         "C9A3F7E64":"Not him. Read the first name, not just the fragment.",
+         "E6B2C5A75":"Not him. Read the first name, not just the fragment."},
+  teach:"He was never missing. He was four searches away, and every one of them was something you had already practised: "+
+        "you did not treat an empty result as an answer, you asked rather than guessed, you dropped the word that was doing "+
+        "the damage, and when the identifiers ran out you used the rest of the record. "+
+        "<b>This is the point at which creating a record is the right thing to do \u2014 and not before.</b> Notice how far "+
+        "down the list that sentence comes."
+},
 { id:"several", sec:10, title:"More than one record matches",
   brief:'You search <span class="q">Vega</span> and find three records. All three are Rosalind Vega, born 4/11/1983. All three appear to be the same person.',
   ask:"Open the record you would work from.",
@@ -1365,7 +1458,9 @@ var TASKS=[
 }];
 
 var ALL_TASKS=TASKS;
-TASKS=ALL_TASKS.filter(function(t){ return !SECTION || t.sec===SECTION; });
+/* 0 is the two task banks in one page, for the suite that walks them in order.
+   Section 11 is a scenario, not a task, and is never folded in. */
+TASKS=ALL_TASKS.filter(function(t){ return SECTION ? t.sec===SECTION : t.sec!==11; });
 
 /* Non-scored beat. The draft splits the work in two — Search, then Verify. With
    the sections shipping separately that seam falls between two deliverables, so
@@ -1379,7 +1474,7 @@ var INTERSTITIALS_ALL={
            'of this lesson is verifying: proving a record belongs to the person in front of you, and '+
            'deciding what to do when more than one does.</p>' }
 };
-var INTERSTITIALS = (TASKS.length===ALL_TASKS.length) ? INTERSTITIALS_ALL : {};
+var INTERSTITIALS = SECTION ? {} : INTERSTITIALS_ALL;
 
 /* ============================================================
    STATE
@@ -2296,7 +2391,7 @@ document.title=SECTION_TITLE;
 $("#secTitle").textContent=SECTION_TITLE;
 LZ.boot();
 renderChips(); renderTable(); renderCoach();
-BEAT.run(TOUR);
+BEAT.run(TOUR, SCENARIOS[SECTION] ? function(){ BEAT.run(SCENARIOS[SECTION]); } : null);
 EMBED.ready(TASKS.length);
 </script>
 </body>
