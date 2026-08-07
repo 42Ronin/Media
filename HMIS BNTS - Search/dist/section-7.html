@@ -410,6 +410,19 @@ html.dock-out .cwbar.drag{cursor:grabbing}
 .lzbub .fb.good b{color:#0f6b45}
 .lzbub .fb.bad b{color:#a3312a}
 .lzbub .fb.tip b{color:#8a5a00}
+/* A beat can carry an exchange rather than prose. Two bubbles, opposite sides,
+   because "Goes back to him. Where have you been staying?" is a conversation
+   written as a stage direction — showing it as one keeps every word and drops
+   the third person. */
+.lzbub .lzchat{margin-top:11px;display:flex;flex-direction:column;gap:7px}
+.lzbub .lzchat p{margin:0;padding:8px 13px;border-radius:15px;max-width:88%;
+  font-size:13px;line-height:1.45;opacity:0;animation:chatpop .4s cubic-bezier(.25,1.4,.4,1) forwards}
+.lzbub .lzchat .me{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
+.lzbub .lzchat .them{align-self:flex-start;background:#eaf2f6;color:#14222b;border-bottom-left-radius:5px;
+  animation-delay:.5s}
+@keyframes chatpop{0%{opacity:0;transform:translateY(6px) scale(.9)}100%{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.lzbub .lzchat p{animation:none;opacity:1}}
+
 .lzbub .lzfoot{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:10px;
   border-top:1px solid #dbe7ee}
 .lzbub .lzcount{font-size:11.5px;color:#6f8b9a;letter-spacing:.03em;flex:1}
@@ -1159,7 +1172,10 @@ var BEAT=(function(){
     LZ.say(b.anchor||"search",
       '<div class="fb '+(b.kind||"tour")+'">'+(b.title?"<b>"+esc(b.title)+"</b>":"")+
         String(b.html).replace(/\{\{COUNT\}\}/g, countWord())
-                       .replace(/\{\{COUNT_LOWER\}\}/g, countWord().toLowerCase())+"</div>",
+                       .replace(/\{\{COUNT_LOWER\}\}/g, countWord().toLowerCase())+
+        (b.chat ? '<div class="lzchat">'+b.chat.map(function(m){
+          return '<p class="'+(m.who==="me"?"me":"them")+'">'+esc(m.text)+'</p>';
+        }).join("")+'</div>' : "")+"</div>",
       {eyes:b.eyes||"open", mouth:b.mouth||"tip", move:b.move, point:b.point});
     $("#lzFoot").hidden=false;
     $("#lzCount").textContent=(list.length>1)?(i+1)+" of "+list.length:"";
@@ -1379,15 +1395,16 @@ var SCENARIOS={
        'name and the name was wrong twice over \u2014 so start from the other thing he gave you.</p>',
   until:rowsAre(function(r){ return r.length===2 && r.every(function(c){ return c.f==="Dezmond"; }); }) },
 { anchor:"results", eyes:"open", mouth:"tip", move:"lean", point:true,
-  wait:"Open both and read the Location tab.",
-  /* The second paragraph is the document's "Learner does next", verbatim. It is
-     written as a stage direction rather than as narration, and it carries the one
-     fact the step cannot be solved without — he says the underpass. Shown as it
-     stands rather than reworded; the voice is a question for the author. */
+  wait:"Opens both records and reads the Location tab.",
+  /* The document's "Learner does next" is a conversation written as a stage
+     direction: "Goes back to him. Where have you been staying? The underpass."
+     Shown as the exchange it describes, so every word stands and nothing is in
+     the third person. The last clause of that bullet is the instruction, and it
+     is the prompt below rather than a line of narration. */
   html:'<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on '+
-       'file. Nothing he has told you separates them.</p>'+
-       '<p>Goes back to him. Where have you been staying? The underpass \u2014 the same block your '+
-       'team has been working for two days. Opens both records and reads the Location tab.</p>',
+       'file. Nothing he has told you separates them.</p>',
+  chat:[{who:"me",   text:"Where have you been staying?"},
+        {who:"them", text:"The underpass \u2014 the same block your team has been working for two days."}],
   until:function(){ return !!S.open; } }
 ]};
 

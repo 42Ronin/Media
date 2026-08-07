@@ -1030,8 +1030,19 @@ console.log('\n— section 11: the running scenario —');
   await key('Dez 1974');
   ok('adding the year leaves two Dezmonds, neither with an SSN',
      await sc.evaluate(() => S.rows.length === 2 && S.rows.every(c => c.f === 'Dezmond' && !c.s)));
-  ok('...and he gives up the one fact that separates them',
-     (await said()).includes('The underpass'));
+  /* 11.4's "Learner does next" is a conversation written as a stage direction.
+     It is shown as the exchange it describes: every word stands, and nothing is
+     narrated in the third person at the learner. */
+  ok('...and he gives up the one fact that separates them, as an exchange',
+     await sc.$$eval('#fb .lzchat p', els => {
+       const t = els.map(e => e.className + '|' + e.textContent.trim());
+       return t.length === 2 &&
+              t[0].startsWith('me|Where have you been staying?') &&
+              t[1].startsWith('them|The underpass');
+     }));
+  ok('...and the instruction sits in the prompt, not in her mouth',
+     (await sc.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Location tab') &&
+     !(await said()).includes('Opens both records'));
 
   await sc.click('tr[data-row="A7C4E9B52"]'); await sc.waitForTimeout(700);
   ok('the other Dezmond is rejected on his location, not his name',
