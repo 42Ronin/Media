@@ -1083,6 +1083,67 @@ console.log('\n— section 11: the running scenario —');
   await ahead.close();
 }
 
+/* ------------------------------------------------------------------
+   Step embeds. One slide's worth of interface, inline in Rise. The slide's
+   own words sit above the block; the block is the doing. Every step is
+   interactive, including the two whose point is that nothing comes back —
+   those are the ones worth doing rather than reading.
+   ------------------------------------------------------------------ */
+console.log('\n— section 11 as inline step embeds —');
+{
+  const STEP = [
+    ['step-11-1', 'Desmond Carrow', 'No clients found and that is all it says'],
+    ['step-11-2', '1974',           'there is no Carrow to find'],
+    ['step-11-3', 'Dez',            'Dezirae, Dezra, Dezhawn'],
+    ['step-11-4', 'Dez 1974',       'Nothing he has told you separates them'],
+  ];
+  for (const [file, query, lands] of STEP) {
+    const st = await b.newPage({ viewport: { width: 1000, height: 620 } });
+    const stErrs = [];
+    st.on('pageerror', e => stErrs.push(String(e)));
+    await st.goto('file://' + new URL(`./dist/${file}.html`, import.meta.url).pathname);
+    await st.waitForTimeout(400);
+
+    ok(`${file}: no training panel — the Rise text above it is the panel`,
+       await st.$eval('#coachWin', e => getComputedStyle(e).display === 'none'));
+    ok(`${file}: she says nothing until the learner has done something`,
+       await st.$eval('#lzBub', e => !e.classList.contains('on')));
+
+    await st.fill('#q', query);
+    await st.waitForTimeout(1100);
+    ok(`${file}: lands on the script's own account of what happens`,
+       (await st.textContent('#fb')).includes(lands));
+    /* She is not confined to the interface here: the block gives her a lane. */
+    ok(`${file}: she sits in her own lane, not on the results`,
+       await st.evaluate(() => {
+         const c = document.querySelector('#lzChar').getBoundingClientRect();
+         const a = document.querySelector('.app').getBoundingClientRect();
+         return c.left >= a.right - 1;
+       }));
+    ok(`${file}: no errors`, stErrs.length === 0, stErrs.join(' | '));
+    await st.close();
+  }
+
+  /* 11.4 is the only step with two things in it: narrow, then compare. */
+  const four = await b.newPage({ viewport: { width: 1000, height: 620 } });
+  await four.goto('file://' + new URL('./dist/step-11-4.html', import.meta.url).pathname);
+  await four.fill('#q', 'Dez 1974'); await four.waitForTimeout(1100);
+  ok('step-11-4: the exchange gives up the fact that separates them',
+     await four.$$eval('#fb .lzchat p', els => els.length === 2 &&
+       els[1].textContent.includes('The underpass')));
+  ok('step-11-4: and it is not finished yet',
+     (await four.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Location tab'));
+  await four.click('tr[data-row="A7C4E9B52"]'); await four.waitForTimeout(900);
+  ok('step-11-4: the wrong Dezmond does not complete it',
+     !(await four.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Done'));
+  await four.keyboard.press('Escape'); await four.waitForTimeout(400);
+  await four.click('tr[data-row="D2F8A6C31"]'); await four.waitForTimeout(900);
+  ok('step-11-4: the one contacted at the underpass finishes it',
+     (await four.textContent('#fb')).includes('rest of the record is what identifies somebody') &&
+     (await four.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Done'));
+  await four.close();
+}
+
 console.log('\n— accessibility / integrity —');
 ok('result count is an aria-live region',
    await p.$eval('#resultCount', e => e.getAttribute('aria-live') === 'polite'));

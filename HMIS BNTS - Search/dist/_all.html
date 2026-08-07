@@ -258,6 +258,17 @@ tbody tr.open{background:var(--indigo-soft)}
    A movable window over the interface, not a drawer beside it. It carries the
    standing brief and the controls; the live reaction is Lashes' job, and hers
    goes wherever the thing she is reacting to happens to be. */
+html.step{--dock:0px}
+html.step .coach{display:none}
+/* She is not confined to the interface here. The block gives her a lane of her
+   own beside it — no panel is competing for the space, so she can sit properly
+   in it rather than tucking into a corner of a table. */
+html.step .app{top:0;left:0;right:344px;bottom:0}
+html.step .lzchar{--lzsize:132px}
+html.step .lzbub{max-width:none;min-width:0}
+/* Inline in a Rise block there is no room for chrome that is not doing work. */
+html.step .topbar{height:44px}
+html.step .rail{width:56px}
 .coach{position:fixed;right:24px;top:24px;width:344px;background:var(--coach);color:var(--coach-ink);
   display:flex;flex-direction:column;z-index:170;border-radius:17px;overflow:hidden;
   max-height:calc(100vh - 48px);
@@ -703,6 +714,10 @@ var DATA = {"clients":[{"i":"1F2A5C8B4","f":"Sileshi","l":"Abate","a":"","p":"",
 /* Each section ships on its own, with its own launcher. build.sh stamps the
    number in; everything below reads it rather than hard-coding thirteen tasks. */
 var SECTION = 0;
+/* A step build is one slide's worth of interface, inline in Rise rather than
+   launched. Rise carries the slide's text; this carries the doing. No training
+   panel, because the text above it is the panel. */
+var STEP = null;
 /* 0 is every section in one page. It is not a deliverable — nothing ships it —
    but the test suite walks all thirteen tasks in order, and splitting that across
    two pages would lose the checkpoint that sits on the seam between them. */
@@ -1000,6 +1015,9 @@ var LZ=(function(){
        and she is drawn above the window, so it is her job to avoid it. */
     add("#coachWin",10);
     add("#pill",4);
+    /* A step embed gives her a lane of her own beside the interface. Keeping the
+       results clear is what puts her in it rather than on top of the rows. */
+    if(STEP) add("#tbl",6);
     var t=(typeof task==="function") ? task() : null;
     if(t && t.expect && t.expect.id) add('tr[data-row="'+t.expect.id+'"]',6);
     return out;
@@ -1011,7 +1029,24 @@ var LZ=(function(){
 
   /* The char and its bubble travel as one cluster. Sides are tried in order and
      the first that fits the layer and clears every keep-clear rect wins. */
+  /* In a step embed she is not solved into a gap in the interface — she has a lane
+     of her own beside it and simply lives there, with her bubble under her. There
+     is no panel competing for the space and nothing for her to be in the way of,
+     so solving a placement would only make her move about for no reason. */
+  function laneLayout(){
+    var b=bounds(), app=document.querySelector(".app");
+    var edge=app?app.getBoundingClientRect().right-layer.getBoundingClientRect().left:b.w-344;
+    var pad=16, laneL=edge+pad, laneW=Math.max(180,b.w-laneL-pad), s=size();
+    bub.style.width=laneW+"px";
+    moveTo(laneL+(laneW-s)/2, pad);
+    if(bub.classList.contains("on")){
+      var top=Math.min(pad+s+2, b.h-bub.offsetHeight-pad);
+      bub.style.transform="translate("+laneL+"px,"+Math.max(pad,top)+"px) scale(1)";
+    }
+    arrow.classList.remove("on");
+  }
   function layout(spec){
+    if(STEP) return laneLayout();
     var b=bounds(), s=size(), gap=6, pad=8;
     var bw=bub.offsetWidth, bh=bub.offsetHeight, showBub=bub.classList.contains("on");
     if(!showBub){ bw=0; bh=0; gap=0; }
@@ -1341,6 +1376,86 @@ var SCENARIO_CLOSE={
    "Learner does" and "What happens" are storyboard: they are not shown to anybody,
    they are the gate. The story moves when the search matches what the slide says
    should happen, however the learner got there. */
+/* ============================================================
+   STEP EMBEDS
+   ============================================================
+   One slide, one thing to do, inline. Rise holds the slide's own text above the
+   block; this holds the interface and nothing else, so the learner cannot read
+   ahead or skip — there is only ever one step's worth of screen in front of them.
+
+   Every step is interactive, including the two whose point is that nothing comes
+   back. Those are the ones worth doing rather than reading: you have to watch the
+   empty state say No clients found and mean it. What she says when a step lands
+   is the document's own "What happens" line, so the learner is told exactly that. */
+var STEPS={
+"11.1":{ phases:[
+  { until:rowsAre(function(r,q){ return r.length===0 && q.indexOf("carrow")>-1; }),
+    eyes:"glance", mouth:"hm", move:"shrug", anchor:"zero",
+    html:'<p>Nothing, either way. The empty state says No clients found and that is all it says.</p>' }
+]},
+"11.2":{ phases:[
+  { until:rowsAre(function(r,q){ return q.indexOf("1974")>-1 || (q.indexOf("dez")>-1 && q.indexOf("carrow")>-1); }),
+    eyes:"droll", mouth:"hm", move:"still", anchor:"results",
+    html:'<p>Nothing. Carrow reaches nobody, so any search containing it reaches nobody either \u2014 '+
+         'every word has to match. The year returns a long list, and no Carrow is in it, because there '+
+         'is no Carrow to find.</p>' }
+]},
+"11.3":{ phases:[
+  { until:rowsAre(function(r){ return r.length===5 && r.every(function(c){ return /^dez/i.test(c.f); }); }),
+    eyes:"wide", mouth:"plain", move:"hop", anchor:"results",
+    html:'<p>Five records \u2014 Dezirae, Dezra, Dezhawn, and two men called Dezmond.</p>' }
+]},
+"11.4":{ expect:"D2F8A6C31", phases:[
+  { until:rowsAre(function(r){ return r.length===2 && r.every(function(c){ return c.f==="Dezmond"; }); }),
+    eyes:"open", mouth:"tip", move:"lean", anchor:"results",
+    wait:"Opens both records and reads the Location tab.",
+    html:'<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on '+
+         'file. Nothing he has told you separates them.</p>',
+    chat:[{who:"me",   text:"Where have you been staying?"},
+          {who:"them", text:"The underpass \u2014 the same block your team has been working for two days."}] },
+  { until:function(){ return S.open==="D2F8A6C31"; },
+    eyes:"sparkle", mouth:"cheer", move:"bounce", anchor:"record",
+    html:'<p>When the identifiers run out, the rest of the record is what identifies somebody. And there '+
+         'it is \u2014 the contact somebody logged the day they took his details, and the referral he has '+
+         'been asking about ever since. He was never missing. He was four searches away.</p>' }
+]}};
+
+/* Watches for the step's condition the same way a beat does, and for the same
+   reason: a gate has to fire on something new, not on the state the learner
+   happened to arrive in. */
+var STEPRUN=(function(){
+  var def=null, i=0, at=0, finished=false;
+  function land(){
+    var ph=def.phases[i];
+    LZ.say(ph.anchor||"results", '<div class="fb tour">'+ph.html+"</div>",
+           {eyes:ph.eyes, mouth:ph.mouth, move:ph.move, point:!!ph.point});
+    if(ph.chat){
+      $("#fb").insertAdjacentHTML("beforeend",'<div class="lzchat">'+ph.chat.map(function(m){
+        return '<p class="'+(m.who==="me"?"me":"them")+'">'+esc(m.text)+'</p>';
+      }).join("")+'</div>');
+      LZ.relayout();
+    }
+    $("#lzFoot").hidden=false;
+    $("#lzCount").textContent="";
+    $("#lzStep").hidden=true;
+    var w=$("#lzFoot").querySelector(".lzwait");
+    if(!w){ w=document.createElement("span"); w.className="lzwait"; $("#lzFoot").appendChild(w); }
+    i++;
+    if(i<def.phases.length){ w.hidden=false; w.textContent=ph.wait||""; at=S.tick; }
+    else { w.hidden=false; w.textContent="Done. Carry on below."; finished=true; EMBED.complete(true,1); }
+  }
+  return {
+    start:function(){ def=STEPS[STEP]; if(def){ at=S.tick; } },
+    check:function(){
+      if(!def||finished||S.tick<=at) return;
+      var ph=def.phases[i], done=false;
+      try{ done=!!ph.until(); }catch(e){ done=false; }
+      if(done) setTimeout(land, 420);
+    },
+    done:function(){ return finished; }
+  };
+})();
+
 var SCENARIOS={
 11:[
 { anchor:"panel", eyes:"open", mouth:"tip", move:"dropin", next:"Start",
@@ -1987,6 +2102,7 @@ function finish(){
 
 /* ---------------- task evaluation ---------------- */
 function evaluate(action,payload){
+  if(STEP) return false;                 /* a step embed is judged by its own gate */
   if(S.note || S.idx>=TASKS.length) return false;
   var t=task(), e=t.expect;
   if(e.type==="open"&&action==="open"){
@@ -2016,7 +2132,7 @@ function evaluate(action,payload){
    itself just says No clients found; the reason it matters is raised by Lashes at
    the empty table, once per task, so the product itself stays faithful. */
 function nudgeEmpty(){
-  if(BEAT.active()) return;
+  if(BEAT.active() || STEP) return;
   if(S.note || S.idx>=TASKS.length || S.nudged===task().id) return;
   var e=task().expect;
   if(e.type!=="open" && e.type!=="flag") return;
@@ -2037,7 +2153,7 @@ function rerun(resetPage){
   if(resetPage!==false) S.page=0;
   renderTable();
   if(S.rows && S.rows.length===0) nudgeEmpty();
-  BEAT.check();
+  BEAT.check(); STEPRUN.check();
 }
 
 var deb=null;
@@ -2228,7 +2344,7 @@ function openProfile(id){
   $$("#recNav [data-tab]").forEach(function(b){
     b.addEventListener("click", function(){ showRecordTab(b.getAttribute("data-tab"), c); });
   });
-  BEAT.check();
+  BEAT.check(); STEPRUN.check();
   evaluate("open",id);
 }
 /* The Location tab. Locations are shown collectively for one client, as a map of
@@ -2523,9 +2639,12 @@ document.addEventListener("keydown",function(e){
 /* boot */
 document.title=SECTION_TITLE;
 $("#secTitle").textContent=SECTION_TITLE;
+if(STEP) document.documentElement.classList.add("step");
 LZ.boot();
-renderChips(); renderTable(); renderCoach();
-if(TOUR) BEAT.run(TOUR, SCENARIOS[SECTION] ? function(){ BEAT.run(SCENARIOS[SECTION]); } : null);
+renderChips(); renderTable();
+if(!STEP) renderCoach();
+if(STEP){ STEPRUN.start(); }
+else if(TOUR) BEAT.run(TOUR, SCENARIOS[SECTION] ? function(){ BEAT.run(SCENARIOS[SECTION]); } : null);
 else if(SCENARIOS[SECTION]) BEAT.run(SCENARIOS[SECTION]);
 EMBED.ready(TASKS.length);
 </script>

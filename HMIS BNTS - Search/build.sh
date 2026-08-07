@@ -1,20 +1,26 @@
 #!/usr/bin/env bash
-# Builds the standalone HTML simulations, one per section.
+# Builds the standalone HTML simulations.
 #
-#   ./build.sh            -> dist/section-7.html, dist/section-10.html, ...
+#   ./build.sh            -> dist/section-<n>.html and dist/step-<n>-<m>.html
 #   ./build.sh --scorm    -> also a SCORM zip per section
 #
-# Each section ships on its own and gets its own launcher, because that is how
-# they go into Rise: one Code block per section, in the place the script puts it.
-# The template is shared — build.sh stamps the section number in and the lesson
-# reads it, so there is one source and no copies to keep in step.
+# Two shapes, because two jobs.
 #
-# SCORM packaging is opt-in and stays off until the course is ready to load into
-# an LMS. The HTML inside a zip is byte-identical to the standalone file.
+#   A *section* build is a task bank: many situations, a training panel holding
+#   one at a time, launched full screen from its own launcher card.
+#
+#   A *step* build is one slide's worth of interface, inline in a Rise block.
+#   Rise carries the slide's own words above it; the block carries the doing.
+#   No panel, no launcher, no full screen — and only ever one step's worth of
+#   screen in front of the learner, so there is nothing to read ahead to.
+#
+# The template is shared. build.sh stamps the section number and, for a step, the
+# step id; the lesson reads both. One source, no copies to keep in step.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 SECTIONS=(7 10 11)
+STEPS=(11.1 11.2 11.3 11.4)
 # 0 is the combined page the test suite walks. Not a deliverable; prefixed so it
 # never gets mistaken for one.
 TEST_BUILD=0
@@ -27,19 +33,25 @@ python3 tools/gen_roster.py
 
 rm -rf "$OUT"; mkdir -p "$OUT"
 
-for SEC in "${SECTIONS[@]}" "$TEST_BUILD"; do
-  [ "$SEC" = "0" ] && NAME="_all" || NAME="section-$SEC"
-  python3 - "$TEMPLATE" "src/roster.json" "$OUT/$NAME.html" "$SEC" <<'PY'
+# stamp(template, roster, out, section, step) — step is the JS literal, so "null"
+# for a section build and a quoted id like "11.3" for a step build.
+stamp() {
+  python3 - "$@" <<'PY'
 import sys
-tpl, roster, out, sec = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+tpl, roster, out, sec, step = sys.argv[1:6]
 html = open(tpl).read()
 data = open(roster).read().strip()
-for token, value in (("/*__ROSTER__*/", data), ("/*__SECTION__*/", sec)):
+for token, value in (("/*__ROSTER__*/", data), ("/*__SECTION__*/", sec), ("/*__STEP__*/", step)):
     if token not in html:
         raise SystemExit(f"{token} missing from template")
     html = html.replace(token, value)
 open(out, "w").write(html)
 PY
+}
+
+for SEC in "${SECTIONS[@]}" "$TEST_BUILD"; do
+  [ "$SEC" = "0" ] && NAME="_all" || NAME="section-$SEC"
+  stamp "$TEMPLATE" "src/roster.json" "$OUT/$NAME.html" "$SEC" "null"
 
   if [ "$WITH_SCORM" = "1" ] && [ "$SEC" != "0" ]; then
     mkdir -p "$OUT/_pkg"
@@ -48,6 +60,16 @@ PY
     ( cd "$OUT/_pkg" && zip -q -r "../section-$SEC-scorm.zip" . )
     rm -rf "$OUT/_pkg"
   fi
+done
+
+for ST in "${STEPS[@]}"; do
+  SEC="${ST%%.*}"
+  SLUG="step-${ST//./-}"
+  stamp "$TEMPLATE" "src/roster.json" "$OUT/$SLUG.html" "$SEC" "\"$ST\""
+  mkdir -p "$OUT/_pkg"
+  cp "$OUT/$SLUG.html" "$OUT/_pkg/index.html"
+  ( cd "$OUT/_pkg" && zip -q -r "../$SLUG.zip" index.html )
+  rm -rf "$OUT/_pkg"
 done
 
 [ "$WITH_SCORM" = "1" ] || echo "scorm packaging skipped (run with --scorm to produce the zips)"
