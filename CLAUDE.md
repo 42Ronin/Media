@@ -248,6 +248,13 @@ discrepancy again — it was asked and answered. Task titles and teaching copy i
 It was developed from an earlier draft, `script_finding_a_participant_v3`, which is the
 authority on LAHSA policy and was vetted internally before this project began.
 
+**Two tasks are deliberately easy.** Task 6 (Adrian Fenwick) and Task 10 (Yolanda Amari)
+name the participant outright, so typing the name finds the record and skips what the task
+teaches. Closing that would mean inventing a second person with each name, turning both into
+tasks about duplicates. The owner's call was to leave them: a couple of early wins gives the
+learner hope in a lesson this long. `tools/obviousness.mjs` lists them under `ACCEPTED` with
+the reason, so the check stays green and nobody quietly re-opens it.
+
 **Every task must trace to a paragraph of that draft.** Two tasks that did not — searching a
 date with different separators, and reading the ROI column — were built and then removed once
 the provenance was checked. The separator behaviour is real, but it comes from Bitfocus's help
