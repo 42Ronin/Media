@@ -1298,6 +1298,24 @@ ok('still no SCORM traffic after scoring a task',
    await host.evaluate(() => window.hostCalls.length === 0),
    JSON.stringify(await host.evaluate(() => window.hostCalls)));
 
+/* This is what marks the Rise block done. Rise listens for a message carrying
+   type:"complete" from the block, so the shape matters more than anything else
+   we send — if it drifts, the course silently stops recording progress. */
+await host.evaluate(() => {
+  const f = document.querySelector('#f').contentWindow;
+  f.S.idx = f.TASKS.length; f.finish();
+});
+await host.waitForTimeout(500);
+const done = await host.evaluate(() => simMsgs.find(m => m.type === 'complete'));
+ok('finishing sends the completion Rise marks the block on',
+   !!done && done.type === 'complete' && done.completed === true,
+   JSON.stringify(done));
+ok('...and it is still tagged as ours, so a host can tell it apart',
+   !!done && done.source === 'hmis-sim' && typeof done.section === 'number',
+   JSON.stringify(done));
+ok('...and it still never touched the host course\'s SCORM session',
+   await host.evaluate(() => window.hostCalls.length === 0));
+
 await host.evaluate(() => { document.querySelector('#f').src = '/lesson.html?scorm=1'; });
 await host.waitForTimeout(1500);
 ok('with ?scorm=1 it does report to the LMS, which is how our own package launches',
