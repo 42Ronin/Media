@@ -158,22 +158,22 @@ ok('collapsing the panel leaves the interface exactly where it was',
      await new Promise(r => setTimeout(r, 320));
      return before === folded && before === box();
    }));
-/* Collapsing the panel must not reflow the interface underneath it. The dock column
-   stays reserved either way, so the search card and the top bar keep their geometry
-   and only the panel itself changes. Popping OUT is the different case: the panel
-   becomes a floating window somewhere else, so that column genuinely is free. */
-ok('collapsing the panel does not move the interface underneath it', await p.evaluate(async () => {
+/* Nothing the panel does may reflow the interface underneath it — not collapsing,
+   not popping out. The dock column is reserved whatever state the panel is in, so a
+   popped-out panel leaves an empty gutter behind; a stable layout is worth that, and
+   a search field that changes width under the learner is not something the product
+   would ever do. */
+ok('nothing the panel does moves the interface underneath it', await p.evaluate(async () => {
   const geo = () => ['#searchView .card', '#pill', '.topbar'].map(sel => {
     const r = document.querySelector(sel).getBoundingClientRect();
     return Math.round(r.left) + '..' + Math.round(r.right);
   }).join('|');
-  const before = geo();
-  setPanelMin(true);
-  await new Promise(r => setTimeout(r, 320));
-  const after = geo();
-  setPanelMin(false);
-  await new Promise(r => setTimeout(r, 320));
-  return before === after && before === geo();
+  const before = geo(), seen = [];
+  setPanelMin(true);   await new Promise(r => setTimeout(r, 320)); seen.push(geo());
+  setPanelMin(false);  await new Promise(r => setTimeout(r, 320)); seen.push(geo());
+  document.querySelector('#cwPop').click();  await new Promise(r => setTimeout(r, 340)); seen.push(geo());
+  document.querySelector('#cwPop').click();  await new Promise(r => setTimeout(r, 340)); seen.push(geo());
+  return seen.every(g => g === before);
 }));
 ok('the two halves of the fold are never set apart', await p.evaluate(async () => {
   setPanelMin(true);
@@ -1260,11 +1260,13 @@ for (const [what, sel] of [['the account chip', '.who'], ['the search bar', '#pi
   }, sel));
 }
 
-/* Popped out, it surrenders the column and the interface reflows to full width. */
+/* Popped out, it becomes a window the learner can drag anywhere — and the interface
+   underneath does not move. It used to surrender the column and reflow to full width,
+   which meant the results table changed width out from under whoever was reading it. */
 const dockedRight = await p.$eval('#tbl', e => Math.round(e.getBoundingClientRect().right));
 await p.click('#cwPop'); await p.waitForTimeout(500);
 const poppedRight = await p.$eval('#tbl', e => Math.round(e.getBoundingClientRect().right));
-ok('popping it out gives the column back to the results', poppedRight > dockedRight + 200,
+ok('popping it out leaves the results exactly where they were', poppedRight === dockedRight,
    `${dockedRight} -> ${poppedRight}`);
 ok('...and it places itself somewhere fully on screen', await p.evaluate(() => {
   const r = document.querySelector('#coachWin').getBoundingClientRect();
