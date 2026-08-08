@@ -35,6 +35,21 @@ const closeAll = async () => { await p.keyboard.press('Escape'); await p.waitFor
    get out of the way cleanly. */
 console.log('\n— orientation —');
 await p.waitForTimeout(600);
+/* It opens on a title card: she arrives at full size with the words beside her and
+   nothing drawn round them. Requested, and flagged in the template like the rest of
+   what is not in the script. */
+ok('it opens on a title card rather than a paragraph',
+   await p.$eval('#lzLayer', e => e.classList.contains('hero')) &&
+   (await p.textContent('#fb')).includes('Welcome to HMIS Clarity'));
+ok('...with no bubble drawn round the words',
+   await p.$eval('#lzBub', e => getComputedStyle(e).boxShadow === 'none' &&
+     getComputedStyle(e).backgroundColor === 'rgba(0, 0, 0, 0)'));
+/* She does not introduce herself here either — they met her in the course intro. */
+ok('...and it greets them without re-introducing her',
+   !(await p.textContent('#fb')).includes('I am Lashes'));
+await p.click('#lzStep'); await p.waitForTimeout(420);
+ok('the card gives way to the interface it was covering',
+   await p.$eval('#lzLayer', e => !e.classList.contains('hero')));
 /* The orientation is slide 7.1 of the script, in the script's own words. The only
    edit is the number of situations, which the split into per-section deliverables
    forces. Sections without a 7.1 of their own get no orientation. */
@@ -53,12 +68,15 @@ const tourLen = Number((await p.textContent('#lzCount')).split('of')[1].trim());
    back to search. Every task after the first begins by needing it, and the
    simulation only explains the two shortcuts once you click them, which is too
    late. Flagged in the template for scripted wording. */
-ok("slide 7.1, what the field takes, a walk through a record, the ways back, and the panel",
-   tourLen === 15, String(tourLen));
+ok("a title card, slide 7.1, what the field takes, a walk through a record, and the panel",
+   tourLen === 16, String(tourLen));
 
 const seen = [];
 let arrowSeen = 0, arrowUnderBubble = false, arrowBackwards = 0;
+/* tourLen counts the title card, which has already been advanced past, so walk until
+   the engine says it is done rather than counting down from it. */
 for (let n = 0; n < tourLen; n++) {
+  if (await p.evaluate(() => BEAT.pos() === null)) break;
   seen.push(await p.textContent('#fb'));
   const arrow = await p.evaluate(() => {
     const A = document.querySelector('#lzArrow');
@@ -1661,6 +1679,18 @@ console.log('\n— section 11 as inline step embeds —');
   await four.close();
 }
 
+/* Hero is a property of the line, not a mode left switched on. It used to be toggled
+   on and never off, so every feedback bubble for the rest of the lesson inherited the
+   title styling and its full-stage scrim — which sat over the table and swallowed
+   clicks on it. */
+ok('...and no ordinary line brings the title styling back', await p.evaluate(async () => {
+  LZ.say('search', '<div class="fb good">ordinary</div>', {});
+  await new Promise(r => setTimeout(r, 80));
+  const cleared = !document.querySelector('#lzLayer').classList.contains('hero');
+  LZ.hush();                       // put her back the way the tour left her
+  await new Promise(r => setTimeout(r, 120));
+  return cleared;
+}));
 console.log('\n— accessibility / integrity —');
 ok('result count is an aria-live region',
    await p.$eval('#resultCount', e => e.getAttribute('aria-live') === 'polite'));

@@ -307,7 +307,18 @@ available, not present.
   be set in three, which drifted. The window came back while the column stayed reserved, so the
   results table kept full width and its last rows sat under the panel where nothing could click
   them. Asserted both ways in `test.mjs`.
-- **Section 7's orientation is fifteen beats**, the last of which points at the task box and
+- **It opens on a title card.** `hero:true` on a beat draws her at full size with the words
+  beside her at title size and nothing round them, over a scrim. **Hero is a property of the
+  line, not a mode** — `LZ.say` sets it from its options, so any ordinary line clears it. It was
+  toggled on and never off once, and every feedback bubble for the rest of the lesson inherited
+  the title styling *and its full-stage scrim*, which sat over the results table and swallowed
+  clicks on it. The card greets without introducing her: they met her in the course intro.
+- **Collapsed, the panel keeps its corner while the content expands underneath** — which put it
+  on top of the account chip. `--minw` is measured from the panel's own rect (it is inset from
+  the right edge, and guessing that inset left them still overlapping) and reserved as
+  `padding-right` on the top bar only. The content still goes full width; just the icon row
+  gives way.
+- **Section 7's orientation is sixteen beats**, the last of which points at the task box and
   says to start. Before that the tour simply stopped, leaving the learner facing an interface
   with no sign the work had begun. Beats 6 and 7 cover pop-out and collapse, because the panel
   is ours rather than the product's and nothing in the script describes it.

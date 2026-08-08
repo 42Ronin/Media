@@ -42,6 +42,7 @@ input,select{font:inherit}
    floats, because she has to be able to reach the thing she is talking about. */
 :root{--dock:428px}
 html.dock-min,html.dock-out{--dock:0px}
+html.dock-min .topbar{padding-right:var(--minw,0px)}
 .app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
   transition:right .22s ease}
 
@@ -474,6 +475,19 @@ html.dock-out .cwbar.drag{cursor:grabbing}
    of the panel's own controls: there is nowhere to stand that is not over the panel,
    and underneath it her own Next button cannot be clicked. */
 .lzlayer.over-panel{z-index:176}
+/* The opening card: she arrives big, the words sit beside her at title size, and
+   nothing is drawn round them. A title, not a speech. */
+.lzlayer.hero{z-index:176}
+.lzlayer.hero::before{content:"";position:absolute;inset:0;background:rgba(240,240,251,.86);
+  backdrop-filter:blur(3px)}
+.lzlayer.hero .lzchar{width:230px;height:230px}
+.lzlayer.hero .lzbub{background:none;border:0;box-shadow:none;padding:0;max-width:none}
+.lzlayer.hero .lzbub .fb p{font-size:34px;line-height:1.25;font-weight:600;color:var(--indigo-dk);margin:0}
+.lzlayer.hero .lzbub .fb p+p{font-size:19px;font-weight:400;color:var(--ink);margin-top:14px}
+.lzlayer.hero .lzfoot{border-top:0;padding-top:22px;justify-content:flex-start}
+.lzlayer.hero .lzfoot>*{margin-left:0}
+.lzlayer.hero .lzcount{display:none}
+@media(prefers-reduced-motion:reduce){.lzlayer.hero::before{backdrop-filter:none}}
 .lzlayer[hidden]{display:none !important}
 
 .lzchar{position:absolute;left:0;top:0;width:var(--lzsize,124px);height:var(--lzsize,124px);
@@ -1317,6 +1331,19 @@ var LZ=(function(){
      of her own beside it and simply lives there, with her bubble under her. There
      is no panel competing for the space and nothing for her to be in the way of,
      so solving a placement would only make her move about for no reason. */
+  /* The opening card. She arrives big and centred with the words beside her and no
+     bubble drawn round them — a title, not a speech. Everything else about the beat
+     is ordinary, so Next still works and the engine does not need a special case. */
+  function heroLayout(){
+    var b=bounds(), s=size();
+    var bw=Math.min(560, b.w-s-140), bh=bub.offsetHeight;
+    bub.style.width=bw+"px";
+    var total=s+34+bw, left=Math.max(24,(b.w-total)/2), top=b.h*0.34;
+    moveTo(left, top-s/2);
+    if(bub.classList.contains("on"))
+      bub.style.transform="translate("+(left+s+34)+"px,"+Math.max(16,top-bh/2)+"px) scale(1)";
+    arrow.classList.remove("on");
+  }
   function laneLayout(){
     var b=bounds(), app=document.querySelector(".app");
     var edge=app?app.getBoundingClientRect().right-layer.getBoundingClientRect().left:b.w-344;
@@ -1330,6 +1357,7 @@ var LZ=(function(){
     arrow.classList.remove("on");
   }
   function layout(spec){
+    if(layer.classList.contains("hero")) return heroLayout();
     if(STEP) return laneLayout();
     var b=bounds(), s=size(), gap=6, pad=8;
     var bw=bub.offsetWidth, bh=bub.offsetHeight, showBub=bub.classList.contains("on");
@@ -1454,6 +1482,7 @@ var LZ=(function(){
     arrow.classList.add("on");
   }
   function hideBub(){
+    layer.classList.remove("hero");
     $("#lzActs").innerHTML="";
     $("#lzFoot").hidden=true;
     bub.classList.remove("on");
@@ -1503,6 +1532,7 @@ var LZ=(function(){
     say:function(anchor,html,o){
       var entering=!el.classList.contains("on");
       o=o||{};
+      layer.classList.toggle("hero", !!o.hero);
       if(entering && !o.move) o.move="dropin";
       pointing=!!o.point && anchor!=="home" && anchor!=="panel";
       set(o);
@@ -1566,7 +1596,7 @@ var BEAT=(function(){
         (b.chat ? '<div class="lzchat">'+b.chat.map(function(m){
           return '<p class="'+(m.who==="me"?"me":"them")+'">'+esc(m.text)+'</p>';
         }).join("")+'</div>' : "")+"</div>",
-      {eyes:b.eyes||"open", mouth:b.mouth||"tip", move:b.move, point:b.point});
+      {eyes:b.eyes||"open", mouth:b.mouth||"tip", move:b.move, point:b.point, hero:b.hero});
     $("#lzFoot").hidden=false;
     $("#lzCount").textContent=(list.length>1)?(i+1)+" of "+list.length:"";
     var gated=!!b.until;
@@ -1724,9 +1754,16 @@ function demoReset(){
 
 var TOURS={
 7:[
-{ anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
-  /* fold the task away: nobody should be reading a task they have not reached */
+/* A title card before anything else. She arrives at full size with the words beside
+   her and no bubble drawn round them, so the lesson opens on a greeting rather than
+   on a paragraph about a paragraph. NOT IN THE SCRIPT, and flagged like the rest. */
+{ hero:true, anchor:"home", eyes:"sparkle", mouth:"cheer", move:"dropin", next:"Let's go \u2192",
   act:function(){ if(window.setPanelMin){ setPanelMin(true); foldedPanel=true; } },
+  /* No introduction: they met her in the course intro, and each section adds only
+     what is new. A greeting, and what the next few minutes are for. */
+  html:'<p>Welcome to HMIS Clarity.</p>'+
+       '<p>Let me show you round before we start.</p>' },
+{ anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
   html:'<p>What follows is a practice version of Clarity. It behaves the way the real system '+
        'behaves. Everyone in it is invented \u2014 nothing you do here touches a real record.</p>' },
 { anchor:"panel", eyes:"open", mouth:"plain", move:"lean",
@@ -3484,7 +3521,18 @@ $("#restartBtn").addEventListener("click",function(){
       ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
       : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
     root.classList.toggle("dock-min", min && !floating());
-    setTimeout(function(){ autoPlace(); clamp(); LZ.relayout(); },240);
+    /* Collapsed, the panel keeps its place at the top right while the interface
+       expands underneath it — which put it straight on top of the account chip.
+       The content still goes full width; only the top bar's own row gives way. */
+    var reserve=function(){
+      if(!(min && !floating())){ root.style.setProperty("--minw","0px"); return; }
+      /* measured from where the panel actually sits, not from its width — it is
+         inset from the right edge, and guessing that inset left them overlapping */
+      var r=win.getBoundingClientRect();
+      root.style.setProperty("--minw", Math.max(0, window.innerWidth-r.left+14)+"px");
+    };
+    reserve();
+    setTimeout(function(){ reserve(); autoPlace(); clamp(); LZ.relayout(); },240);
   }
   /* The orientation folds the panel away while it works, so the interface it is
      talking about is not sharing the screen with a task nobody has read yet. */
