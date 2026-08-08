@@ -138,6 +138,43 @@ ok('...and cancelling halfway gives it back too', await p.evaluate(async () => {
     !document.querySelector('#coachWin').classList.contains('min') &&
     !document.documentElement.classList.contains('dock-min');
 }));
+/* Collapsing the panel must not reflow the interface underneath it. It used to free
+   the dock column, so the search card and field grew out into the space the panel had
+   been occupying and shrank back when it returned — the page moved under the learner
+   for no reason they asked for. Popping OUT is different: the panel really does leave
+   that column, so there the content is meant to expand. */
+ok('collapsing the panel leaves the interface exactly where it was',
+   await p.evaluate(async () => {
+     const box = () => {
+       const c = document.querySelector('#searchView .card').getBoundingClientRect();
+       const f = document.querySelector('#pill').getBoundingClientRect();
+       return [Math.round(c.width), Math.round(f.width)].join('|');
+     };
+     const before = box();
+     setPanelMin(true);
+     await new Promise(r => setTimeout(r, 320));
+     const folded = box();
+     setPanelMin(false);
+     await new Promise(r => setTimeout(r, 320));
+     return before === folded && before === box();
+   }));
+/* Collapsing the panel must not reflow the interface underneath it. The dock column
+   stays reserved either way, so the search card and the top bar keep their geometry
+   and only the panel itself changes. Popping OUT is the different case: the panel
+   becomes a floating window somewhere else, so that column genuinely is free. */
+ok('collapsing the panel does not move the interface underneath it', await p.evaluate(async () => {
+  const geo = () => ['#searchView .card', '#pill', '.topbar'].map(sel => {
+    const r = document.querySelector(sel).getBoundingClientRect();
+    return Math.round(r.left) + '..' + Math.round(r.right);
+  }).join('|');
+  const before = geo();
+  setPanelMin(true);
+  await new Promise(r => setTimeout(r, 320));
+  const after = geo();
+  setPanelMin(false);
+  await new Promise(r => setTimeout(r, 320));
+  return before === after && before === geo();
+}));
 ok('the two halves of the fold are never set apart', await p.evaluate(async () => {
   setPanelMin(true);
   const both = document.querySelector('#coachWin').classList.contains('min') &&

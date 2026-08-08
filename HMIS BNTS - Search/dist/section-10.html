@@ -41,8 +41,7 @@ input,select{font:inherit}
    with the content beneath them rather than running under the dock. Lashes still
    floats, because she has to be able to reach the thing she is talking about. */
 :root{--dock:428px}
-html.dock-min,html.dock-out{--dock:0px}
-html.dock-min .topbar{padding-right:var(--minw,0px)}
+html.dock-out{--dock:0px}
 .app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
   transition:right .22s ease}
 
@@ -3521,18 +3520,7 @@ $("#restartBtn").addEventListener("click",function(){
       ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
       : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
     root.classList.toggle("dock-min", min && !floating());
-    /* Collapsed, the panel keeps its place at the top right while the interface
-       expands underneath it — which put it straight on top of the account chip.
-       The content still goes full width; only the top bar's own row gives way. */
-    var reserve=function(){
-      if(!(min && !floating())){ root.style.setProperty("--minw","0px"); return; }
-      /* measured from where the panel actually sits, not from its width — it is
-         inset from the right edge, and guessing that inset left them overlapping */
-      var r=win.getBoundingClientRect();
-      root.style.setProperty("--minw", Math.max(0, window.innerWidth-r.left+14)+"px");
-    };
-    reserve();
-    setTimeout(function(){ reserve(); autoPlace(); clamp(); LZ.relayout(); },240);
+    setTimeout(function(){ autoPlace(); clamp(); LZ.relayout(); },240);
   }
   /* The orientation folds the panel away while it works, so the interface it is
      talking about is not sharing the screen with a task nobody has read yet. */

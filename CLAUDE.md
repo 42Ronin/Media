@@ -313,11 +313,11 @@ available, not present.
   toggled on and never off once, and every feedback bubble for the rest of the lesson inherited
   the title styling *and its full-stage scrim*, which sat over the results table and swallowed
   clicks on it. The card greets without introducing her: they met her in the course intro.
-- **Collapsed, the panel keeps its corner while the content expands underneath** — which put it
-  on top of the account chip. `--minw` is measured from the panel's own rect (it is inset from
-  the right edge, and guessing that inset left them still overlapping) and reserved as
-  `padding-right` on the top bar only. The content still goes full width; just the icon row
-  gives way.
+- **Collapsing the panel must not reflow the interface.** The dock column stays reserved either
+  way, so the search card, the field and the top bar keep their exact geometry and only the
+  panel itself changes — asserted in `test.mjs` by comparing rects across a collapse. Only
+  `html.dock-out` zeroes `--dock`, and that is right: popping out makes the panel a floating
+  window somewhere else, so the column it was in genuinely is free.
 - **Section 7's orientation is sixteen beats**, the last of which points at the task box and
   says to start. Before that the tour simply stopped, leaving the learner facing an interface
   with no sign the work had begun. Beats 6 and 7 cover pop-out and collapse, because the panel
