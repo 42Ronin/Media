@@ -400,19 +400,20 @@ html.step .rail{width:56px}
   max-height:calc(100vh - 48px);
   box-shadow:0 14px 40px var(--teal-glow),0 2px 6px rgba(20,34,43,.10),0 0 0 1px rgba(6,104,136,.12)}
 html.dock-min .coach{width:auto}
-/* Popped out: it stops owning a column and starts being placed. The drag handle
-   only exists in this mode — a docked panel that can be dragged is a lie. */
+/* Popped out it is shorter, but it is draggable either way: the column stays
+   reserved whatever the panel does, so moving it costs the interface nothing. */
 html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
-html.dock-out .cwbar{cursor:grab}
-html.dock-out .cwbar.drag{cursor:grabbing}
+.cwbar{cursor:grab}
+.cwbar.drag{cursor:grabbing}
 .coach.pulse{animation:cwpulse 1.1s ease-out}
 @keyframes cwpulse{0%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 0 rgba(63,160,192,.5)}
   100%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 16px rgba(63,160,192,0)}}
-.cwbar{display:flex;align-items:center;gap:6px;padding:9px 8px 9px 15px;background:var(--teal);
+.cwbar{display:flex;align-items:center;gap:2px;padding:7px 7px 7px 15px;background:var(--teal);
   color:#fff;flex:none;user-select:none;touch-action:none}
 .cwbar .lz{font-size:12.5px;letter-spacing:.02em;color:#fff;font-weight:650;flex:1;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cwbtn{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:rgba(255,255,255,.8);flex:none}
+/* 26px was a small thing to hit, and the icon inside it smaller still. */
+.cwbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:rgba(255,255,255,.86);flex:none}
 .cwbtn:hover{background:rgba(255,255,255,.18);color:#fff}
 /* The help marker and its tooltip. Hover or keyboard focus only — no click, no
    state, nothing to undo. It hangs below the title bar and to the left, because
@@ -891,17 +892,17 @@ html.dock-out .cwbar.drag{cursor:grabbing}
          a lot to sit through when all you wanted was to remember what the two icons
          beside it do. Hovering or focusing says that, and nothing else happens. -->
     <span class="cwbtn cwhelp" id="cwHelp" tabindex="0" role="note" aria-describedby="cwTip">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 015 .9c0 1.7-2.5 2.1-2.5 3.6M12 17.2h.01"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 015 .9c0 1.7-2.5 2.1-2.5 3.6M12 17.2h.01"/></svg>
       <span class="cwtip" id="cwTip" role="tooltip">
-        This panel is mine, not Clarity's. <b>Pop out</b> lifts it off the column so you
-        can drag it anywhere; <b>collapse</b> rolls it up to the title bar. Neither loses
-        your place.
+        This panel is mine, not Clarity's. Drag it by the title bar to move it anywhere.
+        <b>Pop out</b> lifts it off the edge; <b>collapse</b> rolls it up to the title bar.
+        Neither moves the interface, and neither loses your place.
       </span>
     </span>
     <button class="cwbtn" id="cwPop" title="Pop out" aria-pressed="false" aria-label="Pop the training panel out of its column">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
     <button class="cwbtn" id="cwMin" title="Collapse" aria-label="Collapse training panel" aria-expanded="true">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg></button>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg></button>
   </div>
   <div class="chead">
     <div class="bar"><i id="barFill"></i></div>
@@ -1760,7 +1761,8 @@ var TOURS={
   /* No introduction: they met her in the course intro, and each section adds only
      what is new. A greeting, and what the next few minutes are for. */
   html:'<p>Welcome to HMIS Clarity.</p>'+
-       '<p>Let me show you round before we start.</p>' },
+       '<p>This is a practice copy. A few things look different \u2014 but every step you take '+
+       'here is the step you will take in the real system. Let me show you round.</p>' },
 { anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
   html:'<p>What follows is a practice version of Clarity. It behaves the way the real system '+
        'behaves. Everyone in it is invented \u2014 nothing you do here touches a real record.</p>' },
@@ -1786,13 +1788,14 @@ var TOURS={
        'is usually enough.</p>' },
 { anchor:"results", eyes:"open", mouth:"plain", point:true,
   act:function(){ var d=demoClient(); if(d) typeQuery(d.d.slice(0,4)); },
-  html:'<p>It is not only names. A year of birth works. So does a full date, written any '+
-       'way round, and so do the last four digits of a Social Security Number \u2014 which '+
-       'is often all somebody can remember.</p>' },
+  html:'<p>It is not only names. A year of birth works. So does a full date. So do the '+
+       '<b>last four digits of a Social Security Number</b> \u2014 often the only part '+
+       'somebody can remember, and enough on its own to cut a long list down.</p>' },
 { anchor:"results", eyes:"wide", mouth:"tip", point:true,
   act:function(){ var d=demoClient(); if(d) typeQuery(d.l+" "+d.d.slice(0,4)); },
-  html:'<p>And they combine. A name and a year together will usually take a page of results '+
-       'down to a handful you can actually read.</p>' },
+  html:'<p>And any of them combine. Name and year. Surname and the last four. A first name '+
+       'and a date. Every word you add has to match, so each one narrows what is left \u2014 '+
+       'which is how you get a page of results down to a handful you can actually read.</p>' },
 /* NOT IN THE SCRIPT, and requested rather than invented: a walk through a record
    before the first task, so nobody meets the profile for the first time while being
    marked on it. She opens somebody who is not the answer to anything, names what is
@@ -1836,11 +1839,12 @@ var TOURS={
 { anchor:"popout", eyes:"open", mouth:"plain", point:true,
   /* put the interface back the way the learner will find it */
   act:function(){ demoDo(demoReset); },
-  html:'<p>This panel is not part of Clarity \u2014 it is me. If it is ever in your way, '+
-       'this pops it out so you can drag it anywhere on the screen.</p>' },
+  html:'<p>This panel is not part of Clarity \u2014 it is me. Drag it by its title bar to move '+
+       'it wherever suits you, or use this to pop it free of the edge. Nothing underneath it '+
+       'moves either way.</p>' },
 { anchor:"minimise", eyes:"glance", mouth:"tip", point:true,
-  html:'<p>And this rolls it up to just the title bar, for when you want the whole '+
-       'interface to yourself. The same button brings it back.</p>' },
+  html:'<p>And this rolls it up to just the title bar. The same button brings it back, with '+
+       'your place kept.</p>' },
 { anchor:"task", eyes:"sparkle", mouth:"cheer", point:true, next:"Start",
   /* the interface goes back the way the learner will find it */
   act:function(){ demoDo(demoReset); },
@@ -3462,7 +3466,7 @@ $("#restartBtn").addEventListener("click",function(){
   }
   window.placeCoachWin=autoPlace;
   function clamp(){
-    if(!floating()) return;
+    if(!floating() && !moved) return;
     var r=win.getBoundingClientRect(), pad=8;
     /* A window the learner dragged may hang off the edge — that is their choice,
        and 90px of it stays reachable. One nobody has touched must be wholly on
@@ -3474,7 +3478,7 @@ $("#restartBtn").addEventListener("click",function(){
     win.style.left=x+"px"; win.style.top=y+"px"; win.style.bottom="auto"; win.style.right="auto";
   }
   function start(e){
-    if(e.target.closest("button") || !floating()) return;
+    if(e.target.closest("button")||e.target.closest("#cwHelp")) return;
     moved=true;
     var r=win.getBoundingClientRect();
     drag={dx:(e.clientX!=null?e.clientX:e.touches[0].clientX)-r.left,
@@ -3516,8 +3520,8 @@ $("#restartBtn").addEventListener("click",function(){
     btn.setAttribute("aria-expanded",String(!min));
     btn.title=min?"Expand":"Collapse";
     btn.innerHTML=min
-      ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
-      : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
     root.classList.toggle("dock-min", min && !floating());
     setTimeout(function(){ autoPlace(); clamp(); LZ.relayout(); },240);
   }

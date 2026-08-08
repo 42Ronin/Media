@@ -313,6 +313,10 @@ available, not present.
   toggled on and never off once, and every feedback bubble for the rest of the lesson inherited
   the title styling *and its full-stage scrim*, which sat over the results table and swallowed
   clicks on it. The card greets without introducing her: they met her in the course intro.
+- **The panel is draggable wherever it is**, docked or popped out, by its title bar. It used to
+  be draggable only when popped out, on the reasoning that a docked panel that moves is a lie —
+  that stopped being true once the dock column was reserved unconditionally, because moving it
+  now costs the interface nothing.
 - **Nothing the panel does may reflow the interface.** Not collapsing it, not popping it out.
   The dock column is reserved whatever state the panel is in, so a popped-out panel leaves an
   empty gutter behind — a stable layout is worth that, and a search field that changes width
@@ -331,6 +335,10 @@ available, not present.
   centre; since the arrow always stands in the gap between her and the thing, that single
   invariant catches every way of getting the rotation wrong. Asserting "the arrow is visible"
   was what let it through the first time.
+
+**`docs/on-screen-inventory.md` catalogues every box on screen** — which layer it belongs to,
+who is speaking, and what each border colour on Lashes' bubble means. Read it before adding
+anything new to the screen, and update it when you do.
 
 ## Delivery: Rise, with the simulation embedded
 

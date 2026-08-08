@@ -44,6 +44,9 @@ ok('it opens on a title card rather than a paragraph',
 ok('...with no bubble drawn round the words',
    await p.$eval('#lzBub', e => getComputedStyle(e).boxShadow === 'none' &&
      getComputedStyle(e).backgroundColor === 'rgba(0, 0, 0, 0)'));
+/* Said plainly once, on the card: it is a copy, and the steps are the real steps. */
+ok('...and says plainly that it is a copy whose steps are the real ones',
+   (await p.textContent('#fb')).includes('every step you take'));
 /* She does not introduce herself here either — they met her in the course intro. */
 ok('...and it greets them without re-introducing her',
    !(await p.textContent('#fb')).includes('I am Lashes'));
@@ -220,8 +223,13 @@ ok('...each pointed out on its own, not both waved at from one spot',
    seen.filter(t => t.includes('magnifying glass') || t.includes('Clients icon')).length === 2);
 /* The panel is ours, not Clarity's, so nothing in the script describes it. A learner
    who cannot move it out of the way works around it instead. */
-ok('...and both ways to get the panel out of the way',
-   seen.join(' ').includes('pops it out') && seen.join(' ').includes('rolls it up'));
+ok('...and the three ways to get the panel out of the way',
+   seen.join(' ').includes('Drag it by its title bar') &&
+   seen.join(' ').includes('pop it free') && seen.join(' ').includes('rolls it up'));
+/* The last four of an SSN is often all somebody can remember, so it is named. */
+ok('...and that the last four of an SSN is a way in, and that they combine',
+   seen.join(' ').includes('last four digits of a Social Security Number') &&
+   seen.join(' ').includes('any of them combine'));
 /* The tour used to stop with the learner facing an interface and no idea the work
    had started. The last beat points at the task itself. */
 ok('the last beat sends them to the task rather than just ending',
