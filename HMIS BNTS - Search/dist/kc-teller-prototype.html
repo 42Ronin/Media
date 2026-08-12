@@ -88,8 +88,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    ============================================================ */
 .stage{position:relative;z-index:4;display:flex;flex-direction:column;align-items:center;
   padding:18px 0 0}
-.lashy{flex:none;width:150px;height:150px;position:relative;
-  filter:drop-shadow(0 0 30px rgba(255,196,110,.42))}
+/* She is inside the glass. When she starts reading she draws back and lets the
+   words have the ball — which is also what keeps a long reading off the glass:
+   at full size the paragraph overflowed its box by 33px. */
+.lashy{flex:none;width:96px;height:96px;position:relative;
+  filter:drop-shadow(0 0 16px rgba(255,238,205,.5));
+  transition:width .42s cubic-bezier(.3,1.2,.4,1),height .42s cubic-bezier(.3,1.2,.4,1)}
+.orb.reading .lashy{width:76px;height:76px}
 .lashy svg{width:100%;height:100%;display:block;overflow:visible}
 .lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
 .lashy .puff{position:absolute;left:5%;top:3%;width:88%;height:88%;border-radius:50%;
@@ -104,11 +109,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .orbwrap{flex:none;display:flex;flex-direction:column;align-items:center}
 .orb{position:relative;width:460px;height:460px;border-radius:50%;
   background:
-    radial-gradient(circle at 34% 26%, rgba(255,255,255,.88) 0 3%, rgba(255,255,255,.18) 9%, transparent 26%),
+    radial-gradient(circle at 34% 26%, rgba(255,255,255,.62) 0 2%, rgba(255,255,255,.22) 7%, transparent 24%),
     radial-gradient(circle at 62% 74%, rgba(214,178,255,.34), transparent 52%),
     radial-gradient(circle at 50% 46%, rgba(150,104,214,.5) 0 42%, rgba(59,29,99,.94) 74%, #24123c 100%);
   box-shadow:0 0 70px rgba(160,110,230,.42), inset 0 -22px 44px rgba(20,8,38,.7),
-    inset 0 10px 30px rgba(226,205,255,.22), 0 22px 40px rgba(8,3,16,.55)}
+    inset 0 10px 30px rgba(226,205,255,.22), 0 22px 40px rgba(8,3,16,.55);
+  animation:breathe 7s ease-in-out infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 66px rgba(160,110,230,.36), inset 0 -22px 44px rgba(20,8,38,.7),
+    inset 0 10px 30px rgba(226,205,255,.2), 0 22px 40px rgba(8,3,16,.55)}
+  50%{box-shadow:0 0 92px rgba(178,128,246,.52), inset 0 -22px 44px rgba(20,8,38,.7),
+    inset 0 10px 34px rgba(232,214,255,.3), 0 22px 40px rgba(8,3,16,.55)}}
 /* smoke turning inside the glass */
 .orb::before,.orb::after{content:"";position:absolute;inset:9%;border-radius:50%;
   pointer-events:none;mix-blend-mode:screen;opacity:.5}
@@ -119,13 +129,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes swirl{to{transform:rotate(360deg)}}
 /* the glass, in front of whatever it holds */
 .sheen{position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:3;
-  background:radial-gradient(circle at 32% 24%, rgba(255,255,255,.5) 0 4%, transparent 20%),
+  background:radial-gradient(circle at 32% 24%, rgba(255,255,255,.34) 0 3%, transparent 18%),
     radial-gradient(circle at 50% 50%, transparent 62%, rgba(255,255,255,.1) 88%, rgba(255,255,255,.22) 100%)}
 /* A 460px ball has a 294x331 box inside it — (147² + 165²) is inside 230², so
    everything she says fits without touching the glass. */
 .orb .inner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:64%;max-height:72%;z-index:2;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:7px;text-align:center;
+  align-items:center;justify-content:center;gap:6px;text-align:center;
   text-shadow:0 2px 12px rgba(24,8,44,.92)}
 /* a scrim behind the words: a paragraph over turning smoke is a squint */
 .orb .inner::before{content:"";position:absolute;left:-16%;right:-16%;top:-10%;bottom:-10%;
@@ -133,19 +143,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .orb .qn{margin:0;font-family:"Segoe UI",system-ui,sans-serif;font-size:10.5px;
   letter-spacing:.2em;text-transform:uppercase;color:#cbb2e4;font-weight:700}
 .orb .qt{font-size:16px;line-height:1.44;font-weight:600}
-.orb .fb{font-size:13.5px;line-height:1.5;color:#eadff5}
+.orb .fb{font-size:13.5px;line-height:1.46;color:#eadff5}
 .orb .verdict{font-size:20px;font-weight:700}
 .orb.good .verdict{color:var(--ok)}
 .orb.bad .verdict{color:var(--bad)}
 .orb .cue{font-size:12.5px;color:#d0bae8;font-style:italic}
 .orb .foot{margin-top:4px}
-.orb .inner>*{animation:mist .5s ease both}
+.orb.mist .inner>*{animation:mist .5s ease both}
 @keyframes mist{from{opacity:0;filter:blur(6px);transform:translateY(5px)}
   to{opacity:1;filter:blur(0);transform:none}}
 /* the stand: three gold claws and a foot */
 .stand{width:206px;height:40px;position:relative;margin-top:-22px}
-.stand i{position:absolute;top:0;width:20px;height:32px;border-radius:0 0 50% 50%;
-  background:linear-gradient(180deg,var(--gold-lt),var(--gold-dk))}
+.stand i{position:absolute;top:0;width:22px;height:36px;
+  border-radius:44% 44% 62% 62% / 18% 18% 100% 100%;
+  background:linear-gradient(150deg,#f4e3a8,var(--gold) 46%,var(--gold-dk));
+  box-shadow:inset -2px 0 3px rgba(80,58,10,.5)}
 .stand i:nth-child(1){left:24px;transform:rotate(-16deg)}
 .stand i:nth-child(2){left:93px}
 .stand i:nth-child(3){right:24px;transform:rotate(16deg)}
@@ -227,7 +239,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* Dim the faces, never the card: opacity below 1 flattens a preserve-3d element,
    backface culling stops, and the back renders through — mirrored. Caught this
    exact trap once already on the shipped page. */
-.tcard.spent .tface{opacity:.42}
+.tcard.spent .tface{opacity:.34;filter:saturate(.6)}
 .tcard.spent{
   transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) + 14px)) rotateY(180deg) scale(.93)}
 .spread.done .tcard,.spread.done .tcard:hover{cursor:default}
@@ -382,6 +394,12 @@ function svg(eyes,mouth){
    changes, so there is no poofing about; the puff is kept for the first arrival. */
 /* She is at the table throughout — it is her reading. Only her face changes. */
 function face(eyes,mouth){ $("#lashy").innerHTML=svg(eyes,mouth); }
+/* Re-run the mist so the words re-form every time the ball changes what it holds.
+   Toggling `hidden` alone will not restart a CSS animation. */
+function remist(){
+  var o=$("#orb");
+  o.classList.remove("mist"); void o.offsetWidth; o.classList.add("mist");
+}
 
 /* --- the only two things it ever says to a host --- */
 var EMBED=(function(){
@@ -422,6 +440,7 @@ function deal(){
   var qi=order[at], q=QS[qi], deck=shuffle(q.a);
 
   $("#orb").className="orb";
+  remist();
   $("#verdict").hidden=true;
   $("#fb").hidden=true;
   $("#foot").hidden=true;
@@ -496,7 +515,8 @@ function take(card,cards,q){
      circle, so she says that underneath it */
   later(function(){
     face(right?"sparkle":"droll", right?"cheer":"wry");
-    $("#orb").className="orb "+(right?"good":"bad");
+    $("#orb").className="orb reading "+(right?"good":"bad");
+    remist();
     $("#qt").hidden=true; $("#cue").hidden=true;
     $("#verdict").textContent=right?"That is the one.":"Not that one.";
     $("#verdict").hidden=false;
@@ -524,7 +544,8 @@ function finish(){
   $("#spread").innerHTML=""; $("#spread").className="spread";
   paintStones();
   face(passed?"sparkle":"droll", passed?"cheer":"hm");
-  $("#orb").className="orb "+(passed?"good":"bad");
+  $("#orb").className="orb reading "+(passed?"good":"bad");
+  remist();
   $("#qn").textContent="The table";
   $("#qt").hidden=true;
   $("#verdict").textContent=passed?"You are through.":"Not quite — "+NEED+" of "+QS.length+".";

@@ -596,6 +596,14 @@ together, the learner picks one, and the feedback is the sentence the script alr
   a block ever wants a ground colour; do not paint `body` directly.
   It keeps the three non-negotiables: no picking a face-down card, no score ever leaves the
   page, completion withheld until the pass mark.
+  **The ball is the stage** — she is in the glass, and the question, the verdict, the reading
+  and the button all happen inside it. **She shrinks while she is reading** (96px → 76px):
+  that is staging, and it is also what keeps a long reading off the glass. The fit is
+  arithmetic, not trial: a 460px ball holds a 294px-wide box, and `fit.mjs` measures the
+  furthest corner of the content from the ball's centre against its radius. 22px clear on the
+  longest reading.
+  **Her costume sits on the rim, never the glass.** A scarf over the glass covers her lashes,
+  and she is called Lashes. The lesson's drawing is untouched.
 - **The shipped check's layout is still plain.** A dealer's-table scene was discussed and parked;
   hands or props on her would live in the character SVG, which is copied in three places
   now (lesson, page, maker) and should be extracted before anyone draws on it.
