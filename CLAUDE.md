@@ -549,6 +549,15 @@ together, the learner picks one, and the feedback is the sentence the script alr
   round — a tinted panel with white bubbles in it, which reads as a thing bolted onto the
   Rise page. Now the question pill, the feedback panel and the card faces carry `--panel`
   and the container carries nothing, so it sits on whatever Rise puts behind it.
+- **The card back carries the LAHSA logo**, on the logo's own blue with its gold as a trim
+  and a full-width wordmark band. It is **drawn in SVG, and it is an approximation** — the
+  page fetches nothing, and it was built from a screenshot rather than the artwork. If the
+  real asset lands in the repo, inline it as a data URI and delete `LAHSA` in the template.
+  The white figure carries a stroke in the field colour or it melts into the pentagon.
+- **The pause between picking a card and the feedback arriving is 300ms.** It was 620 and
+  read as twice as long as it should. The marked cards stay fully visible through the
+  panel's own fade, so the pause only has to be long enough to register the card, not to
+  read it.
 - **The setting is still a plain layout.** A dealer's-table scene was discussed and parked;
   hands or props on her would live in the character SVG, which is copied in three places
   now (lesson, page, maker) and should be extracted before anyone draws on it.

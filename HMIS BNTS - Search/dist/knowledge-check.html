@@ -34,6 +34,9 @@
      container itself is transparent so the check reads as part of the Rise
      page it is dropped into rather than a panel bolted onto it. */
   --panel:#e9f3f8; --panel-2:#f2f8fb;
+  /* the logo's own blue and gold, for the back of the cards */
+  --lahsa-blue:#2a6d8e; --lahsa-blue-lt:#37809f; --lahsa-blue-dk:#1f5b78;
+  --lahsa-gold:#b9a432; --lahsa-gold-lt:#cdb84a;
   --ok:#0f6b45; --ok-soft:#e8f5ee; --bad:#a3312a; --bad-soft:#fbeae9;
   --focus:#0b6fd4;
 }
@@ -111,17 +114,24 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .face{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;
   -webkit-backface-visibility:hidden;overflow:hidden;
   box-shadow:0 8px 22px rgba(6,104,136,.16),0 0 0 1px rgba(6,104,136,.1)}
-/* back: face down when dealt. The pattern is drawn, not fetched — this page makes
-   no network requests, same rule as the simulation. */
+/* back: face down when dealt. Drawn, not fetched — this page makes no network
+   requests, same rule as the simulation, so the mark is SVG rather than an image.
+   It is a hand-drawn approximation of the LAHSA logo, and if the real artwork is
+   dropped into the repo it should be embedded as a data URI and this replaced. */
 .back{background:
-  repeating-linear-gradient(45deg,rgba(255,255,255,.09) 0 7px,transparent 7px 14px),
-  repeating-linear-gradient(-45deg,rgba(255,255,255,.09) 0 7px,transparent 7px 14px),
-  linear-gradient(150deg,var(--teal-lt),var(--teal) 55%,var(--teal-dk));
-  display:flex;align-items:center;justify-content:center}
-.back span{width:46px;height:46px;border-radius:50%;border:2.5px solid rgba(255,255,255,.72);
-  display:flex;align-items:center;justify-content:center}
-.back span::after{content:"";display:block;width:16px;height:16px;
-  border-radius:2px;background:rgba(255,255,255,.72);transform:rotate(45deg)}
+  repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 10px,transparent 10px 20px),
+  linear-gradient(155deg,var(--lahsa-blue-lt),var(--lahsa-blue) 58%,var(--lahsa-blue-dk));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  /* gold trim, taken from the wordmark band on the logo */
+  box-shadow:0 8px 22px rgba(6,104,136,.16),
+    inset 0 0 0 2px var(--lahsa-gold), inset 0 0 0 3.5px rgba(255,255,255,.10)}
+.back .mark{flex:1;display:flex;align-items:center;justify-content:center;
+  width:100%;padding:16px 18px 6px}
+.back .mark svg{width:100%;height:auto;max-height:100%;display:block}
+/* the band runs the width of the card, as it does on the logo */
+.back .band{flex:none;width:100%;background:var(--lahsa-gold);color:#fff;
+  text-align:center;font-size:19px;font-weight:800;letter-spacing:.13em;
+  padding:5px 0 6px;line-height:1.15}
 .front{background:var(--panel);transform:rotateY(180deg);
   display:flex;flex-direction:column;padding:16px 15px 14px;text-align:left}
 .front .idx{font-size:12px;font-weight:700;color:var(--teal-lt);letter-spacing:.1em}
@@ -530,6 +540,39 @@ var got=[];                                  /* true / false / null per question
 var order=[];                                /* which questions this pass plays */
 var at=0;                                    /* index into `order` */
 var LETTER=["A","B","C","D","E","F"];
+
+/* ============================================================
+   The mark on the back of the cards
+
+   A hand-drawn approximation of the LAHSA logo: three figures beside a pentagon
+   carrying four dots, over the gold wordmark band. Drawn rather than embedded
+   because this page fetches nothing — if the real artwork lands in the repo,
+   inline it as a data URI and delete this.
+   ============================================================ */
+var LAHSA=(function(){
+  /* head plus a bell-shaped gown, the way the logo draws them. The white figure
+     takes a stroke in the field colour so it reads as a figure standing in front
+     of the pentagon rather than melting into it. */
+  function person(x,top,w,h,fill,edge){
+    var r=w*0.40, hy=top+r;
+    return '<g fill="'+fill+'"'+(edge?' stroke="'+edge+'" stroke-width="3.4" stroke-linejoin="round"':'')+'>'+
+      '<circle cx="'+x+'" cy="'+hy+'" r="'+r+'"/>'+
+      '<path d="M'+(x-w*0.46)+' '+(hy+r+3)+
+        ' q'+(w*0.46)+' -'+(r*1.05)+' '+(w*0.92)+' 0'+
+        ' l'+(w*0.20)+' '+h+
+        ' h-'+(w*1.32)+' z"/></g>';
+  }
+  return '<svg viewBox="0 0 140 104" aria-hidden="true">'+
+    '<path d="M70 17 L124 13 L133 55 L96 97 L64 60 Z" fill="#fff"/>'+
+    '<circle cx="92" cy="66" r="6.4" fill="#b9a432"/>'+
+    '<circle cx="107" cy="56" r="7.2" fill="#b9a432"/>'+
+    '<circle cx="119" cy="43" r="6" fill="#b9a432"/>'+
+    '<circle cx="121" cy="26" r="4.4" fill="#b9a432"/>'+
+    person(15, 36, 16, 38, "#b9a432")+
+    person(38, 22, 18, 52, "#b9a432")+
+    person(67, 27, 20, 47, "#fff", "#2a6d8e")+
+  '</svg>';
+})();
 var reduced=!!(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches);
 var timers=[];
 
@@ -587,7 +630,8 @@ function deal(){
   hand.innerHTML=deck.map(function(a,i){
     return '<button class="card'+(reduced?" up":"")+'" type="button" data-ok="'+(a.ok?"1":"0")+'" '+
              'aria-disabled="true" tabindex="-1">'+
-             '<span class="face back" aria-hidden="true"><span></span></span>'+
+             '<span class="face back" aria-hidden="true">'+
+               '<span class="mark">'+LAHSA+'</span><span class="band">LAHSA</span></span>'+
              '<span class="face front">'+
                '<span class="idx" aria-hidden="true">'+LETTER[i]+'</span>'+
                '<span class="txt">'+esc(a.t)+'</span>'+
@@ -659,15 +703,15 @@ function pick(card,cards,q){
      theatre, and theatre should not delay the answer for a screen reader. */
   say("live",(right?"Correct. ":"Not correct. ")+q.fb);
 
-  /* A beat with the marked cards readable, then the reason lays over them. She
-     crosses while it arrives, so she is never at the question and the feedback
-     at the same time. */
+  /* A beat with the marked cards readable, then the reason lays over them. Short:
+     the marks stay visible through the panel's own fade, so the pause only has to
+     be long enough to register the card, not long enough to read it. */
   later(function(){
     $("#stage").classList.add("showing");
     $("#said").classList.add("on");
     lashesArrive("lashy2", right?"sparkle":"droll", right?"cheer":"wry");
     later(function(){ $("#next").focus(); }, 60);
-  }, reduced?0:620);
+  }, reduced?0:300);
 }
 
 /* She goes first, and the next thing is built once she is out of the frame — so a
