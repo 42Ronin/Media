@@ -7,22 +7,26 @@
 <!--
   PROTOTYPE. A different staging of the knowledge check, to look at.
 
-  Two halves, on purpose. The SCRYING PANEL carries the theme: Lashes in her
-  headscarf, the question, the reading, the tally. It has the crystal ball's
-  material — deep glass, turning smoke, a gold rim, a sheen across the top — in a
-  shape that actually holds words. A circle spends most of its own area on
-  nothing; a paragraph in a rectangle does not.
+  THE CRYSTAL BALL IS DARK. That is the whole lesson of the reference images: the
+  glass is nearly black, and the only lit thing is what is suspended inside it.
+  An earlier version lit the glass itself from within and it read as a glowing
+  panel rather than as crystal — the bloom was the thing killing it.
 
-  The CARDS sit on whatever Rise puts behind them. Nothing outside the panel
-  paints a ground, so the page shows through.
+  So: dark glass, a hard specular where the light source is, a rim catching light,
+  and the contents — the question, and later Lashes and her reading — glowing
+  cyan-white inside. She only appears when she has something to say, and she
+  appears IN the ball.
+
+  The cards sit on whatever Rise puts behind them. Nothing outside the ball paints
+  a ground, so the page shows through. This assumes a LIGHT page: the ink colours
+  below are what would have to change on a dark one.
 
   Everything is drawn. The page fetches nothing. The one image is the LAHSA logo
-  on the card backs, inlined as a data URI, used whole and never redrawn — that
-  rule is the owner's, not the style guide's, and it holds here where the palette
-  does not.
+  on the card backs, used whole and never redrawn.
 
-  Questions come from script/kc_data.py via src/kc.json, the same list the
-  shipped page and the docx use.
+  Questions come from script/kc_data.py via src/kc.json — the same list the
+  shipped page and the docx use. Nothing here narrates or coaches: no unscripted
+  microcopy.
 
   Kept from the shipped page, deliberately:
     - a card cannot be taken while it is face down
@@ -34,13 +38,13 @@
   --gold:#c9a44b; --gold-lt:#ecd489; --gold-dk:#8a6d22;
   --ink:#1e2f3a; --mut:#5f7787;
   --card:#f7f0df; --card-ink:#2b2320;
-  --ok:#7fd8a6; --bad:#f0958f;
-  --focus:#7fd4ff;
+  --glow:#bfeaff;
+  --focus:#2f9ec7;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
 html,body{margin:0;padding:0}
-/* transparent — Rise owns the page, we own the panel */
+/* transparent — Rise owns the page */
 body{font:15.5px/1.62 Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
   color:var(--ink);background:var(--stage-bg,transparent);-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -48,137 +52,94 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .sans{font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
 
-.frame{max-width:940px;margin:0 auto;padding:14px 16px 22px}
+.frame{max-width:940px;margin:0 auto;padding:10px 16px 22px}
+.top{position:relative;display:flex;flex-direction:column;align-items:center}
 
 /* ============================================================
-   The scrying panel — the ball's material, in a shape that holds words
-   ============================================================ */
-/* NO CASE. The page behind this is Rise's, and it is white — so the white is the
-   room, and the glass is the only dark thing in it. A dark box floating on a
-   light page reads as a UI panel; a lit glass standing on one reads as an object.
-   This does assume a light page. If a block ever puts it on a dark one, the ink
-   colours below are what has to change. */
-.panel{position:relative;padding:8px 4px 0;
-  /* reserved so the cards below never move when she starts reading */
-  min-height:230px}
-/* The air around it: a wash that tints the white, and gold sparks. */
-.atmos{position:absolute;left:-6%;right:-6%;top:-14%;bottom:-30%;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(2px 2px at 8% 22%, rgba(190,150,40,.55), rgba(190,150,40,0) 60%),
-    radial-gradient(1.6px 1.6px at 15% 62%, rgba(190,150,40,.45), rgba(190,150,40,0) 60%),
-    radial-gradient(2.4px 2.4px at 3% 44%, rgba(190,150,40,.38), rgba(190,150,40,0) 60%),
-    radial-gradient(2px 2px at 93% 20%, rgba(190,150,40,.5), rgba(190,150,40,0) 60%),
-    radial-gradient(1.6px 1.6px at 88% 58%, rgba(190,150,40,.42), rgba(190,150,40,0) 60%),
-    radial-gradient(2.4px 2.4px at 97% 40%, rgba(190,150,40,.36), rgba(190,150,40,0) 60%),
-    radial-gradient(1.8px 1.8px at 24% 8%, rgba(190,150,40,.4), rgba(190,150,40,0) 60%),
-    radial-gradient(1.8px 1.8px at 76% 6%, rgba(190,150,40,.36), rgba(190,150,40,0) 60%),
-    /* Both washes fade to zero INSIDE their own box. A radial whose ellipse runs
-       past the element is clipped at the edge while still carrying colour, which
-       painted a faint rectangle across the white page. */
-    radial-gradient(42% 40% at 50% 42%, rgba(56,150,196,.2), rgba(56,150,196,0) 76%),
-    radial-gradient(34% 32% at 28% 66%, rgba(150,96,196,.13), rgba(150,96,196,0) 78%)}
+   The ball
 
-/* The ball, as a pane.
-
-   What makes a crystal ball read as one is not its outline — it is cool blue
-   glass, a hard curved catchlight across the top, a heavy fall-off to a dark
-   rim, and something luminous suspended in the middle of it. All four survive
-   being rectangular. Zoltar's booth, the Jumanji dome, Jambi's box.
+   Sized to the words, not to the column. 560 x 440 is round enough to read as a
+   ball rather than an egg, and still holds a reading: the content box is
+   62% x 74% of it, and (173/280)² + (163/220)² = 0.93 — anything under 1 is
+   inside the curve.
    ============================================================ */
-.glass{position:relative;flex:1;min-width:0;overflow:hidden;border-radius:20px;
-  padding:18px 22px;display:flex;align-items:center;
-  /* the tallest reading at the narrowest column, measured — so the panel and the
-     cards below it never move when she starts speaking */
-  min-height:161px;
+.ball{position:relative;width:560px;max-width:100%;height:440px;border-radius:50%;
+  overflow:hidden;
+  /* DARK glass. The light in the scene comes from what is inside it. */
   background:
-    radial-gradient(96% 108% at 50% 42%, #55c6d8 0%, #2a93b4 26%, #12607f 54%,
-      #08374e 76%, #041d2b 100%);
+    radial-gradient(64% 64% at 50% 46%, #16506c 0%, #0b3346 40%, #051d2b 72%, #020c14 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(186,238,255,.4),           /* the edge of the glass */
-    inset 0 20px 34px rgba(206,244,255,.24),        /* light pooling at the top */
-    inset 0 0 40px rgba(3,18,28,.55),               /* fall-off toward the rim */
-    0 0 60px rgba(52,168,214,.5), 0 18px 38px rgba(12,44,64,.34);
-  animation:breathe 7s ease-in-out infinite}
-@keyframes breathe{
-  0%,100%{filter:brightness(1)}
-  50%{filter:brightness(1.09)}}
-/* Smoke turning inside it. A conic gradient converges to a hard star at its own
-   centre, which read as a crease across the pane — so it is blurred, oversized,
-   and its centre is pushed outside. */
-.smoke{position:absolute;left:-90%;right:-90%;top:-340%;bottom:-160%;pointer-events:none;
-  mix-blend-mode:screen;opacity:.34;filter:blur(30px);
-  background:conic-gradient(from 0deg, transparent, rgba(150,232,255,.55), transparent 52%,
-    rgba(70,170,215,.45), transparent);
-  animation:swirl 40s linear infinite}
+    inset 0 0 0 1.5px rgba(158,224,248,.34),        /* the rim catching light */
+    inset 0 26px 54px rgba(126,206,238,.12),        /* a little sky on the top */
+    inset 0 -34px 70px rgba(0,0,0,.62),             /* heavy under the belly */
+    0 0 66px rgba(38,136,178,.34),                  /* what it throws on the page */
+    0 26px 44px rgba(6,26,38,.26)}
+/* what is turning inside it */
+.smoke{position:absolute;left:-70%;right:-70%;top:-180%;bottom:-120%;pointer-events:none;
+  mix-blend-mode:screen;opacity:.3;filter:blur(26px);
+  background:conic-gradient(from 0deg, transparent, rgba(126,214,255,.5), transparent 54%,
+    rgba(64,150,200,.4), transparent);
+  animation:swirl 44s linear infinite}
 @keyframes swirl{to{transform:rotate(360deg)}}
-/* Light pooling at the base, the way it does under a glass dome. */
-.glass::before{content:"";position:absolute;left:16%;right:16%;bottom:-6%;height:26%;
-  z-index:1;pointer-events:none;border-radius:50%;filter:blur(14px);
-  background:radial-gradient(closest-side, rgba(140,235,255,.34), transparent)}
-/* The fall-off. This is what makes a rectangle read as a globe: the light dies
-   into the corners, hard, so the middle is the only place anything is lit. */
-.glass::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:radial-gradient(88% 96% at 50% 44%, transparent 30%, rgba(3,20,32,.42) 66%,
-    rgba(1,10,18,.86) 100%)}
-/* The catchlight, narrow and curved, where the light source actually is. Most of
-   what says "glass" once the outline is gone. */
-.gsheen{position:absolute;left:11%;right:11%;top:4%;height:30%;pointer-events:none;z-index:2;
-  border-radius:50%;filter:blur(8px);
-  background:linear-gradient(180deg, rgba(255,255,255,.46) 0%, rgba(255,255,255,.12) 52%,
-    transparent 100%)}
-.gsheen::after{content:"";position:absolute;left:5%;top:6%;width:17%;height:64%;
-  border-radius:50%;filter:blur(4px);
-  background:radial-gradient(closest-side, rgba(255,255,255,.72), transparent)}
+/* the specular: one hard catch where the light is, and a soft wrap under it */
+.sheen{position:absolute;inset:0;z-index:3;pointer-events:none}
+.sheen::before{content:"";position:absolute;left:15%;top:9%;width:23%;height:19%;
+  border-radius:50%;filter:blur(7px);
+  background:radial-gradient(closest-side, rgba(255,255,255,.62), rgba(255,255,255,0))}
+.sheen::after{content:"";position:absolute;left:16%;right:16%;bottom:6%;height:12%;
+  border-radius:50%;filter:blur(11px);
+  background:radial-gradient(closest-side, rgba(150,225,255,.24), rgba(150,225,255,0))}
 
-.inner{position:relative;z-index:2;display:flex;align-items:center;gap:18px}
-.words{position:relative;z-index:3;width:100%;
-  text-shadow:0 0 20px rgba(130,226,255,.6), 0 0 44px rgba(90,200,245,.35),
-    0 2px 10px rgba(2,14,22,.85)}
-/* the glow it is suspended in */
-.words::before{content:"";position:absolute;left:-8%;right:-8%;top:-24%;bottom:-24%;
-  z-index:-1;pointer-events:none;
-  background:radial-gradient(closest-side, rgba(120,215,255,.2), transparent 76%)}
-.qn{margin:0 0 5px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:#a6dcf2;font-weight:700}
-.qt{font-size:18px;line-height:1.45;font-weight:600;color:#eafbff}
-.verdict{font-size:20px;font-weight:700;margin-bottom:5px}
-.panel.good .verdict{color:#8ff3c4}
-.panel.bad .verdict{color:#ffb3a8}
-.fb{font-size:15px;line-height:1.55;color:#dff4fb}
-.panel.mist .words>*{animation:mist .5s ease both}
-@keyframes mist{from{opacity:0;filter:blur(6px);transform:translateY(5px)}
+/* everything she shows you is suspended in the middle and lit from inside */
+.inner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:62%;max-height:74%;z-index:2;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;text-align:center;
+  color:#eafaff;
+  text-shadow:0 0 18px rgba(140,225,255,.75), 0 0 46px rgba(90,190,240,.45),
+    0 2px 8px rgba(0,12,20,.8)}
+.qn{margin:0;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:#a8d9ef;font-weight:700}
+.qt{font-size:17px;line-height:1.46;font-weight:600}
+.verdict{font-size:19px;font-weight:700}
+.ball.good .verdict{color:#a3f5cc}
+.ball.bad .verdict{color:#ffbdb3}
+.fb{font-size:14px;line-height:1.5;color:#daf1fb}
+.ball.mist .inner>*{animation:mist .55s ease both}
+@keyframes mist{from{opacity:0;filter:blur(7px);transform:translateY(6px) scale(.97)}
   to{opacity:1;filter:blur(0);transform:none}}
 
-/* She is not here for the question — she turns up to react, which is a stronger
-   entrance than a face that was already waiting. Her slot is laid out either way,
-   so the glass does not change width when she arrives.
-   Her costume sits on the RIM, never over the glass: a scarf across her face
-   covers her lashes, and she is called Lashes. */
-.lashy{flex:none;width:96px;height:96px;position:relative;
-  filter:drop-shadow(0 6px 14px rgba(30,50,66,.22))}
+/* She is not here while the learner is choosing — she turns up in the ball with
+   the reading, lit like everything else in there. Her costume sits on the RIM,
+   never over the glass: a scarf across her face covers her lashes. */
+.lashy{flex:none;width:88px;height:88px;position:relative;
+  filter:drop-shadow(0 0 22px rgba(150,230,255,.85)) drop-shadow(0 0 44px rgba(90,190,240,.5))}
+/* When she is away her box collapses, or the question sits 44px below the centre
+   of the ball with nothing above it. Nothing else is beside her, so there is no
+   width to reserve — unlike the panel layout, where her slot had to stay. */
+.lashy:empty{display:none}
 .lashy svg{width:100%;height:100%;display:block;overflow:visible}
 .lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
 .lashy .puff{position:absolute;left:4%;top:2%;width:90%;height:90%;border-radius:50%;
-  border:2.5px solid var(--gold);opacity:0;pointer-events:none}
-.lashy.in .mface{animation:poofIn .5s cubic-bezier(.3,1.45,.5,1)}
-.lashy.in .puff{animation:puffRing .46s ease-out}
-@keyframes poofIn{0%{transform:scale(.12) rotate(-165deg);opacity:0}
-  55%{transform:scale(1.16) rotate(14deg);opacity:1}100%{transform:none;opacity:1}}
-@keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
+  border:2.5px solid rgba(190,240,255,.8);opacity:0;pointer-events:none}
+.lashy.in .mface{animation:poofIn .55s cubic-bezier(.3,1.45,.5,1)}
+.lashy.in .puff{animation:puffRing .5s ease-out}
+@keyframes poofIn{0%{transform:scale(.1) rotate(-170deg);opacity:0}
+  55%{transform:scale(1.14) rotate(12deg);opacity:1}100%{transform:none;opacity:1}}
+@keyframes puffRing{0%{transform:scale(.3);opacity:.7}100%{transform:scale(1.7);opacity:0}}
 
-.panelfoot{position:relative;z-index:2;display:flex;align-items:center;gap:14px;
-  margin-top:15px;padding-top:13px;border-top:1px solid rgba(160,125,30,.28);
-  /* reserved for the button, which only appears once a card is taken — without
-     this the whole panel grew by 21px and pushed the cards down */
-  min-height:55px}
+/* ============================================================
+   Under it, on the page
+   ============================================================ */
+.footrow{display:flex;align-items:center;gap:14px;width:100%;max-width:560px;
+  margin:14px auto 0;min-height:44px}
 .stones{display:flex;gap:9px}
 .stone{width:15px;height:15px;transform:rotate(45deg);border-radius:3px;
-  background:radial-gradient(circle at 34% 30%, #dfe7ec, #bfcdd6 70%);
-  box-shadow:inset 0 0 0 1px rgba(140,110,30,.28);transition:background .4s,box-shadow .4s}
+  background:radial-gradient(circle at 34% 30%, #e2e9ee, #c2cfd8 70%);
+  box-shadow:inset 0 0 0 1px rgba(140,110,30,.26);transition:background .4s,box-shadow .4s}
 .stone.lit{background:radial-gradient(circle at 34% 30%, #ffe9a2, var(--gold) 58%, #8a6d22);
   box-shadow:0 0 14px rgba(201,164,75,.55), inset 0 0 0 1px rgba(255,244,206,.7)}
-.stone.out{background:radial-gradient(circle at 34% 30%, #d9a8a4, #a8635e 70%);
-  box-shadow:inset 0 0 0 1px rgba(150,70,62,.3)}
+.stone.out{background:radial-gradient(circle at 34% 30%, #dcaba7, #ab6660 70%);
+  box-shadow:inset 0 0 0 1px rgba(150,70,62,.28)}
 .count{margin:0;font-size:12.5px;color:var(--mut)}
 .count b{color:var(--ink)}
 .foot{margin-left:auto}
@@ -194,7 +155,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    The spread — on whatever Rise puts behind it
    ============================================================ */
 .spread{display:flex;justify-content:center;align-items:flex-end;
-  margin:26px auto 0;perspective:1400px;min-height:250px}
+  margin:20px auto 0;perspective:1400px;min-height:250px}
 .tcard{position:relative;width:186px;height:242px;margin:0 10px;padding:0;background:none;
   transform-style:preserve-3d;cursor:default;
   transform:rotate(var(--tilt)) translateY(var(--lift,0));
@@ -203,7 +164,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 16px))}
 .tface{position:absolute;inset:0;border-radius:13px;backface-visibility:hidden;
   -webkit-backface-visibility:hidden;overflow:hidden;transition:opacity .35s;
-  /* a real edge, because these sit on the page rather than on a dark ground */
   box-shadow:0 14px 30px rgba(16,34,46,.26), 0 2px 6px rgba(16,34,46,.16),
     0 0 0 1px rgba(40,74,96,.14)}
 .tback{background:
@@ -225,7 +185,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tfront .idx{font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9b7d33}
 .tfront .txt{flex:1;display:flex;align-items:center;font-size:14.5px;line-height:1.44;
   padding:8px 0 6px}
-/* One line. "Your card — correct" wrapped and was clipped by the card's fixed
+/* One line: "Your card — correct" wrapped and was clipped by the card's fixed
    height, on the one card a learner most wants to read. */
 .tfront .mark{height:18px;white-space:nowrap;font-size:11.5px;font-weight:800;
   letter-spacing:.06em;text-transform:uppercase;color:transparent}
@@ -233,10 +193,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tcard.up{transform:rotate(var(--tilt)) translateY(var(--lift,0)) rotateY(180deg)}
 .spread.live .tcard.up:hover{
   transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 16px)) rotateY(180deg)}
-/* laid out of the panel, which is directly above them */
+/* laid out of the ball, which is above them */
 .tcard.dealt{animation:layDown .5s cubic-bezier(.25,1.05,.35,1) backwards}
 @keyframes layDown{
-  from{transform:translate(0,-230px) rotate(-7deg) scale(.6);opacity:0}
+  from{transform:translate(0,-250px) rotate(-7deg) scale(.6);opacity:0}
   to{transform:rotate(var(--tilt)) translateY(var(--lift,0));opacity:1}}
 
 .tcard.taken{z-index:2;transform:rotate(0deg) translateY(-22px) rotateY(180deg) scale(1.07)}
@@ -246,6 +206,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tcard.right .mark{color:#1c7a55}
 .tcard.wrong .tfront{color:#a5352c;background:#faece9}
 .tcard.wrong .mark{color:#a5352c}
+/* NOT dimmed: this is the card they should have taken, and dimming it made the
+   answer the least legible thing in the spread. */
 .tcard.answer{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 6px)) rotateY(180deg)}
 .tcard.answer .tfront{background:#f2faf3;
   box-shadow:0 18px 34px rgba(28,122,85,.26), inset 0 0 0 2px #1c7a55}
@@ -257,13 +219,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .spread.done .tcard,.spread.done .tcard:hover{cursor:default}
 
 /* ============================================================
-   Lashes, in costume. The lesson's drawing is untouched.
+   Lashes. The lesson's drawing is untouched; the costume lives only here.
    ============================================================ */
-.m-rim{fill:none;stroke:#066888;stroke-width:6}
-.m-glass{fill:#efe6d8}
+.m-rim{fill:none;stroke:#0b6f92;stroke-width:6}
+.m-glass{fill:#eef8fc}
 .m-eye{fill:#14222b}
 .m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
-.m-lidfill{fill:#efe6d8}
+.m-lidfill{fill:#eef8fc}
 .m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
 .m-spark{fill:#14222b}
 .m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
@@ -282,13 +244,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .m-face{animation:mscan 6.5s ease-in-out infinite}
 @keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
 
-@media(max-width:760px){
-  .inner{gap:14px}
-  .lashy{width:84px;height:84px}
+@media(max-width:700px){
+  .ball{height:400px}
   .tcard{width:160px;height:230px;margin:0 6px}
 }
 @media(prefers-reduced-motion:reduce){
-  .m-body,.m-face,.m-eyes,.smoke,.panel,.panel.mist .words>*{animation:none !important}
+  .m-body,.m-face,.m-eyes,.smoke,.ball.mist .inner>*,.lashy.in .mface,.lashy.in .puff{
+    animation:none !important}
   .tcard,.tcard.dealt{animation:none;transition:none}
   .spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(var(--lift,0))}
 }
@@ -297,24 +259,20 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <body>
 
 <div class="frame">
-
-  <div class="panel" id="panel">
-    <span class="atmos" aria-hidden="true"></span>
-    <div class="inner">
-      <div class="lashy" id="lashy" aria-hidden="true"></div>
-      <div class="glass">
-        <span class="smoke" aria-hidden="true"></span>
-        <span class="gsheen" aria-hidden="true"></span>
-        <div class="words">
-          <p class="qn sans" id="qn"></p>
-          <div class="verdict" id="verdict" hidden></div>
-          <div class="qt" id="qt"></div>
-          <div class="fb" id="fb" hidden></div>
-        </div>
+  <div class="top">
+    <div class="ball" id="ball">
+      <span class="smoke" aria-hidden="true"></span>
+      <div class="inner">
+        <div class="lashy" id="lashy" aria-hidden="true"></div>
+        <p class="qn sans" id="qn"></p>
+        <div class="verdict" id="verdict" hidden></div>
+        <div class="qt" id="qt"></div>
+        <div class="fb" id="fb" hidden></div>
       </div>
+      <span class="sheen" aria-hidden="true"></span>
     </div>
 
-    <div class="panelfoot">
+    <div class="footrow">
       <div class="stones" id="stones" aria-hidden="true"></div>
       <p class="count sans" id="count"></p>
       <div class="foot" id="foot" hidden><button class="go" id="next"></button></div>
@@ -361,8 +319,7 @@ var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11
            wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
 
 /* Drawn over her rim. Her geometry is the bible's — face at (44,42), rim r=30 —
-   so the wrap is an arc of r=31 across the top, above every lash at every x, and
-   the hoop hangs off the rim at about four o'clock. */
+   so the wrap is an arc of r=31 across the top, above every lash at every x. */
 var COSTUME=
   '<path class="m-scarf-2" d="M18 24 q-13 5 -15 16 q-2 11 4 18 q4 -10 6 -18 q2 -9 7 -14 z"/>'+
   '<path class="m-scarf" d="M17.4 26 A31 31 0 0 1 70.5 26 Q44 30 17.4 26 Z"/>'+
@@ -383,18 +340,18 @@ function svg(eyes,mouth){
       COSTUME+
     '</g></svg>';
 }
-/* She arrives in a puff when she has something to say, and is simply not there
-   while the learner is choosing. The slot stays laid out so nothing moves. */
+/* She materialises in the ball when she has something to say, and is simply not
+   there while the learner is choosing. */
 function face(eyes,mouth){
   var el=$("#lashy");
   el.innerHTML='<span class="puff"></span><span class="mface">'+svg(eyes,mouth)+'</span>';
   el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
 }
 function unface(){ var el=$("#lashy"); el.classList.remove("in"); el.innerHTML=""; }
-/* Re-run the mist so the words re-form every time the panel changes what it
+/* Re-run the mist so the contents re-form every time the ball changes what it
    holds. Toggling `hidden` alone will not restart a CSS animation. */
 function remist(){
-  var el=$("#panel");
+  var el=$("#ball");
   el.classList.remove("mist"); void el.offsetWidth; el.classList.add("mist");
 }
 
@@ -437,7 +394,8 @@ function deal(){
   clearLater();
   var qi=order[at], q=QS[qi], deck=shuffle(q.a);
 
-  $("#panel").className="panel";
+  $("#ball").className="ball";
+  unface();
   remist();
   $("#verdict").hidden=true;
   $("#fb").hidden=true;
@@ -445,7 +403,6 @@ function deal(){
   $("#qt").hidden=false;
   $("#qt").textContent=q.q;
   $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
-  unface();
   paintStones();
 
   var sp=$("#spread");
@@ -496,8 +453,6 @@ function take(card,cards,q){
       c.classList.add("taken", right?"right":"wrong");
       mark.textContent=right?"Your card ✓":"Your card";
     }else if(c.dataset.ok==="1"){
-      /* NOT spent: this is the card they should have taken, and dimming it made
-         the answer the least legible thing in the spread. */
       c.classList.add("answer");
       mark.textContent="Take this one";
     }else{
@@ -509,19 +464,19 @@ function take(card,cards,q){
   $("#live").textContent=(right?"Correct. ":"Not correct. ")+q.fb;
 
   later(function(){
-    face(right?"sparkle":"droll", right?"cheer":"wry");
-    $("#panel").className="panel reading "+(right?"good":"bad");
-    remist();
+    $("#ball").className="ball "+(right?"good":"bad");
     $("#qt").hidden=true;
     $("#qn").textContent="The reading";
     $("#verdict").textContent=right?"That is the one.":"Not that one.";
     $("#verdict").hidden=false;
     $("#fb").textContent=q.fb;
     $("#fb").hidden=false;
+    face(right?"sparkle":"droll", right?"cheer":"wry");
+    remist();
     $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
     $("#foot").hidden=false;
     later(function(){ $("#next").focus(); },60);
-  }, reduced?0:320);
+  }, reduced?0:340);
 }
 
 $("#next").addEventListener("click",function(){
@@ -536,19 +491,19 @@ function finish(){
 
   $("#spread").innerHTML=""; $("#spread").className="spread";
   paintStones();
-  face(passed?"sparkle":"droll", passed?"cheer":"hm");
-  $("#panel").className="panel reading "+(passed?"good":"bad");
-  remist();
+  $("#ball").className="ball "+(passed?"good":"bad");
   $("#qn").textContent="The table";
   $("#qt").hidden=true;
   $("#verdict").textContent=passed?"You are through."
-    :"Not quite — "+NEED+" of "+QS.length+".";
+    :"Not quite — "+NEED+" of "+QS.length+" needed.";
   $("#verdict").hidden=false;
   $("#fb").textContent=passed
     ? "None of this is about remembering a rule. It is about not deciding on one signal — which is the difference between finding somebody's record and starting them a second one."
     : "Question"+(missed.length===1?" ":"s ")+list(missed)+" went the other way. I will lay "+
-      (missed.length===1?"it":"them")+" again — the reasoning is in what you just read, and the cards come back in a different order.";
+      (missed.length===1?"it":"them")+" again, in a different order.";
   $("#fb").hidden=false;
+  face(passed?"sparkle":"droll", passed?"cheer":"hm");
+  remist();
   $("#live").textContent=(passed?"Passed. ":"Not passed. ")+score+" of "+QS.length+" right.";
 
   if(passed){

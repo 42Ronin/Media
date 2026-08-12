@@ -602,7 +602,20 @@ together, the learner picks one, and the feedback is the sentence the script alr
   a block ever wants a ground colour; do not paint `body` directly.
   It keeps the three non-negotiables: no picking a face-down card, no score ever leaves the
   page, completion withheld until the pass mark.
-  **It is split in two: a themed panel, and cards on nothing.** The scrying panel carries
+  **The vessel is a crystal ball, and the ball is DARK.** That is the whole lesson of the
+  Leota-style references: the glass is nearly black and the only lit thing is what is
+  suspended inside it. Lighting the glass itself made it read as a glowing panel — the
+  inner bloom was what killed it. Dark glass, a hard specular where the light source is, a
+  rim catching light, and the contents glowing cyan-white.
+  **Lashes appears inside the ball**, with the reading, and only then. Her empty slot must
+  `display:none` or the question sits 44px below the ball's centre.
+  **Sizing is arithmetic:** 560 × 440 is round enough to read as a ball rather than an egg
+  and still holds a reading. The content box is 62% × 74%, and (173/280)² + (163/220)² =
+  0.93 — anything under 1 is inside the curve, and `ball.mjs` measures it.
+  **The cards sit on whatever Rise puts behind them**, and the page is transparent — but the
+  composition now assumes a LIGHT page, because the white is doing the work of the room.
+  **It was a wide panel for a while and that is worth remembering** — a full-width bar reads
+  as a banner, not an object. The scrying panel carries
   the whole theme — her, the question, the reading, the tally — with the crystal ball's
   material (deep glass, turning smoke, gold rim, a sheen) in a shape that holds words. It
   was a literal ball for a while, and a circle spends most of its own area on nothing; the
