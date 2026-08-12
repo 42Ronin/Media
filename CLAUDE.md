@@ -521,6 +521,15 @@ together, the learner picks one, and the feedback is the sentence the script alr
   records of people in homelessness, that is also a tone risk not worth taking.
 - The character is drawn from the **same SVG and palette as the lesson**, copied rather than
   imported because the page is standalone. If her face changes, change it in both.
+- **There is one of her and she moves.** Three slots can hold her — question, feedback,
+  reading — and exactly one ever does; she poofs out of one and into the next (`lashesLeave`
+  / `lashesArrive`, and `clearSlots` guarantees the invariant even if a move is interrupted).
+  The first build drew her in two slots at once, which reads as two of her rather than one
+  character crossing the panel. That is also why the end screen has no question bubble: it
+  would be a second bubble with nobody beside it. `test.mjs` counts `.lashy svg` at every
+  stage and it is always 1.
+- **The setting is still a plain panel.** The owner wants a real dealer's-table scene — this
+  version is the mechanic, not the look, and is explicitly a staging post.
 
 ## Lesson 2 — Create
 

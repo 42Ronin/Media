@@ -1946,6 +1946,13 @@ ok('...and every answer is on the table, none hidden',
    (await kc.$$eval('.card .txt', e => e.map(x => x.textContent.trim()))).sort().join('|') ===
    KC_DATA.questions[0].a.map(a => a.t).sort().join('|'));
 
+/* There is one Lashes. Three slots can hold her and exactly one ever does — she
+   poofs out of the question and into the feedback rather than being drawn twice.
+   Counting her is the canary: the first build had her beside both at once. */
+const lashCount = () => kc.$$eval('.lashy svg', e => e.length);
+ok('there is exactly one of her while the question is on the table', await lashCount() === 1,
+   String(await lashCount()));
+
 /* Deliberately the wrong card first: a learner has to be able to see what they
    should have taken, not just that they missed. */
 const wrongCard = await kc.evaluate(() =>
@@ -1965,12 +1972,18 @@ ok('...with the script\'s own sentence as the feedback',
 ok('...and the hand closes rather than letting them pick again', await kc.evaluate(() =>
   !document.querySelector('#hand').classList.contains('live') &&
   [...document.querySelectorAll('.card')].every(c => c.getAttribute('aria-disabled') === 'true')));
+await kcHost.waitForTimeout(500);
+ok('she crossed to the feedback rather than being drawn there as well',
+   await lashCount() === 1 && await kc.evaluate(() => whereIs === 'lashy2'),
+   (await lashCount()) + ' at ' + await kc.evaluate(() => whereIs));
 
 /* Miss a second, then take the rest. Four of six is the interesting case: five of
    six is 83% and clears the mark, which is the point of rounding it up to whole
    questions rather than comparing percentages. */
+/* Long enough to cover her poof across (290ms) and the whole deal, which does not
+   go live until the last card has turned over. */
 const kcAnswer = async (right) => {
-  await kcHost.waitForTimeout(1400);
+  await kcHost.waitForTimeout(1750);
   await kc.evaluate(want => {
     const cards = [...document.querySelectorAll('.card')];
     (cards.find(c => (c.dataset.ok === '1') === want) || cards[0]).click();
@@ -1984,8 +1997,12 @@ for (let i = 1; i < KC_DATA.questions.length; i++) {
 ok('the last hand offers the reading rather than another question',
    (await kc.textContent('#next')).includes('how you did'));
 await kc.click('#next');
-await kcHost.waitForTimeout(400);
+await kcHost.waitForTimeout(900);
 
+ok('she is at the reading, and the question row has gone with her',
+   await lashCount() === 1 && await kc.evaluate(() =>
+     whereIs === 'lashy3' && document.querySelector('.dealer').hidden),
+   (await lashCount()) + ' at ' + await kc.evaluate(() => whereIs));
 ok('four of six is short of the mark, and it says so',
    (await kc.textContent('#score')).includes('4 of 6') &&
    (await kc.textContent('#endTitle')).includes('Not quite'),
@@ -2008,9 +2025,10 @@ await kcAnswer(true);
 ok('the re-deal plays back only the missed questions',
    (await kc.textContent('#next')).includes('how you did'));
 await kc.click('#next');
-await kcHost.waitForTimeout(400);
+await kcHost.waitForTimeout(900);
 ok('clearing the mark on the re-deal counts', (await kc.textContent('#score')).includes('6 of 6'),
    await kc.textContent('#score'));
+ok('...and she is still only in one place', await lashCount() === 1, String(await lashCount()));
 ok('...and that is when the completion Rise marks the block on is sent',
    await kcHost.evaluate(() => simMsgs.filter(m => m.type === 'complete').length === 1),
    JSON.stringify(await kcHost.evaluate(() => simMsgs)));

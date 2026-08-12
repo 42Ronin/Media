@@ -151,11 +151,18 @@ for it to look like a card table.
 | Box | What it is |
 |---|---|
 | Header | *Knowledge check*, six progress pips, and the running tally |
-| **Dealer** | Lashes at the left with the question in a teal-bordered bubble — the same bubble as a tour beat, because she is asking rather than reacting |
+| **Dealer** | The question in a teal-bordered bubble — the same bubble as a tour beat, because she is asking rather than reacting. Goes entirely once the last hand is played. |
 | **The hand** | Three cards. Dealt face down, they turn over together, and only then can one be picked. |
 | **Feedback** | A second bubble under the hand — green when the card was right, red when it was not — carrying the script's own sentence, and *Next question* |
 | **The spread** | Six mini cards laid out at the end, green or red, over the tally |
 | **The reading** | Her closing bubble: through, or which questions to deal again |
+
+**There is one Lashes, and she moves.** Three slots can hold her — beside the question,
+beside the feedback, beside the reading — and exactly one ever does. She leaves in a puff and
+arrives in the next one the same way. Drawing her in two slots at once was the first build's
+mistake: it read as two of her rather than one character crossing the panel, and it is why
+the end screen dropped its question bubble rather than keeping a second bubble with nobody
+beside it. `test.mjs` counts `.lashy svg` at every stage; the count is always 1.
 
 Three things about it are deliberate and easy to undo by accident:
 
