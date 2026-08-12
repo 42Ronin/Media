@@ -112,6 +112,10 @@ cp "$OUT/knowledge-check.html" "$OUT/_pkg/index.html"
 ( cd "$OUT/_pkg" && zip -q -r "../knowledge-check.zip" index.html )
 rm -rf "$OUT/_pkg"
 
+# A prototype of a different staging, to look at. Not a deliverable and not in the
+# maker: same questions, same gate, cards as objects on a table instead of a row.
+python3 tools/stamp_kc.py src/kc-teller.template.html src/kc.json "$OUT/kc-teller-prototype.html"
+
 [ "$WITH_SCORM" = "1" ] || echo "scorm packaging skipped (run with --scorm to produce the zips)"
 
 echo "built:"
