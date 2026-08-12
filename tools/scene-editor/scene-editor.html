@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scene Editor — keyframes + narration</title>
+<style>
+:root{--bg:#0f151d;--panel:#161e28;--line:#26313f;--ink:#e6ecf3;--dim:#8fa1b5;
+      --accent:#6ee7c4;--accent2:#7fb2ff;--warn:#f5c26b;--bad:#ff8a80}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font:13.5px/1.5 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.btn{background:#22303f;border:1px solid var(--line);border-radius:7px;padding:7px 12px}
+.btn:hover{background:#2b3a4c}
+.btn.p{background:var(--accent);color:#06281e;border-color:transparent;font-weight:700}
+.btn.p:hover{filter:brightness(1.08)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.dangr{color:var(--bad)}
+.btn:disabled{opacity:.4;cursor:default}
+input[type=text],input[type=number],textarea{background:#0d131b;border:1px solid var(--line);
+  border-radius:6px;padding:7px 9px;width:100%}
+label.f{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:10px 0 4px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+
+.app{display:grid;grid-template-columns:206px minmax(0,1fr) 288px;grid-template-rows:46px minmax(0,1fr) 196px;height:100%}
+.top{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top h1{font-size:14px;margin:0 10px 0 0;font-weight:600}
+.badge{font-size:11px;color:var(--dim)}
+.left,.right{background:var(--panel);overflow:auto}
+.left{border-right:1px solid var(--line)}
+.right{border-left:1px solid var(--line);padding:12px}
+.sec{padding:10px 12px;border-bottom:1px solid var(--line)}
+.sec h2{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin:0 0 8px}
+
+.slist{list-style:none;margin:0;padding:6px}
+.slist li{display:flex;gap:9px;align-items:center;padding:7px;border-radius:8px;cursor:pointer;margin-bottom:3px}
+.slist li:hover{background:#1d2733}
+.slist li.sel{background:#233245;outline:1px solid var(--accent2)}
+.slist .th{width:54px;height:31px;border-radius:4px;background:#0a0f16;object-fit:cover;flex:none}
+.slist .nm{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slist .du{font-size:11px;color:var(--dim)}
+
+.center{display:flex;flex-direction:column;min-width:0;min-height:0;padding:10px 14px 0}
+.editbar{display:flex;align-items:center;gap:9px;margin-bottom:8px;min-height:30px}
+.editbar .what{font-size:13px}
+.editbar .what b{color:var(--accent)}
+.stage{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;background:#05080d;border-radius:8px;
+  overflow:hidden;border:1px solid var(--line);cursor:grab;margin:0 auto}
+.stage.previewing{cursor:default;border-color:var(--accent)}
+.stage.drag{cursor:grabbing}
+.stage img{position:absolute;left:50%;top:50%;transform-origin:center;user-select:none;-webkit-user-drag:none;
+  max-width:none;will-change:transform}
+.stage .cap{position:absolute;left:0;right:0;bottom:0;padding:14px 20px 16px;font-size:15px;
+  background:linear-gradient(to top,rgba(5,9,15,.93),transparent);pointer-events:none}
+.stage .pv{position:absolute;top:10px;left:12px;background:var(--accent);color:#06281e;font-weight:700;
+  font-size:11px;padding:3px 9px;border-radius:99px;letter-spacing:.05em}
+.stage .holdmsg{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,9,15,.72)}
+.empty{color:var(--dim);text-align:center;padding:38px}
+
+/* keyframe strip */
+.kfstrip{display:flex;align-items:center;gap:6px;padding:9px 2px 4px;flex-wrap:wrap;min-height:44px}
+.kf{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#1b2532;
+  border-radius:8px;padding:5px 9px;font-size:12px}
+.kf.on{border-color:var(--accent);background:#1d3b33;box-shadow:0 0 0 1px var(--accent)}
+.kf .n{width:17px;height:17px;border-radius:50%;background:#2c3a4b;display:grid;place-items:center;font-size:10px;font-weight:700}
+.kf.on .n{background:var(--accent);color:#06281e}
+.kf .tm{color:var(--dim)}
+.kf.on .tm{color:var(--ink)}
+.ins{width:22px;height:22px;border-radius:50%;border:1px dashed #3b4a5e;color:var(--dim);
+  display:grid;place-items:center;font-size:13px;line-height:1}
+.ins:hover{border-color:var(--accent);color:var(--accent)}
+.ins.add{width:auto;border-radius:8px;padding:4px 10px;gap:5px;font-size:12px;border-style:solid;
+  border-color:#3b4a5e;display:flex;align-items:center}
+.ins.add:hover{background:#1d3b33}
+
+.tl{background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.tlbar{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line)}
+.wavewrap{flex:1;position:relative;min-height:0;overflow:hidden}
+#wave{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:pointer}
+.ovl{position:absolute;inset:0;pointer-events:none}
+.bound{position:absolute;top:0;bottom:0;width:2px;background:var(--accent2);opacity:.85}
+.bound b{position:absolute;top:2px;left:4px;font-size:10px;color:var(--accent2);white-space:nowrap;font-weight:600}
+.holdm{position:absolute;top:0;bottom:0;width:3px;background:var(--warn)}
+.capm{position:absolute;bottom:0;height:13px;width:2px;background:var(--accent)}
+.kfm{position:absolute;top:0;height:11px;width:1px;background:#7f8fa3}
+.play{position:absolute;top:0;bottom:0;width:2px;background:#fff}
+.noaudio{position:absolute;inset:0;display:grid;place-items:center;color:var(--dim);font-size:12.5px;text-align:center;padding:0 20px}
+
+.row{display:flex;gap:7px;align-items:center}
+.row>*{flex:1}
+.lines{list-style:none;margin:6px 0 0;padding:0}
+.lines li{display:flex;gap:6px;align-items:flex-start;margin-bottom:6px}
+.lines .t{width:56px;flex:none}
+.hint{font-size:11.5px;color:var(--dim);margin-top:6px}
+.tip{font-size:11.5px;color:var(--dim);margin:5px 0 0;line-height:1.45}
+kbd{background:#22303f;border:1px solid var(--line);border-radius:4px;padding:2px 7px;font-size:11px;font-family:inherit;white-space:nowrap}
+
+.hbtn{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:#22303f;display:grid;place-items:center;font-weight:700;font-size:13px}
+.hbtn:hover{background:var(--accent);color:#06281e;border-color:transparent}
+.scrim{position:fixed;inset:0;background:rgba(6,10,15,.66);z-index:40;display:grid;place-items:center;padding:26px}
+.guide{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:min(880px,100%);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.ghead{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.ghead h2{margin:0;font-size:17px}
+.gbody{overflow:auto;padding:6px 22px 22px}
+.guide h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin:22px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+.guide h3:first-of-type{border-top:0;padding-top:6px}
+.guide p{margin:0 0 9px;color:#cbd6e2}
+.guide ol,.guide ul{margin:0 0 10px;padding-left:20px;color:#cbd6e2}
+.guide li{margin-bottom:6px}
+.guide b{color:var(--ink)}
+.guide .big{background:#1b2735;border-left:3px solid var(--accent2);padding:11px 14px;border-radius:0 7px 7px 0;margin:10px 0;color:var(--ink)}
+.guide .warn{background:#3a2c14;border-left:3px solid var(--warn);padding:11px 14px;border-radius:0 7px 7px 0;margin:10px 0;color:#f0dcb8}
+.ktab{width:100%;border-collapse:collapse;font-size:12.5px;margin:4px 0 10px}
+.ktab td{padding:5px 8px;border-bottom:1px solid var(--line);color:#cbd6e2}
+.ktab td:first-child{width:120px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <h1>Scene Editor</h1>
+    <button class="btn sm" id="addImgs">Add images…</button>
+    <button class="btn sm" id="addAudio">Narration…</button>
+    <button class="btn sm p" id="playAll">▶ Play all</button>
+    <span style="flex:1"></span>
+    <span class="badge" id="stat"></span>
+    <button class="btn sm" id="openProj">Open</button>
+    <button class="btn sm" id="saveProj">Save project</button>
+    <button class="btn sm" id="exportBtn">Export timeline</button>
+    <button class="btn sm p" id="exportHtml">Export HTML</button>
+    <button class="hbtn" id="helpBtn" title="How this works (press ?)" aria-label="Help">?</button>
+    <input type="file" id="fImgs" accept="image/*" multiple hidden>
+    <input type="file" id="fAudio" accept="audio/*" hidden>
+    <input type="file" id="fProj" accept="application/json,.json" hidden>
+  </div>
+
+  <div class="left">
+    <div class="sec"><h2>Scenes</h2>
+      <ul class="slist" id="slist"></ul>
+      <p class="hint" id="noScenes">No scenes yet. <b>Add images…</b> to begin.</p>
+      <p class="tip">Scenes play top to bottom. Reorder with ↑ ↓ on the right.</p>
+    </div>
+  </div>
+
+  <div class="center">
+    <div class="editbar" id="editbar">
+      <span class="what" id="whatEditing"></span>
+      <span style="flex:1"></span>
+      <button class="btn sm" id="prevScene">▶ Preview this scene</button>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="empty" id="stageEmpty">
+        <p style="font-size:15px;color:var(--ink);margin:0 0 12px"><b>Start here</b></p>
+        <ol style="text-align:left;display:inline-block;margin:0;padding-left:18px;line-height:1.9">
+          <li><b>Add images…</b> — each becomes a scene</li>
+          <li><b>Narration…</b> — load the voice to cut against</li>
+          <li>Drag the picture to move it, scroll to zoom</li>
+          <li>Add keyframes for each place the camera should reach</li>
+          <li><b>▶ Play all</b> to watch it with the audio</li>
+        </ol>
+        <p style="margin:14px 0 0"><button class="btn sm" id="openHelp2">Read the guide</button></p>
+      </div>
+      <img id="stageImg" hidden alt="">
+      <div class="cap" id="stageCap"></div>
+      <div class="pv" id="pvBadge" hidden>PREVIEW</div>
+      <div class="holdmsg" id="holdMsg" hidden>
+        <button class="btn p" id="holdGo">Hold — click to continue</button>
+      </div>
+    </div>
+
+    <div class="kfstrip" id="kfstrip"></div>
+  </div>
+
+  <div class="right" id="props"><p class="hint">Select a scene to edit it.</p></div>
+
+  <div class="tl" style="grid-column:1/-1">
+    <div class="tlbar">
+      <button class="btn sm" id="tPlay">▶ Play all</button>
+      <button class="btn sm" id="tStop">■ Stop</button>
+      <span class="badge" id="tTime">0:00.0</span>
+      <span style="flex:1"></span>
+      <button class="btn sm" id="kfHere">◆ Keyframe at playhead</button>
+      <button class="btn sm" id="capHere">+ Caption at playhead</button>
+      <button class="btn sm" id="cutHere">✂ Scene ends here</button>
+      <button class="btn sm" id="fitAudio">Fit to narration</button>
+      <button class="hbtn" id="helpBtn2" aria-label="Help">?</button>
+    </div>
+    <div class="wavewrap">
+      <canvas id="wave"></canvas>
+      <div class="ovl" id="ovl"></div>
+      <div class="noaudio" id="noAudio">No narration loaded — <b>Play all</b> still previews the visuals on their own timing.<br>Load an MP3 or WAV to cut against the voice.</div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="help" hidden>
+  <div class="guide" role="dialog" aria-modal="true" aria-labelledby="gTitle">
+    <div class="ghead"><h2 id="gTitle">How this works</h2><span style="flex:1"></span>
+      <button class="btn sm" id="gClose">Close</button></div>
+    <div class="gbody">
+
+      <h3>The one idea: keyframes</h3>
+      <div class="big">A scene is a photo plus a list of <b>keyframes</b>. Each keyframe says
+        <i>at this moment, the shot sits here</i>. The camera moves smoothly from one to the next,
+        so the motion is whatever the keyframes describe.</div>
+      <p>Two keyframes give you a simple push in or pull back. Three or more let you do something
+        like <b>tight on one corner → all the way out → tight on the other corner</b>: that is three
+        keyframes, and the movement between them is automatic.</p>
+
+      <h3>Setting a keyframe</h3>
+      <ol>
+        <li>Pick a scene on the left. The strip under the picture shows its keyframes.</li>
+        <li>Click the keyframe you want to change. The line above the picture always tells you which
+          one you are editing and at what time.</li>
+        <li><b>Drag the picture to move the shot. Scroll to zoom.</b> What you see is exactly what
+          plays at that moment.</li>
+        <li>Use <b>＋</b> between two keyframes to add one in the middle. Use <b>＋ Add</b> at the
+          end of the strip to add another leg on the end — that one extends the scene by two
+          seconds. Or <b>◆ Keyframe at playhead</b> to add one exactly where the narration is.</li>
+      </ol>
+      <p>Every scene starts with two keyframes — one at the beginning, one at the end. You can add as
+        many in between as you need, and drag their times around.</p>
+
+      <h3>Watching it back</h3>
+      <p><b>▶ Play all</b> plays the whole thing — every image, every camera move, every caption,
+        in step with the narration. It is the same engine the finished lesson uses, so what you see
+        here is what a learner sees.</p>
+      <p><b>▶ Preview this scene</b> plays just the scene you are working on, at its real speed.</p>
+      <p>While previewing, the picture is locked so you cannot nudge a framing by accident. Stop the
+        preview to go back to editing.</p>
+
+      <h3>Cutting to the voice</h3>
+      <p>Load narration and the waveform appears along the bottom. Click anywhere on it to jump
+        there. Then, at the playhead: add a <b>keyframe</b>, add a <b>caption</b>, or end the
+        current scene with <b>✂</b>. You are working by ear rather than by arithmetic.</p>
+      <p><b>Fit to narration</b> stretches every scene, keyframe and caption proportionally so the
+        total matches the audio exactly. Use it once the order is settled.</p>
+      <p>The counter top right shows <span style="color:var(--accent)">✓</span> when the visuals and
+        the voice are the same length, or <span style="color:var(--warn)">⚠ mismatch</span> when they
+        have drifted.</p>
+
+      <h3>Holding for the learner</h3>
+      <p><b>Pause until the learner clicks Continue</b> stops at the end of that scene. In Play all
+        you will see the hold happen, so you can feel whether the beat is right. Holds show as amber
+        marks on the timeline.</p>
+
+      <h3>Save versus Export</h3>
+      <ul>
+        <li><b>Export HTML</b> — <b>one single .html file</b> with the pictures, the narration and the
+          player all inside it. No other files, no server, nothing to install. Double-click it and it
+          plays. This is the one to hand to someone, drop on a shared drive, or put in an LMS.</li>
+        <li><b>Save project</b> — one JSON with the images and audio embedded. Large. This is the file
+          you reopen to keep working.</li>
+        <li><b>Export timeline</b> — a small JSON with no media: scenes, keyframes, captions, holds.
+          This is what gets built into the lesson, alongside the media files themselves.</li>
+      </ul>
+      <p>The single HTML is typically a few megabytes, because the images and audio are carried
+        inside it. That is the trade for it being one file that always works.</p>
+      <div class="warn">Neither export is a backup. Keep only the export and you keep the timings but
+        lose the pictures. Save the project too.</div>
+
+      <h3>Keyboard</h3>
+      <table class="ktab">
+        <tr><td><kbd>Space</kbd></td><td>Play all / pause</td></tr>
+        <tr><td><kbd>K</kbd></td><td>Keyframe at the playhead</td></tr>
+        <tr><td><kbd>C</kbd></td><td>Caption at the playhead</td></tr>
+        <tr><td><kbd>X</kbd></td><td>End the current scene at the playhead</td></tr>
+        <tr><td><kbd>,</kbd> <kbd>.</kbd></td><td>Previous / next keyframe</td></tr>
+        <tr><td><kbd>A</kbd></td><td>Add a keyframe on the end</td></tr>
+        <tr><td><kbd>P</kbd></td><td>Preview this scene</td></tr>
+        <tr><td><kbd>?</kbd></td><td>This guide · <kbd>Esc</kbd> closes it or stops a preview</td></tr>
+      </table>
+      <p class="tip">Shortcuts are ignored while you are typing in a text box.</p>
+
+      <h3>Worth knowing</h3>
+      <ul>
+        <li><b>Audio needs a click first.</b> Browsers block sound until you interact with the page —
+          which is why the finished lesson opens with a Begin button.</li>
+        <li><b>1600–2400px on the long edge is plenty.</b> Bigger files slow the project down for no
+          visible gain.</li>
+        <li><b>Zooming past about 1.6× softens</b> a 1600px image. For a tight framing, crop the photo
+          before importing.</li>
+        <li><b>Nothing is uploaded.</b> Files are read in your browser and stay on your machine.</li>
+        <li><b>No undo yet.</b> Save often.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+var $=function(s){return document.querySelector(s);};
+var P={scenes:[],audio:null};
+var sel=-1, ksel=0, audioEl=null, buf=null;
+var mode="edit";            /* edit | all | scene */
+var clock=0, raf=null, held=false, heldAt=-1;
+
+function fmt(t){var m=Math.floor(t/60),s=t%60;return m+":"+(s<10?"0":"")+s.toFixed(1);}
+function total(){return P.scenes.reduce(function(a,s){return a+s.dur;},0);}
+function startOf(i){var a=0;for(var j=0;j<i;j++)a+=P.scenes[j].dur;return a;}
+function cur(){return P.scenes[sel];}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function read(file,as){
+  return new Promise(function(res){
+    var r=new FileReader();
+    r.onload=function(){res(r.result);};
+    if(as==="buf") r.readAsArrayBuffer(file); else if(as==="text") r.readAsText(file); else r.readAsDataURL(file);
+  });
+}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+/* ---------- media ---------- */
+$("#addImgs").onclick=function(){$("#fImgs").click();};
+$("#fImgs").onchange=async function(){
+  for(var i=0;i<this.files.length;i++){
+    var f=this.files[i], url=await read(f);
+    var dim=await new Promise(function(res){var im=new Image();im.onload=function(){res({w:im.naturalWidth,h:im.naturalHeight});};im.src=url;});
+    P.scenes.push({name:f.name.replace(/\.[^.]+$/,""),img:url,w:dim.w,h:dim.h,dur:6,
+      keys:[{t:0,s:1.15,x:0,y:0},{t:6,s:1.0,x:0,y:0}],lines:[],hold:false});
+  }
+  this.value=""; if(sel<0){sel=0;ksel=0;} renderAll();
+};
+$("#addAudio").onclick=function(){$("#fAudio").click();};
+$("#fAudio").onchange=async function(){
+  var f=this.files[0]; if(!f) return;
+  var url=await read(f), ab=await read(f,"buf");
+  var ac=new (window.AudioContext||window.webkitAudioContext)();
+  buf=await ac.decodeAudioData(ab);
+  P.audio={name:f.name,url:url,dur:buf.duration};
+  setupAudio(); this.value=""; renderAll();
+};
+function setupAudio(){
+  if(audioEl) audioEl.pause();
+  audioEl=new Audio(P.audio.url);
+  audioEl.addEventListener("ended",stopPlay);
+}
+
+/* ---------- keyframe maths ---------- */
+function sortKeys(s){ s.keys.sort(function(a,b){return a.t-b.t;}); }
+function frameAt(s,t){
+  var k=s.keys;
+  if(k.length===1) return k[0];
+  if(t<=k[0].t) return k[0];
+  if(t>=k[k.length-1].t) return k[k.length-1];
+  for(var i=0;i<k.length-1;i++){
+    if(t>=k[i].t && t<=k[i+1].t){
+      var span=(k[i+1].t-k[i].t)||1e-6, p=(t-k[i].t)/span, e=p*p*(3-2*p);
+      return { s:k[i].s+(k[i+1].s-k[i].s)*e,
+               x:k[i].x+(k[i+1].x-k[i].x)*e,
+               y:k[i].y+(k[i+1].y-k[i].y)*e };
+    }
+  }
+  return k[k.length-1];
+}
+
+/* ---------- stage ---------- */
+function applyFrame(s,f){
+  var img=$("#stageImg"), st=$("#stage");
+  var vw=st.clientWidth, vh=st.clientHeight;
+  var cover=Math.max(vw/s.w, vh/s.h);
+  img.style.width=(s.w*cover*f.s)+"px";
+  img.style.height=(s.h*cover*f.s)+"px";
+  img.style.transform="translate(-50%,-50%) translate("+(f.x/100*vw)+"px,"+(f.y/100*vh)+"px)";
+}
+function showScene(s,f,caption){
+  if($("#stageImg").getAttribute("src")!==s.img) $("#stageImg").src=s.img;
+  $("#stageImg").hidden=false;
+  applyFrame(s,f);
+  $("#stageCap").textContent=caption||"";
+}
+function renderStage(){
+  var has=sel>=0 && P.scenes.length;
+  $("#stageEmpty").hidden=has;
+  $("#stageImg").hidden=!has;
+  $("#editbar").style.visibility=has?"visible":"hidden";
+  if(!has){ $("#stageCap").textContent=""; return; }
+  var s=cur();
+  ksel=clamp(ksel,0,s.keys.length-1);
+  showScene(s,s.keys[ksel],s.lines.length?s.lines[0].text:"");
+  $("#whatEditing").innerHTML='Editing <b>keyframe '+(ksel+1)+' of '+s.keys.length+
+    '</b> — the shot at <b>'+s.keys[ksel].t.toFixed(1)+'s</b> into this scene. '+
+    '<span style="color:var(--dim)">Drag to move, scroll to zoom.</span>';
+}
+
+/* drag + zoom, edit mode only */
+var dragging=false,dx=0,dy=0;
+$("#stage").addEventListener("pointerdown",function(e){
+  if(mode!=="edit"||sel<0) return;
+  dragging=true;this.classList.add("drag");this.setPointerCapture(e.pointerId);dx=e.clientX;dy=e.clientY;
+});
+$("#stage").addEventListener("pointermove",function(e){
+  if(!dragging) return;
+  var st=$("#stage"), f=cur().keys[ksel];
+  f.x+=(e.clientX-dx)/st.clientWidth*100;
+  f.y+=(e.clientY-dy)/st.clientHeight*100;
+  dx=e.clientX;dy=e.clientY;
+  applyFrame(cur(),f); syncNums();
+});
+$("#stage").addEventListener("pointerup",function(){dragging=false;this.classList.remove("drag");});
+$("#stage").addEventListener("wheel",function(e){
+  if(mode!=="edit"||sel<0) return;
+  e.preventDefault();
+  var f=cur().keys[ksel];
+  f.s=clamp(f.s*(e.deltaY>0?0.96:1.04),1,2.5);
+  applyFrame(cur(),f); syncNums();
+},{passive:false});
+
+/* ---------- keyframe strip ---------- */
+function renderStrip(){
+  if(sel<0){$("#kfstrip").innerHTML="";return;}
+  var s=cur(), h="";
+  s.keys.forEach(function(k,i){
+    h+='<button class="kf'+(i===ksel?" on":"")+'" data-k="'+i+'">'+
+       '<span class="n">'+(i+1)+'</span><span class="tm">'+k.t.toFixed(1)+'s</span>'+
+       '<span style="color:var(--dim)">·</span><span>'+Math.round(k.s*100)+'%</span></button>';
+    if(i<s.keys.length-1) h+='<button class="ins" data-ins="'+i+'" title="Add a keyframe between these two">＋</button>';
+  });
+  h+='<button class="ins add" data-add="1" title="Add another keyframe on the end (extends the scene by 2s)">＋ Add</button>';
+  h+='<span style="flex:1"></span>'+
+     '<button class="btn sm" id="kfDel"'+(s.keys.length<=2?" disabled":"")+'>Delete keyframe</button>';
+  $("#kfstrip").innerHTML=h;
+  $("#kfDel").onclick=function(){
+    if(cur().keys.length<=2) return;
+    cur().keys.splice(ksel,1); ksel=clamp(ksel,0,cur().keys.length-1); renderAll();
+  };
+}
+/* Append a keyframe after the last one, so a move can be built up leg by leg.
+   If the last keyframe sits before the end of the scene, the new one goes at the
+   end; otherwise the scene grows by a fixed 2s so the result is predictable. */
+function appendKey(){
+  if(sel<0) return;
+  var s=cur(), last=s.keys[s.keys.length-1];
+  if(last.t < s.dur-0.05){
+    s.keys.push({t:+s.dur.toFixed(2), s:last.s, x:last.x, y:last.y});
+  }else{
+    s.dur=+(s.dur+2).toFixed(2);
+    s.keys.push({t:s.dur, s:last.s, x:last.x, y:last.y});
+  }
+  sortKeys(s); ksel=s.keys.length-1;
+  renderAll();
+}
+$("#kfstrip").addEventListener("click",function(e){
+  var k=e.target.closest("[data-k]");
+  if(k){ ksel=+k.dataset.k; renderStage(); renderStrip(); renderProps(); return; }
+  if(e.target.closest("[data-add]")){ appendKey(); return; }
+  var ins=e.target.closest("[data-ins]");
+  if(ins){
+    var i=+ins.dataset.ins, s=cur();
+    var a=s.keys[i], b=s.keys[i+1];
+    s.keys.splice(i+1,0,{t:+((a.t+b.t)/2).toFixed(2),
+                         s:(a.s+b.s)/2, x:(a.x+b.x)/2, y:(a.y+b.y)/2});
+    ksel=i+1; renderAll();
+  }
+});
+
+/* ---------- scenes + properties ---------- */
+function renderList(){
+  $("#noScenes").hidden=P.scenes.length>0;
+  $("#slist").innerHTML=P.scenes.map(function(s,i){
+    return '<li class="'+(i===sel?"sel":"")+'" data-i="'+i+'"><img class="th" src="'+s.img+'" alt="">'+
+      '<span><span class="nm">'+esc(s.name)+'</span><br><span class="du">'+s.dur.toFixed(1)+'s · '+s.keys.length+' keys</span></span></li>';
+  }).join("");
+}
+$("#slist").onclick=function(e){
+  var li=e.target.closest("[data-i]"); if(!li) return;
+  sel=+li.dataset.i; ksel=0; renderAll();
+};
+function renderProps(){
+  if(sel<0){$("#props").innerHTML='<p class="hint">Select a scene to edit it.</p>';return;}
+  var s=cur(), k=s.keys[ksel];
+  $("#props").innerHTML=
+    '<label class="f">Scene name</label><input type="text" id="pName" value="'+esc(s.name)+'">'+
+    '<label class="f">Scene length (seconds)</label><input type="number" id="pDur" min="1" step="0.5" value="'+s.dur+'">'+
+    '<label class="f">Keyframe '+(ksel+1)+' of '+s.keys.length+'</label>'+
+    '<div class="row"><div><label class="f" style="margin:0 0 3px">Time (s)</label>'+
+      '<input type="number" id="kT" step="0.1" min="0" max="'+s.dur+'" value="'+k.t+'"></div>'+
+      '<div><label class="f" style="margin:0 0 3px">Zoom</label>'+
+      '<input type="number" id="kS" step="0.01" min="1" max="2.5" value="'+k.s.toFixed(2)+'"></div></div>'+
+    '<div class="row" style="margin-top:6px">'+
+      '<div><label class="f" style="margin:0 0 3px">X %</label><input type="number" id="kX" step="0.5" value="'+k.x.toFixed(1)+'"></div>'+
+      '<div><label class="f" style="margin:0 0 3px">Y %</label><input type="number" id="kY" step="0.5" value="'+k.y.toFixed(1)+'"></div></div>'+
+    '<input type="range" id="kZoom" min="1" max="2.5" step="0.01" value="'+k.s+'" style="margin-top:8px">'+
+    '<div class="row" style="margin-top:8px"><button class="btn sm" id="kReset">Reset this keyframe</button></div>'+
+    '<label class="f" style="margin-top:16px">Hold at end of scene</label>'+
+    '<label style="display:flex;gap:8px;align-items:center;font-size:12.5px">'+
+      '<input type="checkbox" id="pHold" '+(s.hold?"checked":"")+'> Pause until the learner clicks Continue</label>'+
+    '<label class="f" style="margin-top:16px">Captions <span style="text-transform:none;letter-spacing:0">(seconds into this scene)</span></label>'+
+    '<ul class="lines" id="lines">'+s.lines.map(function(l,i){
+        return '<li><input class="t" type="number" step="0.1" min="0" value="'+l.t+'" data-lt="'+i+'">'+
+               '<textarea rows="2" data-lx="'+i+'">'+esc(l.text)+'</textarea>'+
+               '<button class="btn sm dangr" data-ld="'+i+'">✕</button></li>';}).join("")+'</ul>'+
+    '<button class="btn sm" id="addLine">+ Caption</button>'+
+    '<div class="row" style="margin-top:18px"><button class="btn sm" id="moveUp">↑</button>'+
+      '<button class="btn sm" id="moveDn">↓</button>'+
+      '<button class="btn sm dangr" id="delScene">Delete scene</button></div>';
+
+  $("#pName").oninput=function(){s.name=this.value;renderList();};
+  $("#pDur").oninput=function(){
+    var old=s.dur; s.dur=Math.max(1,+this.value||1);
+    s.keys.forEach(function(kk){ if(kk.t>s.dur) kk.t=s.dur; });
+    if(s.keys.length) s.keys[s.keys.length-1].t=Math.min(s.keys[s.keys.length-1].t,s.dur);
+    renderList(); renderStrip(); renderTimeline();
+  };
+  $("#kT").oninput=function(){ k.t=clamp(+this.value||0,0,s.dur); sortKeys(s); ksel=s.keys.indexOf(k); renderStrip(); renderTimeline(); };
+  $("#kS").oninput=function(){ k.s=clamp(+this.value||1,1,2.5); $("#kZoom").value=k.s; applyFrame(s,k); renderStrip(); };
+  $("#kZoom").oninput=function(){ k.s=+this.value; $("#kS").value=k.s.toFixed(2); applyFrame(s,k); renderStrip(); };
+  $("#kX").oninput=function(){ k.x=+this.value; applyFrame(s,k); };
+  $("#kY").oninput=function(){ k.y=+this.value; applyFrame(s,k); };
+  $("#kReset").onclick=function(){ k.s=1;k.x=0;k.y=0; renderAll(); };
+  $("#pHold").onchange=function(){ s.hold=this.checked; renderTimeline(); };
+  $("#addLine").onclick=function(){ s.lines.push({t:0,text:"New caption"}); renderProps(); renderTimeline(); };
+  $("#moveUp").onclick=function(){ if(sel>0){P.scenes.splice(sel-1,0,P.scenes.splice(sel,1)[0]);sel--;renderAll();} };
+  $("#moveDn").onclick=function(){ if(sel<P.scenes.length-1){P.scenes.splice(sel+1,0,P.scenes.splice(sel,1)[0]);sel++;renderAll();} };
+  $("#delScene").onclick=function(){ P.scenes.splice(sel,1); sel=Math.min(sel,P.scenes.length-1); ksel=0; renderAll(); };
+  $("#lines").oninput=function(e){
+    var t=e.target;
+    if(t.dataset.lt!==undefined) s.lines[+t.dataset.lt].t=+t.value;
+    if(t.dataset.lx!==undefined) s.lines[+t.dataset.lx].text=t.value;
+    renderTimeline();
+  };
+  $("#lines").onclick=function(e){
+    var d=e.target.closest("[data-ld]"); if(!d) return;
+    s.lines.splice(+d.dataset.ld,1); renderProps(); renderTimeline();
+  };
+}
+function syncNums(){
+  if(sel<0||!$("#kS")) return;
+  var k=cur().keys[ksel];
+  $("#kS").value=k.s.toFixed(2); $("#kZoom").value=k.s;
+  $("#kX").value=k.x.toFixed(1); $("#kY").value=k.y.toFixed(1);
+  renderStrip();
+}
+
+/* ---------- waveform + timeline ---------- */
+function drawWave(){
+  var c=$("#wave"), r=c.getBoundingClientRect();
+  c.width=r.width*devicePixelRatio; c.height=r.height*devicePixelRatio;
+  var g=c.getContext("2d"); g.scale(devicePixelRatio,devicePixelRatio); g.clearRect(0,0,r.width,r.height);
+  $("#noAudio").hidden=!!buf;
+  if(!buf) return;
+  var d=buf.getChannelData(0), step=Math.floor(d.length/r.width)||1, mid=r.height/2;
+  g.fillStyle="#2f4a63";
+  for(var x=0;x<r.width;x++){
+    var lo=1,hi=-1;
+    for(var j=0;j<step;j++){var v=d[x*step+j]||0;if(v<lo)lo=v;if(v>hi)hi=v;}
+    g.fillRect(x,mid+lo*mid*0.92,1,Math.max(1,(hi-lo)*mid*0.92));
+  }
+}
+function span(){ return Math.max(total(), P.audio?P.audio.dur:0)||1; }
+function renderTimeline(){
+  drawWave();
+  var sp=span(), h="";
+  P.scenes.forEach(function(s,i){
+    var st=startOf(i);
+    h+='<div class="bound" style="left:'+(st/sp*100)+'%"><b>'+esc(s.name)+'</b></div>';
+    s.keys.forEach(function(k){ h+='<div class="kfm" style="left:'+((st+k.t)/sp*100)+'%"></div>'; });
+    s.lines.forEach(function(l){ h+='<div class="capm" style="left:'+((st+l.t)/sp*100)+'%"></div>'; });
+    if(s.hold) h+='<div class="holdm" style="left:'+((st+s.dur)/sp*100)+'%"></div>';
+  });
+  h+='<div class="play" id="ph" style="left:'+(clock/sp*100)+'%"></div>';
+  $("#ovl").innerHTML=h;
+  var mm=P.audio&&Math.abs(total()-P.audio.dur)>0.6;
+  $("#stat").innerHTML=P.scenes.length+" scene"+(P.scenes.length===1?"":"s")+" · "+total().toFixed(1)+"s"+
+    (P.audio?' · narration '+P.audio.dur.toFixed(1)+"s"+(mm?' <span style="color:var(--warn)">⚠ mismatch</span>':' <span style="color:var(--accent)">✓</span>'):"");
+}
+
+/* ---------- preview engine: images + motion + captions + audio ---------- */
+function sceneAt(t){
+  var acc=0;
+  for(var i=0;i<P.scenes.length;i++){
+    if(t<acc+P.scenes[i].dur||i===P.scenes.length-1) return {i:i,local:t-acc};
+    acc+=P.scenes[i].dur;
+  }
+  return {i:0,local:0};
+}
+function paintAt(t){
+  if(!P.scenes.length) return;
+  var at=sceneAt(t), s=P.scenes[at.i];
+  var cap="";
+  s.lines.forEach(function(l){ if(at.local>=l.t) cap=l.text; });
+  showScene(s,frameAt(s,at.local),cap);
+  var ph=$("#ph"); if(ph) ph.style.left=(t/span()*100)+"%";
+  $("#tTime").textContent=fmt(t);
+}
+var lastNow=0;
+function loop(now){
+  if(mode==="edit") return;
+  var dt=(now-lastNow)/1000; lastNow=now;
+  if(!held){
+    if(audioEl && mode==="all") clock=audioEl.currentTime;
+    else clock+=dt;
+  }
+  var limit = mode==="scene" ? (startOf(sel)+cur().dur) : total();
+  /* honour a hold so the author can feel the beat */
+  if(!held && mode==="all"){
+    var acc=0;
+    for(var i=0;i<P.scenes.length;i++){
+      acc+=P.scenes[i].dur;
+      if(P.scenes[i].hold && clock>=acc-0.02 && heldAt!==i){
+        held=true; heldAt=i; clock=acc-0.02;
+        if(audioEl) audioEl.pause();
+        $("#holdMsg").hidden=false;
+        break;
+      }
+    }
+  }
+  paintAt(clock);
+  if(clock>=limit-0.01 && !held){ stopPlay(); return; }
+  raf=requestAnimationFrame(loop);
+}
+function startPlay(kind){
+  if(!P.scenes.length) return;
+  mode=kind; held=false; heldAt=-1;
+  $("#holdMsg").hidden=true;
+  $("#pvBadge").hidden=false;
+  $("#stage").classList.add("previewing");
+  $("#tPlay").textContent="❚❚ Pause"; $("#playAll").textContent="❚❚ Pause";
+  if(kind==="scene"){ clock=startOf(sel); }
+  if(audioEl && kind==="all"){ audioEl.currentTime=clock; audioEl.play(); }
+  lastNow=performance.now();
+  raf=requestAnimationFrame(loop);
+}
+function stopPlay(){
+  mode="edit"; held=false;
+  cancelAnimationFrame(raf);
+  if(audioEl) audioEl.pause();
+  $("#pvBadge").hidden=true; $("#holdMsg").hidden=true;
+  $("#stage").classList.remove("previewing");
+  $("#tPlay").textContent="▶ Play all"; $("#playAll").textContent="▶ Play all";
+  renderStage();
+}
+function togglePlay(){ mode==="edit" ? startPlay("all") : stopPlay(); }
+$("#playAll").onclick=togglePlay;
+$("#tPlay").onclick=togglePlay;
+$("#tStop").onclick=function(){ clock=0; if(audioEl) audioEl.currentTime=0; stopPlay(); renderTimeline(); };
+$("#prevScene").onclick=function(){ if(sel>=0) mode==="edit"?startPlay("scene"):stopPlay(); };
+$("#holdGo").onclick=function(){
+  held=false; $("#holdMsg").hidden=true;
+  clock+=0.05;
+  if(audioEl&&mode==="all"){ audioEl.currentTime=clock; audioEl.play(); }
+  lastNow=performance.now();
+};
+
+/* ---------- playhead actions ---------- */
+$("#wave").onclick=function(e){
+  var r=this.getBoundingClientRect();
+  clock=clamp((e.clientX-r.left)/r.width*span(),0,span());
+  if(audioEl) audioEl.currentTime=clock;
+  var at=sceneAt(clock); sel=at.i; ksel=0;
+  renderList(); renderProps(); renderStrip(); paintAt(clock); renderTimeline();
+};
+function atPlayhead(){ var at=sceneAt(clock); return at; }
+$("#kfHere").onclick=function(){
+  if(!P.scenes.length) return;
+  var at=atPlayhead(), s=P.scenes[at.i], f=frameAt(s,at.local);
+  s.keys.push({t:+at.local.toFixed(2),s:f.s,x:f.x,y:f.y});
+  sortKeys(s); sel=at.i; ksel=s.keys.findIndex(function(k){return Math.abs(k.t-at.local)<0.001;});
+  renderAll();
+};
+$("#capHere").onclick=function(){
+  if(!P.scenes.length) return;
+  var at=atPlayhead(), s=P.scenes[at.i];
+  s.lines.push({t:+at.local.toFixed(1),text:"New caption"});
+  s.lines.sort(function(a,b){return a.t-b.t;});
+  sel=at.i; renderAll();
+};
+$("#cutHere").onclick=function(){
+  if(!P.scenes.length) return;
+  var at=atPlayhead(), s=P.scenes[at.i];
+  if(at.local<0.5) return;
+  s.dur=+at.local.toFixed(1);
+  s.keys.forEach(function(k){ if(k.t>s.dur) k.t=s.dur; });
+  sel=at.i; renderAll();
+};
+$("#fitAudio").onclick=function(){
+  if(!P.audio||!P.scenes.length) return;
+  var k=P.audio.dur/total();
+  P.scenes.forEach(function(s){
+    s.dur=+(s.dur*k).toFixed(2);
+    s.keys.forEach(function(kk){ kk.t=+(kk.t*k).toFixed(2); });
+    s.lines.forEach(function(l){ l.t=+(l.t*k).toFixed(2); });
+  });
+  renderAll();
+};
+
+/* ---------- save / open / export ---------- */
+function download(name,text){
+  var b=new Blob([text],{type:"application/json"}), a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download=name; a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+}
+$("#saveProj").onclick=function(){ download("intro-project.json",JSON.stringify(P)); };
+$("#openProj").onclick=function(){ $("#fProj").click(); };
+$("#fProj").onchange=async function(){
+  var f=this.files[0]; if(!f) return;
+  P=JSON.parse(await read(f,"text"));
+  /* migrate the old two-framing shape to keyframes */
+  P.scenes.forEach(function(s){
+    if(!s.keys){
+      var a=(s.from||{s:1,x:0,y:0}), b=(s.to||{s:1,x:0,y:0});
+      s.keys=[{t:0,s:a.s,x:a.x,y:a.y},{t:s.dur,s:b.s,x:b.x,y:b.y}];
+      delete s.from; delete s.to;
+    }
+  });
+  sel=P.scenes.length?0:-1; ksel=0; buf=null;
+  if(P.audio){
+    setupAudio();
+    var ab=await fetch(P.audio.url).then(function(r){return r.arrayBuffer();});
+    var ac=new (window.AudioContext||window.webkitAudioContext)();
+    buf=await ac.decodeAudioData(ab);
+  }
+  this.value=""; renderAll();
+};
+$("#exportBtn").onclick=function(){
+  download("timeline.json",JSON.stringify({
+    audio:P.audio?P.audio.name:null,
+    scenes:P.scenes.map(function(s){
+      return { image:s.name+".jpg", dur:+s.dur.toFixed(2), hold:!!s.hold,
+               keys:s.keys.map(function(k){return {t:+k.t.toFixed(2),s:+k.s.toFixed(4),x:+k.x.toFixed(2),y:+k.y.toFixed(2)};}),
+               lines:s.lines.map(function(l){return {t:+l.t.toFixed(2),text:l.text};}) };
+    })
+  },null,2));
+};
+
+
+/* ---------- export a single self-contained HTML ---------- */
+function buildHTML(){
+  var data = {
+    scenes: P.scenes.map(function(s){
+      return { img:s.img, w:s.w, h:s.h, dur:+s.dur.toFixed(2), hold:!!s.hold,
+               keys:s.keys.map(function(k){return {t:+k.t.toFixed(3),s:+k.s.toFixed(4),x:+k.x.toFixed(2),y:+k.y.toFixed(2)};}),
+               lines:s.lines.map(function(l){return {t:+l.t.toFixed(2),text:l.text};}) };
+    }),
+    audio: P.audio ? P.audio.url : null
+  };
+  var css = [
+    ':root{--ink:#e9edf2;--dim:#93a3b5;--accent:#6ee7c4}',
+    '*{box-sizing:border-box}html,body{margin:0;height:100%;background:#0b1119;color:var(--ink);',
+    'font:16px/1.55 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif}',
+    '[hidden]{display:none !important}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}',
+    ':focus-visible{outline:3px solid #7fb2ff;outline-offset:3px}',
+    '.wrap{position:fixed;inset:0;display:grid;grid-template-rows:1fr auto}',
+    '.frame{position:relative;overflow:hidden;background:#05080d}',
+    '.frame img{position:absolute;left:50%;top:50%;max-width:none;will-change:transform}',
+    '.cap{position:absolute;left:0;right:0;bottom:0;padding:26px 6vw 32px;font-size:clamp(17px,2.3vw,25px);',
+    'line-height:1.45;text-shadow:0 2px 14px rgba(0,0,0,.85);',
+    'background:linear-gradient(to top,rgba(5,9,15,.94),rgba(5,9,15,.66) 55%,transparent)}',
+    '.cap p{margin:0;max-width:60ch;opacity:0;transform:translateY(8px);transition:opacity .45s,transform .45s}',
+    '.cap p.in{opacity:1;transform:none}',
+    '.bar{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#0d141d;border-top:1px solid #1c2836}',
+    '.ctl{width:40px;height:40px;border-radius:50%;display:grid;place-items:center}',
+    '.ctl:hover{background:#1a2432}',
+    '.track{flex:1;height:5px;border-radius:99px;background:#22303f;position:relative;cursor:pointer}',
+    '.track i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:99px;width:0}',
+    '.time{font-variant-numeric:tabular-nums;font-size:13px;color:var(--dim);min-width:82px;text-align:right}',
+    '.gate{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;',
+    'background:rgba(6,10,16,.92);z-index:5}',
+    '.gate h1{font-size:clamp(22px,3.4vw,34px);margin:0 0 10px;font-weight:600}',
+    '.gate p{color:var(--dim);max-width:46ch;margin:0 auto 22px}',
+    '.big{background:var(--accent);color:#04241b;font-weight:700;padding:14px 30px;border-radius:99px;font-size:17px}',
+    '.ghost{border:1px solid #2b3a4c;padding:12px 22px;border-radius:99px;margin-left:10px}',
+    '@media (prefers-reduced-motion: reduce){.frame img{transition:none}}'
+  ].join('');
+
+  var js = [
+    'var D=__DATA__;',
+    'var RED=matchMedia("(prefers-reduced-motion: reduce)").matches;',
+    'var A=D.audio?new Audio(D.audio):null;',
+    'var TOTAL=D.scenes.reduce(function(a,s){return a+s.dur;},0);',
+    'var starts=[],acc=0;D.scenes.forEach(function(s){starts.push(acc);acc+=s.dur;});',
+    'var clock=0,playing=false,raf=null,held=false,heldAt=-1,last=0,done=false,cur=-1;',
+    'var $=function(s){return document.querySelector(s);};',
+    'function fmt(t){var m=Math.floor(t/60),r=Math.floor(t%60);return m+":"+(r<10?"0":"")+r;}',
+    'function frameAt(s,t){var k=s.keys;if(k.length<2)return k[0]||{s:1,x:0,y:0};',
+    ' if(t<=k[0].t)return k[0];if(t>=k[k.length-1].t)return k[k.length-1];',
+    ' for(var i=0;i<k.length-1;i++){if(t>=k[i].t&&t<=k[i+1].t){',
+    '  var sp=(k[i+1].t-k[i].t)||1e-6,p=(t-k[i].t)/sp,e=p*p*(3-2*p);',
+    '  return {s:k[i].s+(k[i+1].s-k[i].s)*e,x:k[i].x+(k[i+1].x-k[i].x)*e,y:k[i].y+(k[i+1].y-k[i].y)*e};}}',
+    ' return k[k.length-1];}',
+    'function sceneAt(t){var i=0;for(var j=0;j<D.scenes.length;j++)if(t>=starts[j])i=j;return i;}',
+    'function paint(){',
+    ' var t=Math.min(clock,TOTAL),i=sceneAt(t),s=D.scenes[i],local=t-starts[i];',
+    ' var img=$("#pic");',
+    ' if(cur!==i){cur=i;img.src=s.img;img.alt="";}',
+    ' var fr=RED?{s:1,x:0,y:0}:frameAt(s,local);',
+    ' var f=$("#frame"),vw=f.clientWidth,vh=f.clientHeight,cov=Math.max(vw/s.w,vh/s.h);',
+    ' img.style.width=(s.w*cov*fr.s)+"px";img.style.height=(s.h*cov*fr.s)+"px";',
+    ' img.style.transform="translate(-50%,-50%) translate("+(fr.x/100*vw)+"px,"+(fr.y/100*vh)+"px)";',
+    ' var line="";s.lines.forEach(function(l){if(local>=l.t)line=l.text;});',
+    ' var el=$("#cap");if(el.textContent!==line){el.classList.remove("in");el.textContent=line;',
+    '  requestAnimationFrame(function(){el.classList.add("in");});}',
+    ' $("#fill").style.width=(t/TOTAL*100)+"%";',
+    ' $("#time").textContent=fmt(t)+" / "+fmt(TOTAL);',
+    ' $("#track").setAttribute("aria-valuenow",Math.round(t/TOTAL*100));}',
+    'function loop(now){if(!playing)return;var dt=(now-last)/1000;last=now;',
+    ' if(!held){ if(A)clock=A.currentTime; else clock+=dt; }',
+    ' if(!held){var a=0;for(var i=0;i<D.scenes.length;i++){a+=D.scenes[i].dur;',
+    '  if(D.scenes[i].hold&&clock>=a-0.02&&heldAt!==i){held=true;heldAt=i;clock=a-0.02;',
+    '   if(A)A.pause();$("#holdGate").hidden=false;break;}}}',
+    ' paint();',
+    ' if(clock>=TOTAL-0.02&&!held){finish();return;}',
+    ' raf=requestAnimationFrame(loop);}',
+    'function play(){if(done)return;playing=true;last=performance.now();',
+    ' if(A){A.currentTime=clock;A.play();}',
+    ' $("#pi").innerHTML=\'<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>\';',
+    ' $("#pp").setAttribute("aria-label","Pause");raf=requestAnimationFrame(loop);}',
+    'function pause(){playing=false;cancelAnimationFrame(raf);if(A)A.pause();',
+    ' $("#pi").innerHTML=\'<path d="M8 5l11 7-11 7z"/>\';$("#pp").setAttribute("aria-label","Play");}',
+    'function finish(){done=true;pause();$("#endGate").hidden=false;}',
+    'function seek(fr){clock=Math.max(0,Math.min(TOTAL-0.05,fr*TOTAL));if(A)A.currentTime=clock;',
+    ' done=false;held=false;heldAt=-1;$("#endGate").hidden=true;$("#holdGate").hidden=true;paint();}',
+    '$("#begin").onclick=function(){$("#startGate").hidden=true;play();};',
+    '$("#pp").onclick=function(){playing?pause():play();};',
+    '$("#holdGo").onclick=function(){held=false;$("#holdGate").hidden=true;clock+=0.05;',
+    ' if(A){A.currentTime=clock;A.play();}last=performance.now();};',
+    '$("#replay").onclick=function(){seek(0);$("#endGate").hidden=true;done=false;play();};',
+    '$("#track").onclick=function(e){var r=this.getBoundingClientRect();seek((e.clientX-r.left)/r.width);};',
+    '$("#track").onkeydown=function(e){var st=5/TOTAL;',
+    ' if(e.key==="ArrowRight"){seek(clock/TOTAL+st);e.preventDefault();}',
+    ' if(e.key==="ArrowLeft"){seek(clock/TOTAL-st);e.preventDefault();}};',
+    'document.addEventListener("keydown",function(e){',
+    ' if(e.key===" "&&$("#startGate").hidden){e.preventDefault();playing?pause():play();}});',
+    'addEventListener("resize",paint);',
+    'paint();'
+  ].join('\n');
+
+  var body = [
+    '<div class="wrap">',
+    '<div class="frame" id="frame">',
+    '<img id="pic" alt="">',
+    '<div class="cap"><p id="cap"></p></div>',
+    '<div class="gate" id="startGate"><div>',
+      '<h1>Before you begin</h1>',
+      '<p>A short introduction. It has sound — turn it up, or follow the captions on screen.</p>',
+      '<button class="big" id="begin">Begin</button>',
+    '</div></div>',
+    '<div class="gate" id="holdGate" hidden><div><button class="big" id="holdGo">Continue</button></div></div>',
+    '<div class="gate" id="endGate" hidden><div>',
+      '<h1>End of introduction</h1>',
+      '<button class="big" onclick="parent.postMessage({introComplete:true},\'*\')">Continue</button>',
+      '<button class="ghost" id="replay">Replay</button>',
+    '</div></div>',
+    '</div>',
+    '<div class="bar">',
+      '<button class="ctl" id="pp" aria-label="Pause"><svg id="pi" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>',
+      '<div class="track" id="track" role="slider" tabindex="0" aria-label="Scrub" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="fill"></i></div>',
+      '<span class="time" id="time">0:00 / 0:00</span>',
+    '</div>',
+    '</div>'
+  ].join('');
+
+  return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'+
+    '<meta name="viewport" content="width=device-width,initial-scale=1">\n'+
+    '<title>Introduction</title>\n<style>'+css+'</style>\n</head>\n<body>\n'+body+'\n<scr'+'ipt>\n'+
+    js.replace('__DATA__', JSON.stringify(data))+'\n</scr'+'ipt>\n</body>\n</html>\n';
+}
+$("#exportHtml").onclick=function(){
+  if(!P.scenes.length) return;
+  var html=buildHTML();
+  var b=new Blob([html],{type:"text/html"}), a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download="intro.html"; a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+};
+
+/* ---------- guide + keyboard ---------- */
+function openHelp(){$("#help").hidden=false;$("#gClose").focus();}
+function closeHelp(){$("#help").hidden=true;}
+$("#helpBtn").onclick=openHelp; $("#helpBtn2").onclick=openHelp; $("#gClose").onclick=closeHelp;
+$("#help").addEventListener("mousedown",function(e){if(e.target===this)closeHelp();});
+document.addEventListener("click",function(e){ if(e.target&&e.target.id==="openHelp2") openHelp(); });
+try{ if(!localStorage.getItem("sceneEditor.seenGuide2")){ openHelp(); localStorage.setItem("sceneEditor.seenGuide2","1"); } }catch(e){}
+
+document.addEventListener("keydown",function(e){
+  var t=e.target;
+  var typing=t&&(t.tagName==="TEXTAREA"||(t.tagName==="INPUT"&&/^(text|number|search|email|url|tel|password)$/i.test(t.type)));
+  if(e.key==="Escape"){ if(!$("#help").hidden) closeHelp(); else if(mode!=="edit") stopPlay(); return; }
+  if(typing) return;
+  if(e.key==="?"||(e.key==="/"&&e.shiftKey)){e.preventDefault();openHelp();return;}
+  if(!$("#help").hidden) return;
+  if(e.key===" "){e.preventDefault();togglePlay();}
+  if(e.key==="k"||e.key==="K") $("#kfHere").click();
+  if(e.key==="c"||e.key==="C") $("#capHere").click();
+  if(e.key==="x"||e.key==="X") $("#cutHere").click();
+  if(e.key==="p"||e.key==="P") $("#prevScene").click();
+  if(e.key==="a"||e.key==="A") appendKey();
+  if(e.key===","&&sel>=0){ ksel=clamp(ksel-1,0,cur().keys.length-1); renderStage();renderStrip();renderProps(); }
+  if(e.key==="."&&sel>=0){ ksel=clamp(ksel+1,0,cur().keys.length-1); renderStage();renderStrip();renderProps(); }
+});
+
+function renderAll(){ renderList(); renderStage(); renderStrip(); renderProps(); renderTimeline(); }
+addEventListener("resize",function(){ if(mode==="edit") renderStage(); else paintAt(clock); renderTimeline(); });
+renderAll();
+</script>
+</body>
+</html>

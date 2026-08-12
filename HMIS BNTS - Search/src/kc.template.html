@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge Check &mdash; Finding a Participant</title>
+<!--
+  The knowledge check, dealt as cards.
+
+  One question at a time. Lashes deals three answers face down, they turn over
+  together, the learner picks one, and the feedback is the same sentence the
+  script carries — the questions come from `script/kc_data.py` and are stamped
+  into the KC token below at build time, so this page and the docx are rendered
+  from one list and cannot drift.
+
+  That token is written out exactly once, beside `var KC`. Do not name it in
+  prose: build.sh replaces every occurrence and the maker replaces the first,
+  so a second mention silently swallows the questions in one of them.
+
+  It reports nothing but completion, and only once the learner has cleared the
+  pass mark. There is no score in these simulations and Rise could not receive
+  one anyway; the tally on screen is for the learner, so the gate makes sense
+  to the person facing it.
+
+  It is a card table and not a fortune teller's, deliberately. The lesson's
+  whole argument is that you do not decide on one signal and you do not guess,
+  and a deck that reads the future says the opposite.
+-->
+<style>
+:root{
+  --teal:#066888; --teal-dk:#044e66; --teal-lt:#3fa0c0; --lens:#e0eff5;
+  --ink:#14222b; --mut:#5f7f8f; --line:#d9e8ef;
+  /* The bluish was the container; now it is what sits ON the page. The
+     container itself is transparent so the check reads as part of the Rise
+     page it is dropped into rather than a panel bolted onto it. */
+  --panel:#e9f3f8; --panel-2:#f2f8fb;
+  /* Brand palette, from the 2020 style guide via the LAHSA repo's brand/README.md
+     — not sampled off a screenshot. Teal and gold are surfaces there, never inks. */
+  --lahsa-blue:#006688; --lahsa-blue-lt:#33849f; --lahsa-blue-dk:#00506b;
+  --lahsa-gold:#b99c00;
+  --ok:#0f6b45; --ok-soft:#e8f5ee; --bad:#a3312a; --bad-soft:#fbeae9;
+  --focus:#0b6fd4;
+}
+*{box-sizing:border-box}
+/* any display: value beats the [hidden] default — one rule, as in the lesson */
+[hidden]{display:none !important}
+html,body{margin:0;padding:0}
+body{
+  font:15px/1.6 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink); background:transparent; -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.wrap{max-width:880px;margin:0 auto;padding:14px 16px 22px}
+
+/* ---------- header: what this is, and how far in they are ---------- */
+.head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.head h1{margin:0;flex:1;font-size:17px;font-weight:700;color:var(--teal);letter-spacing:.01em}
+.pips{display:flex;gap:6px}
+.pip{width:22px;height:8px;border-radius:5px;background:#dbe7ee;transition:background .3s,transform .3s}
+.pip.now{background:var(--teal-lt);transform:scaleY(1.5)}
+.pip.ok{background:var(--ok)}
+.pip.no{background:var(--bad)}
+.tally{font-size:13px;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- the table ---------- */
+.felt{background:none;border:0;padding:0;position:relative}
+
+/* She is not here any more — she turns up for the feedback and for the reading,
+   and the question pill takes the width she was using. */
+/* Sized for the taller of the two things that live here — the question, and the
+   feedback that replaces it. The cards below never move, so a learner can sit on
+   the feedback and look back at what they picked for as long as they like. */
+.dealer{position:relative;margin-bottom:18px;min-height:217px}
+/* Two slots hold her — beside the feedback and beside the reading — and only one
+   ever does. She is not present for the question at all: she turns up to react,
+   which is a stronger entrance than standing there waiting, and it gives the
+   question pill the width she was taking. */
+.lashy{flex:none;width:94px;height:94px;margin:-6px 0 0 -6px;position:relative}
+.lashy svg{width:100%;height:100%;display:block;overflow:visible}
+.lashy .mface{display:block;width:100%;height:100%;
+  /* her face sits at (44,42) in a 100-box, so spin and shrink about that, not
+     about the middle of the empty margin */
+  transform-origin:44% 42%}
+.lashy .puff{position:absolute;left:5%;top:3%;width:88%;height:88%;border-radius:50%;
+  border:2.5px solid var(--teal);opacity:0;pointer-events:none}
+.lashy.out .mface{animation:poofOut .29s ease-in forwards}
+.lashy.in  .mface{animation:poofIn .46s cubic-bezier(.3,1.45,.5,1)}
+.lashy.out .puff,.lashy.in .puff{animation:puffRing .44s ease-out}
+@keyframes poofOut{0%{transform:scale(1) rotate(0);opacity:1}
+  100%{transform:scale(.12) rotate(165deg);opacity:0}}
+@keyframes poofIn{0%{transform:scale(.12) rotate(-165deg);opacity:0}
+  55%{transform:scale(1.16) rotate(14deg);opacity:1}
+  100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
+/* min-height so a three-line question and a one-line question take the same room.
+   Without it the block still moved between questions — smaller than the feedback
+   jump, but the same defect: the page shifting under a learner who has not asked
+   it to. Sized to the tallest question at the narrowest column we support. */
+.ask{background:var(--panel);border-radius:17px;border-left:5px solid var(--teal);
+  padding:14px 18px;min-height:132px;
+  box-shadow:0 8px 24px rgba(6,104,136,.13),0 1px 3px rgba(6,104,136,.12)}
+.ask .qn{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);
+  font-weight:700;margin-bottom:4px}
+.ask .qt{font-size:17px;line-height:1.5;font-weight:600}
+
+/* ---------- the hand ---------- */
+/* auto-fit rather than a fixed three, so a narrower Rise column wraps the hand
+   instead of squeezing it. Not a second layout — the same one, fluid. */
+.hand{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:16px;perspective:1300px}
+.card{position:relative;height:226px;transform-style:preserve-3d;padding:0;background:none;
+  border-radius:14px;cursor:default;transition:transform .34s cubic-bezier(.2,1.2,.4,1)}
+.hand.live .card{cursor:pointer}
+.hand.live .card:hover{transform:translateY(-7px)}
+.face{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;overflow:hidden;
+  box-shadow:0 8px 22px rgba(6,104,136,.16),0 0 0 1px rgba(6,104,136,.1)}
+/* back: face down when dealt. Drawn, not fetched — this page makes no network
+   requests, same rule as the simulation.
+
+   The mark here is ABSTRACT ON PURPOSE. It carried a hand-drawn approximation of
+   the LAHSA logo for one commit, which was a mistake: an approximation of a real
+   organisation's mark is a modified logo, and saying so in a comment does not make
+   it acceptable. The colours are LAHSA's and that is fine — colours are not the
+   mark. Do not draw the logo. If the real artwork is added to the repo, inline it
+   as a data URI; until then this stays abstract. */
+.back{background:
+  repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 10px,transparent 10px 20px),
+  linear-gradient(155deg,var(--lahsa-blue-lt),var(--lahsa-blue) 58%,var(--lahsa-blue-dk));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 22px rgba(6,104,136,.16), inset 0 0 0 1px rgba(255,255,255,.14)}
+/* `crest`, not `mark` — the front already has a `.mark` (the "Your card" label)
+   and the back comes first in the DOM, so sharing the name sent every label to
+   the wrong face of the card. */
+/* The style guide's clear space is the height of the gold LAHSA bar on all sides,
+   and that bar is 33.4% of the lockup's height. At 56% of a 226px card that is
+   42px of required clearance against 49px of actual margin vertically and 49px
+   at the narrowest card width — so it holds at every column width we support.
+   Sized by height, because the cards vary in width and not in height. */
+.back .logo{height:56%;width:auto;max-width:70%;display:block}
+.back .crest{width:54px;height:54px;border-radius:50%;
+  border:2.5px solid var(--lahsa-gold);
+  display:flex;align-items:center;justify-content:center}
+.back .crest::after{content:"";display:block;width:19px;height:19px;
+  border-radius:3px;background:var(--lahsa-gold);transform:rotate(45deg)}
+.front{background:var(--panel);transform:rotateY(180deg);
+  display:flex;flex-direction:column;padding:16px 15px 14px;text-align:left}
+.front .idx{font-size:12px;font-weight:700;color:var(--teal-lt);letter-spacing:.1em}
+.front .txt{flex:1;display:flex;align-items:center;font-size:15px;line-height:1.45;
+  padding:8px 0 6px}
+.front .mark{height:20px;font-size:12.5px;font-weight:700;letter-spacing:.03em;
+  text-transform:uppercase;color:transparent}
+
+.card.up{transform:rotateY(180deg)}
+.hand.live .card.up:hover{transform:rotateY(180deg) translateY(-7px)}
+.card.dealt{animation:deal .42s cubic-bezier(.25,1.15,.4,1) backwards}
+@keyframes deal{
+  from{transform:translate(-190px,-120px) rotate(-24deg) scale(.72);opacity:0}
+  to{transform:none;opacity:1}}
+
+/* settled: picked one lifts and keeps its verdict, the rest step back */
+.card.picked{transform:rotateY(180deg) translateY(-10px)}
+.card.picked .front{box-shadow:0 14px 32px rgba(6,104,136,.26),0 0 0 3px currentColor}
+.card.right .front{color:var(--ok);background:var(--ok-soft)}
+.card.right .mark{color:var(--ok)}
+.card.wrong .front{color:var(--bad);background:var(--bad-soft)}
+.card.wrong .mark{color:var(--bad)}
+/* the answer they did not take, shown once the hand is over */
+.card.shown .front{box-shadow:0 8px 22px rgba(6,104,136,.16),0 0 0 2px var(--ok)}
+.card.shown .mark{color:var(--ok)}
+/* Dim the face, never the card: opacity below 1 flattens a preserve-3d element,
+   which turns backface culling off and shows the back of a card that is face up. */
+.card.rest .front{opacity:.55}
+.hand.done .card,.hand.done .card:hover{cursor:default}
+.ask{transition:opacity .24s}
+.dealer.showing .ask{opacity:0}
+
+/* ---------- feedback ----------
+   It lays over the hand, not under it. Arriving as a new row grew the block by
+   about 150px every time a card was picked, which shunts everything below it in
+   Rise and reads as the page jumping rather than the answer landing. */
+/* Tall enough for the cards AND for the longest feedback, so the overlay never
+   spills past the stage and the felt is the same height either way. */
+.stage{position:relative}
+/* shared by the hand's feedback and the reading at the end */
+.said{display:flex;align-items:center;gap:14px}
+/* only the one over the question is an overlay; the reading sits in normal flow */
+.dealer .said{position:absolute;inset:0;z-index:3;border-radius:16px;
+  /* the felt colour, near-opaque — the marked cards ghost through rather than
+     vanishing, so what you took is still suggested behind the reason */
+  /* No backdrop of its own: the question fades out underneath instead. Nothing
+     behind it means nothing can show through its edges. */
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px);
+  transition:opacity .28s,transform .34s cubic-bezier(.2,1.2,.4,1),visibility 0s .3s}
+.dealer .said.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;
+  transition-delay:0s}
+.said .bub{flex:1;min-width:0;background:var(--panel);border-radius:17px;padding:14px 18px;
+  border-left:5px solid var(--ok);
+  box-shadow:0 8px 24px rgba(6,104,136,.13),0 1px 3px rgba(6,104,136,.12)}
+.said.no .bub{border-left-color:var(--bad)}
+.said .verdict{font-weight:700;color:var(--ok);margin-bottom:4px}
+.said.no .verdict{color:var(--bad)}
+.said .foot{display:flex;justify-content:flex-end;margin-top:12px;padding-top:11px;
+  border-top:1px solid var(--line)}
+.go{background:var(--teal);color:#fff;border-radius:10px;padding:9px 20px;
+  font-size:14.5px;font-weight:600;transition:background .15s}
+.go:hover{background:var(--teal-dk)}
+.go.quiet{background:none;color:var(--teal);box-shadow:inset 0 0 0 1px #bfd9e4;margin-right:8px}
+.go.quiet:hover{background:#e8f3f7;color:var(--teal-dk)}
+
+/* ---------- the spread at the end ---------- */
+.spread{display:flex;justify-content:center;gap:10px;margin:4px 0 20px}
+.mini{width:46px;height:64px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:15px;font-weight:700;color:#fff;
+  box-shadow:0 6px 16px rgba(6,104,136,.18);animation:lay .4s cubic-bezier(.25,1.2,.4,1) backwards}
+.mini.ok{background:var(--ok)}
+.mini.no{background:var(--bad)}
+@keyframes lay{from{transform:translateY(-26px) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
+.score{text-align:center;font-size:15px;color:var(--mut);margin-bottom:4px}
+.score b{color:var(--ink);font-size:19px}
+
+/* ---------- the character, drawn exactly as the lesson draws her ---------- */
+.m-rim{fill:none;stroke:#066888;stroke-width:6}
+.m-glass{fill:#e0eff5;opacity:1}
+.m-eye{fill:#14222b}
+.m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
+.m-lidfill{fill:#e0eff5}
+.m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
+.m-spark{fill:#14222b}
+.m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
+.m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
+.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+.m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
+@keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
+  25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
+.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
+@keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
+.m-face{animation:mscan 6.5s ease-in-out infinite}
+@keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+
+@media(prefers-reduced-motion:reduce){
+  .m-body,.m-face,.m-eyes{animation:none !important}
+  .lashy .mface{animation:none !important}
+  .lashy .puff{display:none}
+  .card,.card.dealt,.mini{animation:none;transition:none}
+  .hand.live .card:hover{transform:none}
+  .hand.live .card.up:hover{transform:rotateY(180deg)}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="head">
+    <h1>Knowledge check</h1>
+    <div class="pips" id="pips" aria-hidden="true"></div>
+    <span class="tally" id="tally"></span>
+  </div>
+
+  <div class="felt">
+    <!-- The question and the feedback share the top slot: one replaces the other
+         in place, so the block never grows AND the cards stay where they are,
+         marked, for as long as the learner wants to look at them. -->
+    <div class="dealer" id="dealer">
+      <div class="ask">
+        <div class="qn" id="qn"></div>
+        <div class="qt" id="qt"></div>
+      </div>
+
+      <div class="said" id="said">
+        <div class="lashy" id="lashy2" aria-hidden="true"></div>
+        <div class="bub">
+          <div class="verdict" id="verdict"></div>
+          <div id="fb"></div>
+          <div class="foot"><button class="go" id="next"></button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="hand" id="hand" role="group" aria-labelledby="qt"></div>
+    </div>
+
+    <div id="end" hidden>
+      <div class="spread" id="spread" aria-hidden="true"></div>
+      <div class="score" id="score"></div>
+      <div class="said" id="endSaid">
+        <div class="lashy" id="lashy3" aria-hidden="true"></div>
+        <div class="bub">
+          <div class="verdict" id="endTitle"></div>
+          <div id="endBody"></div>
+          <div class="foot" id="endFoot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="sr-only" role="status" aria-live="polite" id="live"></p>
+</div>
+
+<script>
+/* The questions, stamped in from script/kc_data.py at build time — the same list
+   the docx is rendered from, so the two cannot drift. Same token convention as
+   the lesson's roster: the unbuilt template is not runnable JS, by design. */
+var KC = /*__KC__*/;
+/* The LAHSA logo as a data URI, or null. build.sh and make_maker.py both inline
+   `src/lahsa-logo.svg` (or .png) here if it is present; if it is not, the card
+   back falls back to an abstract crest. The artwork is used as supplied — no
+   recolouring, no cropping, no redrawing. See CLAUDE.md. */
+var LOGO = /*__LOGO__*/;
+
+var $=function(s){return document.querySelector(s)};
+
+/* ============================================================
+   The character — the same geometry and the same expression
+   library as the lesson, so this is recognisably her and not a
+   second drawing that drifts.
+   ============================================================ */
+var LASH={
+  open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
+       '<path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/></g>',
+  high:'<g class="m-lash"><path d="M30 33.5 l-3.4 -3"/><path d="M34.3 32 l-1.2 -3.4"/><path d="M38.4 32.8 l1.7 -3.2"/>'+
+       '<path d="M48.6 32.8 l-1.7 -3.2"/><path d="M52.7 32 l1.2 -3.4"/><path d="M57 33.5 l3.4 -3"/></g>',
+  low: '<g class="m-lash"><path d="M30.8 38 l-3 -1"/><path d="M34.9 36.8 l-.7 -2.2"/><path d="M38.9 37.6 l1.4 -1.9"/>'+
+       '<path d="M49.1 37.6 l-1.4 -1.9"/><path d="M53.1 36.8 l.7 -2.2"/><path d="M57.2 38 l3 -1"/></g>'
+};
+function spark(cx,cy){
+  return '<path class="m-spark" d="M'+cx+' '+(cy-4.6)+' q1 3.4 4.6 4.6 q-3.6 1.2 -4.6 4.6 '+
+         'q-1 -3.4 -4.6 -4.6 q3.6 -1.2 4.6 -4.6 z"/>';
+}
+function droll(cx){
+  return '<circle class="m-eye" cx="'+cx+'" cy="39.5" r="4"/>'+
+         '<rect class="m-lidfill" x="'+(cx-4.6)+'" y="34" width="9.2" height="3.9" rx="1.6"/>'+
+         '<path class="m-lidline" d="M'+(cx-4)+' 37.7 h8"/>';
+}
+var EYES={
+  open:   {e:'<circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>', l:"open"},
+  droll:  {e:droll(35)+droll(53), l:"low"},
+  sparkle:{e:spark(35,39)+spark(53,39), l:"high"},
+  wide:   {e:'<circle class="m-eye" cx="35" cy="39" r="5.2"/><circle class="m-eye" cx="53" cy="39" r="5.2"/>', l:"high"},
+  arcs:   {e:'<path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/><path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>', l:"open"}
+};
+var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
+           wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
+function svg(eyes,mouth){
+  var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
+  return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
+    '<g class="m-body">'+
+      '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
+      '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
+      '<g class="m-face"><g class="m-eyes">'+ex.e+'</g>'+LASH[ex.l]+
+        '<path class="m-mouth" d="'+m+'"/></g>'+
+      '<path class="m-shine" d="M27 30 q7-9 17-10"/>'+
+    '</g></svg>';
+}
+/* ============================================================
+   Where she is standing
+
+   There is one Lashes, and she is only here to react. Two slots can hold her —
+   beside the feedback and beside the reading — and at most one ever does. She is
+   absent while the question is on the table, so her arrival is the answer
+   landing rather than a face that was already sitting there.
+   ============================================================ */
+var SLOTS=["lashy2","lashy3"];
+var whereIs=null;            /* the slot she is visibly standing in */
+var moveGen=0;               /* kills a landing that a newer move has overtaken */
+var POOF_OUT=290;
+
+function faceInto(el,eyes,mouth){
+  el.innerHTML='<span class="puff"></span><span class="mface">'+svg(eyes,mouth)+'</span>';
+}
+function poof(el,which){
+  el.classList.remove("in","out");
+  void el.offsetWidth;                     /* restart the animation, don't queue it */
+  el.classList.add(which);
+}
+function clearSlots(keep){
+  SLOTS.forEach(function(id){
+    if(id===keep) return;
+    var el=document.getElementById(id);
+    if(el){ el.classList.remove("in","out"); el.innerHTML=""; }
+  });
+}
+/* Poof out of wherever she is, then run `then`. */
+function lashesLeave(then){
+  var el=whereIs && document.getElementById(whereIs);
+  var gen=++moveGen;
+  if(!el||!el.firstChild||reduced){ clearSlots(null); whereIs=null; if(then) then(); return; }
+  poof(el,"out");
+  setTimeout(function(){
+    if(gen!==moveGen) return;
+    clearSlots(null); whereIs=null;
+    if(then) then();
+  }, POOF_OUT);
+}
+/* Poof in at a slot. Anything left anywhere else is cleared first, so two of her
+   can never be on the panel even if a move was interrupted. */
+function lashesArrive(id,eyes,mouth){
+  var el=document.getElementById(id);
+  if(!el) return;
+  moveGen++;
+  clearSlots(id);
+  faceInto(el,eyes,mouth);
+  whereIs=id;
+  if(!reduced) poof(el,"in");
+}
+
+/* ============================================================
+   EMBED — the only thing this page ever reports is that it is
+   finished, and only once the pass mark is cleared. No score:
+   there is none in these simulations, and Rise has no scripting
+   to receive one with.
+   ============================================================ */
+var EMBED=(function(){
+  var framed=false, sent=false;
+  try{ framed=(window.parent && window.parent!==window); }catch(e){ framed=true; }
+  function send(type,data){
+    if(!framed) return;
+    var msg={source:"hmis-sim",lesson:"hmis-bnts-search",section:"kc",type:type};
+    for(var k in data) if(Object.prototype.hasOwnProperty.call(data,k)) msg[k]=data[k];
+    try{ window.parent.postMessage(msg,"*"); }catch(e){}
+  }
+  return {
+    framed:function(){ return framed; },
+    ready:function(n){ send("ready",{questions:n}); },
+    complete:function(){ if(sent) return; sent=true; send("complete",{}); },
+    sent:function(){ return sent; }
+  };
+})();
+
+/* ============================================================
+   State
+   ============================================================ */
+var QS=KC.questions||[];
+var PASS=KC.pass||0.8;
+var NEED=Math.ceil(PASS*QS.length);          /* 5 of 6 at 80% */
+var got=[];                                  /* true / false / null per question */
+var order=[];                                /* which questions this pass plays */
+var at=0;                                    /* index into `order` */
+var LETTER=["A","B","C","D","E","F"];
+/* Nothing here is allowed to alter the artwork: it is placed whole, at its own
+   aspect ratio, on the card. When there is none, the crest is deliberately
+   abstract rather than a drawing of the logo. */
+var BACKMARK = LOGO
+  ? '<img class="logo" src="'+LOGO+'" alt="">'
+  : '<span class="crest"></span>';
+
+var reduced=!!(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches);
+var timers=[];
+
+function later(fn,ms){ timers.push(setTimeout(fn,ms)); }
+function clearLater(){ timers.forEach(clearTimeout); timers=[]; }
+
+/* Fisher-Yates. The deal is shuffled every time a question is played, so a
+   learner coming back to a missed question cannot answer it from where the
+   card sat last time. */
+function shuffle(a){
+  a=a.slice();
+  for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; }
+  return a;
+}
+function correctCount(){ var n=0; for(var i=0;i<got.length;i++) if(got[i]===true) n++; return n; }
+
+/* ============================================================
+   Chrome — pips and tally
+   ============================================================ */
+function paintHead(){
+  var live=order[at];
+  var pips=$("#pips"), html="";
+  for(var i=0;i<QS.length;i++){
+    var cls="pip";
+    if(got[i]===true) cls+=" ok";
+    else if(got[i]===false) cls+=" no";
+    else if(i===live) cls+=" now";      /* the hand on the table, still unplayed */
+    html+='<span class="'+cls+'"></span>';
+  }
+  pips.innerHTML=html;
+  $("#tally").textContent=correctCount()+" of "+QS.length+" right";
+}
+
+/* ============================================================
+   A hand
+   ============================================================ */
+function deal(){
+  clearLater();
+  var qi=order[at], q=QS[qi];
+  var deck=shuffle(q.a);
+
+  $("#said").classList.remove("on");
+  $("#dealer").classList.remove("showing");
+  $("#end").hidden=true;
+  $(".dealer").hidden=false;
+  $("#stage").hidden=false;
+  $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
+  $("#qt").textContent=q.q;
+  paintHead();
+  /* she is not here for the question — see lashesArrive */
+
+  var hand=$("#hand");
+  hand.className="hand";
+  hand.innerHTML=deck.map(function(a,i){
+    return '<button class="card'+(reduced?" up":"")+'" type="button" data-ok="'+(a.ok?"1":"0")+'" '+
+             'aria-disabled="true" tabindex="-1">'+
+             '<span class="face back" aria-hidden="true">'+BACKMARK+'</span>'+
+             '<span class="face front">'+
+               '<span class="idx" aria-hidden="true">'+LETTER[i]+'</span>'+
+               '<span class="txt">'+esc(a.t)+'</span>'+
+               '<span class="mark" aria-hidden="true"></span>'+
+             '</span>'+
+           '</button>';
+  }).join("");
+
+  var cards=[].slice.call(hand.querySelectorAll(".card"));
+  cards.forEach(function(c,i){
+    c.addEventListener("click",function(){ pick(c,cards,q); });
+    if(reduced) return;
+    c.classList.add("dealt");
+    c.style.animationDelay=(i*110)+"ms";
+    later(function(){ c.classList.add("up"); }, 480+i*150);
+  });
+
+  /* face down until they are all turned over: a card that can be clicked while
+     it is still blank is an invitation to guess, which is the one habit this
+     lesson exists to break. */
+  later(function(){
+    hand.classList.add("live");
+    cards.forEach(function(c){ c.setAttribute("aria-disabled","false"); c.tabIndex=0; });
+    say("live","Question "+(qi+1)+" of "+QS.length+". "+QS[qi].q);
+  }, reduced?0:480+cards.length*150+120);
+}
+
+function pick(card,cards,q){
+  var hand=$("#hand");
+  if(!hand.classList.contains("live")) return;
+  hand.classList.remove("live");
+  hand.classList.add("done");
+  clearLater();
+
+  var right=card.dataset.ok==="1";
+  got[order[at]]=right;
+
+  cards.forEach(function(c){
+    c.setAttribute("aria-disabled","true"); c.tabIndex=-1;
+    c.classList.add("up");
+    var mark=c.querySelector(".front .mark");
+    if(c===card){
+      c.classList.add("picked", right?"right":"wrong");
+      mark.textContent=right?"Your card — correct":"Your card";
+    }else if(c.dataset.ok==="1"){
+      c.classList.add("shown");
+      mark.textContent="The one to take";
+    }else{
+      c.classList.add("rest");
+    }
+  });
+
+  paintHead();
+  $("#said").className="said"+(right?"":" no");
+  $("#verdict").textContent = right ? "That is the one." : "Not that one.";
+  $("#fb").textContent = q.fb;
+
+  var last=(at>=order.length-1);
+  $("#next").textContent = last ? "See how you did" : "Next question";
+  /* Said at once for anyone listening rather than looking — the pause below is
+     theatre, and theatre should not delay the answer for a screen reader. */
+  say("live",(right?"Correct. ":"Not correct. ")+q.fb);
+
+  /* A beat with the marked cards readable, then the reason lays over them. Short:
+     the marks stay visible through the panel's own fade, so the pause only has to
+     be long enough to register the card, not long enough to read it. */
+  later(function(){
+    $("#dealer").classList.add("showing");
+    $("#said").classList.add("on");
+    lashesArrive("lashy2", right?"sparkle":"droll", right?"cheer":"wry");
+    later(function(){ $("#next").focus(); }, 60);
+  }, reduced?0:300);
+}
+
+/* She goes first, and the next thing is built once she is out of the frame — so a
+   deal never appears beside a Lashes who is still standing at the last one. */
+$("#next").addEventListener("click",function(){
+  at++;
+  lashesLeave(function(){ if(at<order.length) deal(); else finish(); });
+});
+
+/* ============================================================
+   The spread — what the six hands came to
+   ============================================================ */
+function finish(){
+  clearLater();
+  var score=correctCount(), passed=score>=NEED;
+
+  $("#hand").innerHTML="";
+  $("#hand").className="hand";
+  $("#said").classList.remove("on");
+  $("#dealer").classList.remove("showing");
+  /* the whole stage goes: no hand to lay anything over */
+  $("#stage").hidden=true;
+  /* The question row goes entirely: there is no question left to ask, and leaving
+     it would put a second bubble above her with nobody beside it. */
+  $(".dealer").hidden=true;
+  paintHead();
+
+  $("#spread").innerHTML=got.map(function(ok,i){
+    return '<span class="mini '+(ok?"ok":"no")+'" style="animation-delay:'+(i*70)+'ms">'+(i+1)+'</span>';
+  }).join("");
+  $("#score").innerHTML="<b>"+score+" of "+QS.length+"</b>";
+
+  lashesArrive("lashy3", passed?"sparkle":"droll", passed?"cheer":"hm");
+  $("#endSaid").className="said"+(passed?"":" no");
+  var missed=[];
+  for(var i=0;i<got.length;i++) if(got[i]===false) missed.push(i);
+
+  if(passed){
+    $("#endTitle").textContent="You are through.";
+    $("#endBody").textContent=
+      "None of this is about remembering a rule. It is about not deciding on one signal — "+
+      "which is the difference between finding somebody's record and starting them a second one.";
+    /* nothing left to press, so the rule above the buttons has nothing to divide */
+    $("#endFoot").innerHTML="";
+    $("#endFoot").hidden=true;
+    EMBED.complete();
+    say("live","Passed. "+score+" of "+QS.length+" right. This section is complete.");
+  }else{
+    $("#endTitle").textContent="Not quite — "+NEED+" of "+QS.length+" needed.";
+    $("#endBody").textContent=
+      "Question"+(missed.length===1?" ":"s ")+list(missed.map(function(i){return i+1}))+
+      " went the other way. Deal "+(missed.length===1?"it":"them")+" again — "+
+      "the reasoning is in the feedback you just read, and the cards come back in a different order.";
+    $("#endFoot").hidden=false;
+    $("#endFoot").innerHTML=
+      '<button class="go quiet" id="againAll" type="button">Start over</button>'+
+      '<button class="go" id="againBad" type="button">Deal '+
+      (missed.length===1?"it":"those "+missed.length)+' again</button>';
+    $("#againBad").addEventListener("click",function(){ replay(missed); });
+    $("#againAll").addEventListener("click",function(){ replay(null); });
+    say("live","Not passed. "+score+" of "+QS.length+" right, "+NEED+" needed.");
+    later(function(){ var b=$("#againBad"); if(b) b.focus(); },60);
+  }
+  $("#end").hidden=false;
+}
+
+function replay(which){
+  if(which===null){ got=QS.map(function(){return null}); order=QS.map(function(_,i){return i}); }
+  else { order=which.slice(); }
+  at=0;
+  lashesLeave(deal);
+}
+
+/* "1, 2 and 5" rather than "1, 2, 5" — she is talking, not printing a list. */
+function list(a){
+  if(a.length<2) return a.join("");
+  return a.slice(0,-1).join(", ")+" and "+a[a.length-1];
+}
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function say(id,text){ var el=document.getElementById(id); if(el) el.textContent=text; }
+
+/* ============================================================
+   Start
+   ============================================================ */
+(function(){
+  /* The maker sets these; a build from kc_data.py leaves them out and the page
+     keeps the title and heading it was written with. */
+  if(KC.title) document.title=KC.title;
+  if(KC.heading) $(".head h1").textContent=KC.heading;
+  if(!QS.length){ $("#qt").textContent="No questions were built into this page."; return; }
+  got=QS.map(function(){return null});
+  order=QS.map(function(_,i){return i});
+  EMBED.ready(QS.length);
+  deal();
+})();
+</script>
+</body>
+</html>

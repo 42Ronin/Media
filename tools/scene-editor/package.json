@@ -1,0 +1,13 @@
+{
+  "name": "scene-editor",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Authoring tool for Ken Burns photo + narration openers, and its tests",
+  "type": "module",
+  "scripts": {
+    "test": "node test.mjs && node test-export.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

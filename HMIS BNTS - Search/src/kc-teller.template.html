@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge Check &mdash; the reading</title>
+<!--
+  PROTOTYPE. A different staging of the knowledge check, to look at.
+
+  THE CRYSTAL BALL IS DARK. That is the whole lesson of the reference images: the
+  glass is nearly black, and the only lit thing is what is suspended inside it.
+  An earlier version lit the glass itself from within and it read as a glowing
+  panel rather than as crystal — the bloom was the thing killing it.
+
+  So: dark glass, a hard specular where the light source is, a rim catching light,
+  and the contents — the question, and later Lashes and her reading — glowing
+  cyan-white inside. She only appears when she has something to say, and she
+  appears IN the ball.
+
+  The cards sit on whatever Rise puts behind them. Nothing outside the ball paints
+  a ground, so the page shows through. This assumes a LIGHT page: the ink colours
+  below are what would have to change on a dark one.
+
+  Everything is drawn. The page fetches nothing. The one image is the LAHSA logo
+  on the card backs, used whole and never redrawn.
+
+  Questions come from script/kc_data.py via src/kc.json — the same list the
+  shipped page and the docx use. Nothing here narrates or coaches: no unscripted
+  microcopy.
+
+  Kept from the shipped page, deliberately:
+    - a card cannot be taken while it is face down
+    - no score ever leaves the page
+    - completion is withheld until the pass mark is cleared
+-->
+<style>
+:root{
+  --gold:#c9a44b; --gold-lt:#ecd489; --gold-dk:#8a6d22;
+  --ink:#1e2f3a; --mut:#5f7787;
+  --card:#f7f0df; --card-ink:#2b2320;
+  --glow:#bfeaff;
+  --focus:#2f9ec7;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;padding:0}
+/* transparent — Rise owns the page */
+body{font:15.5px/1.62 Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
+  color:var(--ink);background:var(--stage-bg,transparent);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:8px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.sans{font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
+
+.frame{max-width:940px;margin:0 auto;padding:10px 16px 22px}
+/* The slot holds the question and is where the orb blooms. It does NOT reserve the
+   orb's full height: a 380 ball reserved in flow left 280px of white under the
+   question on every screen where she is not there, and the page is mostly the state
+   where she is not there. It reserves enough that the orb's top lands at the top of
+   the block — it can never be clipped upward, there is nothing above it — and the
+   rest of the ball hangs over the spread. Which costs the top strip of the middle
+   card and the inner edges of its neighbours: the marks, not the answers. Nothing
+   moves either way, which is the part that matters.
+
+   The question sits in the MIDDLE of it. Held at the top, the room the ball needs
+   showed up as one long drop to the cards; centred, the same room is two short ones
+   and neither reads as a gap. The ball covers the question either way — it is 380
+   tall over a 106 pill. */
+.slot{position:relative;z-index:5;height:280px;
+  display:flex;align-items:center;justify-content:center}
+
+/* The question, plainly — the way it was before any of this. */
+.ask{width:100%;max-width:620px;background:#e9f3f8;border-radius:17px;
+  border-left:5px solid #066888;padding:16px 20px;
+  box-shadow:0 8px 24px rgba(16,60,80,.12),0 1px 3px rgba(16,60,80,.1);
+  transition:opacity .3s}
+.ask .qn{margin:0 0 5px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:#5f7787;font-weight:700}
+.ask .qt{font-size:18px;line-height:1.45;font-weight:600;color:#1e2f3a}
+.slot.reading .ask{opacity:0}
+
+/* ============================================================
+   The ball
+
+   It only exists while she is reading: it poofs in over the question and poofs
+   out again. 380 across, sized to the reading — the content box is 68% x 73%,
+   and (0.34/0.5)² + (0.365/0.5)² = 0.997, which is just inside the curve. Wider
+   and shorter than it was: the same reading in fewer lines costs less height,
+   and height is what the page has to reserve.
+   ============================================================ */
+.orb{position:absolute;left:50%;top:190px;width:380px;height:380px;border-radius:50%;
+  overflow:hidden;transform:translate(-50%,-50%) scale(.1) rotate(-140deg);opacity:0;
+  transition:transform .5s cubic-bezier(.3,1.5,.45,1),opacity .3s;
+  /* DARK glass. The light in the scene comes from what is inside it. */
+  background:
+    radial-gradient(64% 64% at 50% 46%, #16506c 0%, #0b3346 40%, #051d2b 72%, #020c14 100%);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(158,224,248,.34),        /* the rim catching light */
+    inset 0 26px 54px rgba(126,206,238,.12),        /* a little sky on the top */
+    inset 0 -34px 70px rgba(0,0,0,.62),             /* heavy under the belly */
+    0 0 66px rgba(38,136,178,.34),                  /* what it throws on the page */
+    0 26px 44px rgba(6,26,38,.26)}
+.orb.in{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}
+/* what is turning inside it */
+.smoke{position:absolute;left:-70%;right:-70%;top:-180%;bottom:-120%;pointer-events:none;
+  mix-blend-mode:screen;opacity:.3;filter:blur(26px);
+  background:conic-gradient(from 0deg, transparent, rgba(126,214,255,.5), transparent 54%,
+    rgba(64,150,200,.4), transparent);
+  animation:swirl 44s linear infinite}
+@keyframes swirl{to{transform:rotate(360deg)}}
+/* the specular: one hard catch where the light is, and a soft wrap under it */
+.sheen{position:absolute;inset:0;z-index:3;pointer-events:none}
+.sheen::before{content:"";position:absolute;left:15%;top:9%;width:23%;height:19%;
+  border-radius:50%;filter:blur(7px);
+  background:radial-gradient(closest-side, rgba(255,255,255,.62), rgba(255,255,255,0))}
+.sheen::after{content:"";position:absolute;left:16%;right:16%;bottom:6%;height:12%;
+  border-radius:50%;filter:blur(11px);
+  background:radial-gradient(closest-side, rgba(150,225,255,.24), rgba(150,225,255,0))}
+
+/* everything she shows you is suspended in the middle and lit from inside */
+.inner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:68%;max-height:73%;z-index:2;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;text-align:center;
+  color:#eafaff;
+  text-shadow:0 0 18px rgba(140,225,255,.75), 0 0 46px rgba(90,190,240,.45),
+    0 2px 8px rgba(0,12,20,.8)}
+/* The table screen carries a second button, which the reading's box is not tall
+   enough for. A circle trades width for height: at 59% across, 79% down is still
+   inside it — (.295/.5)² + (.395/.5)² = 0.97 — and the closing lines are short. */
+.orb.table .inner{width:59%;max-height:79%}
+/* There is no label over the reading. "THE READING" told the learner what they
+   were plainly looking at, and it cost the room she is better off having. */
+
+.verdict{font-size:19px;font-weight:700}
+.orb.good .verdict{color:#a3f5cc}
+.orb.bad .verdict{color:#ffbdb3}
+.fb{font-size:13.5px;line-height:1.48;color:#daf1fb}
+/* A question can ship with no feedback at all — the maker lets each one be
+   switched off. An empty box still costs the flex gap above the button, so it
+   goes entirely rather than leaving a hole where a paragraph was. */
+.fb:empty{display:none}
+.orb.mist .inner>*{animation:mist .55s ease both}
+@keyframes mist{from{opacity:0;filter:blur(7px);transform:translateY(6px) scale(.97)}
+  to{opacity:1;filter:blur(0);transform:none}}
+
+/* She is not here while the learner is choosing — she turns up in the ball with
+   the reading, lit like everything else in there. Her costume sits on the RIM,
+   never over the glass: a scarf across her face covers her lashes. */
+/* 108 with the cropped viewBox is about 1.6x the size she was. Twice does not fit:
+   the ball's contents are centred in it, so growing her pushes the reading and the
+   button toward the rim, and the ink leaves the glass somewhere past 110. Doubling
+   her outright needs a ball nearer 490, which would hang over the answers. */
+.lashy{flex:none;width:108px;height:108px;position:relative;
+  filter:drop-shadow(0 0 22px rgba(150,230,255,.85)) drop-shadow(0 0 44px rgba(90,190,240,.5))}
+/* When she is away her box collapses, or the question sits 44px below the centre
+   of the ball with nothing above it. Nothing else is beside her, so there is no
+   width to reserve — unlike the panel layout, where her slot had to stay. */
+.lashy:empty{display:none}
+.lashy svg{width:100%;height:100%;display:block;overflow:visible}
+.lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
+.lashy .puff{position:absolute;left:4%;top:2%;width:90%;height:90%;border-radius:50%;
+  border:2.5px solid rgba(190,240,255,.8);opacity:0;pointer-events:none}
+.lashy.in .mface{animation:poofIn .55s cubic-bezier(.3,1.45,.5,1)}
+.lashy.in .puff{animation:puffRing .5s ease-out}
+@keyframes poofIn{0%{transform:scale(.1) rotate(-170deg);opacity:0}
+  55%{transform:scale(1.14) rotate(12deg);opacity:1}100%{transform:none;opacity:1}}
+@keyframes puffRing{0%{transform:scale(.3);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+
+/* ============================================================
+   Under it, on the page
+   ============================================================ */
+.footrow{display:flex;align-items:center;justify-content:center;gap:14px;
+  width:100%;margin:38px auto 0}
+.stones{display:flex;gap:9px}
+.stone{width:15px;height:15px;transform:rotate(45deg);border-radius:3px;
+  background:radial-gradient(circle at 34% 30%, #e2e9ee, #c2cfd8 70%);
+  box-shadow:inset 0 0 0 1px rgba(140,110,30,.26);transition:background .4s,box-shadow .4s}
+.stone.lit{background:radial-gradient(circle at 34% 30%, #ffe9a2, var(--gold) 58%, #8a6d22);
+  box-shadow:0 0 14px rgba(201,164,75,.55), inset 0 0 0 1px rgba(255,244,206,.7)}
+.stone.out{background:radial-gradient(circle at 34% 30%, #dcaba7, #ab6660 70%);
+  box-shadow:inset 0 0 0 1px rgba(150,70,62,.28)}
+.count{margin:0;font-size:12.5px;color:var(--mut)}
+.count b{color:var(--ink)}
+/* Two buttons on the table screen do not fit side by side in the ball, so they
+   stack — with a gap, rather than the quiet one's stray right margin, which does
+   nothing once they are on separate lines. */
+/* The reading needs air under it before the button — at the gap alone they read
+   as one block. */
+.foot{margin-top:14px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.tablebtns{display:contents}
+.tablebtns:empty{display:none}
+.go{font-family:"Segoe UI",system-ui,sans-serif;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:#2b2010;
+  border-radius:10px;padding:9px 20px;font-size:14.5px;font-weight:700;transition:filter .15s}
+.go:hover{filter:brightness(1.08)}
+.go.quiet{background:none;color:#6b5410;box-shadow:inset 0 0 0 1px rgba(160,125,30,.5)}
+.go.quiet:hover{background:rgba(201,164,75,.14)}
+
+/* ============================================================
+   The spread — on whatever Rise puts behind it
+   ============================================================ */
+.spread{display:flex;justify-content:center;align-items:flex-end;
+  margin:20px auto 0;perspective:1400px;min-height:250px}
+/* The spread keeps its height even though the cards got shorter. They are bottom-
+   aligned in it, so shrinking the box walks every card upward — and the clearance
+   under the ball is measured from the card bottoms. */
+/* Everything vertical here trades against one thing: the ball hangs over the row
+   above the spread, so the room between the question and the first line of an
+   answer is fixed. A shorter card does not help — it walks its own top down and
+   that room stops being card and becomes white gap, one pixel for one. */
+.tcard{position:relative;width:186px;height:242px;margin:0 10px;padding:0;background:none;
+  transform-style:preserve-3d;cursor:default;
+  transform:rotate(var(--tilt)) translateY(var(--lift,0));
+  transition:transform .42s cubic-bezier(.22,1.1,.36,1)}
+.spread.live .tcard{cursor:pointer}
+.spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 16px))}
+.tface{position:absolute;inset:0;border-radius:13px;backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;overflow:hidden;transition:opacity .35s;
+  box-shadow:0 14px 30px rgba(16,34,46,.26), 0 2px 6px rgba(16,34,46,.16),
+    0 0 0 1px rgba(40,74,96,.14)}
+.tback{background:
+  repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 9px,transparent 9px 18px),
+  radial-gradient(120% 90% at 30% 8%, #6a2050, #3d1030 58%, #23091c 100%);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 14px 30px rgba(16,34,46,.3), inset 0 0 0 2px var(--gold-dk),
+    inset 0 0 0 3.5px rgba(236,212,137,.32)}
+/* the logo, whole. The gold bar is 33.4% of the lockup, so clear space is that
+   again on every side: at 52% of a 242px card that is 42px against 58px of margin. */
+.tback img{height:52%;width:auto;display:block}
+.tback .crest{width:52px;height:52px;border-radius:50%;border:2.5px solid var(--gold);
+  display:flex;align-items:center;justify-content:center}
+.tback .crest::after{content:"";display:block;width:18px;height:18px;border-radius:3px;
+  background:var(--gold);transform:rotate(45deg)}
+.tfront{background:linear-gradient(180deg,#fffcf4,var(--card));color:var(--card-ink);
+  transform:rotateY(180deg);display:flex;flex-direction:column;padding:16px 15px 14px;
+  box-shadow:0 14px 30px rgba(16,34,46,.26), inset 0 0 0 1.5px rgba(201,164,75,.55)}
+.tfront .idx{font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9b7d33}
+/* The answer is centred in the card. It hung from the bottom to buy clearance under
+   the ball, and that put the blank in the card's top half, which is the wrong half
+   to spend it in. Where the text sits and how big the white gap above the spread is
+   are the same number: the ball has to clear the first line, so every pixel the text
+   rises the whole spread has to drop. Measured, on this card: bottom-set 83px of
+   gap, centred 106, top-set 132. Centred is the trade. */
+.tfront .txt{flex:1;display:flex;align-items:center;font-size:14.5px;line-height:1.44;
+  padding:8px 0 8px}
+/* One line: "Your card — correct" wrapped and was clipped by the card's fixed
+   height, on the one card a learner most wants to read. */
+.tfront .mark{height:18px;white-space:nowrap;font-size:11.5px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;color:transparent}
+
+.tcard.up{transform:rotate(var(--tilt)) translateY(var(--lift,0)) rotateY(180deg)}
+.spread.live .tcard.up:hover{
+  transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 16px)) rotateY(180deg)}
+/* laid out of the ball, which is above them */
+.tcard.dealt{animation:layDown .5s cubic-bezier(.25,1.05,.35,1) backwards}
+@keyframes layDown{
+  from{transform:translate(0,-250px) rotate(-7deg) scale(.6);opacity:0}
+  to{transform:rotate(var(--tilt)) translateY(var(--lift,0));opacity:1}}
+
+/* The taken card rises — but 22px and 1.07 lifted its first line into the ball,
+   on the one card the learner most wants to read. */
+.tcard.taken{z-index:2;transform:rotate(0deg) translateY(-12px) rotateY(180deg) scale(1.04)}
+.spread.done .tcard.taken:hover{transform:rotate(0deg) translateY(-12px) rotateY(180deg) scale(1.04)}
+.tcard.taken .tfront{box-shadow:0 26px 48px rgba(16,34,46,.36), inset 0 0 0 2px currentColor}
+.tcard.right .tfront{color:#1c7a55;background:#eef7ef}
+.tcard.right .mark{color:#1c7a55}
+.tcard.wrong .tfront{color:#a5352c;background:#faece9}
+.tcard.wrong .mark{color:#a5352c}
+/* NOT dimmed: this is the card they should have taken, and dimming it made the
+   answer the least legible thing in the spread. */
+.tcard.answer{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 6px)) rotateY(180deg)}
+.tcard.answer .tfront{background:#f2faf3;
+  box-shadow:0 18px 34px rgba(28,122,85,.26), inset 0 0 0 2px #1c7a55}
+.tcard.answer .mark{color:#1c7a55}
+/* Dim the FACES, never the card: opacity below 1 flattens a preserve-3d element,
+   backface culling stops, and the back renders through — mirrored. */
+.tcard.spent .tface{opacity:.44;filter:saturate(.7)}
+.tcard.spent{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) + 14px)) rotateY(180deg) scale(.93)}
+.spread.done .tcard,.spread.done .tcard:hover{cursor:default}
+
+/* ============================================================
+   Lashes. The lesson's drawing is untouched; the costume lives only here.
+   ============================================================ */
+.m-rim{fill:none;stroke:#0b6f92;stroke-width:6}
+.m-glass{fill:#eef8fc}
+.m-eye{fill:#14222b}
+.m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
+.m-lidfill{fill:#eef8fc}
+.m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
+.m-spark{fill:#14222b}
+.m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
+.m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
+.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+.m-scarf{fill:#5d1636}
+.m-scarf-2{fill:#7a1e46}
+.m-band{fill:none;stroke:#c9a44b;stroke-width:3;stroke-linecap:round}
+.m-jewel{fill:#ecd489;stroke:#8a6d22;stroke-width:.8}
+.m-hoop{fill:none;stroke:#c9a44b;stroke-width:2.4}
+.m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
+@keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
+  25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
+.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
+@keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
+.m-face{animation:mscan 6.5s ease-in-out infinite}
+@keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+
+@media(max-width:700px){
+  .slot{height:279px}
+  .orb{top:172px;width:340px;height:340px}
+  .tcard{width:160px;height:230px;margin:0 6px}
+}
+@media(prefers-reduced-motion:reduce){
+  .m-body,.m-face,.m-eyes,.smoke,.orb.mist .inner>*,.lashy.in .mface,.lashy.in .puff{
+    animation:none !important}
+  .tcard,.tcard.dealt{animation:none;transition:none}
+  .spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(var(--lift,0))}
+}
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <!-- One slot. The question sits at the top of it plainly; the orb poofs in over
+       it when she has a reading, and poofs out again. Reserved at the orb's height
+       so nothing below ever moves — and the room that reservation leaves is all
+       under the question, which is where she turns up. -->
+  <div class="slot">
+    <div class="ask" id="ask">
+      <p class="qn sans" id="qn"></p>
+      <div class="qt" id="qt"></div>
+    </div>
+
+    <div class="orb" id="orb" hidden>
+      <span class="smoke" aria-hidden="true"></span>
+      <div class="inner">
+        <div class="lashy" id="lashy" aria-hidden="true"></div>
+        <div class="verdict" id="verdict"></div>
+        <div class="fb" id="fb"></div>
+        <!-- Next is a permanent child. The table screen used to write its two
+             buttons into #foot with innerHTML, which deleted this one — so after
+             "lay those again" the reading had no Next and setting its label threw.
+             The table's buttons get their own box beside it instead. -->
+        <div class="foot" id="foot">
+          <button class="go" id="next"></button>
+          <span class="tablebtns" id="tablebtns"></span>
+        </div>
+      </div>
+      <span class="sheen" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div class="spread" id="spread" role="group" aria-labelledby="qt"></div>
+
+  <!-- The tally sits under the spread, not over it: the orb hangs into the row above
+       the cards, and a count half-behind the glass reads as a mistake rather than as
+       depth. -->
+  <div class="footrow">
+    <div class="stones" id="stones" aria-hidden="true"></div>
+    <p class="count sans" id="count"></p>
+  </div>
+</div>
+
+<p class="sr-only" role="status" aria-live="polite" id="live"></p>
+
+<script>
+var KC = /*__KC__*/;
+var LOGO = /*__LOGO__*/;
+var $=function(s){return document.querySelector(s)};
+var LETTER=["A","B","C","D","E"];
+var TILT=["-4deg","0.5deg","4deg"], LIFT=["10px","0px","9px"];
+
+/* --- her face: the lesson's drawing, plus a costume that lives only here --- */
+var LASH={
+  open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
+       '<path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/></g>',
+  high:'<g class="m-lash"><path d="M30 33.5 l-3.4 -3"/><path d="M34.3 32 l-1.2 -3.4"/><path d="M38.4 32.8 l1.7 -3.2"/>'+
+       '<path d="M48.6 32.8 l-1.7 -3.2"/><path d="M52.7 32 l1.2 -3.4"/><path d="M57 33.5 l3.4 -3"/></g>',
+  low: '<g class="m-lash"><path d="M30.8 38 l-3 -1"/><path d="M34.9 36.8 l-.7 -2.2"/><path d="M38.9 37.6 l1.4 -1.9"/>'+
+       '<path d="M49.1 37.6 l-1.4 -1.9"/><path d="M53.1 36.8 l.7 -2.2"/><path d="M57.2 38 l3 -1"/></g>'
+};
+function spark(cx,cy){
+  return '<path class="m-spark" d="M'+cx+' '+(cy-4.6)+' q1 3.4 4.6 4.6 q-3.6 1.2 -4.6 4.6 '+
+         'q-1 -3.4 -4.6 -4.6 q3.6 -1.2 4.6 -4.6 z"/>';
+}
+function droll(cx){
+  return '<circle class="m-eye" cx="'+cx+'" cy="39.5" r="4"/>'+
+         '<rect class="m-lidfill" x="'+(cx-4.6)+'" y="34" width="9.2" height="3.9" rx="1.6"/>'+
+         '<path class="m-lidline" d="M'+(cx-4)+' 37.7 h8"/>';
+}
+var EYES={
+  open:   {e:'<circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>', l:"open"},
+  droll:  {e:droll(35)+droll(53), l:"low"},
+  sparkle:{e:spark(35,39)+spark(53,39), l:"high"},
+  arcs:   {e:'<path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/><path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>', l:"open"}
+};
+var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
+           wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
+
+/* Drawn over her rim. Her geometry is the bible's — face at (44,42), rim r=30 —
+   so the wrap is an arc of r=31 across the top, above every lash at every x. */
+var COSTUME=
+  '<path class="m-scarf-2" d="M18 24 q-13 5 -15 16 q-2 11 4 18 q4 -10 6 -18 q2 -9 7 -14 z"/>'+
+  '<path class="m-scarf" d="M17.4 26 A31 31 0 0 1 70.5 26 Q44 30 17.4 26 Z"/>'+
+  '<path class="m-scarf-2" d="M19 22 q-10 0 -13 7 q7 3 13 -1 q3 -3 0 -6 z"/>'+
+  '<path class="m-band" d="M18.4 24.2 Q44 28.6 69.6 24.2"/>'+
+  '<path class="m-jewel" d="M44 22.6 q3.6 3.1 0 7.6 q-3.6 -4.5 0 -7.6 z"/>'+
+  '<circle class="m-hoop" cx="68" cy="63" r="6"/>';
+
+function svg(eyes,mouth){
+  var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
+  /* Cropped to the drawing. Her ink measures 71.5 x 61 in a 100-square box, so a
+     100-square viewBox spent a third of her on nothing — this is 1.3x of size for
+     no layout at all. The square is centred on the ink with a margin the bob and
+     the tilt can move inside. */
+  return '<svg viewBox="0.25 3.5 76 76" aria-hidden="true">'+
+    '<g class="m-body">'+
+      '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
+      '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
+      '<g class="m-face"><g class="m-eyes">'+ex.e+'</g>'+LASH[ex.l]+
+        '<path class="m-mouth" d="'+m+'"/></g>'+
+      '<path class="m-shine" d="M27 30 q7-9 17-10"/>'+
+      COSTUME+
+    '</g></svg>';
+}
+/* She materialises in the ball when she has something to say, and is simply not
+   there while the learner is choosing. */
+function face(eyes,mouth){
+  var el=$("#lashy");
+  el.innerHTML='<span class="puff"></span><span class="mface">'+svg(eyes,mouth)+'</span>';
+  el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+}
+function unface(){ var el=$("#lashy"); el.classList.remove("in"); el.innerHTML=""; }
+/* Re-run the mist so the contents re-form every time the ball changes what it
+   holds. Toggling `hidden` alone will not restart a CSS animation. */
+function remist(){
+  var el=$("#orb");
+  el.classList.remove("mist"); void el.offsetWidth; el.classList.add("mist");
+}
+/* The orb is an apparition: it is not there at all until she has a reading, and
+   it goes again before the next question is dealt. `hidden` is toggled either
+   side of the transition so it never sits invisibly over the question. */
+function orbIn(kind){
+  var el=$("#orb");
+  el.className="orb "+kind;
+  el.hidden=false;
+  void el.offsetWidth;
+  el.classList.add("in");
+  $(".slot").classList.add("reading");
+  remist();
+}
+function orbOut(then){
+  var el=$("#orb");
+  if(el.hidden){ if(then) then(); return; }
+  el.classList.remove("in");
+  $(".slot").classList.remove("reading");
+  later(function(){ el.hidden=true; unface(); if(then) then(); }, reduced?0:340);
+}
+
+/* --- the only two things it ever says to a host --- */
+var EMBED=(function(){
+  var framed=false, sent=false;
+  try{ framed=(window.parent && window.parent!==window); }catch(e){ framed=true; }
+  function send(type,data){
+    if(!framed) return;
+    var msg={source:"hmis-sim",lesson:"hmis-bnts-search",section:"kc",type:type};
+    for(var k in data) if(Object.prototype.hasOwnProperty.call(data,k)) msg[k]=data[k];
+    try{ window.parent.postMessage(msg,"*"); }catch(e){}
+  }
+  return {ready:function(n){ send("ready",{questions:n}); },
+          complete:function(){ if(sent) return; sent=true; send("complete",{}); }};
+})();
+
+var QS=KC.questions||[], PASS=KC.pass||0.8;
+var NEED=Math.ceil(PASS*QS.length);
+var got=[], order=[], at=0;
+var reduced=!!(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches);
+var timers=[];
+function later(fn,ms){ timers.push(setTimeout(fn,ms)); }
+function clearLater(){ timers.forEach(clearTimeout); timers=[]; }
+function shuffle(a){ a=a.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}
+  return a; }
+function correctCount(){ var n=0; for(var i=0;i<got.length;i++) if(got[i]===true) n++; return n; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function list(a){ return a.length<2 ? a.join("") : a.slice(0,-1).join(", ")+" and "+a[a.length-1]; }
+
+function paintStones(){
+  $("#stones").innerHTML=got.map(function(v){
+    return '<span class="stone'+(v===true?" lit":v===false?" out":"")+'"></span>';
+  }).join("");
+  $("#count").innerHTML="<b>"+correctCount()+"</b> of "+QS.length;
+}
+
+function deal(){
+  clearLater();
+  var qi=order[at], q=QS[qi], deck=shuffle(q.a);
+
+  $("#qt").textContent=q.q;
+  $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
+  paintStones();
+
+  var sp=$("#spread");
+  sp.className="spread";
+  sp.innerHTML=deck.map(function(a,i){
+    return '<button class="tcard'+(reduced?" up":"")+'" type="button" data-ok="'+(a.ok?"1":"0")+'"'+
+      ' style="--tilt:'+TILT[i]+';--lift:'+LIFT[i]+'" aria-disabled="true" tabindex="-1">'+
+      '<span class="tface tback" aria-hidden="true">'+
+        (LOGO?'<img src="'+LOGO+'" alt="">':'<span class="crest"></span>')+'</span>'+
+      '<span class="tface tfront">'+
+        '<span class="idx sans" aria-hidden="true">'+LETTER[i]+'</span>'+
+        '<span class="txt">'+esc(a.t)+'</span>'+
+        '<span class="mark sans" aria-hidden="true"></span>'+
+      '</span></button>';
+  }).join("");
+
+  var cards=[].slice.call(sp.querySelectorAll(".tcard"));
+  cards.forEach(function(c,i){
+    c.addEventListener("click",function(){ take(c,cards,q); });
+    if(reduced) return;
+    c.classList.add("dealt");
+    c.style.animationDelay=(i*150)+"ms";
+    later(function(){ c.classList.add("up"); }, 620+i*170);
+  });
+  /* Face down means face down. Same rule as the shipped page: a blank card you
+     can take is a guess, and guessing is the habit this lesson exists to break. */
+  later(function(){
+    sp.classList.add("live");
+    cards.forEach(function(c){ c.setAttribute("aria-disabled","false"); c.tabIndex=0; });
+    $("#live").textContent="Question "+(qi+1)+" of "+QS.length+". "+q.q;
+  }, reduced?0:620+cards.length*170+140);
+}
+
+function take(card,cards,q){
+  var sp=$("#spread");
+  if(!sp.classList.contains("live")) return;
+  sp.classList.remove("live"); sp.classList.add("done");
+  clearLater();
+
+  var right=card.dataset.ok==="1";
+  got[order[at]]=right;
+
+  cards.forEach(function(c){
+    c.setAttribute("aria-disabled","true"); c.tabIndex=-1;
+    c.classList.add("up");
+    var mark=c.querySelector(".tfront .mark");
+    if(c===card){
+      c.classList.add("taken", right?"right":"wrong");
+      mark.textContent=right?"Your card ✓":"Your card";
+    }else if(c.dataset.ok==="1"){
+      c.classList.add("answer");
+      mark.textContent="Take this one";
+    }else{
+      c.classList.add("spent");
+    }
+  });
+
+  paintStones();
+  $("#live").textContent=(right?"Correct. ":"Not correct. ")+q.fb;
+
+  later(function(){
+    /* No verdict line on a reading. The cards behind the ball are already marked
+       right and wrong, in colour, on the card the learner actually picked — saying
+       it again in red or green over the top is the same news twice. The table
+       screen keeps its line, because the gate has to state itself. */
+    $("#verdict").hidden=true; $("#verdict").textContent="";
+    $("#fb").textContent=q.fb;
+    $("#tablebtns").innerHTML=""; $("#next").hidden=false;
+    $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
+    face(right?"sparkle":"droll", right?"cheer":"wry");
+    orbIn(right?"good":"bad");
+    later(function(){ $("#next").focus(); },60);
+  }, reduced?0:340);
+}
+
+$("#next").addEventListener("click",function(){
+  at++;
+  orbOut(function(){ if(at<order.length) deal(); else finish(); });
+});
+
+function finish(){
+  clearLater();
+  var score=correctCount(), passed=score>=NEED, missed=[];
+  for(var i=0;i<got.length;i++) if(got[i]===false) missed.push(i+1);
+
+  $("#spread").innerHTML=""; $("#spread").className="spread";
+  paintStones();
+  $("#qn").textContent=""; $("#qt").textContent="";
+  $("#verdict").hidden=false;
+  $("#verdict").textContent=passed?"You are through."
+    :"Not quite — "+NEED+" of "+QS.length+" needed.";
+  $("#fb").textContent=passed
+    ? "None of this is about remembering a rule. It is about not deciding on one signal — which is the difference between finding somebody's record and starting them a second one."
+    : "Question"+(missed.length===1?" ":"s ")+list(missed)+" went the other way. I will lay "+
+      (missed.length===1?"it":"them")+" again, in a different order.";
+  face(passed?"sparkle":"droll", passed?"cheer":"hm");
+  orbIn((passed?"good":"bad")+" table");
+  $("#live").textContent=(passed?"Passed. ":"Not passed. ")+score+" of "+QS.length+" right.";
+
+  if(passed){
+    $("#foot").hidden=true;
+    EMBED.complete();
+  }else{
+    $("#foot").hidden=false;
+    $("#next").hidden=true;
+    $("#tablebtns").innerHTML='<button class="go quiet" id="againAll" type="button">Start over</button>'+
+      '<button class="go" id="againBad" type="button">Lay '+(missed.length===1?"it":"those "+missed.length)+' again</button>';
+    $("#againBad").addEventListener("click",function(){ replay(missed.map(function(n){return n-1})); });
+    $("#againAll").addEventListener("click",function(){ replay(null); });
+    later(function(){ $("#againBad").focus(); },60);
+  }
+}
+
+function replay(which){
+  if(which===null){ got=QS.map(function(){return null}); order=QS.map(function(_,i){return i}); }
+  else order=which.slice();
+  at=0;
+  orbOut(deal);
+}
+
+(function(){
+  /* The name the maker was given titles the page. There is no heading to put it in
+     — this staging has no chrome of its own on purpose — but a tab called
+     "Knowledge Check" whatever it holds is a page that lost its name. */
+  if(KC.title) document.title=KC.title;
+  if(!QS.length){ $("#qt").textContent="No questions were built into this page."; return; }
+  got=QS.map(function(){return null});
+  order=QS.map(function(_,i){return i});
+  EMBED.ready(QS.length);
+  deal();
+})();
+</script>
+</body>
+</html>
