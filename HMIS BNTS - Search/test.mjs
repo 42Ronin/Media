@@ -330,9 +330,9 @@ ok('last 4 "4471" finds the 1968 James Wilson',
    (await q('4471')).includes('Wilson, James') &&
    await p.evaluate(() => search('4471', []).rows.some(c => c.d === '1968-09-02')));
 ok('leading fragment "941" also finds him',
-   await p.evaluate(() => search('941', []).rows.some(c => c.i === '3DF1DF674')));
+   await p.evaluate(() => search('941', []).rows.some(c => c.i === 'UID#5007LBGBH')));
 ok('middle fragment "33" matches inside the SSN',
-   await p.evaluate(() => search('33', []).rows.some(c => c.i === '3DF1DF674')));
+   await p.evaluate(() => search('33', []).rows.some(c => c.i === 'UID#5007LBGBH')));
 ok('name + SSN fragment combine', (await q('wilson 4471')).length === 1, JSON.stringify(await q('wilson 4471')));
 
 console.log('\n— live search (no Enter key pressed) —');
@@ -384,24 +384,24 @@ console.log('\n— no task is solved by the naive search —');
    from. A task solved outright by the first thing a trainee would type teaches
    nothing — that is what happened when "Mike" prefix-matched Michael. */
 const PROBES = [
-  ['task 1  alt names',    'Lefty',                '357BF6714', 'dead'],
-  ['task 1  full phrase',  'Lefty Torres',         '357BF6714', 'dead'],
-  ['task 2  nickname',     'Kate',                 'F565C146B', 'dead'],
-  ['task 3  last four',    '7742',                 'D41A7C930', 'choose'],
-  ['task 4  misspelling',  'Kristof Wojiechowski', 'B8F0D3771', 'dead'],
-  ['task 5  common name',  'Garcia',               'A50C9E214', 'choose'],
-  ['task 6  stated DOB',   '04/12/1988',           '72B6F1C08', 'dead'],
-  ['task 7  C spelling',   'Cathleen',             'E19D4A6B3', 'dead'],
-  ['task 8  Cruz',         'Cruz',                 '2A8189B34', 'dead'],
-  ['task 8  as spoken',    'Maria Cruz',           '2A8189B34', 'dead'],
-  ['task 9  the name',     'James Wilson',         '3DF1DF674', 'choose'],
-  ['task 10 the surname',  'Amari',                'C4E7B2019', 'choose'],
-  ['task 11 the surname',  'Nguyen',               '6C2D91B47', 'choose'],
-  ['task 11 full name',    'David Nguyen',         '6C2D91B47', 'choose'],
-  ['task 12 as spoken',    'Smoke',                'A19F4C2E8', 'dead'],
-  ['task 12 wrong spell',  'Reyes',                'A19F4C2E8', 'choose'],
-  ['task 12 the fragment', 'Rey',                  'A19F4C2E8', 'choose'],
-  ['task 13 the surname',  'Vega',                 'F2A6C8D40', 'choose'],
+  ['task 1  alt names',    'Lefty',                'UID#1988ZLAPR', 'dead'],
+  ['task 1  full phrase',  'Lefty Torres',         'UID#1988ZLAPR', 'dead'],
+  ['task 2  nickname',     'Kate',                 'UID#0935CZBLF', 'dead'],
+  ['task 3  last four',    '7742',                 'UID#1485RDFXA', 'choose'],
+  ['task 4  misspelling',  'Kristof Wojiechowski', 'UID#8645CJASU', 'dead'],
+  ['task 5  common name',  'Garcia',               'UID#2067CZKLL', 'choose'],
+  ['task 6  stated DOB',   '04/12/1988',           'UID#9279TEDVJ', 'dead'],
+  ['task 7  C spelling',   'Cathleen',             'UID#7734QCBZT', 'dead'],
+  ['task 8  Cruz',         'Cruz',                 'UID#5268GUCMQ', 'dead'],
+  ['task 8  as spoken',    'Maria Cruz',           'UID#5268GUCMQ', 'dead'],
+  ['task 9  the name',     'James Wilson',         'UID#5007LBGBH', 'choose'],
+  ['task 10 the surname',  'Amari',                'UID#9197GHPYC', 'choose'],
+  ['task 11 the surname',  'Nguyen',               'UID#2524YDABQ', 'choose'],
+  ['task 11 full name',    'David Nguyen',         'UID#2524YDABQ', 'choose'],
+  ['task 12 as spoken',    'Smoke',                'UID#0763PPKNR', 'dead'],
+  ['task 12 wrong spell',  'Reyes',                'UID#0763PPKNR', 'choose'],
+  ['task 12 the fragment', 'Rey',                  'UID#0763PPKNR', 'choose'],
+  ['task 13 the surname',  'Vega',                 'UID#2400YEPCC', 'choose'],
 ];
 for (const [label, query, target, want] of PROBES) {
   const rows = await p.evaluate(q => search(q, []).rows.map(c => c.i), query);
@@ -429,10 +429,10 @@ const uniq = await p.evaluate(() => {
    prefix reaches the answer among others, and that the trap still dead-ends.
    tools/obviousness.mjs is what keeps this honest across every task. */
 ok('"Tor" reaches Michael Torres among others, and nobody answers to Lefty',
-   uniq.torres.length > 1 && uniq.torres.includes('357BF6714') && uniq.lefty.length === 0,
+   uniq.torres.length > 1 && uniq.torres.includes('UID#1988ZLAPR') && uniq.lefty.length === 0,
    JSON.stringify(uniq.torres));
 ok('"Morr" reaches Katherine Morrison among others',
-   uniq.morrison.length > 1 && uniq.morrison.includes('F565C146B'));
+   uniq.morrison.length > 1 && uniq.morrison.includes('UID#0935CZBLF'));
 ok('exactly two records end 7742', uniq.last4.length === 2);
 /* The taught technique — the first letters of both names — now returns a short
    list rather than one record, on purpose. It reaches him; it does not hand him
@@ -441,15 +441,15 @@ ok('exactly two records end 7742', uniq.last4.length === 2);
 ok('"krz woj" reaches Wojciechowski in a list short enough to read',
    await p.evaluate(() => {
      const r = search('krz woj', []).rows;
-     return r.length > 1 && r.length <= 4 && r.some(c => c.i === 'B8F0D3771');
+     return r.length > 1 && r.length <= 4 && r.some(c => c.i === 'UID#8645CJASU');
    }));
 ok('twelve Garcias — more than one page', uniq.garcia.length === 12);
 ok('"Fen" reaches Adrian Fenwick among others',
-   uniq.fenwick.length > 1 && uniq.fenwick.includes('72B6F1C08'));
+   uniq.fenwick.length > 1 && uniq.fenwick.includes('UID#9279TEDVJ'));
 /* Cathleen is the spelling she offers and it has to dead-end. Other C spellings
    existing is the point of the task, not a violation of it. */
 ok('"Brennan" reaches Kathleen among others, and "Cathleen" still reaches nobody',
-   uniq.brennan.length > 1 && uniq.brennan.includes('E19D4A6B3') &&
+   uniq.brennan.length > 1 && uniq.brennan.includes('UID#7734QCBZT') &&
    await p.evaluate(() => search('Cathleen', []).rows.length === 0));
 ok('the name each participant actually says never lands on one record',
    await p.evaluate(() => ['Danielle', 'Reyez', 'Esperanza', 'Yolanda', 'Adrian']
@@ -467,11 +467,11 @@ const amariHh = await p.evaluate(() => {
 ok('Yolanda\'s record really lists a household, not just a count',
    amariHh.size === 2 && amariHh.roll.length === 2, JSON.stringify(amariHh));
 ok('and Iris is the member named on it',
-   amariHh.roll.includes('9B3F5D6C7'), JSON.stringify(amariHh.roll));
+   amariHh.roll.includes('UID#3846JQQXA'), JSON.stringify(amariHh.roll));
 ok('the household is reciprocal, so opening either resolves',
-   amariHh.dSize === 2 && amariHh.dRoll.includes('C4E7B2019'), JSON.stringify(amariHh.dRoll));
+   amariHh.dSize === 2 && amariHh.dRoll.includes('UID#9197GHPYC'), JSON.stringify(amariHh.dRoll));
 ok('Iris is shown as the daughter',
-   amariHh.rel.some(x => x.i === '9B3F5D6C7' && x.rel === 'Daughter'), JSON.stringify(amariHh.rel));
+   amariHh.rel.some(x => x.i === 'UID#3846JQQXA' && x.rel === 'Daughter'), JSON.stringify(amariHh.rel));
 ok('exactly three Vegas, all the same person', uniq.vega.length === 3 &&
    await p.evaluate(() => search('Vega', []).rows.every(c => c.f === 'Rosalind' && c.d === '1983-04-11')));
 ok('exactly two Nguyens, both David', uniq.nguyen.length === 2 &&
@@ -764,7 +764,7 @@ ok('the search page carries no stat tiles', await p.$$eval('.tile', t => t.lengt
 
 console.log('\n— client record page —');
 await type('Vega');
-await p.click('#tb tr[data-row="F2A6C8D40"]'); await p.waitForTimeout(250);
+await p.click('#tb tr[data-row="UID#2400YEPCC"]'); await p.waitForTimeout(250);
 ok('opening a row navigates to the record page', !(await p.$eval('#recordView', e => e.hidden)));
 ok('the search screen is replaced, not overlaid',
    await p.$eval('#searchView', e => getComputedStyle(e).display === 'none'));
@@ -833,7 +833,7 @@ ok('...and still flags the duplicate risk', nt.includes('already has a record'))
 await closeAll();
 
 await type('Tor');
-await p.click('#tb tr[data-row="357BF6714"]'); await p.waitForTimeout(200);
+await p.click('#tb tr[data-row="UID#1988ZLAPR"]'); await p.waitForTimeout(200);
 ok('opening Michael Torres passes task 1', (await p.textContent('#fb')).includes('Correct'));
 ok('teaching point appears', (await p.textContent('#fb')).includes('no alias'));
 ok('the hint is withdrawn once the task is solved', await p.$eval('#hintBtn', e => e.hidden));
@@ -861,11 +861,11 @@ await closeAll();
 // task 10 — the household is the only way to tell mother from daughter
 await p.evaluate(() => { S.idx = 9; S.attempts = 0; S.hinted = false; renderCoach(); });
 await type('Amari');
-await p.click('#tb tr[data-row="9B3F5D6C7"]'); await p.waitForTimeout(200);
+await p.click('#tb tr[data-row="UID#3846JQQXA"]'); await p.waitForTimeout(200);
 ok('opening the daughter is rejected with a reason',
    (await p.textContent('#fb')).includes("daughter"));
 await closeAll();
-await p.click('#tb tr[data-row="C4E7B2019"]'); await p.waitForTimeout(200);
+await p.click('#tb tr[data-row="UID#9197GHPYC"]'); await p.waitForTimeout(200);
 ok('opening the mother passes task 10', (await p.textContent('#fb')).includes('Correct'));
 ok('her record is thin on identifiers, as the task requires',
    (await p.textContent('#profGrid')).includes('No value'));
@@ -885,7 +885,7 @@ ok('location records carry every column the live table shows',
      e.p && e.city && e.d && e.by && e.org && e.sc === 'Individual' &&
      e.src === 'Geolocation Field' &&
      ['Program Enrollment', 'Field Interaction'].includes(e.ty)))));
-await p.click('#tb tr[data-row="6C2D91B47"]'); await p.waitForTimeout(250);
+await p.click('#tb tr[data-row="UID#2524YDABQ"]'); await p.waitForTimeout(250);
 ok('opening the one at the bridge passes task 11', (await p.textContent('#fb')).includes('Correct'));
 // Location is a tab on the record, the way the product has it — not a profile field
 ok('the Location tab is reachable', await p.$$eval('#recNav [data-tab="Location"]', e => e.length === 1));
@@ -970,7 +970,7 @@ await p.click('#crumbSearch'); await p.waitForTimeout(250);
 ok('the first crumb goes back to Client Search', await p.$eval('#searchView', e => !e.hidden));
 ok('and the breadcrumb is gone there, as the live search landing has it',
    await p.$eval('#crumbs', e => e.hidden));
-await p.click('#tb tr[data-row="6C2D91B47"]'); await p.waitForTimeout(250);
+await p.click('#tb tr[data-row="UID#2524YDABQ"]'); await p.waitForTimeout(250);
 
 /* The profile grid, against capture 03: its field order, and the two formats that
    differ from the results table. */
@@ -1118,7 +1118,7 @@ await type('Smoke');
 ok('the street name reaches nobody', (await names()).length === 0);
 await type('Rey');
 ok('the fragment narrows without deciding', (await names()).length >= 4);
-await p.click('#tb tr[data-row="A19F4C2E8"]'); await p.waitForTimeout(250);
+await p.click('#tb tr[data-row="UID#0763PPKNR"]'); await p.waitForTimeout(250);
 ok('opening Elias Reyez passes task 12', (await p.textContent('#fb')).includes('Correct'));
 ok('the teaching names what closed it', (await p.textContent('#fb')).includes('Veteran status'));
 await closeAll();
@@ -1127,13 +1127,13 @@ await closeAll();
 await p.evaluate(() => { S.idx = 12; S.attempts = 0; S.hinted = false; renderCoach(); });
 await type('Vega');
 ok('three records, all the same person', (await names()).length === 3);
-await p.click('#tb tr[data-row="8D40A2F16"]'); await p.waitForTimeout(200);
+await p.click('#tb tr[data-row="UID#7485MGJTB"]'); await p.waitForTimeout(200);
 ok('the emptiest record is rejected', (await p.textContent('#fb')).includes('no SSN on file'));
 await closeAll();
-await p.click('#tb tr[data-row="5C1B9E730"]'); await p.waitForTimeout(200);
+await p.click('#tb tr[data-row="UID#7295UEJLQ"]'); await p.waitForTimeout(200);
 ok('the partial record is rejected too', (await p.textContent('#fb')).includes('partial SSN'));
 await closeAll();
-await p.click('#tb tr[data-row="F2A6C8D40"]'); await p.waitForTimeout(200);
+await p.click('#tb tr[data-row="UID#2400YEPCC"]'); await p.waitForTimeout(200);
 ok('the most complete record passes task 13', (await p.textContent('#fb')).includes('Correct'));
 ok('teaching names the oldest-enrollment tiebreaker',
    (await p.textContent('#fb')).includes('longest enrollment history'));
@@ -1204,7 +1204,7 @@ await p.click('.railbtn[aria-current]'); await p.waitForTimeout(200);   // back 
 await p.evaluate(() => { S.idx = 7; S.attempts = 0; S.hinted = false; S.results = [
   {id:'nickname',p:10},{id:'year',p:10}]; renderCoach(); });
 await type('dela');
-await p.click('#tb tr[data-row="2A8189B34"]'); await p.waitForTimeout(200);
+await p.click('#tb tr[data-row="UID#5268GUCMQ"]'); await p.waitForTimeout(200);
 await closeAll();
 await p.click('#nextBtn'); await p.waitForTimeout(200);
 ok('a non-scored beat appears after task 8',
@@ -1422,7 +1422,7 @@ console.log('\n— clearing the box does not strand the learner —');
 await p.evaluate(() => { S.idx = 0; S.results = []; S.attempts = 0; S.hinted = false; S.note = null;
                          S.nudged = null; LZ.hush(); renderCoach(); });
 await type('Torres');
-await p.click('#tb tr[data-row="357BF6714"]'); await p.waitForTimeout(250);
+await p.click('#tb tr[data-row="UID#1988ZLAPR"]'); await p.waitForTimeout(250);
 await p.keyboard.press('Escape'); await p.waitForTimeout(150);
 await type('');
 await p.click('#nextBtn'); await p.waitForTimeout(250);
@@ -1516,7 +1516,7 @@ console.log('\n— what to do next is where she says it —');
   ok('...and it closes her', await q2.$eval('#lzBub', e => !e.classList.contains('on')));
 
   await q2.fill('#q', 'Tor'); await q2.waitForTimeout(700);
-  await q2.click('tr[data-row="357BF6714"]'); await q2.waitForTimeout(800);
+  await q2.click('tr[data-row="UID#1988ZLAPR"]'); await q2.waitForTimeout(800);
   ok('a correct answer carries Next task',
      await q2.$$eval('#lzActs button', e => e.length === 1 && e[0].textContent.includes('Next task')));
   await q2.click('#lzActs button'); await q2.waitForTimeout(500);
@@ -1624,13 +1624,13 @@ console.log('\n— section 11: the running scenario —');
      (await sc.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Location tab') &&
      !(await said()).includes('Opens both records'));
 
-  await sc.click('tr[data-row="A7C4E9B52"]'); await sc.waitForTimeout(700);
+  await sc.click('tr[data-row="UID#4693CCFAR"]'); await sc.waitForTimeout(700);
   ok('the other Dezmond is rejected on his location, not his name',
      (await said()).includes('never been at the Alameda St underpass'));
   ok('...and that rejection can be dismissed too',
      await sc.$$eval('#lzActs button', e => e.some(x => x.textContent === 'Got it')));
   await sc.keyboard.press('Escape'); await sc.waitForTimeout(400);
-  await sc.click('tr[data-row="D2F8A6C31"]'); await sc.waitForTimeout(800);
+  await sc.click('tr[data-row="UID#3906EMKLW"]'); await sc.waitForTimeout(800);
   ok('the one contacted there is the answer',
      await sc.evaluate(() => S.results.some(r => r.id === 'desmond')));
   ok('...and 11.4 lands its point rather than ending',
@@ -1715,11 +1715,11 @@ console.log('\n— section 11 as inline step embeds —');
   ok('step-11-4: and it asks for the next thing rather than finishing',
      (await four.textContent('#stepDo')).includes('Location tab') &&
      !(await four.textContent('#stepRes')).includes('Carry on below'));
-  await four.click('tr[data-row="A7C4E9B52"]'); await four.waitForTimeout(900);
+  await four.click('tr[data-row="UID#4693CCFAR"]'); await four.waitForTimeout(900);
   ok('step-11-4: the wrong Dezmond does not complete it',
      !(await four.textContent('#stepRes')).includes('Carry on below'));
   await four.keyboard.press('Escape'); await four.waitForTimeout(400);
-  await four.click('tr[data-row="D2F8A6C31"]'); await four.waitForTimeout(900);
+  await four.click('tr[data-row="UID#3906EMKLW"]'); await four.waitForTimeout(900);
   ok('step-11-4: the one contacted at the underpass finishes it',
      (await four.textContent('#stepRes')).includes('rest of the record is what identifies somebody') &&
      (await four.textContent('#stepRes')).includes('Carry on below'));
@@ -1742,6 +1742,22 @@ console.log('\n— accessibility / integrity —');
 ok('result count is an aria-live region',
    await p.$eval('#resultCount', e => e.getAttribute('aria-live') === 'polite'));
 ok('search input is labelled', await p.$$eval('label[for=q]', e => e.length === 1));
+/* Ours used to be nine hex characters, which is the shape the real system uses —
+   close enough that a screenshot of this simulation could be taken for real data,
+   and close enough that an invented one could collide with somebody's real
+   identifier. They are deliberately the wrong shape now: a UID# marker, then all
+   the digits, then all the letters. Nothing in the live product is written that
+   way. This sits beside the SSN check because it is the same class of promise. */
+ok('every unique identifier is the wrong shape to be a real one',
+   await p.evaluate(() => CLIENTS.every(c => /^UID#\d{4}[A-HJ-NP-Z]{5}$/.test(c.i))),
+   await p.evaluate(() => CLIENTS.map(c => c.i).filter(i => !/^UID#\d{4}[A-HJ-NP-Z]{5}$/.test(i)).slice(0, 3).join(',')));
+ok('...and no I or O in one, which read as 1 and 0 when somebody says it aloud',
+   await p.evaluate(() => CLIENTS.every(c => !/[IO]/.test(c.i.slice(4)))));
+ok('...and every household member reference resolves to one',
+   await p.evaluate(() => {
+     const ids = new Set(CLIENTS.map(c => c.i));
+     return CLIENTS.every(c => (c.hm || []).every(m => ids.has(m.i)));
+   }));
 ok('every SSN on screen is in the 900-999 range that was never issued',
    await p.evaluate(() => CLIENTS.every(c => !c.s || (() => {
      const a = c.s.split('-')[0];
@@ -1779,11 +1795,11 @@ ok('the two that remain cannot be told apart on identifiers', await p.evaluate((
 ok('the household is what separates them', await p.evaluate(() => {
   const rows = search('Sil 1979', []).rows;
   const withHh = rows.filter(c => (c.hm || []).length);
-  return withHh.length === 1 && withHh[0].i === '7E1D4A9C3' &&
-         withHh[0].hm.some(m => m.i === '2B8F6E1D5');
+  return withHh.length === 1 && withHh[0].i === 'UID#0954UAWBL' &&
+         withHh[0].hm.some(m => m.i === 'UID#0557BGSRD');
 }));
 ok('and her son resolves to a real record',
-   await p.evaluate(() => !!CLIENTS.find(c => c.i === '2B8F6E1D5' && c.f === 'Mateo')));
+   await p.evaluate(() => !!CLIENTS.find(c => c.i === 'UID#0557BGSRD' && c.f === 'Mateo')));
 
 console.log('\n— embedding in another course —');
 /* Both pages have to share a real origin: a file:// or data:// frame is walled
@@ -1832,7 +1848,7 @@ ok('and it announces itself to the host instead',
 
 const f = host.frames().find(fr => fr.url().includes('lesson.html'));
 await f.fill('#q', 'Tor'); await host.waitForTimeout(400);
-await f.click('tr[data-row="357BF6714"] .cwrap'); await host.waitForTimeout(600);
+await f.click('tr[data-row="UID#1988ZLAPR"] .cwrap'); await host.waitForTimeout(600);
 const taskMsg = await host.evaluate(() => simMsgs.find(m => m.type === 'task'));
 ok('a solved task is reported to the host', !!taskMsg && taskMsg.index === 1 && taskMsg.id === 'nickname',
    JSON.stringify(taskMsg));

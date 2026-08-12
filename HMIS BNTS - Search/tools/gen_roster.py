@@ -113,6 +113,17 @@ CLINIC = ["Westlake Community Health", "Harbor Street Clinic", "Vermont Wellness
           "Eastside Family Health", "Central Avenue Health Partners"]
 MIDDLE = ["Ann", "Lee", "Marie", "James", "Rose", "Dean", "Grace", "Paul",
           "Elise", "Ray", "June", "Cole"]
+# The unique identifier the product shows under a name in results.
+#
+# SAFETY: ours used to be nine hex characters, which is what the real system's look
+# like — close enough that a screenshot of this simulation could be taken for real
+# data, and close enough that an invented one could collide with a real person's.
+# Ours are deliberately the wrong shape: a literal UID# marker, then all the digits,
+# then all the letters. Nothing in the live product is written that way, so nothing
+# shown here can be mistaken for somebody's real identifier. I and O are left out
+# because they read as 1 and 0 when an identifier is said aloud.
+UID_DIGITS = "0123456789"
+UID_LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ"
 COLORS = 8
 
 def ssn():
@@ -160,74 +171,74 @@ def C(i, f, l, d, s, q="full", roi="Yes", a="", p="", vet="No"):
 
 SCRIPTED = [
     # 1  alternate names / nicknames — draft 46-50
-    C("357BF6714", "Michael", "Torres", "1979-03-14", "912-45-8802"),
+    C("UID#1988ZLAPR", "Michael", "Torres", "1979-03-14", "912-45-8802"),
     # 2  year of birth only — draft 29
-    C("F565C146B", "Katherine", "Morrison", "1985-07-22", "934-17-3145", p="She/Her/Hers"),
+    C("UID#0935CZBLF", "Katherine", "Morrison", "1985-07-22", "934-17-3145", p="She/Her/Hers"),
     # 3  last 4 of SSN — draft 31.  Two people share 7742, so the fragment
     #    narrows but does not decide; the participant's name settles it.
-    C("D41A7C930", "Danielle", "Whitmore", "1991-05-14", "918-30-7742", p="She/Her/Hers"),
-    C("6E23B0A85", "Marcus",   "Pell",     "1976-02-03", "944-61-7742"),
+    C("UID#1485RDFXA", "Danielle", "Whitmore", "1991-05-14", "918-30-7742", p="She/Her/Hers"),
+    C("UID#5933AQRLV", "Marcus",   "Pell",     "1976-02-03", "944-61-7742"),
     # 4  first letters of each name — draft 33-34 ("kat joh")
-    C("B8F0D3771", "Krzysztof", "Wojciechowski", "1968-07-30", "927-14-6053"),
+    C("UID#8645CJASU", "Krzysztof", "Wojciechowski", "1968-07-30", "927-14-6053"),
     # 5  too many results, narrow by adding a term — draft 38-41
-    C("A50C9E214", "Esperanza", "Garcia", "1987-04-09", "935-72-1180", p="She/Her/Hers"),
+    C("UID#2067CZKLL", "Esperanza", "Garcia", "1987-04-09", "935-72-1180", p="She/Her/Hers"),
     # 6  zero results, swap one identifier for another — draft 42-45
-    C("72B6F1C08", "Adrian", "Fenwick", "1988-12-04", "959-23-5518"),
+    C("UID#9279TEDVJ", "Adrian", "Fenwick", "1988-12-04", "959-23-5518"),
     # 7  alternate spellings, C and K — draft 51-59
-    C("E19D4A6B3", "Kathleen", "Brennan", "1983-09-17", "941-88-2076", p="She/Her/Hers"),
+    C("UID#7734QCBZT", "Kathleen", "Brennan", "1983-09-17", "941-88-2076", p="She/Her/Hers"),
     # 8  second last name / compound surname filed as one word — draft 47
-    C("2A8189B34", "Maria", "Delacruz", "1974-01-28", "918-54-5527"),
+    C("UID#5268GUCMQ", "Maria", "Delacruz", "1974-01-28", "918-54-5527"),
     # 9  two people, one name; verify on two of three — draft 79-80
-    C("3DF1DF674", "James", "Wilson", "1968-09-02", "941-33-4471"),
-    C("8C7A8F2D2", "James", "Wilson", "1991-04-17", "968-20-9038", a="Jim"),
+    C("UID#5007LBGBH", "James", "Wilson", "1968-09-02", "941-33-4471"),
+    C("UID#7030TTZUM", "James", "Wilson", "1991-04-17", "968-20-9038", a="Jim"),
     # 10 verify with household members when identifiers are thin — draft 81-86
-    C("C4E7B2019", "Yolanda", "Amari", "1980-06-21", None, q="unknown", p="She/Her/Hers"),
-    C("9B3F5D6C7", "Iris",    "Amari", "2011-10-02", None, q="notcollected", p="She/Her/Hers"),
+    C("UID#9197GHPYC", "Yolanda", "Amari", "1980-06-21", None, q="unknown", p="She/Her/Hers"),
+    C("UID#3846JQQXA", "Iris",    "Amari", "2011-10-02", None, q="notcollected", p="She/Her/Hers"),
     # 11 several matching records; choose the most complete — draft 96-98
-    C("F2A6C8D40", "Rosalind", "Vega", "1983-04-11", "961-27-1173", a="Roz", p="She/Her/Hers"),
-    C("5C1B9E730", "Rosalind", "Vega", "1983-04-11", "961-XX-XXXX", q="approx"),
-    C("8D40A2F16", "Rosalind", "Vega", "1983-04-11", None, q="refused"),
+    C("UID#2400YEPCC", "Rosalind", "Vega", "1983-04-11", "961-27-1173", a="Roz", p="She/Her/Hers"),
+    C("UID#7295UEJLQ", "Rosalind", "Vega", "1983-04-11", "961-XX-XXXX", q="approx"),
+    C("UID#7485MGJTB", "Rosalind", "Vega", "1983-04-11", None, q="refused"),
     # 12 a genuine duplicate; report, never merge — draft 99
-    C("5BB517588", "Shauna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
-    C("6381E5405", "Shawna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
+    C("UID#0408ZHFDM", "Shauna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
+    C("UID#0510NZKMH", "Shawna", "Beckett", "1993-04-30", "926-71-2210", p="She/Her/Hers"),
     # 11 (script order) confirm by location — draft 81-86, "location data".
     #    Two David Nguyens, same birth year, neither with an SSN. Only the
     #    location history separates them.
-    C("6C2D91B47", "David", "Nguyen", "1982-03-09", None, q="refused"),
-    C("D3A7E0C85", "David", "Nguyen", "1982-11-22", None, q="unknown"),
+    C("UID#2524YDABQ", "David", "Nguyen", "1982-03-09", None, q="refused"),
+    C("UID#0574AEWGT", "David", "Nguyen", "1982-11-22", None, q="unknown"),
     # 12 (script order) everything at once — draft 46-59.
     #    He answers to Smoke, which is on no record. The surname is three
     #    plausible spellings deep, so only the fragment "Rey" reaches all of
     #    them, and the year plus veteran status is what settles it.
-    C("A19F4C2E8", "Elias",  "Reyez", "1971-06-14", None, q="refused", vet="Yes"),
-    C("B72E5D3F1", "Marisol", "Reyes", "1971-02-27", "933-40-1182", p="She/Her/Hers"),
-    C("C58A6E4D2", "Hector", "Reyes", "1988-09-03", "947-22-6690"),
-    C("E41B7F5A3", "Lucia",  "Reynoso", "1971-12-08", "952-19-3374", p="She/Her/Hers"),
-    C("F93C8A6B4", "Tomas",  "Rios",  "1976-04-19", "918-77-2051"),
+    C("UID#0763PPKNR", "Elias",  "Reyez", "1971-06-14", None, q="refused", vet="Yes"),
+    C("UID#6023RCJGV", "Marisol", "Reyes", "1971-02-27", "933-40-1182", p="She/Her/Hers"),
+    C("UID#5826UCHXK", "Hector", "Reyes", "1988-09-03", "947-22-6690"),
+    C("UID#4219SAJGB", "Lucia",  "Reynoso", "1971-12-08", "952-19-3374", p="She/Her/Hers"),
+    C("UID#3960QGGJC", "Tomas",  "Rios",  "1976-04-19", "918-77-2051"),
     # Capstone sandbox. She introduces herself as Sylvia Marchetti: the spelling
     # is wrong and the surname is one she stopped using. Nothing she offers at
     # first reaches her, so the learner has to ask, respell, narrow, and then
     # confirm on the household — every technique the tasks taught, in one go.
-    C("7E1D4A9C3", "Silvia", "Duarte",   "1979-05-08", None, q="refused", p="She/Her/Hers"),
-    C("2B8F6E1D5", "Mateo",  "Duarte",   "2014-02-17", None, q="notcollected"),
+    C("UID#0954UAWBL", "Silvia", "Duarte",   "1979-05-08", None, q="refused", p="She/Her/Hers"),
+    C("UID#0557BGSRD", "Mateo",  "Duarte",   "2014-02-17", None, q="notcollected"),
     # No SSN on either Silvia. If one had a number on file, a learner could pick
     # the other by elimination — she declined to give hers, which says nothing
     # about what is stored. The household has to be the only thing that decides.
-    C("9A3C7B2E6", "Silvia", "Okonkwo",  "1979-10-30", None, q="unknown", p="She/Her/Hers"),
-    C("4D6E8F1A2", "Silvana","Moreau",   "1991-07-22", "938-64-2207", p="She/Her/Hers"),
-    C("8C5B3D7E9", "Silas",  "Whitcomb", "1966-11-05", "925-13-9948"),
-    C("1F2A5C8B4", "Sileshi","Abate",    "1984-03-26", "957-81-4432"),
+    C("UID#5110FLSVL", "Silvia", "Okonkwo",  "1979-10-30", None, q="unknown", p="She/Her/Hers"),
+    C("UID#0876DDJCJ", "Silvana","Moreau",   "1991-07-22", "938-64-2207", p="She/Her/Hers"),
+    C("UID#1234QVHVD", "Silas",  "Whitcomb", "1966-11-05", "925-13-9948"),
+    C("UID#7615QHFVR", "Sileshi","Abate",    "1984-03-26", "957-81-4432"),
 
     # Section 11 — the running scenario. He calls himself Desmond and gives Carrow,
     # a surname he stopped using; nobody is filed under it, so his first two
     # searches reach nobody at all. "Dez" is the fragment that opens it up, and it
     # has to return five so the list is readable but not an answer. Adding 1974
     # leaves two, neither with an SSN, and only the Location tab separates them.
-    C("D2F8A6C31", "Dezmond", "Ellery", "1974-08-16", None, q="refused"),
-    C("A7C4E9B52", "Dezmond", "Achebe", "1974-03-02", None, q="unknown"),
-    C("B5E1D8F43", "Dezirae", "Ellsworth", "1996-11-09", "943-28-1160", p="She/Her/Hers"),
-    C("C9A3F7E64", "Dezra",   "Achterberg","1988-05-23", "917-62-9084", p="She/Her/Hers"),
-    C("E6B2C5A75", "Dezhawn", "Arrington", "2001-01-30", "955-40-3372"),
+    C("UID#3906EMKLW", "Dezmond", "Ellery", "1974-08-16", None, q="refused"),
+    C("UID#4693CCFAR", "Dezmond", "Achebe", "1974-03-02", None, q="unknown"),
+    C("UID#2959QLPPZ", "Dezirae", "Ellsworth", "1996-11-09", "943-28-1160", p="She/Her/Hers"),
+    C("UID#9491JNCMB", "Dezra",   "Achterberg","1988-05-23", "917-62-9084", p="She/Her/Hers"),
+    C("UID#7795LLNSX", "Dezhawn", "Arrington", "2001-01-30", "955-40-3372"),
 
     # ---- prefix decoys ------------------------------------------------------
     # Typing the first few letters of a name is what everybody does first, and it
@@ -239,31 +250,31 @@ SCRIPTED = [
     # Each of these shares a prefix with one scenario answer and nothing else. None
     # of them can satisfy the task's own search: they differ on the other name, on
     # the year, or on both. Checked by tools/obviousness.mjs.
-    C("T1A4B7C92", "Priya",     "Torrance",  "1986-02-11", "931-45-7712", p="She/Her/Hers"),
-    C("T2B5C8D03", "Andre",     "Torkelson", "1993-09-24", "946-18-2205"),
-    C("D3C6D9E14", "Daniel",    "Okafor",    "1984-07-19", "923-51-6640"),
-    C("D4D7E0F25", "Danika",    "Flores",    "1997-12-03", "958-33-1178", p="She/Her/Hers"),
-    C("K5E8F1A36", "Krzesimir", "Nowak",     "1977-05-28", "914-27-8853"),
-    C("W6F9A2B47", "Tomasz",    "Wojcik",    "1990-10-14", "962-05-4419"),
-    C("E7A0B3C58", "Esperanza", "Bennett",   "1995-03-07", "939-72-3306", p="She/Her/Hers"),
-    C("E8B1C4D69", "Espen",     "Halvorsen", "1971-11-21", "927-60-5514"),
-    C("A9C2D5E70", "Adriana",   "Flores",    "1992-06-30", "944-19-7723", p="She/Her/Hers"),
-    C("A0D3E6F81", "Adrienne",  "Carter",    "1981-01-13", "955-84-2260", p="She/Her/Hers"),
-    C("F1E4F7A92", "Rosa",      "Fenwick",   "1969-08-27", "918-42-9931", p="She/Her/Hers"),
-    C("F2F5A8B03", "Marisol",   "Fenton",    "1994-04-05", "936-27-1148", p="She/Her/Hers"),
-    C("B3A6B9C14", "Luis",      "Brennan",   "1978-02-16", "949-13-6672"),
-    C("B4B7C0D25", "Brenda",    "Alvarez",   "1987-11-08", "925-66-3390", p="She/Her/Hers"),
-    C("Y5C8D1E36", "Yolanda",   "Foster",    "1996-05-12", "941-70-8817", p="She/Her/Hers"),
-    C("Y6D9E2F47", "Yolanda",   "Ramirez",   "1973-09-01", "953-24-4408", p="She/Her/Hers"),
-    C("L7E0F3A58", "Elias",     "Thompson",  "1993-07-23", "917-38-5561"),
-    C("L8F1A4B69", "Elise",     "Johnson",   "1966-12-19", "934-51-2287", p="She/Her/Hers"),
-    C("M9A2B5C70", "Katarina",  "Morrissey", "1999-03-15", "928-47-9903", p="She/Her/Hers"),
-    C("M0B3C6D81", "Devon",     "Whitfield", "1975-10-06", "946-82-3315"),
+    C("UID#9247SPVPA", "Priya",     "Torrance",  "1986-02-11", "931-45-7712", p="She/Her/Hers"),
+    C("UID#4858SGFDH", "Andre",     "Torkelson", "1993-09-24", "946-18-2205"),
+    C("UID#7533UHMBK", "Daniel",    "Okafor",    "1984-07-19", "923-51-6640"),
+    C("UID#2039BMHKV", "Danika",    "Flores",    "1997-12-03", "958-33-1178", p="She/Her/Hers"),
+    C("UID#7078UFQFE", "Krzesimir", "Nowak",     "1977-05-28", "914-27-8853"),
+    C("UID#0214LDPWZ", "Tomasz",    "Wojcik",    "1990-10-14", "962-05-4419"),
+    C("UID#0974CKRXP", "Esperanza", "Bennett",   "1995-03-07", "939-72-3306", p="She/Her/Hers"),
+    C("UID#0919JVCWK", "Espen",     "Halvorsen", "1971-11-21", "927-60-5514"),
+    C("UID#9323JAJFA", "Adriana",   "Flores",    "1992-06-30", "944-19-7723", p="She/Her/Hers"),
+    C("UID#9289JYCDH", "Adrienne",  "Carter",    "1981-01-13", "955-84-2260", p="She/Her/Hers"),
+    C("UID#7835PATHB", "Rosa",      "Fenwick",   "1969-08-27", "918-42-9931", p="She/Her/Hers"),
+    C("UID#2197SNNWT", "Marisol",   "Fenton",    "1994-04-05", "936-27-1148", p="She/Her/Hers"),
+    C("UID#0027RNHPT", "Luis",      "Brennan",   "1978-02-16", "949-13-6672"),
+    C("UID#0537LVYMT", "Brenda",    "Alvarez",   "1987-11-08", "925-66-3390", p="She/Her/Hers"),
+    C("UID#5811RHPJK", "Yolanda",   "Foster",    "1996-05-12", "941-70-8817", p="She/Her/Hers"),
+    C("UID#8830FLLJS", "Yolanda",   "Ramirez",   "1973-09-01", "953-24-4408", p="She/Her/Hers"),
+    C("UID#6347NMSFE", "Elias",     "Thompson",  "1993-07-23", "917-38-5561"),
+    C("UID#2827SWGEX", "Elise",     "Johnson",   "1966-12-19", "934-51-2287", p="She/Her/Hers"),
+    C("UID#6242JWKLK", "Katarina",  "Morrissey", "1999-03-15", "928-47-9903", p="She/Her/Hers"),
+    C("UID#4821BTEER", "Devon",     "Whitfield", "1975-10-06", "946-82-3315"),
     # Two names the participant says out loud, which were reaching exactly one
     # record and ending the task before it started: "Danielle" in task 3, and
     # "Reyez" — one of the three spellings he offers — in task 12.
-    C("N1A5B8C26", "Danielle",  "Thompson",  "1986-09-11", "932-14-7708", p="She/Her/Hers"),
-    C("N2B6C9D37", "Consuelo",  "Reyez",     "1995-04-02", "948-31-2265", p="She/Her/Hers"),
+    C("UID#5684VAUFV", "Danielle",  "Thompson",  "1986-09-11", "932-14-7708", p="She/Her/Hers"),
+    C("UID#7739UDUDV", "Consuelo",  "Reyez",     "1995-04-02", "948-31-2265", p="She/Her/Hers"),
 
     # ---- both-prefix decoys -------------------------------------------------
     # The pair above catches a learner who types the start of one name. These
@@ -272,50 +283,50 @@ SCRIPTED = [
     # letters of the first name AND of the surname with one scenario answer, and
     # none of them can be mistaken for the answer: the rest of the surname
     # differs, so the full name still reaches one record.
-    C("P1A6C1E48", "Michaela", "Torkington", "1991-04-22", "913-58-7729", p="She/Her/Hers"),
-    C("P2B7D2F59", "Katia",    "Moreno",     "1990-08-14", "947-21-3364", p="She/Her/Hers"),
-    C("P3C8E3A60", "Danika",   "Whitfield",  "1983-01-09", "926-74-5183", p="She/Her/Hers"),
-    C("P4D9F4B71", "Krzesimir","Wojda",      "1972-06-27", "935-19-8840"),
-    C("P5E0A5C82", "Espen",    "Garrido",    "1998-10-03", "959-47-2216"),
-    C("P6F1B6D93", "Adriana",  "Fenton",     "1996-03-18", "922-63-9075", p="She/Her/Hers"),
-    C("P7A2C7E04", "Katia",    "Brenner",    "1975-12-01", "944-08-1157", p="She/Her/Hers"),
-    C("P8B3D8F15", "Marco",    "Delgado",    "1969-07-16", "951-36-4428"),
-    C("P9C4E9A26", "Jamal",    "Wiltshire",  "1994-02-05", "938-90-6613"),
-    C("Q0D5F0B37", "Yolonda",  "Amaro",      "1987-11-29", "916-52-7704", p="She/Her/Hers"),
-    C("Q1E6A1C48", "Dave",     "Ngugi",      "1979-05-21", "963-14-3395"),
-    C("Q2F7B2D59", "Elena",    "Reynolds",   "1966-09-12", "929-77-2281", p="She/Her/Hers"),
-    C("Q3A8C3E60", "Rosario",  "Vegh",       "1992-12-24", "955-23-8867", p="She/Her/Hers"),
+    C("UID#0389VNGYZ", "Michaela", "Torkington", "1991-04-22", "913-58-7729", p="She/Her/Hers"),
+    C("UID#5759XLFNJ", "Katia",    "Moreno",     "1990-08-14", "947-21-3364", p="She/Her/Hers"),
+    C("UID#1388DJXXE", "Danika",   "Whitfield",  "1983-01-09", "926-74-5183", p="She/Her/Hers"),
+    C("UID#3482MSPRK", "Krzesimir","Wojda",      "1972-06-27", "935-19-8840"),
+    C("UID#5171XHAWV", "Espen",    "Garrido",    "1998-10-03", "959-47-2216"),
+    C("UID#4451BPMXS", "Adriana",  "Fenton",     "1996-03-18", "922-63-9075", p="She/Her/Hers"),
+    C("UID#8255KCATZ", "Katia",    "Brenner",    "1975-12-01", "944-08-1157", p="She/Her/Hers"),
+    C("UID#6013KWFBA", "Marco",    "Delgado",    "1969-07-16", "951-36-4428"),
+    C("UID#9704KZZDS", "Jamal",    "Wiltshire",  "1994-02-05", "938-90-6613"),
+    C("UID#5920RYPFN", "Yolonda",  "Amaro",      "1987-11-29", "916-52-7704", p="She/Her/Hers"),
+    C("UID#4818XVRSU", "Dave",     "Ngugi",      "1979-05-21", "963-14-3395"),
+    C("UID#4995LPXFC", "Elena",    "Reynolds",   "1966-09-12", "929-77-2281", p="She/Her/Hers"),
+    C("UID#0014KUBRG", "Rosario",  "Vegh",       "1992-12-24", "955-23-8867", p="She/Her/Hers"),
 
     # ---- heard, not read ----------------------------------------------------
     # How names actually diverge in HMIS: somebody wrote it down while listening.
     # i and e, e and eh, a and ah, c and ch and s and sh, s and z, silent letters
     # dropped. Each of these is one scenario answer misheard, so the fragment a
     # learner types reaches both and the full name still reaches one.
-    C("R1B9D4F71", "Michele",   "Torrez",     "1988-07-04", "934-61-2290", p="She/Her/Hers"),
-    C("R2C0E5A82", "Catherine", "Morrisen",   "1993-02-18", "928-15-7736", p="She/Her/Hers"),
-    C("R3D1F6B93", "Daniela",   "Witmore",    "1977-09-26", "946-30-4419", p="She/Her/Hers"),
-    C("R4E2A7C04", "Kristof",   "Wojcieszak", "1985-11-12", "919-73-6628"),
-    C("R5F3B8D15", "Esperansa", "Gallardo",   "1970-06-08", "952-44-1183", p="She/Her/Hers"),
-    C("R6A4C9E26", "Adrien",    "Fenwyck",    "1994-01-31", "937-28-9950"),
-    C("R7B5D0F37", "Kathryn",   "Brennen",    "1968-04-14", "923-67-3305", p="She/Her/Hers"),
-    C("R8C6E1A48", "Mariah",    "Delacroix",  "1991-08-20", "958-12-7761", p="She/Her/Hers"),
-    C("R9D7F2B59", "Jaime",     "Wilsen",     "1980-03-27", "941-59-2274"),
-    C("S0E8A3C60", "Yolande",   "Amary",      "1965-10-11", "917-84-6642", p="She/Her/Hers"),
-    C("S1F9B4D71", "Davide",    "Nguyan",     "1997-05-06", "960-31-8815"),
-    C("S2A0C5E82", "Elyas",     "Rayas",      "1973-12-29", "944-26-5507"),
-    C("S4C2E7A04", "Elias",     "Reynolds",   "1990-02-08", "926-49-1172"),
-    C("S3B1D6F93", "Rosalyn",   "Veiga",      "1986-09-15", "931-70-3348", p="She/Her/Hers"),
+    C("UID#2276VURRG", "Michele",   "Torrez",     "1988-07-04", "934-61-2290", p="She/Her/Hers"),
+    C("UID#6423NKMLW", "Catherine", "Morrisen",   "1993-02-18", "928-15-7736", p="She/Her/Hers"),
+    C("UID#5906ZSHKU", "Daniela",   "Witmore",    "1977-09-26", "946-30-4419", p="She/Her/Hers"),
+    C("UID#5688XNMRC", "Kristof",   "Wojcieszak", "1985-11-12", "919-73-6628"),
+    C("UID#2055LGRRT", "Esperansa", "Gallardo",   "1970-06-08", "952-44-1183", p="She/Her/Hers"),
+    C("UID#3751TVUVK", "Adrien",    "Fenwyck",    "1994-01-31", "937-28-9950"),
+    C("UID#5954FPVXN", "Kathryn",   "Brennen",    "1968-04-14", "923-67-3305", p="She/Her/Hers"),
+    C("UID#7459YREZS", "Mariah",    "Delacroix",  "1991-08-20", "958-12-7761", p="She/Her/Hers"),
+    C("UID#5628FDLWW", "Jaime",     "Wilsen",     "1980-03-27", "941-59-2274"),
+    C("UID#3916ZAQGD", "Yolande",   "Amary",      "1965-10-11", "917-84-6642", p="She/Her/Hers"),
+    C("UID#1040WJJZH", "Davide",    "Nguyan",     "1997-05-06", "960-31-8815"),
+    C("UID#4017MSYAY", "Elyas",     "Rayas",      "1973-12-29", "944-26-5507"),
+    C("UID#1807QKFJR", "Elias",     "Reynolds",   "1990-02-08", "926-49-1172"),
+    C("UID#9317RVKXL", "Rosalyn",   "Veiga",      "1986-09-15", "931-70-3348", p="She/Her/Hers"),
     # One partial SSN is pinned rather than left to the roll. The scenario cast has
     # grown enough to crowd the generated records out, and a masked area segment is
     # the case that proves a search cannot match across the gap.
-    C("V1A2B3C44", "Tanya",     "Freeman",    "1982-04-17", "XXX-45-8891",
+    C("UID#5142SXQQF", "Tanya",     "Freeman",    "1982-04-17", "XXX-45-8891",
       q="approx", p="She/Her/Hers"),
 ]
 
 # Households that a scripted task depends on, by client id.
 PINNED_HOUSEHOLDS = [
-    ("C4E7B2019", "9B3F5D6C7"),      # task 10: Yolanda Amari and her daughter Iris
-    ("7E1D4A9C3", "2B8F6E1D5"),      # capstone: Silvia Duarte and her son Mateo
+    ("UID#9197GHPYC", "UID#3846JQQXA"),      # task 10: Yolanda Amari and her daughter Iris
+    ("UID#0954UAWBL", "UID#0557BGSRD"),      # capstone: Silvia Duarte and her son Mateo
 ]
 
 # Eleven more Garcias so that surname alone overflows a page of results (task 5).
@@ -324,7 +335,12 @@ for _gi, (_gf, _gd) in enumerate([
         ("Ines", "1998-01-22"), ("Emilio", "1979-06-14"), ("Beatriz", "1984-09-30"),
         ("Santiago", "1993-12-08"), ("Pilar", "1969-05-16"), ("Joaquin", "2000-02-11"),
         ("Mercedes", "1976-07-25"), ("Alonso", "1988-10-19")]):
-    SCRIPTED.append(C("G%02d7C4E1B" % _gi, _gf, "Garcia", _gd, ssn()))
+    # Spread rather than sequential: eleven identifiers differing by one character
+    # read as near-duplicates, which is the opposite of what this block is for.
+    SCRIPTED.append(C("UID#%04d%s" % (2903 + _gi * 617,
+                      "".join(UID_LETTERS[(_gi * 7 + _k * 5 + 3) % len(UID_LETTERS)]
+                              for _k in range(5))),
+                      _gf, "Garcia", _gd, ssn()))
 
 # ------------------------------------------------------------------- GUARDS
 # A generated record is rejected if it would make any scenario answer ambiguous.
@@ -386,9 +402,27 @@ used_ids = {c["i"] for c in SCRIPTED}
 used_names = {(c["f"], c["l"]) for c in SCRIPTED}
 clients = list(SCRIPTED)
 
+# The unique identifier the product shows under a name in results.
+#
+# SAFETY: ours used to be nine hex characters, which is what the real system's look
+# like — close enough that a screenshot of this simulation could be taken for real
+# data, and close enough that an invented one could collide with a real person's.
+# Ours are deliberately the wrong shape now: a literal UID# marker, then all the
+# digits, then all the letters. Nothing in the live product is written that way, so
+# no identifier shown here can be mistaken for one belonging to somebody real.
+# I and O are left out because they read as 1 and 0 when somebody reads an ID aloud.
 def new_id():
+    """Nine draws from the same stream as before, then reshaped.
+
+    The draw is deliberately unchanged — nine picks from a sixteen-character
+    alphabet — because taking fewer or more would shift every later draw and
+    reshuffle the whole roster. Only the shape of the result changed.
+    """
     while True:
-        v = "".join(rnd.choice("0123456789ABCDEF") for _ in range(9))
+        raw = [int(rnd.choice("0123456789ABCDEF"), 16) for _ in range(9)]
+        v = ("UID#"
+             + "".join(UID_DIGITS[n % 10] for n in raw[:4])
+             + "".join(UID_LETTERS[(n * 3 + i) % len(UID_LETTERS)] for i, n in enumerate(raw[4:])))
         if v not in used_ids:
             used_ids.add(v)
             return v
@@ -666,9 +700,9 @@ recent = [SCRIPTED[0]["i"], SCRIPTED[4]["i"], SCRIPTED[9]["i"],
 # Task 11 needs a clear "most complete" and a clear "oldest enrollment".
 _vega = {c["i"]: c for c in clients if c["l"] == "Vega"}
 if len(_vega) == 3:
-    _vega["F2A6C8D40"].update({"fe": "2019-02-14", "v": "No",  "rc": "Hispanic/Latina/e/o"})
-    _vega["5C1B9E730"].update({"fe": "2022-08-03", "v": "",    "rd": ""})
-    _vega["8D40A2F16"].update({"fe": "2024-11-20", "v": "",    "rd": "", "a": ""})
+    _vega["UID#2400YEPCC"].update({"fe": "2019-02-14", "v": "No",  "rc": "Hispanic/Latina/e/o"})
+    _vega["UID#7295UEJLQ"].update({"fe": "2022-08-03", "v": "",    "rd": ""})
+    _vega["UID#7485MGJTB"].update({"fe": "2024-11-20", "v": "",    "rd": "", "a": ""})
 # The location task: one David Nguyen has been at the 6th Street bridge for about
 # a year, the other has never been there. Nobody else may hold that location, or
 # the search stops separating them.
@@ -678,9 +712,9 @@ if len(_ngu) == 2:
     def _rec(name, kind):
         p, city, x, y = _by_name[name]
         return loc_row(p, city, x, y, kind)
-    _ngu["6C2D91B47"]["lo"] = [_rec("6th Street bridge", "Field Interaction"),
+    _ngu["UID#2524YDABQ"]["lo"] = [_rec("6th Street bridge", "Field Interaction"),
                                _rec("Union Station forecourt", "Field Interaction")]
-    _ngu["D3A7E0C85"]["lo"] = [_rec("Hollywood & Western", "Program Enrollment"),
+    _ngu["UID#0574AEWGT"]["lo"] = [_rec("Hollywood & Western", "Program Enrollment"),
                                _rec("Venice Blvd & Sepulveda", "Field Interaction")]
 for c in clients:
     if c["l"] != "Nguyen":
@@ -695,15 +729,15 @@ if len(_dez) == 2:
     def _rec2(name, kind):
         p, city, x, y = _by_name2[name]
         return loc_row(p, city, x, y, kind)
-    _dez["D2F8A6C31"]["lo"] = [_rec2("Alameda St underpass", "Field Interaction"),
+    _dez["UID#3906EMKLW"]["lo"] = [_rec2("Alameda St underpass", "Field Interaction"),
                                _rec2("Grand Ave & 5th", "Field Interaction")]
-    _dez["A7C4E9B52"]["lo"] = [_rec2("Westlake metro portal", "Program Enrollment")]
+    _dez["UID#4693CCFAR"]["lo"] = [_rec2("Westlake metro portal", "Program Enrollment")]
 for c in clients:
-    if c["i"] != "D2F8A6C31":
+    if c["i"] != "UID#3906EMKLW":
         c["lo"] = [e for e in c["lo"] if e["p"] != "Alameda St underpass"]
 
 # The capstone turns on Silvia Duarte having a household and Silvia Okonkwo not.
-_ok = next((c for c in clients if c["i"] == "9A3C7B2E6"), None)
+_ok = next((c for c in clients if c["i"] == "UID#5110FLSVL"), None)
 if _ok is not None and _ok["hm"]:
     for m in _ok["hm"]:
         _other = next((x for x in clients if x["i"] == m["i"]), None)
@@ -714,7 +748,7 @@ if _ok is not None and _ok["hm"]:
 # Task 10: Yolanda's record is thin on identifiers, so the household is the way in.
 _am = {c["i"]: c for c in clients if c["l"] == "Amari"}
 if len(_am) == 2:
-    _am["C4E7B2019"].update({"qn": "Partial, street name, or code name reported",
+    _am["UID#9197GHPYC"].update({"qn": "Partial, street name, or code name reported",
                              "qd": "Approximate or partial DOB reported"})
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
