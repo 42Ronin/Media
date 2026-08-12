@@ -591,8 +591,8 @@ together, the learner picks one, and the feedback is the sentence the script alr
   panel's own fade, so the pause only has to be long enough to register the card, not to
   read it.
 - **`dist/kc-teller-prototype.html` is a different staging, not a theme.** Cards as objects on
-  a table, laid in a fanned spread; the question is something she says; the taken card rises
-  and the others fall back; progress is six candles. Built from `src/kc-teller.template.html`
+  a table, laid in a fanned spread; the taken card rises and the others fall back; progress is
+  six gold stones under the spread. Built from `src/kc-teller.template.html`
   and the same `src/kc.json`, so its copy cannot drift from the docx either.
   **The style guide does not govern it** — the owner said so explicitly, so it has its own
   palette (aubergine night, wine velvet, gold, parchment) and a serif. **The logo rule is
@@ -607,26 +607,36 @@ together, the learner picks one, and the feedback is the sentence the script alr
   suspended inside it. Lighting the glass itself made it read as a glowing panel — the
   inner bloom was what killed it. Dark glass, a hard specular where the light source is, a
   rim catching light, and the contents glowing cyan-white.
-  **Lashes appears inside the ball**, with the reading, and only then. Her empty slot must
-  `display:none` or the question sits 44px below the ball's centre.
-  **Sizing is arithmetic:** 560 × 440 is round enough to read as a ball rather than an egg
-  and still holds a reading. The content box is 62% × 74%, and (173/280)² + (163/220)² =
-  0.93 — anything under 1 is inside the curve, and `ball.mjs` measures it.
+  **The orb is an apparition, not the furniture.** The question is a plain pill — the light
+  card with the teal left border, the way it read before any of this — and the ball poofs in
+  over it with the reading and poofs out again on Next. It carries Lashes, the verdict, the
+  reading and the button; nothing else is ever inside it. Her empty slot must `display:none`
+  or the question sits 44px below the ball's centre. It was a wide panel that held everything
+  for a while, and that is worth remembering: a full-width bar reads as a banner, not an
+  object.
+  **Where the reservation goes is the whole layout problem.** A 380 ball has to have 380 of
+  room, and the page is mostly the state where she is *not* there. Reserved in flow and
+  centred, it left two 157px voids, one of them above the first thing on the page. So the
+  slot reserves 253 — enough that the orb's top lands at the top of the block, where nothing
+  can clip it — and the ball hangs over the row above the cards. **That overlap is measured
+  against the card text, not eyeballed:** the orb's bottom clears where the answers start, so
+  it costs the middle card's letter and its neighbours' inner edges and nothing that is read.
+  The tally moved *below* the spread for the same reason — a count half-behind the glass
+  reads as a mistake rather than as depth. Nothing moves between the two states, which is the
+  part that matters; `orb.mjs` asserts it.
+  **Sizing is arithmetic.** The content box is 68% × 73% of the ball, and (0.34/0.5)² +
+  (0.365/0.5)² = 0.997 — anything under 1 is inside the curve. The table screen carries a
+  second button and does not fit that box, so `.orb.table` trades width for height at 59% ×
+  79% (0.97). A circle spends most of its own area on nothing; every extra line costs width.
+  **Next is a permanent child of the foot.** The table screen used to write its two buttons in
+  with `innerHTML`, which deleted Next — so after *Lay those again* the next reading had no
+  button and setting its label threw. The table's buttons get their own box beside it.
   **The cards sit on whatever Rise puts behind them**, and the page is transparent — but the
-  composition now assumes a LIGHT page, because the white is doing the work of the room.
-  **It was a wide panel for a while and that is worth remembering** — a full-width bar reads
-  as a banner, not an object. The scrying panel carries
-  the whole theme — her, the question, the reading, the tally — with the crystal ball's
-  material (deep glass, turning smoke, gold rim, a sheen) in a shape that holds words. It
-  was a literal ball for a while, and a circle spends most of its own area on nothing; the
-  reading kept crowding the glass. **The cards sit on whatever Rise puts behind them** —
-  nothing outside the panel paints a ground.
-  **The panel has a min-height** so the cards never move when she starts reading.
-  **She shrinks while she is reading** (104px → 82px), which is staging and also room.
+  composition assumes a LIGHT page, because the white is doing the work of the room.
   Two traps worth remembering: a `conic-gradient` converges to a hard star at its own
-  centre — it showed as a crease across the panel until it was blurred, oversized and its
-  centre pushed off — and the card the learner *should* have taken must not be dimmed with
-  the rest, or the answer becomes the least legible thing on screen.
+  centre — it showed as a crease until it was blurred, oversized and its centre pushed off —
+  and the card the learner *should* have taken must not be dimmed with the rest, or the
+  answer becomes the least legible thing on screen.
   **Her costume sits on the rim, never the glass.** A scarf over the glass covers her lashes,
   and she is called Lashes. The lesson's drawing is untouched.
 - **The shipped check's layout is still plain.** A dealer's-table scene was discussed and parked;

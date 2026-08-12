@@ -53,18 +53,39 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sans{font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
 
 .frame{max-width:940px;margin:0 auto;padding:10px 16px 22px}
-.top{position:relative;display:flex;flex-direction:column;align-items:center}
+/* The slot holds the question and is where the orb blooms. It does NOT reserve the
+   orb's full height: a 380 ball reserved in flow left 280px of white under the
+   question on every screen where she is not there, and the page is mostly the state
+   where she is not there. It reserves enough that the orb's top lands at the top of
+   the block — it can never be clipped upward, there is nothing above it — and the
+   rest of the ball hangs over the spread. Which costs the top strip of the middle
+   card and the inner edges of its neighbours: the marks, not the answers. Nothing
+   moves either way, which is the part that matters. */
+.slot{position:relative;z-index:5;height:253px;
+  display:flex;align-items:flex-start;justify-content:center}
+
+/* The question, plainly — the way it was before any of this. */
+.ask{width:100%;max-width:620px;background:#e9f3f8;border-radius:17px;
+  border-left:5px solid #066888;padding:16px 20px;
+  box-shadow:0 8px 24px rgba(16,60,80,.12),0 1px 3px rgba(16,60,80,.1);
+  transition:opacity .3s}
+.ask .qn{margin:0 0 5px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:#5f7787;font-weight:700}
+.ask .qt{font-size:18px;line-height:1.45;font-weight:600;color:#1e2f3a}
+.slot.reading .ask{opacity:0}
 
 /* ============================================================
    The ball
 
-   Sized to the words, not to the column. 560 x 440 is round enough to read as a
-   ball rather than an egg, and still holds a reading: the content box is
-   62% x 74% of it, and (173/280)² + (163/220)² = 0.93 — anything under 1 is
-   inside the curve.
+   It only exists while she is reading: it poofs in over the question and poofs
+   out again. 380 across, sized to the reading — the content box is 68% x 73%,
+   and (0.34/0.5)² + (0.365/0.5)² = 0.997, which is just inside the curve. Wider
+   and shorter than it was: the same reading in fewer lines costs less height,
+   and height is what the page has to reserve.
    ============================================================ */
-.ball{position:relative;width:560px;max-width:100%;height:440px;border-radius:50%;
-  overflow:hidden;
+.orb{position:absolute;left:50%;top:190px;width:380px;height:380px;border-radius:50%;
+  overflow:hidden;transform:translate(-50%,-50%) scale(.1) rotate(-140deg);opacity:0;
+  transition:transform .5s cubic-bezier(.3,1.5,.45,1),opacity .3s;
   /* DARK glass. The light in the scene comes from what is inside it. */
   background:
     radial-gradient(64% 64% at 50% 46%, #16506c 0%, #0b3346 40%, #051d2b 72%, #020c14 100%);
@@ -74,6 +95,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     inset 0 -34px 70px rgba(0,0,0,.62),             /* heavy under the belly */
     0 0 66px rgba(38,136,178,.34),                  /* what it throws on the page */
     0 26px 44px rgba(6,26,38,.26)}
+.orb.in{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}
 /* what is turning inside it */
 .smoke{position:absolute;left:-70%;right:-70%;top:-180%;bottom:-120%;pointer-events:none;
   mix-blend-mode:screen;opacity:.3;filter:blur(26px);
@@ -92,26 +114,30 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* everything she shows you is suspended in the middle and lit from inside */
 .inner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:62%;max-height:74%;z-index:2;display:flex;flex-direction:column;
+  width:68%;max-height:73%;z-index:2;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:8px;text-align:center;
   color:#eafaff;
   text-shadow:0 0 18px rgba(140,225,255,.75), 0 0 46px rgba(90,190,240,.45),
     0 2px 8px rgba(0,12,20,.8)}
-.qn{margin:0;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+/* The table screen carries a second button, which the reading's box is not tall
+   enough for. A circle trades width for height: at 59% across, 79% down is still
+   inside it — (.295/.5)² + (.395/.5)² = 0.97 — and the closing lines are short. */
+.orb.table .inner{width:59%;max-height:79%}
+.qn2{margin:0;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
   color:#a8d9ef;font-weight:700}
-.qt{font-size:17px;line-height:1.46;font-weight:600}
+
 .verdict{font-size:19px;font-weight:700}
-.ball.good .verdict{color:#a3f5cc}
-.ball.bad .verdict{color:#ffbdb3}
-.fb{font-size:14px;line-height:1.5;color:#daf1fb}
-.ball.mist .inner>*{animation:mist .55s ease both}
+.orb.good .verdict{color:#a3f5cc}
+.orb.bad .verdict{color:#ffbdb3}
+.fb{font-size:13.5px;line-height:1.48;color:#daf1fb}
+.orb.mist .inner>*{animation:mist .55s ease both}
 @keyframes mist{from{opacity:0;filter:blur(7px);transform:translateY(6px) scale(.97)}
   to{opacity:1;filter:blur(0);transform:none}}
 
 /* She is not here while the learner is choosing — she turns up in the ball with
    the reading, lit like everything else in there. Her costume sits on the RIM,
    never over the glass: a scarf across her face covers her lashes. */
-.lashy{flex:none;width:88px;height:88px;position:relative;
+.lashy{flex:none;width:68px;height:68px;position:relative;
   filter:drop-shadow(0 0 22px rgba(150,230,255,.85)) drop-shadow(0 0 44px rgba(90,190,240,.5))}
 /* When she is away her box collapses, or the question sits 44px below the centre
    of the ball with nothing above it. Nothing else is beside her, so there is no
@@ -130,8 +156,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ============================================================
    Under it, on the page
    ============================================================ */
-.footrow{display:flex;align-items:center;gap:14px;width:100%;max-width:560px;
-  margin:14px auto 0;min-height:44px}
+.footrow{display:flex;align-items:center;gap:14px;width:100%;max-width:620px;
+  margin:24px auto 0}
 .stones{display:flex;gap:9px}
 .stone{width:15px;height:15px;transform:rotate(45deg);border-radius:3px;
   background:radial-gradient(circle at 34% 30%, #e2e9ee, #c2cfd8 70%);
@@ -142,13 +168,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   box-shadow:inset 0 0 0 1px rgba(150,70,62,.28)}
 .count{margin:0;font-size:12.5px;color:var(--mut)}
 .count b{color:var(--ink)}
-.foot{margin-left:auto}
+/* Two buttons on the table screen do not fit side by side in the ball, so they
+   stack — with a gap, rather than the quiet one's stray right margin, which does
+   nothing once they are on separate lines. */
+.foot{margin-top:2px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.tablebtns{display:contents}
+.tablebtns:empty{display:none}
 .go{font-family:"Segoe UI",system-ui,sans-serif;
   background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:#2b2010;
   border-radius:10px;padding:9px 20px;font-size:14.5px;font-weight:700;transition:filter .15s}
 .go:hover{filter:brightness(1.08)}
-.go.quiet{background:none;color:#6b5410;box-shadow:inset 0 0 0 1px rgba(160,125,30,.5);
-  margin-right:9px}
+.go.quiet{background:none;color:#6b5410;box-shadow:inset 0 0 0 1px rgba(160,125,30,.5)}
 .go.quiet:hover{background:rgba(201,164,75,.14)}
 
 /* ============================================================
@@ -245,11 +275,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
 
 @media(max-width:700px){
-  .ball{height:400px}
+  .slot{height:232px}
+  .orb{top:172px;width:340px;height:340px}
   .tcard{width:160px;height:230px;margin:0 6px}
 }
 @media(prefers-reduced-motion:reduce){
-  .m-body,.m-face,.m-eyes,.smoke,.ball.mist .inner>*,.lashy.in .mface,.lashy.in .puff{
+  .m-body,.m-face,.m-eyes,.smoke,.orb.mist .inner>*,.lashy.in .mface,.lashy.in .puff{
     animation:none !important}
   .tcard,.tcard.dealt{animation:none;transition:none}
   .spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(var(--lift,0))}
@@ -259,27 +290,45 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <body>
 
 <div class="frame">
-  <div class="top">
-    <div class="ball" id="ball">
+  <!-- One slot. The question sits at the top of it plainly; the orb poofs in over
+       it when she has a reading, and poofs out again. Reserved at the orb's height
+       so nothing below ever moves — and the room that reservation leaves is all
+       under the question, which is where she turns up. -->
+  <div class="slot">
+    <div class="ask" id="ask">
+      <p class="qn sans" id="qn"></p>
+      <div class="qt" id="qt"></div>
+    </div>
+
+    <div class="orb" id="orb" hidden>
       <span class="smoke" aria-hidden="true"></span>
       <div class="inner">
         <div class="lashy" id="lashy" aria-hidden="true"></div>
-        <p class="qn sans" id="qn"></p>
-        <div class="verdict" id="verdict" hidden></div>
-        <div class="qt" id="qt"></div>
-        <div class="fb" id="fb" hidden></div>
+        <p class="qn2 sans" id="qn2"></p>
+        <div class="verdict" id="verdict"></div>
+        <div class="fb" id="fb"></div>
+        <!-- Next is a permanent child. The table screen used to write its two
+             buttons into #foot with innerHTML, which deleted this one — so after
+             "lay those again" the reading had no Next and setting its label threw.
+             The table's buttons get their own box beside it instead. -->
+        <div class="foot" id="foot">
+          <button class="go" id="next"></button>
+          <span class="tablebtns" id="tablebtns"></span>
+        </div>
       </div>
       <span class="sheen" aria-hidden="true"></span>
-    </div>
-
-    <div class="footrow">
-      <div class="stones" id="stones" aria-hidden="true"></div>
-      <p class="count sans" id="count"></p>
-      <div class="foot" id="foot" hidden><button class="go" id="next"></button></div>
     </div>
   </div>
 
   <div class="spread" id="spread" role="group" aria-labelledby="qt"></div>
+
+  <!-- The tally sits under the spread, not over it: the orb hangs into the row above
+       the cards, and a count half-behind the glass reads as a mistake rather than as
+       depth. -->
+  <div class="footrow">
+    <div class="stones" id="stones" aria-hidden="true"></div>
+    <p class="count sans" id="count"></p>
+  </div>
 </div>
 
 <p class="sr-only" role="status" aria-live="polite" id="live"></p>
@@ -351,8 +400,27 @@ function unface(){ var el=$("#lashy"); el.classList.remove("in"); el.innerHTML="
 /* Re-run the mist so the contents re-form every time the ball changes what it
    holds. Toggling `hidden` alone will not restart a CSS animation. */
 function remist(){
-  var el=$("#ball");
+  var el=$("#orb");
   el.classList.remove("mist"); void el.offsetWidth; el.classList.add("mist");
+}
+/* The orb is an apparition: it is not there at all until she has a reading, and
+   it goes again before the next question is dealt. `hidden` is toggled either
+   side of the transition so it never sits invisibly over the question. */
+function orbIn(kind){
+  var el=$("#orb");
+  el.className="orb "+kind;
+  el.hidden=false;
+  void el.offsetWidth;
+  el.classList.add("in");
+  $(".slot").classList.add("reading");
+  remist();
+}
+function orbOut(then){
+  var el=$("#orb");
+  if(el.hidden){ if(then) then(); return; }
+  el.classList.remove("in");
+  $(".slot").classList.remove("reading");
+  later(function(){ el.hidden=true; unface(); if(then) then(); }, reduced?0:340);
 }
 
 /* --- the only two things it ever says to a host --- */
@@ -394,13 +462,6 @@ function deal(){
   clearLater();
   var qi=order[at], q=QS[qi], deck=shuffle(q.a);
 
-  $("#ball").className="ball";
-  unface();
-  remist();
-  $("#verdict").hidden=true;
-  $("#fb").hidden=true;
-  $("#foot").hidden=true;
-  $("#qt").hidden=false;
   $("#qt").textContent=q.q;
   $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
   paintStones();
@@ -464,24 +525,20 @@ function take(card,cards,q){
   $("#live").textContent=(right?"Correct. ":"Not correct. ")+q.fb;
 
   later(function(){
-    $("#ball").className="ball "+(right?"good":"bad");
-    $("#qt").hidden=true;
-    $("#qn").textContent="The reading";
+    $("#qn2").textContent="The reading";
     $("#verdict").textContent=right?"That is the one.":"Not that one.";
-    $("#verdict").hidden=false;
     $("#fb").textContent=q.fb;
-    $("#fb").hidden=false;
-    face(right?"sparkle":"droll", right?"cheer":"wry");
-    remist();
+    $("#tablebtns").innerHTML=""; $("#next").hidden=false;
     $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
-    $("#foot").hidden=false;
+    face(right?"sparkle":"droll", right?"cheer":"wry");
+    orbIn(right?"good":"bad");
     later(function(){ $("#next").focus(); },60);
   }, reduced?0:340);
 }
 
 $("#next").addEventListener("click",function(){
   at++;
-  if(at<order.length) deal(); else finish();
+  orbOut(function(){ if(at<order.length) deal(); else finish(); });
 });
 
 function finish(){
@@ -491,19 +548,16 @@ function finish(){
 
   $("#spread").innerHTML=""; $("#spread").className="spread";
   paintStones();
-  $("#ball").className="ball "+(passed?"good":"bad");
-  $("#qn").textContent="The table";
-  $("#qt").hidden=true;
+  $("#qn").textContent=""; $("#qt").textContent="";
+  $("#qn2").textContent="The table";
   $("#verdict").textContent=passed?"You are through."
     :"Not quite — "+NEED+" of "+QS.length+" needed.";
-  $("#verdict").hidden=false;
   $("#fb").textContent=passed
     ? "None of this is about remembering a rule. It is about not deciding on one signal — which is the difference between finding somebody's record and starting them a second one."
     : "Question"+(missed.length===1?" ":"s ")+list(missed)+" went the other way. I will lay "+
       (missed.length===1?"it":"them")+" again, in a different order.";
-  $("#fb").hidden=false;
   face(passed?"sparkle":"droll", passed?"cheer":"hm");
-  remist();
+  orbIn((passed?"good":"bad")+" table");
   $("#live").textContent=(passed?"Passed. ":"Not passed. ")+score+" of "+QS.length+" right.";
 
   if(passed){
@@ -511,7 +565,8 @@ function finish(){
     EMBED.complete();
   }else{
     $("#foot").hidden=false;
-    $("#foot").innerHTML='<button class="go quiet" id="againAll" type="button">Start over</button>'+
+    $("#next").hidden=true;
+    $("#tablebtns").innerHTML='<button class="go quiet" id="againAll" type="button">Start over</button>'+
       '<button class="go" id="againBad" type="button">Lay '+(missed.length===1?"it":"those "+missed.length)+' again</button>';
     $("#againBad").addEventListener("click",function(){ replay(missed.map(function(n){return n-1})); });
     $("#againAll").addEventListener("click",function(){ replay(null); });
@@ -522,7 +577,8 @@ function finish(){
 function replay(which){
   if(which===null){ got=QS.map(function(){return null}); order=QS.map(function(_,i){return i}); }
   else order=which.slice();
-  at=0; deal();
+  at=0;
+  orbOut(deal);
 }
 
 (function(){
