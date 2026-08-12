@@ -367,7 +367,13 @@ var KC = /*__KC__*/;
 var LOGO = /*__LOGO__*/;
 var $=function(s){return document.querySelector(s)};
 var LETTER=["A","B","C","D","E"];
+/* Three tilts for up to five cards: the maker allows 3-5 answers, and TILT[3]
+   was `undefined`, which makes `rotate(var(--tilt))` an invalid transform — so
+   the whole declaration is dropped, including the rotateY that turns the card
+   over. A four-answer question dealt a card that never showed its face. */
 var TILT=["-4deg","0.5deg","4deg"], LIFT=["10px","0px","9px"];
+function tilt(i){ return TILT[i%TILT.length]; }
+function lift(i){ return LIFT[i%LIFT.length]; }
 
 /* --- her face: the lesson's drawing, plus a costume that lives only here --- */
 var LASH={
@@ -503,7 +509,7 @@ function deal(){
   sp.className="spread";
   sp.innerHTML=deck.map(function(a,i){
     return '<button class="tcard'+(reduced?" up":"")+'" type="button" data-ok="'+(a.ok?"1":"0")+'"'+
-      ' style="--tilt:'+TILT[i]+';--lift:'+LIFT[i]+'" aria-disabled="true" tabindex="-1">'+
+      ' style="--tilt:'+tilt(i)+';--lift:'+lift(i)+'" aria-disabled="true" tabindex="-1">'+
       '<span class="tface tback" aria-hidden="true">'+
         (LOGO?'<img src="'+LOGO+'" alt="">':'<span class="crest"></span>')+'</span>'+
       '<span class="tface tfront">'+

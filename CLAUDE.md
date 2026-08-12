@@ -665,9 +665,9 @@ together, the learner picks one, and the feedback is the sentence the script alr
   answer becomes the least legible thing on screen.
   **Her costume sits on the rim, never the glass.** A scarf over the glass covers her lashes,
   and she is called Lashes. The lesson's drawing is untouched.
-- **The Card Dealer staging was rejected on sight and is parked.** The owner's words: *her
-  design is just the fortune teller but green, and nothing about it makes sense as a card
-  dealer.* Read that as the diagnosis it is — the theme was built by restaging the teller's
+- **The Card Dealer staging was rejected on sight and rebuilt.** The owner's words on the
+  first attempt: *her design is just the fortune teller but green, and nothing about it makes
+  sense as a card dealer.* Read that as the diagnosis it is — the theme was built by restaging the teller's
   furniture (her costume in the teller's own envelope, the same card fan, the same chips-for-
   stones swap) and recolouring it, which is exactly the "reskin, not a new approach" the owner
   ruled out when the teller itself was commissioned. **A dealer is a person doing a job**: the
@@ -675,16 +675,32 @@ together, the learner picks one, and the feedback is the sentence the script alr
   while you decide. None of that is in it. Whatever replaces it has to start from that, not
   from this file's palette. It is left in the tree and in the maker so there is something to
   argue with; do not treat it as approved.
-- **`dist/kc-dealer-prototype.html` is that staging as built.** Built from
-  `src/kc-dealer.template.html`, same questions and same gate. Felt with a brass rail, the
-  cards laid on it, the tally as chips.
-  **She is at the table the whole time**, which is the difference between this and the other
-  two — there her arrival *is* the answer landing, and a dealer does not turn up when the hand
-  is over. What changes on a pick is her face and what she says, not whether she is there.
-  **One bubble holds the question and then the reading**, and the two are stacked in a single
-  grid cell rather than swapped, so the bubble is as tall as the taller of them and the table
-  cannot move. Positioning the reading absolutely instead left the bubble at the question's
-  height and put the Next button out on the felt.
+- **`dist/kc-dealer-prototype.html` is the rebuild, and it is built round the CHIP.** The
+  verdict arrives as a poker chip thrown onto the felt, **and Lashes is the chip's inlay** —
+  that is the owner's idea and it is what makes the staging the table's own rather than the
+  teller's furniture in green. A chip is what a table pays out in.
+  **She is on the chip and nowhere else**, so she is absent for the question again, as she is
+  in the other two: her arrival is the answer landing.
+  **A question with feedback switched off gets a check or a cross in her place.** There is
+  nothing for her to say, and a face with no words beside it is a character waiting for a line.
+  Both are drawn, not typed — a glyph arrives in whatever the reader's font has for it.
+  **The chip's edge spots are a `conic-gradient` with hard stops**, which converges to a star
+  at its own centre. That is fine *here and nowhere else*: the inlay is an opaque disc over
+  the middle, so the artefact is covered by construction rather than by blurring it away.
+  **The rail is leather, all the way round.** It was a brown bar across the top only, because
+  she stood behind it; she does not stand anywhere now, so it went back to being what a rail
+  is — the edge of the table.
+  **The question is glass on the felt**, not a parchment slab laid over it: the green reads
+  through, which is what keeps the table one object.
+  **The places are painted on the felt and the cards are square in them.** One outline per
+  answer, generated with the hand, so a five-answer question gets five places. They frame the
+  card 8px proud on every side. **The dealer's cards lost their tilt for this** — a tilted card
+  leaves the outline showing as a sliver behind it, which reads as a misprint. The teller keeps
+  its fan; there the cards are objects on a table, not a dealt hand.
+  **One box holds the question and then the reading**, stacked in a single grid cell rather
+  than swapped, so it is as tall as the taller of them and the table cannot move. Positioning
+  the reading absolutely instead left the box at the question's height and put the Next button
+  out on the felt.
   **The reading is written at the deal, not at the pick** — while it is still hidden — or the
   bubble grows by whatever the feedback needs and walks the whole spread down the table. The
   hidden layer uses `visibility` as well as opacity: it has to keep its box, but a merely
@@ -692,9 +708,17 @@ together, the learner picks one, and the feedback is the sentence the script alr
   before the card is taken.
   **Nothing hangs over the spread**, which is why this staging has none of the ball's clearance
   arithmetic: the answers are centred in their cards because there is nothing to clear.
-  **Her costume is a dealer's visor, not the teller's headscarf** — and it uses the teller's
-  envelope, because the rule that put the scarf there holds for anything she wears: on the rim,
-  never over the glass, above every lash at every x. She is called Lashes.
+  **She wears nothing at this table.** The teller dresses her because the ball is a scene she
+  is inside; here she is the mark struck on a chip, and a chip's inlay is a face, not a
+  character in a hat. The lesson's drawing, untouched. (If anything is ever put on her here,
+  the teller's rule governs it: on the rim, never over the glass, above every lash at every x.
+  She is called Lashes.)
+- **`TILT[i]` was read straight and the maker allows five answers.** `TILT` has three entries,
+  so a four-answer question set `--tilt:undefined`, which makes `rotate(var(--tilt))` an
+  invalid transform — the whole declaration is dropped, **including the `rotateY(180deg)` that
+  turns the card over**, so the fourth card never showed its face. The teller wraps with a
+  modulo now; the dealer has no tilt at all. Anything that indexes a fixed array by card
+  position has this bug waiting in it.
 - **The shipped check's layout is still plain.** A dealer's-table scene was discussed and parked;
   hands or props on her would live in the character SVG, which is copied in **four** places
   now (lesson, page, teller, dealer) and should be extracted before anyone draws on it.
