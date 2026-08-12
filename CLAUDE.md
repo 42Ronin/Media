@@ -504,6 +504,12 @@ together, the learner picks one, and the feedback is the sentence the script alr
 - **`script/kc_data.py` is the single list.** `make_script.py` renders it into the docx and
   `build.sh` writes it to `src/kc.json` and stamps it into the page. Edit the questions
   there, rebuild both; the test compares the built page against `kc.json`.
+- **No unscripted microcopy.** Instructional asides in my own voice — *Take the card you
+  would act on*, *5 gets you through*, *you need 5* — were written into both knowledge
+  checks and the owner struck them out. Copy in a KC comes from `script/kc_data.py`, or it is
+  a button label, a card mark, or a bare count. Nothing narrates, nothing coaches, nothing
+  explains the gate at you while you play. The fail screen states the requirement once,
+  because otherwise the gate is arbitrary; that is the only exception.
 - **A card cannot be clicked while it is face down.** The deal is the theatre, but a blank
   card you can pick is an invitation to guess, which is the one habit this lesson exists to
   break. The hand goes live only once every card has turned over.

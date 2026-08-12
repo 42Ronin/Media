@@ -105,7 +105,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .ask .qn{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);
   font-weight:700;margin-bottom:4px}
 .ask .qt{font-size:17px;line-height:1.5;font-weight:600}
-.ask .qs{margin-top:7px;font-size:14.5px;color:var(--mut)}
 
 /* ---------- the hand ---------- */
 /* auto-fit rather than a fixed three, so a narrower Rise column wraps the hand
@@ -268,7 +267,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       <div class="ask">
         <div class="qn" id="qn"></div>
         <div class="qt" id="qt"></div>
-        <div class="qs" id="qs" hidden></div>
       </div>
 
       <div class="said" id="said">
@@ -497,7 +495,6 @@ function deal(){
   $("#stage").hidden=false;
   $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
   $("#qt").textContent=q.q;
-  $("#qs").hidden=true;
   paintHead();
   /* she is not here for the question — see lashesArrive */
 
@@ -530,8 +527,6 @@ function deal(){
   later(function(){
     hand.classList.add("live");
     cards.forEach(function(c){ c.setAttribute("aria-disabled","false"); c.tabIndex=0; });
-    $("#qs").textContent="Pick the card you would act on.";
-    $("#qs").hidden=false;
     say("live","Question "+(qi+1)+" of "+QS.length+". "+QS[qi].q);
   }, reduced?0:480+cards.length*150+120);
 }
@@ -611,8 +606,7 @@ function finish(){
   $("#spread").innerHTML=got.map(function(ok,i){
     return '<span class="mini '+(ok?"ok":"no")+'" style="animation-delay:'+(i*70)+'ms">'+(i+1)+'</span>';
   }).join("");
-  $("#score").innerHTML="<b>"+score+" of "+QS.length+"</b> right"+
-    (passed ? "" : " &mdash; you need "+NEED);
+  $("#score").innerHTML="<b>"+score+" of "+QS.length+"</b>";
 
   lashesArrive("lashy3", passed?"sparkle":"droll", passed?"cheer":"hm");
   $("#endSaid").className="said"+(passed?"":" no");
@@ -630,7 +624,7 @@ function finish(){
     EMBED.complete();
     say("live","Passed. "+score+" of "+QS.length+" right. This section is complete.");
   }else{
-    $("#endTitle").textContent="Not quite — "+NEED+" of "+QS.length+" gets you through.";
+    $("#endTitle").textContent="Not quite — "+NEED+" of "+QS.length+" needed.";
     $("#endBody").textContent=
       "Question"+(missed.length===1?" ":"s ")+list(missed.map(function(i){return i+1}))+
       " went the other way. Deal "+(missed.length===1?"it":"them")+" again — "+
