@@ -10,8 +10,12 @@
   One question at a time. Lashes deals three answers face down, they turn over
   together, the learner picks one, and the feedback is the same sentence the
   script carries — the questions come from `script/kc_data.py` and are stamped
-  into the /*__KC__*/ token below at build time, so this page and the docx are
-  rendered from one list and cannot drift.
+  into the KC token below at build time, so this page and the docx are rendered
+  from one list and cannot drift.
+
+  That token is written out exactly once, beside `var KC`. Do not name it in
+  prose: build.sh replaces every occurrence and the maker replaces the first,
+  so a second mention silently swallows the questions in one of them.
 
   It reports nothing but completion, and only once the learner has cleared the
   pass mark. There is no score in these simulations and Rise could not receive
@@ -79,8 +83,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   55%{transform:scale(1.16) rotate(14deg);opacity:1}
   100%{transform:scale(1) rotate(0);opacity:1}}
 @keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
+/* min-height so a three-line question and a one-line question take the same room.
+   Without it the block still moved between questions — smaller than the feedback
+   jump, but the same defect: the page shifting under a learner who has not asked
+   it to. Sized to the tallest question at the narrowest column we support. */
 .ask{flex:1;min-width:0;background:#fff;border-radius:17px;border-left:5px solid var(--teal);
-  padding:13px 16px;box-shadow:0 8px 24px rgba(6,104,136,.13),0 1px 3px rgba(6,104,136,.12)}
+  padding:13px 16px;min-height:156px;
+  box-shadow:0 8px 24px rgba(6,104,136,.13),0 1px 3px rgba(6,104,136,.12)}
 .ask .qn{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);
   font-weight:700;margin-bottom:4px}
 .ask .qt{font-size:17px;line-height:1.5;font-weight:600}
@@ -90,7 +99,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* auto-fit rather than a fixed three, so a narrower Rise column wraps the hand
    instead of squeezing it. Not a second layout — the same one, fluid. */
 .hand{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:16px;perspective:1300px}
-.card{position:relative;height:212px;transform-style:preserve-3d;padding:0;background:none;
+.card{position:relative;height:226px;transform-style:preserve-3d;padding:0;background:none;
   border-radius:14px;cursor:default;transition:transform .34s cubic-bezier(.2,1.2,.4,1)}
 .hand.live .card{cursor:pointer}
 .hand.live .card:hover{transform:translateY(-7px)}
@@ -138,12 +147,33 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .card.rest .front{opacity:.55}
 .hand.done .card,.hand.done .card:hover{cursor:default}
 
-/* ---------- feedback ---------- */
-.said{display:flex;align-items:flex-start;gap:14px;margin-top:20px}
+/* ---------- feedback ----------
+   It lays over the hand, not under it. Arriving as a new row grew the block by
+   about 150px every time a card was picked, which shunts everything below it in
+   Rise and reads as the page jumping rather than the answer landing. */
+/* Tall enough for the cards AND for the longest feedback, so the overlay never
+   spills past the stage and the felt is the same height either way. */
+.stage{position:relative;min-height:252px}
+/* shared by the hand's feedback and the reading at the end */
+.said{display:flex;align-items:center;gap:14px}
+/* only the one over the hand is an overlay; the reading sits in normal flow */
+.stage .said{position:absolute;inset:0;z-index:3;border-radius:16px;
+  /* the felt colour, near-opaque — the marked cards ghost through rather than
+     vanishing, so what you took is still suggested behind the reason */
+  background:rgba(241,248,251,.94);
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px);
+  transition:opacity .28s,transform .34s cubic-bezier(.2,1.2,.4,1),visibility 0s .3s}
+.stage .said.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;
+  transition-delay:0s}
 .said .bub{flex:1;min-width:0;background:#fff;border-radius:17px;padding:13px 16px;
   border-left:5px solid var(--ok);
   box-shadow:0 8px 24px rgba(6,104,136,.13),0 1px 3px rgba(6,104,136,.12)}
 .said.no .bub{border-left-color:var(--bad)}
+/* Which card they took, in words — the marks on the cards are behind the panel
+   now, so the panel has to carry that fact itself. */
+.said .took{font-size:13.5px;color:var(--mut);margin-bottom:7px}
+.said .took b{color:var(--ink);font-weight:600}
 .said .verdict{font-weight:700;color:var(--ok);margin-bottom:4px}
 .said.no .verdict{color:var(--bad)}
 .said .foot{display:flex;justify-content:flex-end;margin-top:12px;padding-top:11px;
@@ -213,14 +243,19 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       </div>
     </div>
 
-    <div class="hand" id="hand" role="group" aria-labelledby="qt"></div>
+    <!-- The hand and the feedback share one stage. The feedback lays over the
+         cards rather than arriving under them, so the block never grows. -->
+    <div class="stage" id="stage">
+      <div class="hand" id="hand" role="group" aria-labelledby="qt"></div>
 
-    <div class="said" id="said" hidden>
-      <div class="lashy" id="lashy2" aria-hidden="true"></div>
-      <div class="bub">
-        <div class="verdict" id="verdict"></div>
-        <div id="fb"></div>
-        <div class="foot"><button class="go" id="next"></button></div>
+      <div class="said" id="said">
+        <div class="lashy" id="lashy2" aria-hidden="true"></div>
+        <div class="bub">
+          <div class="verdict" id="verdict"></div>
+          <div class="took" id="took"></div>
+          <div id="fb"></div>
+          <div class="foot"><button class="go" id="next"></button></div>
+        </div>
       </div>
     </div>
 
@@ -418,9 +453,10 @@ function deal(){
   var qi=order[at], q=QS[qi];
   var deck=shuffle(q.a);
 
-  $("#said").hidden=true;
+  $("#said").classList.remove("on");
   $("#end").hidden=true;
   $(".dealer").hidden=false;
+  $("#stage").hidden=false;
   $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
   $("#qt").textContent=q.q;
   $("#qs").hidden=true;
@@ -472,11 +508,14 @@ function pick(card,cards,q){
   var right=card.dataset.ok==="1";
   got[order[at]]=right;
 
-  cards.forEach(function(c){
+  var tookLetter="", rightLetter="";
+  cards.forEach(function(c,i){
     c.setAttribute("aria-disabled","true"); c.tabIndex=-1;
     c.classList.add("up");
     var mark=c.querySelector(".mark");
+    if(c.dataset.ok==="1") rightLetter=LETTER[i];
     if(c===card){
+      tookLetter=LETTER[i];
       c.classList.add("picked", right?"right":"wrong");
       mark.textContent=right?"Your card — correct":"Your card";
     }else if(c.dataset.ok==="1"){
@@ -488,18 +527,27 @@ function pick(card,cards,q){
   });
 
   paintHead();
-  /* The feedback lands at once — it is the point of the moment — and she crosses
-     to it while it is landing, leaving the question behind her. */
-  lashesLeave(function(){ lashesArrive("lashy2", right?"sparkle":"droll", right?"cheer":"wry"); });
   $("#said").className="said"+(right?"":" no");
   $("#verdict").textContent = right ? "That is the one." : "Not that one.";
+  $("#took").innerHTML = right
+    ? "You took <b>"+tookLetter+"</b>."
+    : "You took <b>"+tookLetter+"</b>. The one to take was <b>"+rightLetter+"</b>.";
   $("#fb").textContent = q.fb;
 
   var last=(at>=order.length-1);
   $("#next").textContent = last ? "See how you did" : "Next question";
-  $("#said").hidden=false;
+  /* Said at once for anyone listening rather than looking — the pause below is
+     theatre, and theatre should not delay the answer for a screen reader. */
   say("live",(right?"Correct. ":"Not correct. ")+q.fb);
-  later(function(){ $("#next").focus(); }, 60);
+
+  /* A beat with the marked cards readable, then the reason lays over them. She
+     crosses while it arrives, so she is never at the question and the feedback
+     at the same time. */
+  later(function(){
+    lashesLeave(function(){ lashesArrive("lashy2", right?"sparkle":"droll", right?"cheer":"wry"); });
+    $("#said").classList.add("on");
+    later(function(){ $("#next").focus(); }, 60);
+  }, reduced?0:620);
 }
 
 /* She goes first, and the next thing is built once she is out of the frame — so a
@@ -518,7 +566,9 @@ function finish(){
 
   $("#hand").innerHTML="";
   $("#hand").className="hand";
-  $("#said").hidden=true;
+  $("#said").classList.remove("on");
+  /* the whole stage goes: no hand to lay anything over */
+  $("#stage").hidden=true;
   /* The question row goes entirely: there is no question left to ask, and leaving
      it would put a second bubble above her with nobody beside it. */
   $(".dealer").hidden=true;
@@ -585,6 +635,10 @@ function say(id,text){ var el=document.getElementById(id); if(el) el.textContent
    Start
    ============================================================ */
 (function(){
+  /* The maker sets these; a build from kc_data.py leaves them out and the page
+     keeps the title and heading it was written with. */
+  if(KC.title) document.title=KC.title;
+  if(KC.heading) $(".head h1").textContent=KC.heading;
   if(!QS.length){ $("#qt").textContent="No questions were built into this page."; return; }
   got=QS.map(function(){return null});
   order=QS.map(function(_,i){return i});

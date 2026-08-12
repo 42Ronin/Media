@@ -17,3 +17,6 @@ HMIS BNTS - Search/script/section-*.docx
 HMIS BNTS - Search/launcher/dist/section-*-index.html
 
 __pycache__/
+
+# the kc-maker's node_modules symlink into the lesson's copy
+tools/kc-maker/node_modules

@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge check maker</title>
+<!--
+  Authoring tool for the card knowledge check.
+
+  One HTML file. Open it in a browser; nothing is installed, nothing is uploaded,
+  and it fetches nothing — the page it exports is carried inside it, base64'd into
+  the empty #page script at build time by make_maker.py, so the maker can never
+  ship a stale copy of the lesson page.
+
+  Write the questions, press Export. The exported page is the same one the lesson
+  ships: cards dealt face down, one pick, feedback over the hand, and a completion
+  that is withheld until the pass mark is cleared.
+-->
+<style>
+:root{
+  --teal:#066888; --teal-dk:#044e66; --teal-lt:#3fa0c0;
+  --ink:#14222b; --mut:#5f7f8f; --line:#d9e8ef; --line-2:#eaf2f6;
+  --felt:#f1f8fb; --paper:#fff;
+  --ok:#0f6b45; --ok-soft:#e8f5ee; --bad:#a3312a; --bad-soft:#fbeae9;
+  --focus:#0b6fd4;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;padding:0;height:100%}
+body{font:14.5px/1.55 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink);background:#f6fafc;-webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;height:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:5px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ---------- top bar ---------- */
+.bar{flex:none;display:flex;align-items:center;gap:14px;padding:10px 18px;
+  background:var(--paper);border-bottom:1px solid var(--line)}
+.bar .brand{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--teal);
+  font-size:15.5px;white-space:nowrap}
+.bar .brand svg{width:32px;height:32px;display:block;overflow:visible}
+.grow{flex:1}
+.field{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--mut)}
+.field input[type=text]{width:230px;padding:7px 10px;border:1px solid var(--line);
+  border-radius:8px;background:#fff}
+.field input[type=number]{width:64px;padding:7px 8px;border:1px solid var(--line);
+  border-radius:8px;background:#fff}
+.btn{background:var(--teal);color:#fff;border-radius:9px;padding:9px 16px;font-weight:600;
+  font-size:14px;white-space:nowrap;transition:background .15s}
+.btn:hover{background:var(--teal-dk)}
+.btn[disabled]{background:#b9ccd6;cursor:not-allowed}
+.btn.quiet{background:none;color:var(--teal);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.quiet:hover{background:var(--felt);color:var(--teal-dk)}
+.btn.small{padding:6px 11px;font-size:13px;border-radius:7px}
+
+/* ---------- body ---------- */
+.body{flex:1;display:flex;min-height:0}
+.side{flex:none;width:250px;border-right:1px solid var(--line);background:var(--paper);
+  display:flex;flex-direction:column;min-height:0}
+.side h2{margin:0;padding:13px 15px 9px;font-size:12px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--mut)}
+.qlist{flex:1;overflow:auto;padding:0 9px 9px}
+.qitem{display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;
+  padding:9px 10px;border-radius:9px;margin-bottom:3px;border:1px solid transparent}
+.qitem:hover{background:var(--felt)}
+.qitem.on{background:var(--felt);border-color:var(--line);font-weight:600}
+.qitem .n{flex:none;width:21px;height:21px;border-radius:6px;background:var(--line-2);
+  color:var(--mut);font-size:11.5px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;margin-top:1px}
+.qitem.on .n{background:var(--teal);color:#fff}
+.qitem.bad .n{background:var(--bad-soft);color:var(--bad)}
+.qitem .t{flex:1;min-width:0;font-size:13.5px;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.qitem .t.empty{color:var(--mut);font-style:italic}
+.sidefoot{flex:none;padding:10px 12px;border-top:1px solid var(--line);display:flex;gap:8px}
+
+.main{flex:1;overflow:auto;padding:20px 24px 40px;min-width:0}
+.pane{max-width:760px}
+.pane h3{margin:0 0 3px;font-size:17px}
+.pane .sub{margin:0 0 18px;color:var(--mut);font-size:13.5px}
+label.lab{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--mut);font-weight:700;margin:0 0 6px}
+textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;resize:vertical;line-height:1.5}
+textarea.q{min-height:74px;font-size:15.5px}
+textarea.fb{min-height:96px}
+.blk{margin-bottom:22px}
+
+/* answers */
+.ans{display:flex;gap:11px;align-items:flex-start;margin-bottom:9px}
+.ans .pick{flex:none;margin-top:9px;display:flex;align-items:center;gap:7px}
+.ans .letter{flex:none;width:24px;height:24px;border-radius:7px;background:var(--line-2);
+  color:var(--mut);font-size:12px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;margin-top:8px}
+.ans.correct .letter{background:var(--ok);color:#fff}
+.ans textarea{min-height:46px}
+.ans.correct textarea{border-color:var(--ok);background:var(--ok-soft)}
+.ans .kill{flex:none;margin-top:7px;width:28px;height:28px;border-radius:7px;color:var(--mut);
+  font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center}
+.ans .kill:hover{background:var(--bad-soft);color:var(--bad)}
+.ans .kill[disabled]{opacity:.3;cursor:not-allowed}
+.ans .kill[disabled]:hover{background:none;color:var(--mut)}
+.hint{font-size:13px;color:var(--mut);margin:2px 0 0}
+
+/* ---------- validation ---------- */
+.probs{flex:none;background:var(--bad-soft);border-top:1px solid #f0cfcc;color:var(--bad);
+  padding:10px 18px;font-size:13.5px}
+.probs ul{margin:5px 0 0;padding-left:20px}
+.probs li{margin:2px 0}
+.okline{flex:none;background:var(--ok-soft);border-top:1px solid #cbe6d8;color:var(--ok);
+  padding:10px 18px;font-size:13.5px;font-weight:600}
+
+/* the character, drawn as the lesson draws her */
+.m-rim{fill:none;stroke:#066888;stroke-width:6}
+.m-glass{fill:#e0eff5}
+.m-eye{fill:#14222b}
+.m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
+.m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
+.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span class="brand">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle class="m-rim" cx="44" cy="42" r="30"/>
+      <circle class="m-glass" cx="44" cy="42" r="25"/>
+      <circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>
+      <g class="m-lash">
+        <path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>
+        <path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/>
+      </g>
+      <path class="m-mouth" d="M36 51 q8 7 16 0"/>
+      <path class="m-shine" d="M27 30 q7-9 17-10"/>
+    </svg>
+    Knowledge check maker
+  </span>
+
+  <span class="field">
+    <label for="name">Name</label>
+    <input type="text" id="name" placeholder="lesson-1-knowledge-check">
+  </span>
+  <span class="field">
+    <label for="pass">Pass mark</label>
+    <input type="number" id="pass" min="0" max="100" step="5" value="80">%
+  </span>
+
+  <span class="grow"></span>
+
+  <button class="btn quiet small" id="saveProj">Save project</button>
+  <button class="btn quiet small" id="openProj">Open project</button>
+  <button class="btn" id="expHTML">Export HTML</button>
+  <button class="btn" id="expZIP">Export ZIP</button>
+  <input type="file" id="fileIn" accept=".json,application/json" hidden>
+</div>
+
+<div class="body">
+  <div class="side">
+    <h2>Questions</h2>
+    <div class="qlist" id="qlist" role="tablist" aria-label="Questions"></div>
+    <div class="sidefoot">
+      <button class="btn small" id="addQ">Add question</button>
+      <span class="field"><label for="total" class="sr-only">Total questions</label>
+        <input type="number" id="total" min="1" max="40" title="Total questions"></span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="pane" id="pane"></div>
+  </div>
+</div>
+
+<div class="probs" id="probs" hidden></div>
+<div class="okline" id="okline" hidden></div>
+
+<!-- The knowledge-check page itself, base64'd in at build time. -->
+<script id="page" type="text/plain"></script>
+<script>
+var $=function(s){return document.querySelector(s)};
+var LETTER=["A","B","C","D","E"];
+/* Assembled rather than written out, so this file never contains the literal the
+   build scripts search for. */
+var TOKEN="/*"+"__KC__"+"*/";
+var MIN_ANS=3, MAX_ANS=5;
+var STORE="kc-maker/v1";
+
+/* ============================================================
+   The project
+   ============================================================ */
+function blankQ(){ return {q:"", a:[{t:"",ok:true},{t:"",ok:false},{t:"",ok:false}], fb:""}; }
+var proj={ name:"", pass:80, questions:[blankQ()] };
+var at=0;
+
+function load(){
+  var raw;
+  try{ raw=localStorage.getItem(STORE); }catch(e){ return; }
+  if(!raw) return;
+  try{ adopt(JSON.parse(raw)); }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(STORE, JSON.stringify(proj)); }catch(e){}
+}
+/* Anything that looks like a project — from localStorage or an opened file. Both
+   go through here so a hand-edited file cannot put the editor in a state its own
+   controls could not reach. */
+function adopt(o){
+  if(!o||typeof o!=="object") return;
+  var qs=Array.isArray(o.questions)?o.questions:[];
+  proj.name = typeof o.name==="string" ? o.name : "";
+  proj.pass = Math.max(0,Math.min(100, Number(o.pass)||80));
+  proj.questions = qs.length ? qs.map(function(q){
+    var a=(Array.isArray(q.a)?q.a:[]).slice(0,MAX_ANS).map(function(x){
+      return {t:String(x&&x.t||""), ok:!!(x&&x.ok)};
+    });
+    while(a.length<MIN_ANS) a.push({t:"",ok:false});
+    if(!a.some(function(x){return x.ok})) a[0].ok=true;
+    return {q:String(q.q||""), a:a, fb:String(q.fb||"")};
+  }) : [blankQ()];
+  at=Math.min(at, proj.questions.length-1);
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function renderList(){
+  var bad=problemsByQuestion();
+  $("#qlist").innerHTML=proj.questions.map(function(q,i){
+    var t=q.q.trim();
+    return '<button class="qitem'+(i===at?" on":"")+(bad[i]?" bad":"")+'" role="tab" '+
+             'aria-selected="'+(i===at)+'" data-i="'+i+'" type="button">'+
+             '<span class="n">'+(i+1)+'</span>'+
+             '<span class="t'+(t?"":" empty")+'">'+esc(t||"Empty question")+'</span>'+
+           '</button>';
+  }).join("");
+  $("#total").value=proj.questions.length;
+}
+
+function renderPane(){
+  var q=proj.questions[at];
+  if(!q){ $("#pane").innerHTML=""; return; }
+  $("#pane").innerHTML=
+    '<h3>Question '+(at+1)+' of '+proj.questions.length+'</h3>'+
+    '<p class="sub">The learner sees the question, then three to five cards dealt face '+
+      'down. They turn over together and the learner picks one.</p>'+
+    '<div class="blk"><label class="lab" for="qtext">Question</label>'+
+      '<textarea id="qtext" class="q" placeholder="What does an empty result actually tell you?"></textarea></div>'+
+    '<div class="blk"><label class="lab">Answers &mdash; mark the one that is correct</label>'+
+      '<div id="answers"></div>'+
+      '<p class="hint">Between '+MIN_ANS+' and '+MAX_ANS+'. The order is shuffled on every deal, '+
+        'so it does not matter which one you write first.</p>'+
+      '<button class="btn quiet small" id="addA" style="margin-top:8px">Add answer</button></div>'+
+    '<div class="blk"><label class="lab" for="fbtext">Feedback</label>'+
+      '<textarea id="fbtext" class="fb" placeholder="Written for the question as a whole — it is what they read once they have answered, whichever way they answered."></textarea></div>';
+  $("#qtext").value=q.q;
+  $("#fbtext").value=q.fb;
+  $("#qtext").addEventListener("input",function(){ q.q=this.value; touch(true); });
+  $("#fbtext").addEventListener("input",function(){ q.fb=this.value; touch(false); });
+  $("#addA").addEventListener("click",function(){
+    if(q.a.length>=MAX_ANS) return;
+    q.a.push({t:"",ok:false}); touch(true); renderPane();
+  });
+  renderAnswers();
+}
+
+function renderAnswers(){
+  var q=proj.questions[at], host=$("#answers");
+  host.innerHTML=q.a.map(function(a,i){
+    return '<div class="ans'+(a.ok?" correct":"")+'" data-i="'+i+'">'+
+      '<span class="letter">'+LETTER[i]+'</span>'+
+      '<span class="pick"><input type="radio" name="correct" id="ok'+i+'" '+(a.ok?"checked":"")+'>'+
+        '<label for="ok'+i+'" class="sr-only">Answer '+LETTER[i]+' is correct</label></span>'+
+      '<textarea data-a="'+i+'" placeholder="Answer '+LETTER[i]+'"></textarea>'+
+      '<button class="kill" data-kill="'+i+'" type="button" title="Remove this answer" '+
+        (q.a.length<=MIN_ANS?"disabled":"")+' aria-label="Remove answer '+LETTER[i]+'">&times;</button>'+
+    '</div>';
+  }).join("");
+  [].forEach.call(host.querySelectorAll("textarea"),function(t){
+    t.value=q.a[+t.dataset.a].t;
+    t.addEventListener("input",function(){ q.a[+this.dataset.a].t=this.value; touch(false); });
+  });
+  [].forEach.call(host.querySelectorAll("input[type=radio]"),function(r,i){
+    r.addEventListener("change",function(){
+      q.a.forEach(function(x,j){ x.ok=(j===i); });
+      touch(false); renderAnswers();
+    });
+  });
+  [].forEach.call(host.querySelectorAll(".kill"),function(b){
+    b.addEventListener("click",function(){
+      var i=+this.dataset.kill;
+      if(q.a.length<=MIN_ANS) return;
+      var wasOk=q.a[i].ok;
+      q.a.splice(i,1);
+      if(wasOk) q.a[0].ok=true;
+      touch(true); renderPane();
+    });
+  });
+}
+
+/* `relist` because the sidebar shows the question text and the problem marks —
+   it only needs redrawing when one of those could have changed. */
+function touch(relist){ save(); validate(); if(relist) renderList(); }
+
+/* ============================================================
+   Validation — say what is missing rather than exporting something broken
+   ============================================================ */
+function problemsByQuestion(){
+  var bad={};
+  proj.questions.forEach(function(q,i){
+    var filled=q.a.filter(function(a){ return a.t.trim(); });
+    if(!q.q.trim() || !q.fb.trim() || filled.length<MIN_ANS ||
+       filled.length!==q.a.length || q.a.filter(function(a){return a.ok}).length!==1) bad[i]=true;
+  });
+  return bad;
+}
+function problems(){
+  var out=[];
+  proj.questions.forEach(function(q,i){
+    var n="Question "+(i+1)+": ";
+    if(!q.q.trim()) out.push(n+"no question written.");
+    var blank=q.a.filter(function(a){ return !a.t.trim(); }).length;
+    if(blank) out.push(n+blank+" answer"+(blank>1?"s are":" is")+" blank.");
+    var ok=q.a.filter(function(a){ return a.ok; }).length;
+    if(ok!==1) out.push(n+"mark exactly one answer correct.");
+    if(!q.fb.trim()) out.push(n+"no feedback written.");
+  });
+  if(!name()) out.push("Give it a name — that is what the exported files are called.");
+  return out;
+}
+function validate(){
+  var p=problems(), fine=!p.length;
+  $("#probs").hidden=fine;
+  $("#okline").hidden=!fine;
+  if(!fine){
+    $("#probs").innerHTML="<b>Not ready to export yet.</b><ul>"+
+      p.map(function(s){ return "<li>"+esc(s)+"</li>"; }).join("")+"</ul>";
+  }else{
+    var need=Math.ceil((proj.pass/100)*proj.questions.length);
+    $("#okline").textContent=
+      "Ready. "+proj.questions.length+" question"+(proj.questions.length===1?"":"s")+
+      ", pass mark "+proj.pass+"% — the learner needs "+need+" of "+proj.questions.length+
+      " right before the block reports itself complete.";
+  }
+  $("#expHTML").disabled=!fine;
+  $("#expZIP").disabled=!fine;
+  return fine;
+}
+
+/* ============================================================
+   Export
+   ============================================================ */
+function name(){ return ($("#name").value||"").trim(); }
+/* One safe basename, used for the .html, the .zip, and nothing else. The file
+   inside the zip is always index.html, which is what Rise wants. */
+function slug(){
+  var s=name().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  return s || "knowledge-check";
+}
+function pageHTML(){
+  var b=document.getElementById("page").textContent.trim();
+  var bin=atob(b), bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  var tpl=new TextDecoder("utf-8").decode(bytes);
+  var data=JSON.stringify({
+    title:name(), heading:name(),
+    pass:proj.pass/100,
+    questions:proj.questions.map(function(q){
+      return {q:q.q.trim(), a:q.a.map(function(a){ return {t:a.t.trim(), ok:!!a.ok}; }), fb:q.fb.trim()};
+    })
+  });
+  /* Exactly one, checked rather than assumed: the token used to be named in the
+     page's own header comment as well, and replacing the first occurrence put the
+     questions in a comment and left the real one empty. */
+  var hits=tpl.split(TOKEN).length-1;
+  if(hits!==1) throw new Error("the page template has "+hits+" KC tokens, expected exactly 1");
+  return tpl.split(TOKEN).join(data);
+}
+function download(bytes,filename,type){
+  var blob=new Blob([bytes],{type:type});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+/* --- a minimal zip writer -------------------------------------------------
+   Stored, not deflated. The whole point of this tool is that it fetches
+   nothing, so pulling in a compression library is not an option — and a zip
+   holding one HTML file does not need one. */
+var CRC=(function(){
+  var t=new Uint32Array(256);
+  for(var n=0;n<256;n++){ var c=n;
+    for(var k=0;k<8;k++) c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1);
+    t[n]=c>>>0; }
+  return t;
+})();
+function crc32(b){
+  var c=0xFFFFFFFF;
+  for(var i=0;i<b.length;i++) c=CRC[(c ^ b[i]) & 0xFF] ^ (c>>>8);
+  return (c ^ 0xFFFFFFFF)>>>0;
+}
+function zipOne(entry, bytes){
+  var enc=new TextEncoder(), nameB=enc.encode(entry);
+  var crc=crc32(bytes), n=bytes.length;
+  var d=new Date();
+  var time=((d.getHours()&31)<<11)|((d.getMinutes()&63)<<5)|((d.getSeconds()/2)&31);
+  var date=(((d.getFullYear()-1980)&127)<<9)|(((d.getMonth()+1)&15)<<5)|(d.getDate()&31);
+
+  var local=new Uint8Array(30+nameB.length), lv=new DataView(local.buffer);
+  lv.setUint32(0,0x04034b50,true); lv.setUint16(4,20,true);
+  lv.setUint16(6,0x0800,true);            /* names are UTF-8 */
+  lv.setUint16(8,0,true);                 /* stored */
+  lv.setUint16(10,time,true); lv.setUint16(12,date,true);
+  lv.setUint32(14,crc,true); lv.setUint32(18,n,true); lv.setUint32(22,n,true);
+  lv.setUint16(26,nameB.length,true); lv.setUint16(28,0,true);
+  local.set(nameB,30);
+
+  var cen=new Uint8Array(46+nameB.length), cv=new DataView(cen.buffer);
+  cv.setUint32(0,0x02014b50,true); cv.setUint16(4,20,true); cv.setUint16(6,20,true);
+  cv.setUint16(8,0x0800,true); cv.setUint16(10,0,true);
+  cv.setUint16(12,time,true); cv.setUint16(14,date,true);
+  cv.setUint32(16,crc,true); cv.setUint32(20,n,true); cv.setUint32(24,n,true);
+  cv.setUint16(28,nameB.length,true);
+  cv.setUint32(42,0,true);                /* one entry, so it starts at offset 0 */
+  cen.set(nameB,46);
+
+  var end=new Uint8Array(22), ev=new DataView(end.buffer);
+  ev.setUint32(0,0x06054b50,true);
+  ev.setUint16(8,1,true); ev.setUint16(10,1,true);
+  ev.setUint32(12,cen.length,true);
+  ev.setUint32(16,local.length+n,true);
+
+  var out=new Uint8Array(local.length+n+cen.length+end.length), p=0;
+  out.set(local,p); p+=local.length;
+  out.set(bytes,p);  p+=n;
+  out.set(cen,p);    p+=cen.length;
+  out.set(end,p);
+  return out;
+}
+
+$("#expHTML").addEventListener("click",function(){
+  if(!validate()) return;
+  download(pageHTML(), slug()+".html", "text/html;charset=utf-8");
+});
+$("#expZIP").addEventListener("click",function(){
+  if(!validate()) return;
+  var bytes=new TextEncoder().encode(pageHTML());
+  download(zipOne("index.html", bytes), slug()+".zip", "application/zip");
+});
+$("#saveProj").addEventListener("click",function(){
+  proj.name=name();
+  download(JSON.stringify(proj,null,2), slug()+"-project.json", "application/json");
+});
+$("#openProj").addEventListener("click",function(){ $("#fileIn").click(); });
+$("#fileIn").addEventListener("change",function(){
+  var f=this.files&&this.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{ adopt(JSON.parse(r.result)); }catch(e){ alert("That file is not a project this tool wrote."); return; }
+    $("#name").value=proj.name; $("#pass").value=proj.pass;
+    at=0; save(); renderList(); renderPane(); validate();
+  };
+  r.readAsText(f);
+  this.value="";
+});
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+$("#qlist").addEventListener("click",function(e){
+  var b=e.target.closest(".qitem"); if(!b) return;
+  at=+b.dataset.i; renderList(); renderPane();
+});
+$("#addQ").addEventListener("click",function(){
+  proj.questions.push(blankQ());
+  at=proj.questions.length-1;
+  touch(true); renderPane();
+});
+$("#total").addEventListener("change",function(){
+  var want=Math.max(1,Math.min(40, Math.round(Number(this.value)||1)));
+  var qs=proj.questions;
+  if(want>qs.length){ while(qs.length<want) qs.push(blankQ()); }
+  else if(want<qs.length){
+    /* Only ask when something would actually be lost. */
+    var losing=qs.slice(want).some(function(q){
+      return q.q.trim()||q.fb.trim()||q.a.some(function(a){return a.t.trim()});
+    });
+    if(losing && !confirm("Remove "+(qs.length-want)+" question"+(qs.length-want>1?"s":"")+
+                          " from the end? They have writing in them.")){
+      this.value=qs.length; return;
+    }
+    qs.length=want;
+  }
+  at=Math.min(at,qs.length-1);
+  touch(true); renderPane();
+});
+$("#name").addEventListener("input",function(){ proj.name=this.value; touch(false); });
+$("#pass").addEventListener("input",function(){
+  proj.pass=Math.max(0,Math.min(100,Number(this.value)||0)); touch(false);
+});
+
+load();
+$("#name").value=proj.name;
+$("#pass").value=proj.pass;
+renderList(); renderPane(); validate();
+</script>
+</body>
+</html>

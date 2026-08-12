@@ -83,9 +83,14 @@ python3 - "$KC_TEMPLATE" "src/kc.json" "$OUT/knowledge-check.html" <<'PY'
 import sys
 tpl, data, out = sys.argv[1:4]
 html = open(tpl).read()
-if "/*__KC__*/" not in html:
-    raise SystemExit("/*__KC__*/ missing from the knowledge-check template")
-open(out, "w").write(html.replace("/*__KC__*/", open(data).read().strip()))
+token = "/*" + "__KC__" + "*/"
+# Exactly one, not at least one. It used to be named in the page's own header
+# comment too, and replacing every occurrence quietly stamped the questions into
+# a comment as well as into the code.
+hits = html.count(token)
+if hits != 1:
+    raise SystemExit(f"knowledge-check template has {hits} KC tokens, expected exactly 1")
+open(out, "w").write(html.replace(token, open(data).read().strip()))
 PY
 mkdir -p "$OUT/_pkg"
 cp "$OUT/knowledge-check.html" "$OUT/_pkg/index.html"

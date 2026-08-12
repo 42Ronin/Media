@@ -1957,8 +1957,11 @@ ok('there is exactly one of her while the question is on the table', await lashC
    should have taken, not just that they missed. */
 const wrongCard = await kc.evaluate(() =>
   [...document.querySelectorAll('.card')].findIndex(c => c.dataset.ok === '0'));
+const feltH = () => kc.evaluate(() =>
+  Math.round(document.querySelector('.felt').getBoundingClientRect().height));
+const beforePick = await feltH();
 await kc.evaluate(i => document.querySelectorAll('.card')[i].click(), wrongCard);
-await kcHost.waitForTimeout(200);
+await kcHost.waitForTimeout(900);
 ok('a wrong pick is marked wrong', await kc.evaluate(i => {
   const c = document.querySelectorAll('.card')[i];
   return c.classList.contains('picked') && c.classList.contains('wrong');
@@ -1972,10 +1975,34 @@ ok('...with the script\'s own sentence as the feedback',
 ok('...and the hand closes rather than letting them pick again', await kc.evaluate(() =>
   !document.querySelector('#hand').classList.contains('live') &&
   [...document.querySelectorAll('.card')].every(c => c.getAttribute('aria-disabled') === 'true')));
-await kcHost.waitForTimeout(500);
 ok('she crossed to the feedback rather than being drawn there as well',
    await lashCount() === 1 && await kc.evaluate(() => whereIs === 'lashy2'),
    (await lashCount()) + ' at ' + await kc.evaluate(() => whereIs));
+
+/* The reported defect: the feedback arrived as a new row under the cards and grew
+   the block by about 150px, which shunts everything below it in Rise. It lays over
+   the hand now. Measuring the panel is the canary — asserting the feedback is
+   merely visible would pass either way. */
+ok('the feedback lays over the hand rather than growing the block',
+   await feltH() === beforePick, beforePick + 'px before, ' + await feltH() + 'px after');
+/* It shares the stage with the hand and is bounded by it, rather than sitting in
+   flow underneath. The stage is a little taller than the cards on purpose — it is
+   sized for the longest feedback too — so the stage is what to measure against. */
+ok('...over it, not under it', await kc.evaluate(() => {
+  const s = document.querySelector('#said'), st = document.querySelector('#stage');
+  const h = document.querySelector('#hand');
+  const sr = s.getBoundingClientRect(), tr = st.getBoundingClientRect();
+  const hr = h.getBoundingClientRect();
+  return getComputedStyle(s).position === 'absolute' &&
+         sr.top >= tr.top - 1 && sr.bottom <= tr.bottom + 1 &&
+         sr.top <= hr.top + 1;          /* it covers the cards, not just sits near them */
+}));
+/* The card marks are behind the panel now, so the panel has to say in words which
+   card was taken and which was the one to take. */
+ok('...and names the card they took, since the marks are behind it',
+   /You took\s+\w\b/.test(await kc.textContent('#took')) &&
+   (await kc.textContent('#took')).includes('The one to take was'),
+   await kc.textContent('#took'));
 
 /* Miss a second, then take the rest. Four of six is the interesting case: five of
    six is 83% and clears the mark, which is the point of rounding it up to whole
@@ -1988,7 +2015,7 @@ const kcAnswer = async (right) => {
     const cards = [...document.querySelectorAll('.card')];
     (cards.find(c => (c.dataset.ok === '1') === want) || cards[0]).click();
   }, right);
-  await kcHost.waitForTimeout(200);
+  await kcHost.waitForTimeout(900);
 };
 for (let i = 1; i < KC_DATA.questions.length; i++) {
   await kc.click('#next');

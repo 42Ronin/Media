@@ -528,8 +528,39 @@ together, the learner picks one, and the feedback is the sentence the script alr
   character crossing the panel. That is also why the end screen has no question bubble: it
   would be a second bubble with nobody beside it. `test.mjs` counts `.lashy svg` at every
   stage and it is always 1.
-- **The setting is still a plain panel.** The owner wants a real dealer's-table scene — this
-  version is the mechanic, not the look, and is explicitly a staging post.
+- **The feedback lays over the hand, it does not arrive under it.** As a new row it grew the
+  block ~150px on every pick, which shunts everything below it in Rise. `#said` is now
+  absolutely positioned inside `#stage`, and the panel names the card taken in words
+  (*You took A. The one to take was B.*) because the marks on the cards are behind it.
+  `.ask` has a `min-height` for the same reason: a three-line question and a one-line one
+  take the same room, so **the felt is 474px in every state at every width**. `test.mjs`
+  measures it before and after a pick; asserting the feedback is merely visible would pass
+  either way.
+- **The setting is still a plain panel.** A dealer's-table scene was discussed and parked;
+  hands or props on her would live in the character SVG, which is copied in three places
+  now (lesson, page, maker) and should be extracted before anyone draws on it.
+
+## `tools/kc-maker` — the knowledge check as a tool
+
+The card check is now authorable. `tools/kc-maker/kc-maker.html` is one file you open in a
+browser: set the question count, write questions with three to five answers and one marked
+correct, write the feedback, set the pass mark, press Export.
+
+- **The Name field names all three outputs**, and the file *inside* the zip is always
+  `index.html` whatever the zip is called, because that is what Rise looks for.
+- **`make_maker.py` base64s the page into the editor**, exactly as `make_launcher.py` does
+  for the lesson, so the maker cannot ship a stale copy of the page it exports.
+- **The KC token appears exactly once in the page, beside `var KC`** — and both build paths
+  assert that count. Naming it a second time in the page's own header comment is what
+  stamped the questions into a comment and left the real one empty; Python's `replace` hit
+  both, the maker's JS hit only the first, so the lesson build hid the bug.
+- **The zip is written by hand**, stored not deflated: the tool fetches nothing, so a
+  compression library is not an option, and one HTML file does not need one. Verified with
+  a real `unzip`, not only by reading our own bytes back.
+- Scoring is not a setting and never will be — see the tool's README.
+- The page template still lives in `HMIS BNTS - Search/src/`. **Move it into the tool when a
+  second lesson needs a check**, so the dependency runs lesson → tool as it does for the
+  scene editor.
 
 ## Lesson 2 — Create
 
