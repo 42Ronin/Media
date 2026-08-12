@@ -614,16 +614,27 @@ together, the learner picks one, and the feedback is the sentence the script alr
   or the question sits 44px below the ball's centre. It was a wide panel that held everything
   for a while, and that is worth remembering: a full-width bar reads as a banner, not an
   object.
+  **There is no label over the reading.** "THE READING" named what the learner was plainly
+  looking at, and the room it took is better spent on her.
   **Where the reservation goes is the whole layout problem.** A 380 ball has to have 380 of
-  room, and the page is mostly the state where she is *not* there. Reserved in flow and
-  centred, it left two 157px voids, one of them above the first thing on the page. So the
-  slot reserves 253 — enough that the orb's top lands at the top of the block, where nothing
-  can clip it — and the ball hangs over the row above the cards. **That overlap is measured
-  against the card text, not eyeballed:** the orb's bottom clears where the answers start, so
-  it costs the middle card's letter and its neighbours' inner edges and nothing that is read.
-  The tally moved *below* the spread for the same reason — a count half-behind the glass
-  reads as a mistake rather than as depth. Nothing moves between the two states, which is the
-  part that matters; `orb.mjs` asserts it.
+  room, and the page is mostly the state where she is *not* there. Reserved in flow it left
+  one long drop to the cards; the question is **centred** in the slot instead, so the same
+  room is two short gaps and neither reads as a hole. The ball covers the question either way
+  — 380 over a 106 pill. The rest of it hangs over the row above the cards, and the tally
+  moved *below* the spread because a count half-behind the glass reads as a mistake rather
+  than as depth. Nothing moves between the two states; `orb.mjs` asserts it.
+  **The overlap is measured against the first rendered line of every answer**, in every taken
+  position — a Range over the text, not the box, because the box is flex-filled and says
+  nothing. The floor is ~9px. Two things had eaten it invisibly: the **taken card rises**
+  (22px and scale 1.07 put its first line inside the ball, on the one card the learner most
+  wants to read — now 12px and 1.04), and the answer was **centred in the card**. It is set
+  from the card's bottom now, which bought ~48px.
+  **Below that, every vertical is one budget.** The room between the question and the first
+  line of an answer is fixed by the ball. Shortening the card walks its top down and that
+  room stops being card and becomes white gap, one pixel for one; `.spread` keeps its height
+  for the same reason, since the cards are bottom-aligned in it and shrinking the box walks
+  every card upward. Card reads better than void, so the card keeps its height and the gap
+  takes the squeeze — 167px down to ~94.
   **Sizing is arithmetic.** The content box is 68% × 73% of the ball, and (0.34/0.5)² +
   (0.365/0.5)² = 0.997 — anything under 1 is inside the curve. The table screen carries a
   second button and does not fit that box, so `.orb.table` trades width for height at 59% ×

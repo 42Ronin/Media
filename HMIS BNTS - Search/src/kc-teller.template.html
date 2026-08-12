@@ -60,9 +60,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    the block — it can never be clipped upward, there is nothing above it — and the
    rest of the ball hangs over the spread. Which costs the top strip of the middle
    card and the inner edges of its neighbours: the marks, not the answers. Nothing
-   moves either way, which is the part that matters. */
-.slot{position:relative;z-index:5;height:253px;
-  display:flex;align-items:flex-start;justify-content:center}
+   moves either way, which is the part that matters.
+
+   The question sits in the MIDDLE of it. Held at the top, the room the ball needs
+   showed up as one long drop to the cards; centred, the same room is two short ones
+   and neither reads as a gap. The ball covers the question either way — it is 380
+   tall over a 106 pill. */
+.slot{position:relative;z-index:5;height:233px;
+  display:flex;align-items:center;justify-content:center}
 
 /* The question, plainly — the way it was before any of this. */
 .ask{width:100%;max-width:620px;background:#e9f3f8;border-radius:17px;
@@ -123,8 +128,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    enough for. A circle trades width for height: at 59% across, 79% down is still
    inside it — (.295/.5)² + (.395/.5)² = 0.97 — and the closing lines are short. */
 .orb.table .inner{width:59%;max-height:79%}
-.qn2{margin:0;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:#a8d9ef;font-weight:700}
+/* There is no label over the reading. "THE READING" told the learner what they
+   were plainly looking at, and it cost the room she is better off having. */
 
 .verdict{font-size:19px;font-weight:700}
 .orb.good .verdict{color:#a3f5cc}
@@ -137,7 +142,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* She is not here while the learner is choosing — she turns up in the ball with
    the reading, lit like everything else in there. Her costume sits on the RIM,
    never over the glass: a scarf across her face covers her lashes. */
-.lashy{flex:none;width:68px;height:68px;position:relative;
+.lashy{flex:none;width:88px;height:88px;position:relative;
   filter:drop-shadow(0 0 22px rgba(150,230,255,.85)) drop-shadow(0 0 44px rgba(90,190,240,.5))}
 /* When she is away her box collapses, or the question sits 44px below the centre
    of the ball with nothing above it. Nothing else is beside her, so there is no
@@ -171,7 +176,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* Two buttons on the table screen do not fit side by side in the ball, so they
    stack — with a gap, rather than the quiet one's stray right margin, which does
    nothing once they are on separate lines. */
-.foot{margin-top:2px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+/* The reading needs air under it before the button — at the gap alone they read
+   as one block. */
+.foot{margin-top:14px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
 .tablebtns{display:contents}
 .tablebtns:empty{display:none}
 .go{font-family:"Segoe UI",system-ui,sans-serif;
@@ -186,6 +193,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    ============================================================ */
 .spread{display:flex;justify-content:center;align-items:flex-end;
   margin:20px auto 0;perspective:1400px;min-height:250px}
+/* The spread keeps its height even though the cards got shorter. They are bottom-
+   aligned in it, so shrinking the box walks every card upward — and the clearance
+   under the ball is measured from the card bottoms. */
+/* The card stays tall. Everything vertical here trades against one thing: the ball
+   hangs over the row above the spread, so the room between the question and the
+   first line of an answer is fixed. Shortening the card walks its top DOWN — that
+   room stops being card and becomes white gap, one pixel for one. Card reads better
+   than void, so the card keeps its height and the gap gets the squeeze. */
 .tcard{position:relative;width:186px;height:242px;margin:0 10px;padding:0;background:none;
   transform-style:preserve-3d;cursor:default;
   transform:rotate(var(--tilt)) translateY(var(--lift,0));
@@ -213,8 +228,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   transform:rotateY(180deg);display:flex;flex-direction:column;padding:16px 15px 14px;
   box-shadow:0 14px 30px rgba(16,34,46,.26), inset 0 0 0 1.5px rgba(201,164,75,.55)}
 .tfront .idx{font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9b7d33}
-.tfront .txt{flex:1;display:flex;align-items:center;font-size:14.5px;line-height:1.44;
-  padding:8px 0 6px}
+/* The answer sits low on the card, not centred in it. The ball hangs over the
+   row above the spread, and every pixel the text sits lower is a pixel the gap
+   between the question and the cards can lose. */
+.tfront .txt{flex:1;display:flex;align-items:flex-end;font-size:14.5px;line-height:1.44;
+  padding:8px 0 10px}
 /* One line: "Your card — correct" wrapped and was clipped by the card's fixed
    height, on the one card a learner most wants to read. */
 .tfront .mark{height:18px;white-space:nowrap;font-size:11.5px;font-weight:800;
@@ -229,8 +247,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   from{transform:translate(0,-250px) rotate(-7deg) scale(.6);opacity:0}
   to{transform:rotate(var(--tilt)) translateY(var(--lift,0));opacity:1}}
 
-.tcard.taken{z-index:2;transform:rotate(0deg) translateY(-22px) rotateY(180deg) scale(1.07)}
-.spread.done .tcard.taken:hover{transform:rotate(0deg) translateY(-22px) rotateY(180deg) scale(1.07)}
+/* The taken card rises — but 22px and 1.07 lifted its first line into the ball,
+   on the one card the learner most wants to read. */
+.tcard.taken{z-index:2;transform:rotate(0deg) translateY(-12px) rotateY(180deg) scale(1.04)}
+.spread.done .tcard.taken:hover{transform:rotate(0deg) translateY(-12px) rotateY(180deg) scale(1.04)}
 .tcard.taken .tfront{box-shadow:0 26px 48px rgba(16,34,46,.36), inset 0 0 0 2px currentColor}
 .tcard.right .tfront{color:#1c7a55;background:#eef7ef}
 .tcard.right .mark{color:#1c7a55}
@@ -304,7 +324,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       <span class="smoke" aria-hidden="true"></span>
       <div class="inner">
         <div class="lashy" id="lashy" aria-hidden="true"></div>
-        <p class="qn2 sans" id="qn2"></p>
         <div class="verdict" id="verdict"></div>
         <div class="fb" id="fb"></div>
         <!-- Next is a permanent child. The table screen used to write its two
@@ -525,7 +544,6 @@ function take(card,cards,q){
   $("#live").textContent=(right?"Correct. ":"Not correct. ")+q.fb;
 
   later(function(){
-    $("#qn2").textContent="The reading";
     $("#verdict").textContent=right?"That is the one.":"Not that one.";
     $("#fb").textContent=q.fb;
     $("#tablebtns").innerHTML=""; $("#next").hidden=false;
@@ -549,7 +567,6 @@ function finish(){
   $("#spread").innerHTML=""; $("#spread").className="spread";
   paintStones();
   $("#qn").textContent=""; $("#qt").textContent="";
-  $("#qn2").textContent="The table";
   $("#verdict").textContent=passed?"You are through."
     :"Not quite — "+NEED+" of "+QS.length+" needed.";
   $("#fb").textContent=passed
