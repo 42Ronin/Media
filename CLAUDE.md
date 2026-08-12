@@ -665,7 +665,17 @@ together, the learner picks one, and the feedback is the sentence the script alr
   answer becomes the least legible thing on screen.
   **Her costume sits on the rim, never the glass.** A scarf over the glass covers her lashes,
   and she is called Lashes. The lesson's drawing is untouched.
-- **`dist/kc-dealer-prototype.html` is the third staging: the DEALER'S TABLE.** Built from
+- **The Card Dealer staging was rejected on sight and is parked.** The owner's words: *her
+  design is just the fortune teller but green, and nothing about it makes sense as a card
+  dealer.* Read that as the diagnosis it is — the theme was built by restaging the teller's
+  furniture (her costume in the teller's own envelope, the same card fan, the same chips-for-
+  stones swap) and recolouring it, which is exactly the "reskin, not a new approach" the owner
+  ruled out when the teller itself was commissioned. **A dealer is a person doing a job**: the
+  hands, the shoe, the cut card, how a card is actually dealt and turned, what a dealer does
+  while you decide. None of that is in it. Whatever replaces it has to start from that, not
+  from this file's palette. It is left in the tree and in the maker so there is something to
+  argue with; do not treat it as approved.
+- **`dist/kc-dealer-prototype.html` is that staging as built.** Built from
   `src/kc-dealer.template.html`, same questions and same gate. Felt with a brass rail, the
   cards laid on it, the tally as chips.
   **She is at the table the whole time**, which is the difference between this and the other
