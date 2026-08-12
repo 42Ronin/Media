@@ -104,7 +104,11 @@ textarea.fb{min-height:96px}
 .ans .kill:hover{background:var(--bad-soft);color:var(--bad)}
 .ans .kill[disabled]{opacity:.3;cursor:not-allowed}
 .ans .kill[disabled]:hover{background:none;color:var(--mut)}
-.hint{font-size:13px;color:var(--mut);margin:2px 0 0}
+.hint{font-size:13px;color:var(--mut);margin:6px 0 0}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--mut);
+  margin:0 0 8px;cursor:pointer}
+.switch input{width:16px;height:16px;accent-color:var(--teal);cursor:pointer}
+textarea[disabled]{background:var(--line-2);color:var(--mut);cursor:not-allowed}
 
 /* ---------- validation ---------- */
 .probs{flex:none;background:var(--bad-soft);border-top:1px solid #f0cfcc;color:var(--bad);
@@ -224,7 +228,7 @@ var STORE="kc-maker/v1";
 /* ============================================================
    The project
    ============================================================ */
-function blankQ(){ return {q:"", a:[{t:"",ok:true},{t:"",ok:false},{t:"",ok:false}], fb:""}; }
+function blankQ(){ return {q:"", a:[{t:"",ok:true},{t:"",ok:false},{t:"",ok:false}], fb:"", nofb:false}; }
 /* The themes are whatever the build put in the page, in the order it put them.
    Nothing in the editor names one — a new staging is a row in make_maker.py. */
 var THEMES=[].slice.call(document.querySelectorAll("script.page"))
@@ -258,7 +262,7 @@ function adopt(o){
     });
     while(a.length<MIN_ANS) a.push({t:"",ok:false});
     if(!a.some(function(x){return x.ok})) a[0].ok=true;
-    return {q:String(q.q||""), a:a, fb:String(q.fb||"")};
+    return {q:String(q.q||""), a:a, fb:String(q.fb||""), nofb:!!q.nofb};
   }) : [blankQ()];
   at=Math.min(at, proj.questions.length-1);
 }
@@ -296,9 +300,21 @@ function renderPane(){
         'so it does not matter which one you write first.</p>'+
       '<button class="btn quiet small" id="addA" style="margin-top:8px">Add answer</button></div>'+
     '<div class="blk"><label class="lab" for="fbtext">Feedback</label>'+
-      '<textarea id="fbtext" class="fb" placeholder="Written for the question as a whole — it is what they read once they have answered, whichever way they answered."></textarea></div>';
+      '<label class="switch"><input type="checkbox" id="fbon"'+(q.nofb?"":" checked")+'>'+
+        '<span>Show feedback for this question</span></label>'+
+      '<textarea id="fbtext" class="fb" placeholder="Written for the question as a whole — it is what they read once they have answered, whichever way they answered."'+
+        (q.nofb?" disabled":"")+'></textarea>'+
+      '<p class="hint">Off, the cards are still marked right and wrong and the learner '+
+        'goes straight on. What is written here is kept either way.</p></div>';
   $("#qtext").value=q.q;
   $("#fbtext").value=q.fb;
+  /* Turning it off keeps the writing. Someone who switches it off, exports, and
+     switches it back should not find their paragraph gone. */
+  $("#fbon").addEventListener("change",function(){
+    q.nofb=!this.checked;
+    $("#fbtext").disabled=q.nofb;
+    touch(true);
+  });
   $("#qtext").addEventListener("input",function(){ q.q=this.value; touch(true); });
   $("#fbtext").addEventListener("input",function(){ q.fb=this.value; touch(false); });
   $("#addA").addEventListener("click",function(){
@@ -353,7 +369,7 @@ function problemsByQuestion(){
   var bad={};
   proj.questions.forEach(function(q,i){
     var filled=q.a.filter(function(a){ return a.t.trim(); });
-    if(!q.q.trim() || !q.fb.trim() || filled.length<MIN_ANS ||
+    if(!q.q.trim() || (!q.nofb && !q.fb.trim()) || filled.length<MIN_ANS ||
        filled.length!==q.a.length || q.a.filter(function(a){return a.ok}).length!==1) bad[i]=true;
   });
   return bad;
@@ -367,7 +383,7 @@ function problems(){
     if(blank) out.push(n+blank+" answer"+(blank>1?"s are":" is")+" blank.");
     var ok=q.a.filter(function(a){ return a.ok; }).length;
     if(ok!==1) out.push(n+"mark exactly one answer correct.");
-    if(!q.fb.trim()) out.push(n+"no feedback written.");
+    if(!q.nofb && !q.fb.trim()) out.push(n+"no feedback written.");
   });
   if(!name()) out.push("Give it a name — that is what the exported files are called.");
   return out;
@@ -415,7 +431,8 @@ function pageHTML(){
     title:name(), heading:name(),
     pass:proj.pass/100,
     questions:proj.questions.map(function(q){
-      return {q:q.q.trim(), a:q.a.map(function(a){ return {t:a.t.trim(), ok:!!a.ok}; }), fb:q.fb.trim()};
+      return {q:q.q.trim(), a:q.a.map(function(a){ return {t:a.t.trim(), ok:!!a.ok}; }),
+              fb:q.nofb ? "" : q.fb.trim()};
     })
   });
   /* Exactly one, checked rather than assumed: the token used to be named in the

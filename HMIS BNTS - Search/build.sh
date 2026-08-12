@@ -112,9 +112,11 @@ cp "$OUT/knowledge-check.html" "$OUT/_pkg/index.html"
 ( cd "$OUT/_pkg" && zip -q -r "../knowledge-check.zip" index.html )
 rm -rf "$OUT/_pkg"
 
-# A prototype of a different staging, to look at. Not a deliverable and not in the
-# maker: same questions, same gate, cards as objects on a table instead of a row.
+# The other stagings, built from the same questions and the same gate. These are
+# what tools/kc-maker offers as themes; built here too so they can be opened and
+# looked at without going through the maker.
 python3 tools/stamp_kc.py src/kc-teller.template.html src/kc.json "$OUT/kc-teller-prototype.html"
+python3 tools/stamp_kc.py src/kc-dealer.template.html src/kc.json "$OUT/kc-dealer-prototype.html"
 
 [ "$WITH_SCORM" = "1" ] || echo "scorm packaging skipped (run with --scorm to produce the zips)"
 

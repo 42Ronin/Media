@@ -3,43 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Knowledge Check &mdash; the reading</title>
+<title>Knowledge Check &mdash; the table</title>
 <!--
-  PROTOTYPE. A different staging of the knowledge check, to look at.
+  A third staging of the knowledge check: the DEALER'S TABLE.
 
-  THE CRYSTAL BALL IS DARK. That is the whole lesson of the reference images: the
-  glass is nearly black, and the only lit thing is what is suspended inside it.
-  An earlier version lit the glass itself from within and it read as a glowing
-  panel rather than as crystal — the bloom was the thing killing it.
+  She is at the table the whole time. That is the difference between this and the
+  other two — in the standard page and in the fortune teller she arrives with the
+  answer, and her arrival IS the answer landing. A dealer does not turn up when
+  the hand is over; she deals it. So she stands at the rail from the first card,
+  and what changes is her face and what she says, not whether she is there.
 
-  So: dark glass, a hard specular where the light source is, a rim catching light,
-  and the contents — the question, and later Lashes and her reading — glowing
-  cyan-white inside. She only appears when she has something to say, and she
-  appears IN the ball.
+  One bubble. It holds the question, then it holds the reading — the same box, so
+  nothing on the table moves when it changes. The cards are never covered by
+  anything, which is the whole reason this staging can be tighter than the ball:
+  there is nothing hanging over the spread to clear.
 
-  The cards sit on whatever Rise puts behind them. Nothing outside the ball paints
-  a ground, so the page shows through. This assumes a LIGHT page: the ink colours
-  below are what would have to change on a dark one.
+  The felt is a bounded table on a transparent page, because the page around it
+  belongs to Rise. Nothing here paints the body.
 
   Everything is drawn. The page fetches nothing. The one image is the LAHSA logo
   on the card backs, used whole and never redrawn.
 
-  Questions come from script/kc_data.py via src/kc.json — the same list the
-  shipped page and the docx use. Nothing here narrates or coaches: no unscripted
+  Questions come from script/kc_data.py via src/kc.json — the same list the shipped
+  page, the teller and the docx use. Nothing narrates or coaches: no unscripted
   microcopy.
 
-  Kept from the shipped page, deliberately:
+  The three rules every staging keeps:
     - a card cannot be taken while it is face down
     - no score ever leaves the page
     - completion is withheld until the pass mark is cleared
 -->
 <style>
 :root{
+  --felt:#166b4b; --felt-dk:#0c4630; --felt-ink:#e8f7ee;
+  --rail:#7d5a2c; --rail-lt:#a8813f;
   --gold:#c9a44b; --gold-lt:#ecd489; --gold-dk:#8a6d22;
-  --ink:#1e2f3a; --mut:#5f7787;
   --card:#f7f0df; --card-ink:#2b2320;
-  --glow:#bfeaff;
-  --focus:#2f9ec7;
+  --say:#f6f1e4; --say-ink:#241d17;
+  --ink:#1e2f3a; --mut:#5f7787;
+  --focus:#7fd8ff;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
@@ -53,162 +55,99 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sans{font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
 
 .frame{max-width:940px;margin:0 auto;padding:10px 16px 22px}
-/* The slot holds the question and is where the orb blooms. It does NOT reserve the
-   orb's full height: a 380 ball reserved in flow left 280px of white under the
-   question on every screen where she is not there, and the page is mostly the state
-   where she is not there. It reserves enough that the orb's top lands at the top of
-   the block — it can never be clipped upward, there is nothing above it — and the
-   rest of the ball hangs over the spread. Which costs the top strip of the middle
-   card and the inner edges of its neighbours: the marks, not the answers. Nothing
-   moves either way, which is the part that matters.
-
-   The question sits in the MIDDLE of it. Held at the top, the room the ball needs
-   showed up as one long drop to the cards; centred, the same room is two short ones
-   and neither reads as a gap. The ball covers the question either way — it is 380
-   tall over a 106 pill. */
-.slot{position:relative;z-index:5;height:280px;
-  display:flex;align-items:center;justify-content:center}
-
-/* The question, plainly — the way it was before any of this. */
-.ask{width:100%;max-width:620px;background:#e9f3f8;border-radius:17px;
-  border-left:5px solid #066888;padding:16px 20px;
-  box-shadow:0 8px 24px rgba(16,60,80,.12),0 1px 3px rgba(16,60,80,.1);
-  transition:opacity .3s}
-.ask .qn{margin:0 0 5px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:#5f7787;font-weight:700}
-.ask .qt{font-size:18px;line-height:1.45;font-weight:600;color:#1e2f3a}
-.slot.reading .ask{opacity:0}
 
 /* ============================================================
-   The ball
+   The table
 
-   It only exists while she is reading: it poofs in over the question and poofs
-   out again. 380 across, sized to the reading — the content box is 68% x 73%,
-   and (0.34/0.5)² + (0.365/0.5)² = 0.997, which is just inside the curve. Wider
-   and shorter than it was: the same reading in fewer lines costs less height,
-   and height is what the page has to reserve.
+   A rail across the top with the dealer behind it, felt below. The curve is the
+   whole reason it reads as a table rather than a green box: the top edge is the
+   arc a dealer stands inside.
    ============================================================ */
-.orb{position:absolute;left:50%;top:190px;width:380px;height:380px;border-radius:50%;
-  overflow:hidden;transform:translate(-50%,-50%) scale(.1) rotate(-140deg);opacity:0;
-  transition:transform .5s cubic-bezier(.3,1.5,.45,1),opacity .3s;
-  /* DARK glass. The light in the scene comes from what is inside it. */
+.table{position:relative;border-radius:26px 26px 34px 34px;padding:0 0 22px;
   background:
-    radial-gradient(64% 64% at 50% 46%, #16506c 0%, #0b3346 40%, #051d2b 72%, #020c14 100%);
-  box-shadow:
-    inset 0 0 0 1.5px rgba(158,224,248,.34),        /* the rim catching light */
-    inset 0 26px 54px rgba(126,206,238,.12),        /* a little sky on the top */
-    inset 0 -34px 70px rgba(0,0,0,.62),             /* heavy under the belly */
-    0 0 66px rgba(38,136,178,.34),                  /* what it throws on the page */
-    0 26px 44px rgba(6,26,38,.26)}
-.orb.in{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}
-/* what is turning inside it */
-.smoke{position:absolute;left:-70%;right:-70%;top:-180%;bottom:-120%;pointer-events:none;
-  mix-blend-mode:screen;opacity:.3;filter:blur(26px);
-  background:conic-gradient(from 0deg, transparent, rgba(126,214,255,.5), transparent 54%,
-    rgba(64,150,200,.4), transparent);
-  animation:swirl 44s linear infinite}
-@keyframes swirl{to{transform:rotate(360deg)}}
-/* the specular: one hard catch where the light is, and a soft wrap under it */
-.sheen{position:absolute;inset:0;z-index:3;pointer-events:none}
-.sheen::before{content:"";position:absolute;left:15%;top:9%;width:23%;height:19%;
-  border-radius:50%;filter:blur(7px);
-  background:radial-gradient(closest-side, rgba(255,255,255,.62), rgba(255,255,255,0))}
-.sheen::after{content:"";position:absolute;left:16%;right:16%;bottom:6%;height:12%;
-  border-radius:50%;filter:blur(11px);
-  background:radial-gradient(closest-side, rgba(150,225,255,.24), rgba(150,225,255,0))}
+    radial-gradient(120% 78% at 50% 4%, #1d7d59 0%, var(--felt) 44%, var(--felt-dk) 100%);
+  box-shadow:0 26px 54px rgba(10,40,28,.28), 0 2px 0 rgba(255,255,255,.12) inset,
+    0 0 0 1px rgba(9,52,36,.5);
+  overflow:hidden}
+/* the rail: brass over wood, curved to hold the dealer's station */
+.rail{position:relative;height:96px;
+  background:linear-gradient(180deg,var(--rail-lt),var(--rail) 58%,#5d4220);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28), inset 0 2px 0 rgba(255,255,255,.28)}
+.rail::after{content:"";position:absolute;left:-6%;right:-6%;bottom:-38px;height:76px;
+  border-radius:50%;background:radial-gradient(60% 100% at 50% 0,#1d7d59,var(--felt) 70%);
+  box-shadow:0 -3px 0 rgba(255,255,255,.14) inset}
+/* the felt's own arc, drawn once under the rail so the seam is a curve not a line */
+.arc{position:absolute;left:6%;right:6%;top:74px;height:120px;border-radius:50%;
+  border-top:2px solid rgba(236,212,137,.28);pointer-events:none}
 
-/* everything she shows you is suspended in the middle and lit from inside */
-.inner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:68%;max-height:73%;z-index:2;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px;text-align:center;
-  color:#eafaff;
-  text-shadow:0 0 18px rgba(140,225,255,.75), 0 0 46px rgba(90,190,240,.45),
-    0 2px 8px rgba(0,12,20,.8)}
-/* The table screen carries a second button, which the reading's box is not tall
-   enough for. A circle trades width for height: at 59% across, 79% down is still
-   inside it — (.295/.5)² + (.395/.5)² = 0.97 — and the closing lines are short. */
-.orb.table .inner{width:59%;max-height:79%}
-/* There is no label over the reading. "THE READING" told the learner what they
-   were plainly looking at, and it cost the room she is better off having. */
+/* ============================================================
+   The dealer's station: her, and the one bubble she speaks in
+   ============================================================ */
+.station{position:relative;z-index:3;display:flex;align-items:flex-start;gap:20px;
+  max-width:820px;margin:-70px auto 0;padding:0 22px}
+/* She stands at the rail — half over it, which is what puts her BEHIND the table
+   rather than on it. */
+.lashy{flex:none;width:118px;height:118px;position:relative;
+  filter:drop-shadow(0 10px 18px rgba(8,36,24,.45))}
+.lashy svg{width:100%;height:100%;display:block;overflow:visible}
+.lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
+.lashy .puff{position:absolute;left:4%;top:2%;width:90%;height:90%;border-radius:50%;
+  border:2.5px solid rgba(255,236,190,.75);opacity:0;pointer-events:none}
+.lashy.in .mface{animation:poofIn .5s cubic-bezier(.3,1.45,.5,1)}
+.lashy.in .puff{animation:puffRing .5s ease-out}
+@keyframes poofIn{0%{transform:scale(.7) rotate(-12deg);opacity:0}
+  60%{transform:scale(1.06) rotate(4deg);opacity:1}100%{transform:none;opacity:1}}
+@keyframes puffRing{0%{transform:scale(.4);opacity:.6}100%{transform:scale(1.5);opacity:0}}
 
-.verdict{font-size:19px;font-weight:700}
-.orb.good .verdict{color:#a3f5cc}
-.orb.bad .verdict{color:#ffbdb3}
-.fb{font-size:13.5px;line-height:1.48;color:#daf1fb}
+/* One bubble, two things in it. They are stacked in a single grid cell and
+   cross-faded rather than swapped: the bubble is then as tall as the TALLER of
+   the two, so the table cannot move when the hand turns over. Positioning the
+   feedback absolutely instead left the bubble at the question's height and put
+   the Next button out on the felt. Between hands the height may change — that
+   happens while the cards are flying in from the rail, so there is nothing
+   settled on the table for it to move. */
+.bubble{position:relative;flex:1;min-width:0;margin-top:26px;display:grid;
+  background:var(--say);color:var(--say-ink);border-radius:16px;padding:15px 20px;
+  box-shadow:0 14px 28px rgba(8,36,24,.3), inset 0 0 0 1px rgba(120,92,40,.22)}
+/* the tail, pointing back at the dealer */
+.bubble::before{content:"";position:absolute;left:-11px;top:24px;width:0;height:0;
+  border:11px solid transparent;border-right-color:var(--say);border-left:0}
+/* `visibility` as well as opacity: the hidden layer has to keep its box — that is
+   what makes the bubble the taller of the two — but a transparent element is still
+   in the accessibility tree, and the reading must not be readable before the card
+   is taken. Visibility is switched at the END of the fade out and the START of the
+   fade in, so neither transition snaps. */
+.layer{grid-area:1/1;transition:opacity .28s}
+.layer.gone{opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .28s, visibility 0s linear .28s}
+.qn{margin:0 0 5px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:#8a6a3a;font-weight:700}
+.qt{font-size:17.5px;line-height:1.45;font-weight:600}
+.verdict{font-size:18px;font-weight:700;margin-bottom:5px}
+.verdict.good{color:#186c4a}
+.verdict.bad{color:#a5352c}
+.fb{font-size:14.5px;line-height:1.5}
 /* A question can ship with no feedback at all — the maker lets each one be
    switched off. An empty box still costs the flex gap above the button, so it
    goes entirely rather than leaving a hole where a paragraph was. */
 .fb:empty{display:none}
-.orb.mist .inner>*{animation:mist .55s ease both}
-@keyframes mist{from{opacity:0;filter:blur(7px);transform:translateY(6px) scale(.97)}
-  to{opacity:1;filter:blur(0);transform:none}}
-
-/* She is not here while the learner is choosing — she turns up in the ball with
-   the reading, lit like everything else in there. Her costume sits on the RIM,
-   never over the glass: a scarf across her face covers her lashes. */
-/* 108 with the cropped viewBox is about 1.6x the size she was. Twice does not fit:
-   the ball's contents are centred in it, so growing her pushes the reading and the
-   button toward the rim, and the ink leaves the glass somewhere past 110. Doubling
-   her outright needs a ball nearer 490, which would hang over the answers. */
-.lashy{flex:none;width:108px;height:108px;position:relative;
-  filter:drop-shadow(0 0 22px rgba(150,230,255,.85)) drop-shadow(0 0 44px rgba(90,190,240,.5))}
-/* When she is away her box collapses, or the question sits 44px below the centre
-   of the ball with nothing above it. Nothing else is beside her, so there is no
-   width to reserve — unlike the panel layout, where her slot had to stay. */
-.lashy:empty{display:none}
-.lashy svg{width:100%;height:100%;display:block;overflow:visible}
-.lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
-.lashy .puff{position:absolute;left:4%;top:2%;width:90%;height:90%;border-radius:50%;
-  border:2.5px solid rgba(190,240,255,.8);opacity:0;pointer-events:none}
-.lashy.in .mface{animation:poofIn .55s cubic-bezier(.3,1.45,.5,1)}
-.lashy.in .puff{animation:puffRing .5s ease-out}
-@keyframes poofIn{0%{transform:scale(.1) rotate(-170deg);opacity:0}
-  55%{transform:scale(1.14) rotate(12deg);opacity:1}100%{transform:none;opacity:1}}
-@keyframes puffRing{0%{transform:scale(.3);opacity:.7}100%{transform:scale(1.7);opacity:0}}
-
-/* ============================================================
-   Under it, on the page
-   ============================================================ */
-.footrow{display:flex;align-items:center;justify-content:center;gap:14px;
-  width:100%;margin:38px auto 0}
-.stones{display:flex;gap:9px}
-.stone{width:15px;height:15px;transform:rotate(45deg);border-radius:3px;
-  background:radial-gradient(circle at 34% 30%, #e2e9ee, #c2cfd8 70%);
-  box-shadow:inset 0 0 0 1px rgba(140,110,30,.26);transition:background .4s,box-shadow .4s}
-.stone.lit{background:radial-gradient(circle at 34% 30%, #ffe9a2, var(--gold) 58%, #8a6d22);
-  box-shadow:0 0 14px rgba(201,164,75,.55), inset 0 0 0 1px rgba(255,244,206,.7)}
-.stone.out{background:radial-gradient(circle at 34% 30%, #dcaba7, #ab6660 70%);
-  box-shadow:inset 0 0 0 1px rgba(150,70,62,.28)}
-.count{margin:0;font-size:12.5px;color:var(--mut)}
-.count b{color:var(--ink)}
-/* Two buttons on the table screen do not fit side by side in the ball, so they
-   stack — with a gap, rather than the quiet one's stray right margin, which does
-   nothing once they are on separate lines. */
-/* The reading needs air under it before the button — at the gap alone they read
-   as one block. */
-.foot{margin-top:14px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.foot{margin-top:12px;display:flex;flex-wrap:wrap;gap:9px}
 .tablebtns{display:contents}
 .tablebtns:empty{display:none}
 .go{font-family:"Segoe UI",system-ui,sans-serif;
   background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:#2b2010;
-  border-radius:10px;padding:9px 20px;font-size:14.5px;font-weight:700;transition:filter .15s}
+  border-radius:10px;padding:9px 20px;font-size:14.5px;font-weight:700;transition:filter .15s;
+  box-shadow:0 2px 0 var(--gold-dk)}
 .go:hover{filter:brightness(1.08)}
-.go.quiet{background:none;color:#6b5410;box-shadow:inset 0 0 0 1px rgba(160,125,30,.5)}
-.go.quiet:hover{background:rgba(201,164,75,.14)}
+.go.quiet{background:none;color:#6b5410;box-shadow:inset 0 0 0 1px rgba(140,110,30,.55)}
+.go.quiet:hover{background:rgba(201,164,75,.16)}
 
 /* ============================================================
-   The spread — on whatever Rise puts behind it
+   The spread — cards laid on the felt
    ============================================================ */
-.spread{display:flex;justify-content:center;align-items:flex-end;
-  margin:20px auto 0;perspective:1400px;min-height:250px}
-/* The spread keeps its height even though the cards got shorter. They are bottom-
-   aligned in it, so shrinking the box walks every card upward — and the clearance
-   under the ball is measured from the card bottoms. */
-/* Everything vertical here trades against one thing: the ball hangs over the row
-   above the spread, so the room between the question and the first line of an
-   answer is fixed. A shorter card does not help — it walks its own top down and
-   that room stops being card and becomes white gap, one pixel for one. */
-.tcard{position:relative;width:186px;height:242px;margin:0 10px;padding:0;background:none;
+.spread{position:relative;z-index:2;display:flex;justify-content:center;align-items:flex-end;
+  margin:26px auto 0;perspective:1400px;min-height:238px}
+.tcard{position:relative;width:178px;height:232px;margin:0 11px;padding:0;background:none;
   transform-style:preserve-3d;cursor:default;
   transform:rotate(var(--tilt)) translateY(var(--lift,0));
   transition:transform .42s cubic-bezier(.22,1.1,.36,1)}
@@ -216,16 +155,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 16px))}
 .tface{position:absolute;inset:0;border-radius:13px;backface-visibility:hidden;
   -webkit-backface-visibility:hidden;overflow:hidden;transition:opacity .35s;
-  box-shadow:0 14px 30px rgba(16,34,46,.26), 0 2px 6px rgba(16,34,46,.16),
-    0 0 0 1px rgba(40,74,96,.14)}
+  box-shadow:0 16px 26px rgba(6,34,22,.42), 0 2px 5px rgba(6,34,22,.3)}
 .tback{background:
-  repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 9px,transparent 9px 18px),
-  radial-gradient(120% 90% at 30% 8%, #6a2050, #3d1030 58%, #23091c 100%);
+  repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 9px,transparent 9px 18px),
+  radial-gradient(120% 90% at 30% 8%, #0b5f80, #05435c 58%, #032b3c 100%);
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 14px 30px rgba(16,34,46,.3), inset 0 0 0 2px var(--gold-dk),
+  box-shadow:0 16px 26px rgba(6,34,22,.45), inset 0 0 0 2px var(--gold-dk),
     inset 0 0 0 3.5px rgba(236,212,137,.32)}
 /* the logo, whole. The gold bar is 33.4% of the lockup, so clear space is that
-   again on every side: at 52% of a 242px card that is 42px against 58px of margin. */
+   again on every side: at 52% of a 232px card that is 40px against 56px of margin. */
 .tback img{height:52%;width:auto;display:block}
 .tback .crest{width:52px;height:52px;border-radius:50%;border:2.5px solid var(--gold);
   display:flex;align-items:center;justify-content:center}
@@ -233,68 +171,82 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--gold);transform:rotate(45deg)}
 .tfront{background:linear-gradient(180deg,#fffcf4,var(--card));color:var(--card-ink);
   transform:rotateY(180deg);display:flex;flex-direction:column;padding:16px 15px 14px;
-  box-shadow:0 14px 30px rgba(16,34,46,.26), inset 0 0 0 1.5px rgba(201,164,75,.55)}
+  box-shadow:0 16px 26px rgba(6,34,22,.42), inset 0 0 0 1.5px rgba(201,164,75,.55)}
 .tfront .idx{font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9b7d33}
-/* The answer is centred in the card. It hung from the bottom to buy clearance under
-   the ball, and that put the blank in the card's top half, which is the wrong half
-   to spend it in. Where the text sits and how big the white gap above the spread is
-   are the same number: the ball has to clear the first line, so every pixel the text
-   rises the whole spread has to drop. Measured, on this card: bottom-set 83px of
-   gap, centred 106, top-set 132. Centred is the trade. */
+/* Centred in the card. Nothing hangs over the spread in this staging, so unlike
+   the ball there is no clearance to buy and no reason to push it off centre. */
 .tfront .txt{flex:1;display:flex;align-items:center;font-size:14.5px;line-height:1.44;
-  padding:8px 0 8px}
-/* One line: "Your card — correct" wrapped and was clipped by the card's fixed
-   height, on the one card a learner most wants to read. */
+  padding:8px 0}
 .tfront .mark{height:18px;white-space:nowrap;font-size:11.5px;font-weight:800;
   letter-spacing:.06em;text-transform:uppercase;color:transparent}
 
 .tcard.up{transform:rotate(var(--tilt)) translateY(var(--lift,0)) rotateY(180deg)}
 .spread.live .tcard.up:hover{
   transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 16px)) rotateY(180deg)}
-/* laid out of the ball, which is above them */
-.tcard.dealt{animation:layDown .5s cubic-bezier(.25,1.05,.35,1) backwards}
-@keyframes layDown{
-  from{transform:translate(0,-250px) rotate(-7deg) scale(.6);opacity:0}
+/* dealt from her hand: in from the rail, not from nowhere */
+.tcard.dealt{animation:dealIn .52s cubic-bezier(.25,1.05,.35,1) backwards}
+@keyframes dealIn{
+  from{transform:translate(0,-210px) rotate(-9deg) scale(.72);opacity:0}
   to{transform:rotate(var(--tilt)) translateY(var(--lift,0));opacity:1}}
 
-/* The taken card rises — but 22px and 1.07 lifted its first line into the ball,
-   on the one card the learner most wants to read. */
+/* The taken card comes forward to the dealer. 12px and 1.04 — a bigger rise put
+   the card's own first line under things in the other staging, and there is no
+   reason to relearn that here. */
 .tcard.taken{z-index:2;transform:rotate(0deg) translateY(-12px) rotateY(180deg) scale(1.04)}
 .spread.done .tcard.taken:hover{transform:rotate(0deg) translateY(-12px) rotateY(180deg) scale(1.04)}
-.tcard.taken .tfront{box-shadow:0 26px 48px rgba(16,34,46,.36), inset 0 0 0 2px currentColor}
+.tcard.taken .tfront{box-shadow:0 26px 40px rgba(6,34,22,.5), inset 0 0 0 2px currentColor}
 .tcard.right .tfront{color:#1c7a55;background:#eef7ef}
 .tcard.right .mark{color:#1c7a55}
 .tcard.wrong .tfront{color:#a5352c;background:#faece9}
 .tcard.wrong .mark{color:#a5352c}
 /* NOT dimmed: this is the card they should have taken, and dimming it made the
-   answer the least legible thing in the spread. */
+   answer the least legible thing on the table. */
 .tcard.answer{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 6px)) rotateY(180deg)}
 .tcard.answer .tfront{background:#f2faf3;
-  box-shadow:0 18px 34px rgba(28,122,85,.26), inset 0 0 0 2px #1c7a55}
+  box-shadow:0 20px 30px rgba(28,122,85,.34), inset 0 0 0 2px #1c7a55}
 .tcard.answer .mark{color:#1c7a55}
 /* Dim the FACES, never the card: opacity below 1 flattens a preserve-3d element,
-   backface culling stops, and the back renders through — mirrored. */
+   which turns backface culling off and shows the back of a card that is face up. */
 .tcard.spent .tface{opacity:.44;filter:saturate(.7)}
 .tcard.spent{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) + 14px)) rotateY(180deg) scale(.93)}
 .spread.done .tcard,.spread.done .tcard:hover{cursor:default}
 
 /* ============================================================
-   Lashes. The lesson's drawing is untouched; the costume lives only here.
+   The chip tray — the tally, in the currency of the table
    ============================================================ */
-.m-rim{fill:none;stroke:#0b6f92;stroke-width:6}
-.m-glass{fill:#eef8fc}
+.footrow{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;
+  gap:14px;margin:28px auto 0}
+.stones{display:flex;gap:7px}
+.stone{width:22px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%, #f2f6f8, #c9d6dd 68%, #93a6b0);
+  box-shadow:0 2px 4px rgba(4,26,17,.4), inset 0 0 0 2px rgba(255,255,255,.55);
+  transition:background .4s,box-shadow .4s}
+/* the notches a chip's edge has, drawn rather than described */
+.stone::after{content:"";position:absolute;inset:0}
+.stone.lit{background:radial-gradient(circle at 36% 30%, #ffeaa6, var(--gold) 60%, #8a6d22);
+  box-shadow:0 3px 7px rgba(4,26,17,.45), inset 0 0 0 2px rgba(255,244,206,.75)}
+.stone.out{background:radial-gradient(circle at 36% 30%, #e0aaa5, #a5352c 68%, #7a241d);
+  box-shadow:0 2px 4px rgba(4,26,17,.4), inset 0 0 0 2px rgba(255,220,215,.5)}
+.count{margin:0;font-size:12.5px;color:var(--felt-ink);opacity:.85}
+.count b{opacity:1;font-weight:700}
+
+/* ---------- her drawing: the lesson's, with the costume the teller gave her ---------- */
+.m-rim{fill:none;stroke:#066888;stroke-width:6}
+.m-glass{fill:#f2fbff}
 .m-eye{fill:#14222b}
-.m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
-.m-lidfill{fill:#eef8fc}
+.m-lidfill{fill:#f2fbff}
 .m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
 .m-spark{fill:#14222b}
+.m-arc{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
 .m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
 .m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
 .m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
-.m-scarf{fill:#5d1636}
-.m-scarf-2{fill:#7a1e46}
+/* A dealer's visor, not the teller's headscarf — same envelope, because the rule
+   that put the scarf there holds for anything she wears: on the rim, never over
+   the glass, and above every lash at every x. She is called Lashes. */
+.m-visor{fill:#1f8a5f}
+.m-visor-lip{fill:none;stroke:#0d5637;stroke-width:1.6;stroke-linecap:round}
 .m-band{fill:none;stroke:#c9a44b;stroke-width:3;stroke-linecap:round}
-.m-jewel{fill:#ecd489;stroke:#8a6d22;stroke-width:.8}
 .m-hoop{fill:none;stroke:#c9a44b;stroke-width:2.4}
 .m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
 @keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
@@ -305,13 +257,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
 
 @media(max-width:700px){
-  .slot{height:279px}
-  .orb{top:172px;width:340px;height:340px}
-  .tcard{width:160px;height:230px;margin:0 6px}
+  .station{gap:14px;padding:0 14px}
+  .lashy{width:92px;height:92px}
+  .tcard{width:152px;height:212px;margin:0 6px}
 }
 @media(prefers-reduced-motion:reduce){
-  .m-body,.m-face,.m-eyes,.smoke,.orb.mist .inner>*,.lashy.in .mface,.lashy.in .puff{
-    animation:none !important}
+  .m-body,.m-face,.m-eyes,.lashy.in .mface,.lashy.in .puff{animation:none !important}
   .tcard,.tcard.dealt{animation:none;transition:none}
   .spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(var(--lift,0))}
 }
@@ -320,43 +271,41 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <body>
 
 <div class="frame">
-  <!-- One slot. The question sits at the top of it plainly; the orb poofs in over
-       it when she has a reading, and poofs out again. Reserved at the orb's height
-       so nothing below ever moves — and the room that reservation leaves is all
-       under the question, which is where she turns up. -->
-  <div class="slot">
-    <div class="ask" id="ask">
-      <p class="qn sans" id="qn"></p>
-      <div class="qt" id="qt"></div>
-    </div>
+  <div class="table">
+    <div class="rail" aria-hidden="true"></div>
+    <div class="arc" aria-hidden="true"></div>
 
-    <div class="orb" id="orb" hidden>
-      <span class="smoke" aria-hidden="true"></span>
-      <div class="inner">
-        <div class="lashy" id="lashy" aria-hidden="true"></div>
-        <div class="verdict" id="verdict"></div>
-        <div class="fb" id="fb"></div>
-        <!-- Next is a permanent child. The table screen used to write its two
-             buttons into #foot with innerHTML, which deleted this one — so after
-             "lay those again" the reading had no Next and setting its label threw.
-             The table's buttons get their own box beside it instead. -->
-        <div class="foot" id="foot">
-          <button class="go" id="next"></button>
-          <span class="tablebtns" id="tablebtns"></span>
+    <!-- The dealer, at the rail the whole time, and the one bubble she speaks in.
+         The question and the reading are stacked in it and cross-faded, so the
+         table never moves when the hand turns over. -->
+    <div class="station">
+      <div class="lashy" id="lashy" aria-hidden="true"></div>
+      <div class="bubble" id="bubble">
+        <div class="layer" id="ask">
+          <p class="qn sans" id="qn"></p>
+          <div class="qt" id="qt"></div>
+        </div>
+        <div class="layer gone" id="said">
+          <div class="verdict" id="verdict" hidden></div>
+          <div class="fb" id="fb"></div>
+          <!-- Next is a permanent child. The table screen writes its own two
+               buttons into #tablebtns beside it rather than over it, because
+               innerHTML on the foot deleted this button and the next reading
+               then threw on setting its label. -->
+          <div class="foot" id="foot">
+            <button class="go" id="next"></button>
+            <span class="tablebtns" id="tablebtns"></span>
+          </div>
         </div>
       </div>
-      <span class="sheen" aria-hidden="true"></span>
     </div>
-  </div>
 
-  <div class="spread" id="spread" role="group" aria-labelledby="qt"></div>
+    <div class="spread" id="spread" role="group" aria-labelledby="qt"></div>
 
-  <!-- The tally sits under the spread, not over it: the orb hangs into the row above
-       the cards, and a count half-behind the glass reads as a mistake rather than as
-       depth. -->
-  <div class="footrow">
-    <div class="stones" id="stones" aria-hidden="true"></div>
-    <p class="count sans" id="count"></p>
+    <div class="footrow">
+      <div class="stones" id="stones" aria-hidden="true"></div>
+      <p class="count sans" id="count"></p>
+    </div>
   </div>
 </div>
 
@@ -369,7 +318,7 @@ var $=function(s){return document.querySelector(s)};
 var LETTER=["A","B","C","D","E"];
 var TILT=["-4deg","0.5deg","4deg"], LIFT=["10px","0px","9px"];
 
-/* --- her face: the lesson's drawing, plus a costume that lives only here --- */
+/* --- her face: the lesson's drawing, plus the costume that lives in the themes --- */
 var LASH={
   open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
        '<path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/></g>',
@@ -396,22 +345,16 @@ var EYES={
 var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
            wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
 
-/* Drawn over her rim. Her geometry is the bible's — face at (44,42), rim r=30 —
-   so the wrap is an arc of r=31 across the top, above every lash at every x. */
 var COSTUME=
-  '<path class="m-scarf-2" d="M18 24 q-13 5 -15 16 q-2 11 4 18 q4 -10 6 -18 q2 -9 7 -14 z"/>'+
-  '<path class="m-scarf" d="M17.4 26 A31 31 0 0 1 70.5 26 Q44 30 17.4 26 Z"/>'+
-  '<path class="m-scarf-2" d="M19 22 q-10 0 -13 7 q7 3 13 -1 q3 -3 0 -6 z"/>'+
+  '<path class="m-visor" d="M17.4 26 A31 31 0 0 1 70.5 26 Q44 31 17.4 26 Z"/>'+
+  '<path class="m-visor-lip" d="M18.6 26.6 Q44 31.4 69.3 26.6"/>'+
   '<path class="m-band" d="M18.4 24.2 Q44 28.6 69.6 24.2"/>'+
-  '<path class="m-jewel" d="M44 22.6 q3.6 3.1 0 7.6 q-3.6 -4.5 0 -7.6 z"/>'+
   '<circle class="m-hoop" cx="68" cy="63" r="6"/>';
 
 function svg(eyes,mouth){
   var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
-  /* Cropped to the drawing. Her ink measures 71.5 x 61 in a 100-square box, so a
-     100-square viewBox spent a third of her on nothing — this is 1.3x of size for
-     no layout at all. The square is centred on the ink with a margin the bob and
-     the tilt can move inside. */
+  /* Cropped to the drawing: her ink measures 71.5 x 61 in the 100-square box she
+     was authored in, so a 100-square viewBox spends a third of her on nothing. */
   return '<svg viewBox="0.25 3.5 76 76" aria-hidden="true">'+
     '<g class="m-body">'+
       '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
@@ -422,38 +365,25 @@ function svg(eyes,mouth){
       COSTUME+
     '</g></svg>';
 }
-/* She materialises in the ball when she has something to say, and is simply not
-   there while the learner is choosing. */
+/* She is at the table throughout — this only changes her face. The other two
+   stagings use it to make her appear; here appearing is not the event. */
 function face(eyes,mouth){
   var el=$("#lashy");
   el.innerHTML='<span class="puff"></span><span class="mface">'+svg(eyes,mouth)+'</span>';
   el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
 }
-function unface(){ var el=$("#lashy"); el.classList.remove("in"); el.innerHTML=""; }
-/* Re-run the mist so the contents re-form every time the ball changes what it
-   holds. Toggling `hidden` alone will not restart a CSS animation. */
-function remist(){
-  var el=$("#orb");
-  el.classList.remove("mist"); void el.offsetWidth; el.classList.add("mist");
+
+/* The bubble holds one of two things. They are stacked, so the swap costs the
+   table no height and nothing under it moves. */
+function sayIn(kind){
+  $("#verdict").className="verdict "+kind;
+  $("#ask").classList.add("gone");
+  $("#said").classList.remove("gone");
 }
-/* The orb is an apparition: it is not there at all until she has a reading, and
-   it goes again before the next question is dealt. `hidden` is toggled either
-   side of the transition so it never sits invisibly over the question. */
-function orbIn(kind){
-  var el=$("#orb");
-  el.className="orb "+kind;
-  el.hidden=false;
-  void el.offsetWidth;
-  el.classList.add("in");
-  $(".slot").classList.add("reading");
-  remist();
-}
-function orbOut(then){
-  var el=$("#orb");
-  if(el.hidden){ if(then) then(); return; }
-  el.classList.remove("in");
-  $(".slot").classList.remove("reading");
-  later(function(){ el.hidden=true; unface(); if(then) then(); }, reduced?0:340);
+function sayOut(then){
+  $("#said").classList.add("gone");
+  $("#ask").classList.remove("gone");
+  later(function(){ if(then) then(); }, reduced?0:280);
 }
 
 /* --- the only two things it ever says to a host --- */
@@ -497,6 +427,15 @@ function deal(){
 
   $("#qt").textContent=q.q;
   $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
+  /* The reading is written NOW, while it is still hidden, so the bubble is already
+     as tall as it will need to be. Written at the moment of the pick instead, the
+     bubble grew by whatever the feedback needed and walked the whole spread down
+     the felt. */
+  $("#verdict").hidden=true; $("#verdict").textContent="";
+  $("#fb").textContent=q.fb;
+  $("#tablebtns").innerHTML=""; $("#next").hidden=false;
+  $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
+  face("open","plain");
   paintStones();
 
   var sp=$("#spread");
@@ -521,7 +460,7 @@ function deal(){
     c.style.animationDelay=(i*150)+"ms";
     later(function(){ c.classList.add("up"); }, 620+i*170);
   });
-  /* Face down means face down. Same rule as the shipped page: a blank card you
+  /* Face down means face down. Same rule as every other staging: a blank card you
      can take is a guess, and guessing is the habit this lesson exists to break. */
   later(function(){
     sp.classList.add("live");
@@ -558,23 +497,19 @@ function take(card,cards,q){
   $("#live").textContent=(right?"Correct. ":"Not correct. ")+q.fb;
 
   later(function(){
-    /* No verdict line on a reading. The cards behind the ball are already marked
-       right and wrong, in colour, on the card the learner actually picked — saying
-       it again in red or green over the top is the same news twice. The table
-       screen keeps its line, because the gate has to state itself. */
-    $("#verdict").hidden=true; $("#verdict").textContent="";
-    $("#fb").textContent=q.fb;
-    $("#tablebtns").innerHTML=""; $("#next").hidden=false;
-    $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
+    /* Nothing to write: the reading has been in the bubble since the deal, unseen.
+       No line announcing the result either — the cards on the felt are already
+       marked right and wrong, in colour, on the one the learner actually picked.
+       The table screen keeps its line, because the gate has to state itself. */
     face(right?"sparkle":"droll", right?"cheer":"wry");
-    orbIn(right?"good":"bad");
+    sayIn(right?"good":"bad");
     later(function(){ $("#next").focus(); },60);
-  }, reduced?0:340);
+  }, reduced?0:300);
 }
 
 $("#next").addEventListener("click",function(){
   at++;
-  orbOut(function(){ if(at<order.length) deal(); else finish(); });
+  sayOut(function(){ if(at<order.length) deal(); else finish(); });
 });
 
 function finish(){
@@ -593,7 +528,7 @@ function finish(){
     : "Question"+(missed.length===1?" ":"s ")+list(missed)+" went the other way. I will lay "+
       (missed.length===1?"it":"them")+" again, in a different order.";
   face(passed?"sparkle":"droll", passed?"cheer":"hm");
-  orbIn((passed?"good":"bad")+" table");
+  sayIn(passed?"good":"bad");
   $("#live").textContent=(passed?"Passed. ":"Not passed. ")+score+" of "+QS.length+" right.";
 
   if(passed){
@@ -614,13 +549,13 @@ function replay(which){
   if(which===null){ got=QS.map(function(){return null}); order=QS.map(function(_,i){return i}); }
   else order=which.slice();
   at=0;
-  orbOut(deal);
+  $("#foot").hidden=false;
+  sayOut(deal);
 }
 
 (function(){
-  /* The name the maker was given titles the page. There is no heading to put it in
-     — this staging has no chrome of its own on purpose — but a tab called
-     "Knowledge Check" whatever it holds is a page that lost its name. */
+  /* The name the maker was given titles the page. There is no heading to put it
+     in — this staging has no chrome of its own on purpose. */
   if(KC.title) document.title=KC.title;
   if(!QS.length){ $("#qt").textContent="No questions were built into this page."; return; }
   got=QS.map(function(){return null});

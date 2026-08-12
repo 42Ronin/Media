@@ -665,9 +665,29 @@ together, the learner picks one, and the feedback is the sentence the script alr
   answer becomes the least legible thing on screen.
   **Her costume sits on the rim, never the glass.** A scarf over the glass covers her lashes,
   and she is called Lashes. The lesson's drawing is untouched.
+- **`dist/kc-dealer-prototype.html` is the third staging: the DEALER'S TABLE.** Built from
+  `src/kc-dealer.template.html`, same questions and same gate. Felt with a brass rail, the
+  cards laid on it, the tally as chips.
+  **She is at the table the whole time**, which is the difference between this and the other
+  two — there her arrival *is* the answer landing, and a dealer does not turn up when the hand
+  is over. What changes on a pick is her face and what she says, not whether she is there.
+  **One bubble holds the question and then the reading**, and the two are stacked in a single
+  grid cell rather than swapped, so the bubble is as tall as the taller of them and the table
+  cannot move. Positioning the reading absolutely instead left the bubble at the question's
+  height and put the Next button out on the felt.
+  **The reading is written at the deal, not at the pick** — while it is still hidden — or the
+  bubble grows by whatever the feedback needs and walks the whole spread down the table. The
+  hidden layer uses `visibility` as well as opacity: it has to keep its box, but a merely
+  transparent element is still in the accessibility tree, and the reading must not be readable
+  before the card is taken.
+  **Nothing hangs over the spread**, which is why this staging has none of the ball's clearance
+  arithmetic: the answers are centred in their cards because there is nothing to clear.
+  **Her costume is a dealer's visor, not the teller's headscarf** — and it uses the teller's
+  envelope, because the rule that put the scarf there holds for anything she wears: on the rim,
+  never over the glass, above every lash at every x. She is called Lashes.
 - **The shipped check's layout is still plain.** A dealer's-table scene was discussed and parked;
-  hands or props on her would live in the character SVG, which is copied in three places
-  now (lesson, page, maker) and should be extracted before anyone draws on it.
+  hands or props on her would live in the character SVG, which is copied in **four** places
+  now (lesson, page, teller, dealer) and should be extracted before anyone draws on it.
 
 ## `tools/kc-maker` — the knowledge check as a tool
 
@@ -677,13 +697,20 @@ correct, write the feedback, set the pass mark, press Export.
 
 - **The Name field names all three outputs**, and the file *inside* the zip is always
   `index.html` whatever the zip is called, because that is what Rise looks for.
-- **Themes are a selector, not a mode.** The maker carries one page per theme — Standard and
-  Fortune Teller, with Card Dealer to come — and the selector changes **only what is
+- **Themes are a selector, not a mode.** The maker carries one page per theme — Standard,
+  Fortune Teller and Card Dealer — and the selector changes **only what is
   previewed and what is exported**. The questions, answers, feedback and pass mark are the
   same work whichever staging ships them, so nothing else in the editor knows a theme exists.
   Adding one is a row in `THEMES` in `make_maker.py`: a key, a label, a template. The editor
   reads the list off the pages the build embedded rather than naming any of them, and a page
   qualifies only if it carries exactly one KC token and one LOGO token.
+- **Feedback is per question.** A question can ship with none: the cards are still marked
+  right and wrong and the learner goes straight on. Switching it off **disables the box
+  rather than clearing it**, and the writing round-trips through save/open and
+  localStorage — someone who switches it off, exports, and switches it back must not find
+  their paragraph gone. Validation stops asking for what is switched off, the export sends
+  `fb:""`, and every page hides an empty feedback box so there is no hole where a paragraph
+  would have been.
 - **The preview is a `srcdoc` frame over the editor**, not a new tab: it gives the page an
   opaque origin, which is what the launcher gives it in Rise, so the preview meets the same
   storage limits the real thing does. Closing it clears `srcdoc` so the page is not still

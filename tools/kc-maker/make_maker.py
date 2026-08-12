@@ -32,6 +32,7 @@ OUT = HERE / "kc-maker.html"
 THEMES = (
     ("standard", "Standard", SRC / "kc.template.html"),
     ("teller", "Fortune Teller", SRC / "kc-teller.template.html"),
+    ("dealer", "Card Dealer", SRC / "kc-dealer.template.html"),
 )
 
 LOGO_TYPES = ((".svg", "image/svg+xml"), (".png", "image/png"))

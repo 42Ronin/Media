@@ -32,15 +32,21 @@ to survive a cleared browser or move to another machine.
 - **Total questions**, as a number, or one at a time with *Add question*
 - **The question**, and **three to five answers** with one marked correct
 - **Feedback**, written for the question as a whole — it is what the learner reads once
-  they have answered, whichever way they answered
+  they have answered, whichever way they answered — **switchable per question**. Off, the
+  cards are still marked right and wrong and the learner goes straight on; what is written
+  is kept, so switching it back does not cost you the paragraph
 - **The pass mark**, as a percentage
 - **The theme** — which staging the exported page uses
 
 ## Themes
 
-The same authored check ships in more than one staging. **Standard** is the plain card
-table the lesson ships. **Fortune Teller** deals the same hand on a transparent ground and
-Lashes appears in a crystal ball with the reading.
+The same authored check ships in more than one staging.
+
+| Theme | What it looks like |
+|---|---|
+| **Standard** | The plain card table the lesson ships. She arrives beside the feedback |
+| **Fortune Teller** | The same hand on a transparent ground; she appears in a crystal ball with the reading |
+| **Card Dealer** | A felt table with a rail. She is the dealer, at the table throughout, and speaks in one bubble that holds the question and then the reading |
 
 The theme changes the exported page and nothing else. The questions, the answers, the
 feedback and the pass mark are the same work whichever staging carries them — which is

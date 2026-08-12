@@ -98,11 +98,45 @@ ok('...recomputed when the pass mark changes',
    await p.textContent('#okline'));
 await p.fill('#pass', '80');
 
+/* Feedback is per question, and switching it off must not lose the writing. */
+console.log('\n— feedback, per question —');
+await p.click('.qitem[data-i="0"]');
+await p.uncheck('#fbon');
+ok('switching feedback off disables the box rather than clearing it',
+   await p.$eval('#fbtext', e => e.disabled) &&
+   (await p.inputValue('#fbtext')) === QS[0].fb);
+ok('...and it is no longer required to export',
+   await p.$eval('#okline', e => !e.hidden));
+await p.reload();
+await p.click('.qitem[data-i="0"]');
+ok('...and the switch survives a reload with the writing intact',
+   !(await p.$eval('#fbon', e => e.checked)) && (await p.inputValue('#fbtext')) === QS[0].fb);
+const offExport = await (async () => {
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#expHTML')]);
+  const dir = join(work, 'off'); mkdirSync(dir);
+  const path = join(dir, dl.suggestedFilename()); await dl.saveAs(path); return path;
+})();
+{
+  const out = await b.newPage();
+  await out.goto('file://' + offExport);
+  await out.waitForTimeout(1500);
+  ok('...and that question ships with no feedback at all',
+     await out.evaluate(() => KC.questions[0].fb) === '' &&
+     await out.evaluate(() => KC.questions[1].fb) !== '');
+  await out.evaluate(() => [...document.querySelectorAll('.card,.tcard')].find(c => c.dataset.ok === '1').click());
+  await out.waitForTimeout(1300);
+  ok('...showing no empty box where the paragraph would have been',
+     await out.$eval('#fb', e => e.offsetParent === null || !e.textContent.trim()));
+  ok('...and the learner can still go on', await out.$eval('#next', e => !e.hidden && e.offsetParent !== null));
+  await out.close();
+}
+await p.check('#fbon');
+
 console.log('\n— themes —');
 
 const THEMES = await p.$$eval('#theme option', o => o.map(x => x.value));
 ok('the themes on offer are the ones the build embedded',
-   THEMES.join(',') === 'standard,teller', THEMES.join(','));
+   THEMES.join(',') === 'standard,teller,dealer', THEMES.join(','));
 ok('...one page carried per theme, each with its own KC token to fill',
    await p.$$eval('script.page', e => e.length) === THEMES.length &&
    await p.$$eval('script.page', e => e.every(x => x.textContent.trim().length > 1000)));
@@ -176,9 +210,10 @@ console.log('\n— the exported page —');
    same; the selectors differ because the page is genuinely a different one. */
 const STAGINGS = {
   standard: { card:'.card', hand:'#hand', tally:'#score', titled:true, verdict:true },
-  /* No verdict line on a teller reading, by decision — the marked cards behind the
-     ball already say which way it went. */
+  /* No verdict line on a reading in either of these, by decision — the marked
+     cards already say which way it went. */
   teller:   { card:'.tcard', hand:'#spread', tally:'#count', titled:false, verdict:false },
+  dealer:   { card:'.tcard', hand:'#spread', tally:'#count', titled:false, verdict:false },
 };
 
 /* In a FRAME, not as a top-level page. These pages only speak when they are
@@ -253,6 +288,12 @@ ok('the filename does not change with the theme — the name does that',
 ok('...but the page does',
    readFileSync(tellerHTML.path, 'utf8') !== readFileSync(html.path, 'utf8'));
 await playExport('teller', tellerHTML.path);
+
+await p.selectOption('#theme', 'dealer');
+const dealerHTML = await grab('#expHTML');
+ok('...and again for the third staging',
+   readFileSync(dealerHTML.path, 'utf8') !== readFileSync(tellerHTML.path, 'utf8'));
+await playExport('dealer', dealerHTML.path);
 
 ok('the maker itself ran clean too', errs.length === 0, errs.join(' | '));
 

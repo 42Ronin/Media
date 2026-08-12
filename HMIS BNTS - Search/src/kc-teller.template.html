@@ -135,6 +135,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .orb.good .verdict{color:#a3f5cc}
 .orb.bad .verdict{color:#ffbdb3}
 .fb{font-size:13.5px;line-height:1.48;color:#daf1fb}
+/* A question can ship with no feedback at all — the maker lets each one be
+   switched off. An empty box still costs the flex gap above the button, so it
+   goes entirely rather than leaving a hole where a paragraph was. */
+.fb:empty{display:none}
 .orb.mist .inner>*{animation:mist .55s ease both}
 @keyframes mist{from{opacity:0;filter:blur(7px);transform:translateY(6px) scale(.97)}
   to{opacity:1;filter:blur(0);transform:none}}
