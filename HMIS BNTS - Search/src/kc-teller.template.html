@@ -32,7 +32,7 @@
 <style>
 :root{
   --gold:#c9a44b; --gold-lt:#ecd489; --gold-dk:#8a6d22;
-  --ink:#f2ece2; --mut:#93aebc;
+  --ink:#1e2f3a; --mut:#5f7787;
   --card:#f7f0df; --card-ink:#2b2320;
   --ok:#7fd8a6; --bad:#f0958f;
   --focus:#7fd4ff;
@@ -53,15 +53,31 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ============================================================
    The scrying panel — the ball's material, in a shape that holds words
    ============================================================ */
-.panel{position:relative;overflow:hidden;border-radius:26px;padding:22px 26px 16px;
-  /* min-height so the cards below never move when she starts reading. Measured
-     against the longest reading at the narrowest column we support. */
-  min-height:236px;
+/* NO CASE. The page behind this is Rise's, and it is white — so the white is the
+   room, and the glass is the only dark thing in it. A dark box floating on a
+   light page reads as a UI panel; a lit glass standing on one reads as an object.
+   This does assume a light page. If a block ever puts it on a dark one, the ink
+   colours below are what has to change. */
+.panel{position:relative;padding:8px 4px 0;
+  /* reserved so the cards below never move when she starts reading */
+  min-height:230px}
+/* The air around it: a wash that tints the white, and gold sparks. */
+.atmos{position:absolute;left:-6%;right:-6%;top:-14%;bottom:-30%;pointer-events:none;z-index:0;
   background:
-    repeating-linear-gradient(96deg, rgba(255,255,255,.02) 0 3px, transparent 3px 7px),
-    radial-gradient(150% 150% at 50% -18%, #162834 0%, #0e1c26 48%, #070f16 100%);
-  box-shadow:0 22px 48px rgba(3,10,16,.46), inset 0 0 0 1px rgba(201,164,75,.36),
-    inset 0 1px 0 rgba(236,212,137,.14)}
+    radial-gradient(2px 2px at 8% 22%, rgba(190,150,40,.55), rgba(190,150,40,0) 60%),
+    radial-gradient(1.6px 1.6px at 15% 62%, rgba(190,150,40,.45), rgba(190,150,40,0) 60%),
+    radial-gradient(2.4px 2.4px at 3% 44%, rgba(190,150,40,.38), rgba(190,150,40,0) 60%),
+    radial-gradient(2px 2px at 93% 20%, rgba(190,150,40,.5), rgba(190,150,40,0) 60%),
+    radial-gradient(1.6px 1.6px at 88% 58%, rgba(190,150,40,.42), rgba(190,150,40,0) 60%),
+    radial-gradient(2.4px 2.4px at 97% 40%, rgba(190,150,40,.36), rgba(190,150,40,0) 60%),
+    radial-gradient(1.8px 1.8px at 24% 8%, rgba(190,150,40,.4), rgba(190,150,40,0) 60%),
+    radial-gradient(1.8px 1.8px at 76% 6%, rgba(190,150,40,.36), rgba(190,150,40,0) 60%),
+    /* Both washes fade to zero INSIDE their own box. A radial whose ellipse runs
+       past the element is clipped at the edge while still carrying colour, which
+       painted a faint rectangle across the white page. */
+    radial-gradient(42% 40% at 50% 42%, rgba(56,150,196,.2), rgba(56,150,196,0) 76%),
+    radial-gradient(34% 32% at 28% 66%, rgba(150,96,196,.13), rgba(150,96,196,0) 78%)}
+
 /* The ball, as a pane.
 
    What makes a crystal ball read as one is not its outline — it is cool blue
@@ -81,7 +97,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     inset 0 0 0 1px rgba(186,238,255,.4),           /* the edge of the glass */
     inset 0 20px 34px rgba(206,244,255,.24),        /* light pooling at the top */
     inset 0 0 40px rgba(3,18,28,.55),               /* fall-off toward the rim */
-    0 0 52px rgba(66,192,226,.42), 0 10px 24px rgba(4,16,26,.5);
+    0 0 60px rgba(52,168,214,.5), 0 18px 38px rgba(12,44,64,.34);
   animation:breathe 7s ease-in-out infinite}
 @keyframes breathe{
   0%,100%{filter:brightness(1)}
@@ -133,28 +149,36 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes mist{from{opacity:0;filter:blur(6px);transform:translateY(5px)}
   to{opacity:1;filter:blur(0);transform:none}}
 
-/* She is in the glass. When the reading arrives she draws back and lets the words
-   have the panel. Her costume sits on the RIM, never over the glass — a scarf
-   across her face covers her lashes, and she is called Lashes. */
-.lashy{flex:none;width:104px;height:104px;position:relative;
-  filter:drop-shadow(0 0 18px rgba(255,238,205,.5));
-  transition:width .42s cubic-bezier(.3,1.2,.4,1),height .42s cubic-bezier(.3,1.2,.4,1)}
-.panel.reading .lashy{width:82px;height:82px}
+/* She is not here for the question — she turns up to react, which is a stronger
+   entrance than a face that was already waiting. Her slot is laid out either way,
+   so the glass does not change width when she arrives.
+   Her costume sits on the RIM, never over the glass: a scarf across her face
+   covers her lashes, and she is called Lashes. */
+.lashy{flex:none;width:96px;height:96px;position:relative;
+  filter:drop-shadow(0 6px 14px rgba(30,50,66,.22))}
 .lashy svg{width:100%;height:100%;display:block;overflow:visible}
+.lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
+.lashy .puff{position:absolute;left:4%;top:2%;width:90%;height:90%;border-radius:50%;
+  border:2.5px solid var(--gold);opacity:0;pointer-events:none}
+.lashy.in .mface{animation:poofIn .5s cubic-bezier(.3,1.45,.5,1)}
+.lashy.in .puff{animation:puffRing .46s ease-out}
+@keyframes poofIn{0%{transform:scale(.12) rotate(-165deg);opacity:0}
+  55%{transform:scale(1.16) rotate(14deg);opacity:1}100%{transform:none;opacity:1}}
+@keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
 
 .panelfoot{position:relative;z-index:2;display:flex;align-items:center;gap:14px;
-  margin-top:15px;padding-top:13px;border-top:1px solid rgba(201,164,75,.22);
+  margin-top:15px;padding-top:13px;border-top:1px solid rgba(160,125,30,.28);
   /* reserved for the button, which only appears once a card is taken — without
      this the whole panel grew by 21px and pushed the cards down */
   min-height:55px}
 .stones{display:flex;gap:9px}
 .stone{width:15px;height:15px;transform:rotate(45deg);border-radius:3px;
-  background:radial-gradient(circle at 34% 30%, #2c4756, #142430 70%);
-  box-shadow:inset 0 0 0 1px rgba(236,212,137,.22);transition:background .4s,box-shadow .4s}
-.stone.lit{background:radial-gradient(circle at 34% 30%, #fff0bd, var(--gold) 60%, #7d6118);
-  box-shadow:0 0 14px rgba(236,212,137,.7), inset 0 0 0 1px rgba(255,240,190,.6)}
-.stone.out{background:radial-gradient(circle at 34% 30%, #7e3f45, #3f1a20 70%);
-  box-shadow:inset 0 0 0 1px rgba(240,149,143,.32)}
+  background:radial-gradient(circle at 34% 30%, #dfe7ec, #bfcdd6 70%);
+  box-shadow:inset 0 0 0 1px rgba(140,110,30,.28);transition:background .4s,box-shadow .4s}
+.stone.lit{background:radial-gradient(circle at 34% 30%, #ffe9a2, var(--gold) 58%, #8a6d22);
+  box-shadow:0 0 14px rgba(201,164,75,.55), inset 0 0 0 1px rgba(255,244,206,.7)}
+.stone.out{background:radial-gradient(circle at 34% 30%, #d9a8a4, #a8635e 70%);
+  box-shadow:inset 0 0 0 1px rgba(150,70,62,.3)}
 .count{margin:0;font-size:12.5px;color:var(--mut)}
 .count b{color:var(--ink)}
 .foot{margin-left:auto}
@@ -162,9 +186,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:#2b2010;
   border-radius:10px;padding:9px 20px;font-size:14.5px;font-weight:700;transition:filter .15s}
 .go:hover{filter:brightness(1.08)}
-.go.quiet{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(201,164,75,.55);
+.go.quiet{background:none;color:#6b5410;box-shadow:inset 0 0 0 1px rgba(160,125,30,.5);
   margin-right:9px}
-.go.quiet:hover{background:rgba(201,164,75,.18)}
+.go.quiet:hover{background:rgba(201,164,75,.14)}
 
 /* ============================================================
    The spread — on whatever Rise puts behind it
@@ -275,6 +299,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <div class="frame">
 
   <div class="panel" id="panel">
+    <span class="atmos" aria-hidden="true"></span>
     <div class="inner">
       <div class="lashy" id="lashy" aria-hidden="true"></div>
       <div class="glass">
@@ -358,7 +383,14 @@ function svg(eyes,mouth){
       COSTUME+
     '</g></svg>';
 }
-function face(eyes,mouth){ $("#lashy").innerHTML=svg(eyes,mouth); }
+/* She arrives in a puff when she has something to say, and is simply not there
+   while the learner is choosing. The slot stays laid out so nothing moves. */
+function face(eyes,mouth){
+  var el=$("#lashy");
+  el.innerHTML='<span class="puff"></span><span class="mface">'+svg(eyes,mouth)+'</span>';
+  el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+}
+function unface(){ var el=$("#lashy"); el.classList.remove("in"); el.innerHTML=""; }
 /* Re-run the mist so the words re-form every time the panel changes what it
    holds. Toggling `hidden` alone will not restart a CSS animation. */
 function remist(){
@@ -413,7 +445,7 @@ function deal(){
   $("#qt").hidden=false;
   $("#qt").textContent=q.q;
   $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
-  face("open","tip");
+  unface();
   paintStones();
 
   var sp=$("#spread");
