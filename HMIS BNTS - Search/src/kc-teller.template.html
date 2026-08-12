@@ -26,22 +26,29 @@
 -->
 <style>
 :root{
-  --teal:#006688; --gold:#b99c00; --gold-lt:#d8bd3a;
-  --night:#04202d; --night-2:#0b3a4f;
-  --cloth:#0d3446; --cloth-lt:#15506b;
-  --ink:#f2ece0; --mut:#a7c2ce;
-  --card:#f7f2e6; --card-ink:#22303a;
-  --ok:#63d3a0; --bad:#eb968e;
-  --focus:#7fd4ff;
+  /* The reading room has its own palette. The style guide governs the product
+     surfaces; this is a set, and the owner said not to hold it to that. The one
+     rule that does carry over is the logo itself — used whole, never redrawn. */
+  --gold:#c9a44b; --gold-lt:#ecd489; --gold-dk:#8a6d22;
+  --night:#150c22; --night-2:#2c1745;
+  --cloth:#4a1030; --cloth-lt:#75204c;
+  --ink:#f6ecdb; --mut:#c8aec2;
+  --card:#f7f0df; --card-ink:#2b2320;
+  --ok:#7fd8a6; --bad:#f0958f;
+  --focus:#ffd479;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
 html,body{margin:0;padding:0;min-height:100%}
+/* The page background stays TRANSPARENT: this sits in a Rise course and the page
+   around it is Rise's, not ours. The scene is a bounded stage inside — set
+   --stage-bg if a block ever wants a ground colour behind it. */
 body{
-  font:15px/1.6 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
-  color:var(--ink); background:var(--night); -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+  font:15.5px/1.62 Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
+  color:var(--ink); background:var(--stage-bg,transparent);
+  -webkit-font-smoothing:antialiased;
 }
+.frame{max-width:1000px;margin:0 auto;padding:14px 16px 20px}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 :focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:8px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -49,7 +56,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ============================================================
    The room — drawn, never fetched
    ============================================================ */
-.room{position:relative;min-height:600px;padding-bottom:8px;overflow:hidden;
+.room{position:relative;min-height:552px;padding-bottom:10px;overflow:hidden;
+  border-radius:24px;box-shadow:0 24px 60px rgba(10,4,18,.4);
+
   background:
     radial-gradient(1.3px 1.3px at 8% 14%, rgba(255,255,255,.5), transparent 60%),
     radial-gradient(1.1px 1.1px at 21% 8%, rgba(255,255,255,.36), transparent 60%),
@@ -58,16 +67,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     radial-gradient(1.4px 1.4px at 69% 15%, rgba(255,255,255,.44), transparent 60%),
     radial-gradient(1.1px 1.1px at 84% 9%, rgba(255,255,255,.32), transparent 60%),
     radial-gradient(1.2px 1.2px at 93% 20%, rgba(255,255,255,.36), transparent 60%),
-    radial-gradient(125% 90% at 50% -6%, var(--night-2) 0%, #072a3a 44%, var(--night) 100%)}
+    radial-gradient(125% 92% at 50% -8%, var(--night-2) 0%, #1d1030 46%, var(--night) 100%)}
+/* a vignette, so the light falls off at the edges of the room */
+.room::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:24px;
+  background:radial-gradient(78% 62% at 50% 44%, transparent 40%, rgba(9,4,16,.62) 100%)}
 /* the candle's light, from where she is sitting */
 .room::before{content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(52% 40% at 46% 40%, rgba(255,206,128,.20), transparent 72%)}
+  background:radial-gradient(54% 42% at 46% 42%, rgba(255,196,110,.26), transparent 72%);z-index:1}
 
 /* the table: an ellipse of cloth with a gold hem, seen at a slight angle */
 .table{position:absolute;left:50%;bottom:-30%;width:150%;height:92%;
   transform:translateX(-50%);border-radius:50% 50% 0 0 / 34% 34% 0 0;
-  background:radial-gradient(80% 100% at 50% 0%, var(--cloth-lt), var(--cloth) 58%, #082635 100%);
-  box-shadow:0 -2px 0 rgba(185,156,0,.34), 0 -18px 44px rgba(0,0,0,.4)}
+  background:
+    repeating-linear-gradient(94deg, rgba(255,255,255,.028) 0 3px, transparent 3px 7px),
+    radial-gradient(80% 100% at 50% 0%, var(--cloth-lt), var(--cloth) 56%, #290a1c 100%);
+  box-shadow:0 -3px 0 var(--gold-dk), 0 -4px 0 rgba(236,212,137,.5), 0 -22px 52px rgba(0,0,0,.5)}
 
 /* ============================================================
    Her side of the table
@@ -75,11 +89,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .reader{position:relative;z-index:4;display:flex;align-items:flex-start;gap:18px;
   padding:26px 30px 0;max-width:940px;margin:0 auto}
 .lashy{flex:none;width:118px;height:118px;position:relative;
-  filter:drop-shadow(0 0 26px rgba(255,206,128,.34))}
+  filter:drop-shadow(0 0 30px rgba(255,196,110,.42))}
 .lashy svg{width:100%;height:100%;display:block;overflow:visible}
 .lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
 .lashy .puff{position:absolute;left:5%;top:3%;width:88%;height:88%;border-radius:50%;
-  border:2.5px solid var(--gold);opacity:0;pointer-events:none}
+  border:2.5px solid var(--gold-lt);opacity:0;pointer-events:none}
 .lashy.in .mface{animation:poofIn .5s cubic-bezier(.3,1.45,.5,1)}
 .lashy.in .puff{animation:puffRing .46s ease-out}
 @keyframes poofIn{0%{transform:scale(.12) rotate(-165deg);opacity:0}
@@ -87,25 +101,25 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
 
 /* what she says — the question, then the reading. One box, not two. */
-.says{flex:1;min-width:0;background:rgba(12,52,70,.82);border-radius:20px;
+.says{flex:1;min-width:0;background:linear-gradient(180deg,rgba(52,26,68,.96),rgba(30,14,42,.97));border-radius:20px;
   padding:16px 20px;min-height:112px;
-  box-shadow:0 18px 40px rgba(0,0,0,.42), inset 0 0 0 1px rgba(185,156,0,.32)}
-.says .qn{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+  box-shadow:0 18px 44px rgba(0,0,0,.5), inset 0 0 0 1px rgba(201,164,75,.42)}
+.says .qn{font-size:11.5px;letter-spacing:.2em;font-family:"Segoe UI",system-ui,sans-serif;text-transform:uppercase;
   color:var(--mut);font-weight:700;margin-bottom:6px}
 .says .qt{font-size:18px;line-height:1.5;font-weight:600}
 .says .verdict{font-weight:700;margin-bottom:5px;font-size:17px}
 .says.good .verdict{color:var(--ok)}
 .says.bad  .verdict{color:var(--bad)}
-.says .fb{color:#dfe9ee}
+.says .fb{color:#ece0d2}
 .says .cue{margin-top:9px;font-size:14px;color:var(--mut);font-style:italic}
 .says .foot{display:flex;justify-content:flex-end;margin-top:14px;padding-top:12px;
-  border-top:1px solid rgba(185,156,0,.28)}
-.go{background:var(--gold);color:#22252a;border-radius:10px;padding:9px 20px;
+  border-top:1px solid rgba(201,164,75,.34)}
+.go{font-family:"Segoe UI",system-ui,sans-serif;background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:#2b2010;border-radius:10px;padding:9px 20px;
   font-size:14.5px;font-weight:700;transition:background .15s}
-.go:hover{background:var(--gold-lt)}
-.go.quiet{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(185,156,0,.5);
+.go:hover{background:linear-gradient(180deg,#f6e3a6,var(--gold-lt))}
+.go.quiet{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(201,164,75,.55);
   margin-right:9px}
-.go.quiet:hover{background:rgba(185,156,0,.16)}
+.go.quiet:hover{background:rgba(201,164,75,.18)}
 
 /* ============================================================
    The spread
@@ -125,9 +139,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   -webkit-backface-visibility:hidden;overflow:hidden;
   box-shadow:0 16px 34px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.3)}
 .tback{background:
-  repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 10px,transparent 10px 20px),
-  linear-gradient(155deg,#33849f,var(--teal) 58%,#00506b);
-  display:flex;align-items:center;justify-content:center}
+  repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 9px,transparent 9px 18px),
+  radial-gradient(120% 90% at 30% 8%, #6a2050, #3d1030 58%, #23091c 100%);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 16px 34px rgba(0,0,0,.55), inset 0 0 0 2px var(--gold-dk),
+    inset 0 0 0 3.5px rgba(236,212,137,.32)}
 /* the logo, whole, with the clear space the style guide requires: the gold bar is
    33.4% of the lockup, and at 52% of a 222px card that is 39px against 53px of
    actual margin */
@@ -136,13 +152,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   display:flex;align-items:center;justify-content:center}
 .tback .crest::after{content:"";display:block;width:18px;height:18px;border-radius:3px;
   background:var(--gold);transform:rotate(45deg)}
-.tfront{background:var(--card);color:var(--card-ink);transform:rotateY(180deg);
+.tfront{background:linear-gradient(180deg,#fbf6ea,var(--card));color:var(--card-ink);transform:rotateY(180deg);
   display:flex;flex-direction:column;padding:15px 14px 13px;
-  box-shadow:0 16px 34px rgba(0,0,0,.5), inset 0 0 0 1px rgba(185,156,0,.5)}
-.tfront .idx{font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9a8a3f}
+  box-shadow:0 16px 34px rgba(0,0,0,.5), inset 0 0 0 1.5px rgba(201,164,75,.6)}
+.tfront .idx{font-family:"Segoe UI",system-ui,sans-serif;font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9b7d33}
 .tfront .txt{flex:1;display:flex;align-items:center;font-size:14.5px;line-height:1.45;
   padding:8px 0 6px}
-.tfront .mark{height:18px;font-size:11.5px;font-weight:800;letter-spacing:.06em;
+.tfront .mark{font-family:"Segoe UI",system-ui,sans-serif;height:18px;font-size:11.5px;font-weight:800;letter-spacing:.06em;
   text-transform:uppercase;color:transparent}
 
 .tcard.up{transform:rotate(var(--tilt)) translateY(var(--lift,0)) rotateY(180deg)}
@@ -165,6 +181,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tcard.wrong .tfront{color:#a5352c;background:#faece9}
 .tcard.wrong .mark{color:#a5352c}
 .tcard.answer .tfront{box-shadow:0 16px 34px rgba(0,0,0,.5), inset 0 0 0 2px #1c7a55}
+/* the taken card catches the candle */
+.tcard.taken .tfront{filter:drop-shadow(0 0 22px rgba(255,196,110,.34))}
 .tcard.answer .mark{color:#1c7a55}
 /* Dim the faces, never the card: opacity below 1 flattens a preserve-3d element,
    backface culling stops, and the back renders through — mirrored. Caught this
@@ -189,7 +207,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .cdl.out .flame{background:#5c3a3a;box-shadow:0 0 8px rgba(160,60,50,.35)}
 @keyframes flicker{0%,100%{transform:scaleY(1) translateY(0)}
   40%{transform:scaleY(1.14) translateY(-1px)}70%{transform:scaleY(.92)}}
-.count{text-align:center;color:var(--mut);font-size:13.5px;padding-bottom:26px;
+.count{font-family:"Segoe UI",system-ui,sans-serif;text-align:center;color:var(--mut);font-size:13.5px;padding-bottom:26px;
   position:relative;z-index:3}
 .count b{color:var(--ink)}
 
@@ -197,7 +215,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    The character — the same drawing as the lesson
    ============================================================ */
 .m-rim{fill:none;stroke:#066888;stroke-width:6}
-.m-glass{fill:#dff0f6}
+.m-glass{fill:#efe6d8}
 .m-eye{fill:#14222b}
 .m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
 .m-lidfill{fill:#dff0f6}
@@ -224,6 +242,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 </head>
 <body>
 
+<div class="frame">
 <div class="room">
   <div class="table" aria-hidden="true"></div>
 
@@ -243,6 +262,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
   <div class="candles" id="candles" aria-hidden="true"></div>
   <p class="count" id="count"></p>
+</div>
 </div>
 
 <p class="sr-only" role="status" aria-live="polite" id="live"></p>

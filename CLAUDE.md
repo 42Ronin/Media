@@ -584,7 +584,19 @@ together, the learner picks one, and the feedback is the sentence the script alr
   read as twice as long as it should. The marked cards stay fully visible through the
   panel's own fade, so the pause only has to be long enough to register the card, not to
   read it.
-- **The setting is still a plain layout.** A dealer's-table scene was discussed and parked;
+- **`dist/kc-teller-prototype.html` is a different staging, not a theme.** Cards as objects on
+  a table, laid in a fanned spread; the question is something she says; the taken card rises
+  and the others fall back; progress is six candles. Built from `src/kc-teller.template.html`
+  and the same `src/kc.json`, so its copy cannot drift from the docx either.
+  **The style guide does not govern it** — the owner said so explicitly, so it has its own
+  palette (aubergine night, wine velvet, gold, parchment) and a serif. **The logo rule is
+  separate and still absolute**: real artwork, whole, never redrawn.
+  **The page background is transparent** and the scene is a bounded stage inside it, because
+  this sits in a Rise course and the page around it belongs to Rise. `--stage-bg` is there if
+  a block ever wants a ground colour; do not paint `body` directly.
+  It keeps the three non-negotiables: no picking a face-down card, no score ever leaves the
+  page, completion withheld until the pass mark.
+- **The shipped check's layout is still plain.** A dealer's-table scene was discussed and parked;
   hands or props on her would live in the character SVG, which is copied in three places
   now (lesson, page, maker) and should be extracted before anyone draws on it.
 
