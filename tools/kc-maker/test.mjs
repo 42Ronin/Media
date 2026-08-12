@@ -175,8 +175,10 @@ console.log('\n— the exported page —');
    a staging if the authored questions, the feedback and the gate all come out the
    same; the selectors differ because the page is genuinely a different one. */
 const STAGINGS = {
-  standard: { card:'.card', hand:'#hand', tally:'#score', titled:true },
-  teller:   { card:'.tcard', hand:'#spread', tally:'#count', titled:false },
+  standard: { card:'.card', hand:'#hand', tally:'#score', titled:true, verdict:true },
+  /* No verdict line on a teller reading, by decision — the marked cards behind the
+     ball already say which way it went. */
+  teller:   { card:'.tcard', hand:'#spread', tally:'#count', titled:false, verdict:false },
 };
 
 /* In a FRAME, not as a top-level page. These pages only speak when they are
@@ -220,7 +222,8 @@ async function playExport(theme, file) {
   await frame.evaluate(s => [...document.querySelectorAll(s.card)].find(c => c.dataset.ok === '1').click(), S);
   await out.waitForTimeout(1200);
   ok('a correct pick is marked and the authored feedback is what comes back',
-     (await frame.textContent('#verdict')).includes('That is the one') &&
+     (S.verdict ? (await frame.textContent('#verdict')).includes('That is the one')
+                : await frame.$eval('#verdict', e => e.hidden)) &&
      (await frame.textContent('#fb')).trim() === QS[0].fb);
   await frame.click('#next'); await out.waitForTimeout(2000);
   await frame.evaluate(s => [...document.querySelectorAll(s.card)].find(c => c.dataset.ok === '1').click(), S);

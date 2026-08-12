@@ -554,7 +554,11 @@ function take(card,cards,q){
   $("#live").textContent=(right?"Correct. ":"Not correct. ")+q.fb;
 
   later(function(){
-    $("#verdict").textContent=right?"That is the one.":"Not that one.";
+    /* No verdict line on a reading. The cards behind the ball are already marked
+       right and wrong, in colour, on the card the learner actually picked — saying
+       it again in red or green over the top is the same news twice. The table
+       screen keeps its line, because the gate has to state itself. */
+    $("#verdict").hidden=true; $("#verdict").textContent="";
     $("#fb").textContent=q.fb;
     $("#tablebtns").innerHTML=""; $("#next").hidden=false;
     $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
@@ -577,6 +581,7 @@ function finish(){
   $("#spread").innerHTML=""; $("#spread").className="spread";
   paintStones();
   $("#qn").textContent=""; $("#qt").textContent="";
+  $("#verdict").hidden=false;
   $("#verdict").textContent=passed?"You are through."
     :"Not quite — "+NEED+" of "+QS.length+" needed.";
   $("#fb").textContent=passed
