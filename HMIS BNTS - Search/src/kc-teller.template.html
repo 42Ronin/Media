@@ -609,6 +609,10 @@ function replay(which){
 }
 
 (function(){
+  /* The name the maker was given titles the page. There is no heading to put it in
+     — this staging has no chrome of its own on purpose — but a tab called
+     "Knowledge Check" whatever it holds is a page that lost its name. */
+  if(KC.title) document.title=KC.title;
   if(!QS.length){ $("#qt").textContent="No questions were built into this page."; return; }
   got=QS.map(function(){return null});
   order=QS.map(function(_,i){return i});

@@ -9,7 +9,7 @@
  * than a claim, and it is the same discipline as tools/scene-editor.
  */
 import { chromium } from 'playwright';
-import { readFileSync, writeFileSync, mkdtempSync } from 'fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -98,17 +98,54 @@ ok('...recomputed when the pass mark changes',
    await p.textContent('#okline'));
 await p.fill('#pass', '80');
 
+console.log('\n— themes —');
+
+const THEMES = await p.$$eval('#theme option', o => o.map(x => x.value));
+ok('the themes on offer are the ones the build embedded',
+   THEMES.join(',') === 'standard,teller', THEMES.join(','));
+ok('...one page carried per theme, each with its own KC token to fill',
+   await p.$$eval('script.page', e => e.length) === THEMES.length &&
+   await p.$$eval('script.page', e => e.every(x => x.textContent.trim().length > 1000)));
+ok('it opens on the standard one', await p.inputValue('#theme') === 'standard');
+
+/* The preview is the only place the selector shows its work. */
+await p.click('#preview');
+ok('preview opens the page it would export', await p.$eval('#prevwrap', e => !e.hidden));
+const inFrame = async (sel) => {
+  const f = await (await p.$('#prevframe')).contentFrame();
+  return await f.$$eval(sel, e => e.length);
+};
+await p.waitForTimeout(1500);
+ok('...and it is the standard staging', await inFrame('.head h1') === 1 && await inFrame('#hand') === 1);
+await p.selectOption('#theme', 'teller');
+await p.waitForTimeout(1800);
+ok('changing the theme re-renders an open preview rather than leaving it stale',
+   await inFrame('#orb') === 1 && await inFrame('.head h1') === 0);
+await p.keyboard.press('Escape');
+ok('...and Escape closes it', await p.$eval('#prevwrap', e => e.hidden));
+ok('...and stops the page running behind the editor',
+   await p.$eval('#prevframe', e => e.getAttribute('srcdoc') === ''));
+
 /* The work must survive a refresh — an authoring tool that loses a morning's
    writing to a stray reload is not a tool. */
 await p.reload();
 ok('the work survives a reload', await p.$$eval('.qitem', e => e.length) === 2 &&
    await p.inputValue('#name') === 'Lesson 4 Knowledge Check');
+ok('...and so does the theme', await p.inputValue('#theme') === 'teller');
+await p.selectOption('#theme', 'standard');
 
 console.log('\n— export —');
 
+/* Saved under a per-grab folder: every export is called the same thing — that is
+   the point of the Name field — so a shared directory means the second silently
+   overwrites the first, and a comparison between them then compares a file with
+   itself. That is exactly how a broken theme selector would have passed. */
+let grabs = 0;
 const grab = async (selector) => {
+  const dir = join(work, 'g' + (++grabs));
+  mkdirSync(dir);
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click(selector)]);
-  const path = join(work, dl.suggestedFilename());
+  const path = join(dir, dl.suggestedFilename());
   await dl.saveAs(path);
   return { name: dl.suggestedFilename(), path };
 };
@@ -134,40 +171,86 @@ ok('...and the archive has a central directory and an end record',
 
 console.log('\n— the exported page —');
 
-const out = await b.newPage({ viewport: { width: 1000, height: 900 } });
-const net = [];
-out.on('request', r => { if (!r.url().startsWith('file://')) net.push(r.url()); });
-const outErrs = [];
-out.on('pageerror', e => outErrs.push(String(e)));
-out.on('console', m => { if (m.type() === 'error') outErrs.push('console: ' + m.text()); });
-await out.goto('file://' + html.path);
-await out.waitForTimeout(1800);
+/* Played for EVERY theme, not just the one that shipped first. A staging is only
+   a staging if the authored questions, the feedback and the gate all come out the
+   same; the selectors differ because the page is genuinely a different one. */
+const STAGINGS = {
+  standard: { card:'.card', hand:'#hand', tally:'#score', titled:true },
+  teller:   { card:'.tcard', hand:'#spread', tally:'#count', titled:false },
+};
 
-ok('it carries the questions that were written', await out.evaluate(() =>
-  KC.questions.map(q => q.q).join('|')) === QS.map(q => q.q).join('|'));
-ok('...and the name became the page title and its heading',
-   (await out.title()) === 'Lesson 4 Knowledge Check' &&
-   (await out.textContent('.head h1')) === 'Lesson 4 Knowledge Check');
-ok('...and the pass mark, as whole questions', await out.evaluate(() => NEED) === 2);
-ok('the cards are dealt and go live', await out.evaluate(() =>
-  document.querySelector('#hand').classList.contains('live') &&
-  document.querySelectorAll('.card').length === 3));
+/* In a FRAME, not as a top-level page. These pages only speak when they are
+   embedded — `window.parent === window` means nothing is ever posted — so playing
+   the export directly would assert the gate and quietly skip the contract that
+   makes Rise mark the block done. */
+async function playExport(theme, file) {
+  const S = STAGINGS[theme];
+  const host = join(file.replace(/[^/]+$/, ''), 'host.html');
+  writeFileSync(host,
+    '<!doctype html><meta charset="utf-8"><title>host</title>' +
+    '<script>window.SEEN=[];addEventListener("message",function(e){' +
+    'try{SEEN.push(JSON.stringify(e.data))}catch(x){}});<\/script>' +
+    '<iframe id="f" src="./' + file.replace(/^.*\//, '') + '" ' +
+    'style="width:1000px;height:880px;border:0"></iframe>');
 
-await out.evaluate(() => [...document.querySelectorAll('.card')].find(c => c.dataset.ok === '1').click());
-await out.waitForTimeout(1000);
-ok('a correct pick is marked and the authored feedback is what comes back',
-   (await out.textContent('#verdict')).includes('That is the one') &&
-   (await out.textContent('#fb')).trim() === QS[0].fb);
-await out.click('#next'); await out.waitForTimeout(1800);
-await out.evaluate(() => [...document.querySelectorAll('.card')].find(c => c.dataset.ok === '1').click());
-await out.waitForTimeout(1000);
-await out.click('#next'); await out.waitForTimeout(900);
-ok('clearing the mark finishes it', (await out.textContent('#score')).includes('2 of 2'),
-   await out.textContent('#score'));
+  const out = await b.newPage({ viewport: { width: 1040, height: 900 } });
+  const net = [];
+  out.on('request', r => { if (!r.url().startsWith('file://')) net.push(r.url()); });
+  const outErrs = [];
+  out.on('pageerror', e => outErrs.push(String(e)));
+  out.on('console', m => { if (m.type() === 'error') outErrs.push('console: ' + m.text()); });
+  await out.goto('file://' + host);
+  const frame = out.frames().find(f => f !== out.mainFrame()) ||
+                await (await out.$('#f')).contentFrame();
+  await out.waitForTimeout(1900);
+  const msgs = () => out.evaluate(() => window.SEEN);
 
-/* The claim the whole tool rests on. */
-ok('the exported page fetches nothing at all', net.length === 0, net.join(', '));
-ok('...and runs without throwing', outErrs.length === 0, outErrs.join(' | '));
+  console.log(`  [${theme}]`);
+  ok('it carries the questions that were written', await frame.evaluate(() =>
+    KC.questions.map(q => q.q).join('|')) === QS.map(q => q.q).join('|'));
+  ok('...and the name became the page title',
+     (await frame.title()) === 'Lesson 4 Knowledge Check', await frame.title());
+  if (S.titled) ok('...and its heading',
+     (await frame.textContent('.head h1')) === 'Lesson 4 Knowledge Check');
+  ok('...and the pass mark, as whole questions', await frame.evaluate(() => NEED) === 2);
+  ok('the cards are dealt and go live', await frame.evaluate(s =>
+    document.querySelector(s.hand).classList.contains('live') &&
+    document.querySelectorAll(s.card).length === 3, S));
+
+  await frame.evaluate(s => [...document.querySelectorAll(s.card)].find(c => c.dataset.ok === '1').click(), S);
+  await out.waitForTimeout(1200);
+  ok('a correct pick is marked and the authored feedback is what comes back',
+     (await frame.textContent('#verdict')).includes('That is the one') &&
+     (await frame.textContent('#fb')).trim() === QS[0].fb);
+  await frame.click('#next'); await out.waitForTimeout(2000);
+  await frame.evaluate(s => [...document.querySelectorAll(s.card)].find(c => c.dataset.ok === '1').click(), S);
+  await out.waitForTimeout(1200);
+  await frame.click('#next'); await out.waitForTimeout(1200);
+  ok('clearing the mark finishes it', (await frame.textContent(S.tally)).includes('2 of 2'),
+     await frame.textContent(S.tally));
+  const sent = await msgs();
+  ok('...and that is when completion is reported',
+     sent.some(m => m.includes('"complete"')), sent.join(' ; '));
+  ok('...carrying no score, in any staging',
+     !sent.some(m => /score|percent|correct|points/i.test(m)), sent.join(' ; '));
+
+  /* The claim the whole tool rests on. */
+  ok('the exported page fetches nothing at all', net.length === 0, net.join(', '));
+  ok('...and runs without throwing', outErrs.length === 0, outErrs.join(' | '));
+  await out.close();
+}
+
+await playExport('standard', html.path);
+
+/* Export the same authored check again under the other theme. */
+await p.selectOption('#theme', 'teller');
+const tellerHTML = await grab('#expHTML');
+ok('the filename does not change with the theme — the name does that',
+   tellerHTML.name === 'lesson-4-knowledge-check.html', tellerHTML.name);
+ok('...but the page does',
+   readFileSync(tellerHTML.path, 'utf8') !== readFileSync(html.path, 'utf8'));
+await playExport('teller', tellerHTML.path);
+
 ok('the maker itself ran clean too', errs.length === 0, errs.join(' | '));
 
 await b.close();

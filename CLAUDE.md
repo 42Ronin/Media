@@ -677,6 +677,25 @@ correct, write the feedback, set the pass mark, press Export.
 
 - **The Name field names all three outputs**, and the file *inside* the zip is always
   `index.html` whatever the zip is called, because that is what Rise looks for.
+- **Themes are a selector, not a mode.** The maker carries one page per theme — Standard and
+  Fortune Teller, with Card Dealer to come — and the selector changes **only what is
+  previewed and what is exported**. The questions, answers, feedback and pass mark are the
+  same work whichever staging ships them, so nothing else in the editor knows a theme exists.
+  Adding one is a row in `THEMES` in `make_maker.py`: a key, a label, a template. The editor
+  reads the list off the pages the build embedded rather than naming any of them, and a page
+  qualifies only if it carries exactly one KC token and one LOGO token.
+- **The preview is a `srcdoc` frame over the editor**, not a new tab: it gives the page an
+  opaque origin, which is what the launcher gives it in Rise, so the preview meets the same
+  storage limits the real thing does. Closing it clears `srcdoc` so the page is not still
+  running behind the editor. The frame paints its own white — these pages are transparent
+  on purpose, and previewing one over the editor's grey shows it on a ground it will never
+  have.
+- **`test.mjs` plays every theme's export, in a frame.** Two traps it now guards, both of
+  which produced a green run while broken: every export is called the same thing, so saving
+  two into one directory means the second overwrites the first and a comparison between them
+  compares a file with itself — exactly how a dead theme selector would pass. And these pages
+  only speak when embedded (`window.parent === window` sends nothing), so a top-level play
+  asserts the gate and silently skips the `complete` contract that marks the Rise block done.
 - **`make_maker.py` base64s the page into the editor**, exactly as `make_launcher.py` does
   for the lesson, so the maker cannot ship a stale copy of the page it exports.
 - **The KC token appears exactly once in the page, beside `var KC`** — and both build paths

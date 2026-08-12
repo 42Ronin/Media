@@ -15,6 +15,7 @@ npm i && npm test                       # playwright, then the suite
 
 | Button | Produces | Use it for |
 |---|---|---|
+| **Preview** | The exported page, in a frame, over the editor | Seeing the theme before you ship it. Esc closes it |
 | **Export HTML** | `<name>.html` — one self-contained page | Opening it yourself, or hosting it anywhere |
 | **Export ZIP** | `<name>.zip`, holding `index.html` | Rise: **Code block → Upload project** |
 | **Save project** | `<name>-project.json` | Your working file. **The only thing the maker can reopen.** |
@@ -33,6 +34,28 @@ to survive a cleared browser or move to another machine.
 - **Feedback**, written for the question as a whole — it is what the learner reads once
   they have answered, whichever way they answered
 - **The pass mark**, as a percentage
+- **The theme** — which staging the exported page uses
+
+## Themes
+
+The same authored check ships in more than one staging. **Standard** is the plain card
+table the lesson ships. **Fortune Teller** deals the same hand on a transparent ground and
+Lashes appears in a crystal ball with the reading.
+
+The theme changes the exported page and nothing else. The questions, the answers, the
+feedback and the pass mark are the same work whichever staging carries them — which is
+why it is a selector in the bar and not a mode the editor runs in. Switching it and
+exporting again gives you the same check in the other staging, under the same name.
+
+Every theme keeps the three rules below without exception: no picking a face-down card,
+no score ever leaving the page, completion withheld until the pass mark. `test.mjs` plays
+*every* theme's export through to completion rather than only the first one.
+
+Adding one is a row in `THEMES` in `make_maker.py` — a key, a label, and the page template
+it ships. The editor does not know their names: it reads them off the pages the build put
+in it. A page qualifies if it carries exactly one `/*__KC__*/` token and one
+`/*__LOGO__*/` token; the build refuses it otherwise rather than shipping a page with the
+questions missing.
 
 Answer order is shuffled on every deal, so it does not matter which one you write first.
 

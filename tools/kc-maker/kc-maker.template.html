@@ -47,6 +47,8 @@ input,textarea,select{font:inherit;color:inherit}
   border-radius:8px;background:#fff}
 .field input[type=number]{width:64px;padding:7px 8px;border:1px solid var(--line);
   border-radius:8px;background:#fff}
+.field label{white-space:nowrap}
+.field select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff}
 .btn{background:var(--teal);color:#fff;border-radius:9px;padding:9px 16px;font-weight:600;
   font-size:14px;white-space:nowrap;transition:background .15s}
 .btn:hover{background:var(--teal-dk)}
@@ -112,6 +114,21 @@ textarea.fb{min-height:96px}
 .okline{flex:none;background:var(--ok-soft);border-top:1px solid #cbe6d8;color:var(--ok);
   padding:10px 18px;font-size:13.5px;font-weight:600}
 
+/* ---------- preview ----------
+   The frame gets a WHITE ground of its own. Every one of these pages is
+   transparent on purpose, because in Rise the page behind it belongs to Rise —
+   previewing one over the editor's own grey would be showing it on a background
+   it will never have. */
+.prevwrap{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
+  background:rgba(20,34,43,.55)}
+.prevbar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--teal-dk);color:#fff;font-size:13.5px}
+.prevframe{flex:1;width:100%;border:0;background:#fff}
+/* The quiet button is teal on white everywhere else in the tool; on this bar that
+   is teal on dark teal. */
+.prevbar .btn.quiet{color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}
+.prevbar .btn.quiet:hover{background:rgba(255,255,255,.14);color:#fff}
+
 /* the character, drawn as the lesson draws her */
 .m-rim{fill:none;stroke:#066888;stroke-width:6}
 .m-glass{fill:#e0eff5}
@@ -147,9 +164,14 @@ textarea.fb{min-height:96px}
     <label for="pass">Pass mark</label>
     <input type="number" id="pass" min="0" max="100" step="5" value="80">%
   </span>
+  <span class="field">
+    <label for="theme">Theme</label>
+    <select id="theme"><!--THEMES--></select>
+  </span>
 
   <span class="grow"></span>
 
+  <button class="btn quiet small" id="preview">Preview</button>
   <button class="btn quiet small" id="saveProj">Save project</button>
   <button class="btn quiet small" id="openProj">Open project</button>
   <button class="btn" id="expHTML">Export HTML</button>
@@ -176,8 +198,20 @@ textarea.fb{min-height:96px}
 <div class="probs" id="probs" hidden></div>
 <div class="okline" id="okline" hidden></div>
 
-<!-- The knowledge-check page itself, base64'd in at build time. -->
-<script id="page" type="text/plain"></script>
+<!-- The preview: the real exported page, in a frame, over the editor. It is the
+     only way the theme selector shows its work — everything else about a theme
+     lives in the page, not in here. -->
+<div class="prevwrap" id="prevwrap" hidden>
+  <div class="prevbar">
+    <b id="prevname">Preview</b>
+    <span class="grow"></span>
+    <button class="btn quiet small" id="prevClose">Close</button>
+  </div>
+  <iframe class="prevframe" id="prevframe" title="Preview"></iframe>
+</div>
+
+<!-- One knowledge-check page per theme, base64'd in at build time. -->
+<!--PAGES-->
 <script>
 var $=function(s){return document.querySelector(s)};
 var LETTER=["A","B","C","D","E"];
@@ -191,7 +225,11 @@ var STORE="kc-maker/v1";
    The project
    ============================================================ */
 function blankQ(){ return {q:"", a:[{t:"",ok:true},{t:"",ok:false},{t:"",ok:false}], fb:""}; }
-var proj={ name:"", pass:80, questions:[blankQ()] };
+/* The themes are whatever the build put in the page, in the order it put them.
+   Nothing in the editor names one — a new staging is a row in make_maker.py. */
+var THEMES=[].slice.call(document.querySelectorAll("script.page"))
+  .map(function(el){ return el.dataset.theme; });
+var proj={ name:"", pass:80, theme:THEMES[0], questions:[blankQ()] };
 var at=0;
 
 function load(){
@@ -211,6 +249,9 @@ function adopt(o){
   var qs=Array.isArray(o.questions)?o.questions:[];
   proj.name = typeof o.name==="string" ? o.name : "";
   proj.pass = Math.max(0,Math.min(100, Number(o.pass)||80));
+  /* An unknown theme — an older project, or one written by hand — falls back to
+     the first rather than exporting nothing. */
+  proj.theme = THEMES.indexOf(o.theme)>=0 ? o.theme : THEMES[0];
   proj.questions = qs.length ? qs.map(function(q){
     var a=(Array.isArray(q.a)?q.a:[]).slice(0,MAX_ANS).map(function(x){
       return {t:String(x&&x.t||""), ok:!!(x&&x.ok)};
@@ -360,8 +401,13 @@ function slug(){
   var s=name().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
   return s || "knowledge-check";
 }
+function theme(){
+  return THEMES.indexOf(proj.theme)>=0 ? proj.theme : THEMES[0];
+}
 function pageHTML(){
-  var b=document.getElementById("page").textContent.trim();
+  var el=document.querySelector('script.page[data-theme="'+theme()+'"]');
+  if(!el) throw new Error("no page for the "+theme()+" theme");
+  var b=el.textContent.trim();
   var bin=atob(b), bytes=new Uint8Array(bin.length);
   for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
   var tpl=new TextDecoder("utf-8").decode(bytes);
@@ -462,7 +508,7 @@ $("#fileIn").addEventListener("change",function(){
   var r=new FileReader();
   r.onload=function(){
     try{ adopt(JSON.parse(r.result)); }catch(e){ alert("That file is not a project this tool wrote."); return; }
-    $("#name").value=proj.name; $("#pass").value=proj.pass;
+    $("#name").value=proj.name; $("#pass").value=proj.pass; $("#theme").value=proj.theme;
     at=0; save(); renderList(); renderPane(); validate();
   };
   r.readAsText(f);
@@ -503,10 +549,40 @@ $("#name").addEventListener("input",function(){ proj.name=this.value; touch(fals
 $("#pass").addEventListener("input",function(){
   proj.pass=Math.max(0,Math.min(100,Number(this.value)||0)); touch(false);
 });
+/* The theme changes what is exported and nothing else. The questions, the answers,
+   the feedback and the pass mark are the same work whichever staging ships them —
+   which is why it is a selector up here and not a mode the editor runs in. */
+$("#theme").addEventListener("change",function(){
+  proj.theme=this.value; touch(false);
+  if(!$("#prevwrap").hidden) openPreview();     // keep an open preview honest
+});
+
+/* ============================================================
+   Preview — the exported page, in a frame, over the editor
+   ============================================================ */
+function openPreview(){
+  /* srcdoc rather than a blob URL: the frame gets an opaque origin, which is what
+     the lesson launcher gives these pages in Rise too, so the preview meets the
+     same storage and messaging limits the real thing does. */
+  $("#prevframe").srcdoc=pageHTML();
+  $("#prevname").textContent=($("#theme").selectedOptions[0]||{}).textContent||"Preview";
+  $("#prevwrap").hidden=false;
+}
+function closePreview(){
+  $("#prevwrap").hidden=true;
+  $("#prevframe").srcdoc="";     // stop it running behind the editor
+  $("#preview").focus();
+}
+$("#preview").addEventListener("click",function(){ if(validate()) openPreview(); });
+$("#prevClose").addEventListener("click",closePreview);
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape" && !$("#prevwrap").hidden) closePreview();
+});
 
 load();
 $("#name").value=proj.name;
 $("#pass").value=proj.pass;
+$("#theme").value=proj.theme;
 renderList(); renderPane(); validate();
 </script>
 </body>
