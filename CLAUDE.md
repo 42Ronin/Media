@@ -596,12 +596,18 @@ together, the learner picks one, and the feedback is the sentence the script alr
   a block ever wants a ground colour; do not paint `body` directly.
   It keeps the three non-negotiables: no picking a face-down card, no score ever leaves the
   page, completion withheld until the pass mark.
-  **The ball is the stage** — she is in the glass, and the question, the verdict, the reading
-  and the button all happen inside it. **She shrinks while she is reading** (96px → 76px):
-  that is staging, and it is also what keeps a long reading off the glass. The fit is
-  arithmetic, not trial: a 460px ball holds a 294px-wide box, and `fit.mjs` measures the
-  furthest corner of the content from the ball's centre against its radius. 22px clear on the
-  longest reading.
+  **It is split in two: a themed panel, and cards on nothing.** The scrying panel carries
+  the whole theme — her, the question, the reading, the tally — with the crystal ball's
+  material (deep glass, turning smoke, gold rim, a sheen) in a shape that holds words. It
+  was a literal ball for a while, and a circle spends most of its own area on nothing; the
+  reading kept crowding the glass. **The cards sit on whatever Rise puts behind them** —
+  nothing outside the panel paints a ground.
+  **The panel has a min-height** so the cards never move when she starts reading.
+  **She shrinks while she is reading** (104px → 82px), which is staging and also room.
+  Two traps worth remembering: a `conic-gradient` converges to a hard star at its own
+  centre — it showed as a crease across the panel until it was blurred, oversized and its
+  centre pushed off — and the card the learner *should* have taken must not be dimmed with
+  the rest, or the answer becomes the least legible thing on screen.
   **Her costume sits on the rim, never the glass.** A scarf over the glass covers her lashes,
   and she is called Lashes. The lesson's drawing is untouched.
 - **The shipped check's layout is still plain.** A dealer's-table scene was discussed and parked;
