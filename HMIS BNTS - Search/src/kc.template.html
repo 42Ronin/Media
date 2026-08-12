@@ -30,7 +30,10 @@
 :root{
   --teal:#066888; --teal-dk:#044e66; --teal-lt:#3fa0c0; --lens:#e0eff5;
   --ink:#14222b; --mut:#5f7f8f; --line:#d9e8ef;
-  --felt:#f1f8fb; --card:#ffffff;
+  /* The bluish was the container; now it is what sits ON the page. The
+     container itself is transparent so the check reads as part of the Rise
+     page it is dropped into rather than a panel bolted onto it. */
+  --panel:#e9f3f8; --panel-2:#f2f8fb;
   --ok:#0f6b45; --ok-soft:#e8f5ee; --bad:#a3312a; --bad-soft:#fbeae9;
   --focus:#0b6fd4;
 }
@@ -59,13 +62,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tally{font-size:13px;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* ---------- the table ---------- */
-.felt{background:var(--felt);border:1px solid var(--line);border-radius:20px;
-  padding:20px 22px 24px;position:relative}
+.felt{background:none;border:0;padding:0;position:relative}
 
-.dealer{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px}
-/* There is one of her, and she stands in one of three places: beside the question,
-   beside the feedback, beside the reading. The slots are always laid out — only one
-   is ever occupied — so nothing on the panel moves when she does. */
+/* She is not here any more — she turns up for the feedback and for the reading,
+   and the question pill takes the width she was using. */
+.dealer{margin-bottom:18px}
+/* Two slots hold her — beside the feedback and beside the reading — and only one
+   ever does. She is not present for the question at all: she turns up to react,
+   which is a stronger entrance than standing there waiting, and it gives the
+   question pill the width she was taking. */
 .lashy{flex:none;width:94px;height:94px;margin:-6px 0 0 -6px;position:relative}
 .lashy svg{width:100%;height:100%;display:block;overflow:visible}
 .lashy .mface{display:block;width:100%;height:100%;
@@ -87,8 +92,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    Without it the block still moved between questions — smaller than the feedback
    jump, but the same defect: the page shifting under a learner who has not asked
    it to. Sized to the tallest question at the narrowest column we support. */
-.ask{flex:1;min-width:0;background:#fff;border-radius:17px;border-left:5px solid var(--teal);
-  padding:13px 16px;min-height:156px;
+.ask{background:var(--panel);border-radius:17px;border-left:5px solid var(--teal);
+  padding:14px 18px;min-height:132px;
   box-shadow:0 8px 24px rgba(6,104,136,.13),0 1px 3px rgba(6,104,136,.12)}
 .ask .qn{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);
   font-weight:700;margin-bottom:4px}
@@ -117,7 +122,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   display:flex;align-items:center;justify-content:center}
 .back span::after{content:"";display:block;width:16px;height:16px;
   border-radius:2px;background:rgba(255,255,255,.72);transform:rotate(45deg)}
-.front{background:var(--card);transform:rotateY(180deg);
+.front{background:var(--panel);transform:rotateY(180deg);
   display:flex;flex-direction:column;padding:16px 15px 14px;text-align:left}
 .front .idx{font-size:12px;font-weight:700;color:var(--teal-lt);letter-spacing:.1em}
 .front .txt{flex:1;display:flex;align-items:center;font-size:15px;line-height:1.45;
@@ -146,6 +151,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    which turns backface culling off and shows the back of a card that is face up. */
 .card.rest .front{opacity:.55}
 .hand.done .card,.hand.done .card:hover{cursor:default}
+.hand{transition:opacity .26s}
+.stage.showing .hand{opacity:0;pointer-events:none}
 
 /* ---------- feedback ----------
    It lays over the hand, not under it. Arriving as a new row grew the block by
@@ -160,13 +167,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .stage .said{position:absolute;inset:0;z-index:3;border-radius:16px;
   /* the felt colour, near-opaque — the marked cards ghost through rather than
      vanishing, so what you took is still suggested behind the reason */
-  background:rgba(241,248,251,.94);
-  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  /* No backdrop of its own. The hand fades out underneath instead — masking it
+     left the picked card's lift and its ring poking out past the panel's edge,
+     which read as a rendering fault. */
   opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px);
   transition:opacity .28s,transform .34s cubic-bezier(.2,1.2,.4,1),visibility 0s .3s}
 .stage .said.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;
   transition-delay:0s}
-.said .bub{flex:1;min-width:0;background:#fff;border-radius:17px;padding:13px 16px;
+.said .bub{flex:1;min-width:0;background:var(--panel);border-radius:17px;padding:14px 18px;
   border-left:5px solid var(--ok);
   box-shadow:0 8px 24px rgba(6,104,136,.13),0 1px 3px rgba(6,104,136,.12)}
 .said.no .bub{border-left-color:var(--bad)}
@@ -235,7 +243,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
   <div class="felt">
     <div class="dealer">
-      <div class="lashy" id="lashy" aria-hidden="true"></div>
       <div class="ask">
         <div class="qn" id="qn"></div>
         <div class="qt" id="qt"></div>
@@ -329,13 +336,12 @@ function svg(eyes,mouth){
 /* ============================================================
    Where she is standing
 
-   There is one Lashes. Three slots can hold her — beside the question, beside
-   the feedback, beside the reading — and exactly one ever does. She leaves a
-   slot in a puff and arrives in the next one the same way, which is what makes
-   her a character crossing the panel rather than two drawings of the same face
-   sitting on it at once.
+   There is one Lashes, and she is only here to react. Two slots can hold her —
+   beside the feedback and beside the reading — and at most one ever does. She is
+   absent while the question is on the table, so her arrival is the answer
+   landing rather than a face that was already sitting there.
    ============================================================ */
-var SLOTS=["lashy","lashy2","lashy3"];
+var SLOTS=["lashy2","lashy3"];
 var whereIs=null;            /* the slot she is visibly standing in */
 var moveGen=0;               /* kills a landing that a newer move has overtaken */
 var POOF_OUT=290;
@@ -454,6 +460,7 @@ function deal(){
   var deck=shuffle(q.a);
 
   $("#said").classList.remove("on");
+  $("#stage").classList.remove("showing");
   $("#end").hidden=true;
   $(".dealer").hidden=false;
   $("#stage").hidden=false;
@@ -461,7 +468,7 @@ function deal(){
   $("#qt").textContent=q.q;
   $("#qs").hidden=true;
   paintHead();
-  lashesArrive("lashy","open","tip");
+  /* she is not here for the question — see lashesArrive */
 
   var hand=$("#hand");
   hand.className="hand";
@@ -544,8 +551,9 @@ function pick(card,cards,q){
      crosses while it arrives, so she is never at the question and the feedback
      at the same time. */
   later(function(){
-    lashesLeave(function(){ lashesArrive("lashy2", right?"sparkle":"droll", right?"cheer":"wry"); });
+    $("#stage").classList.add("showing");
     $("#said").classList.add("on");
+    lashesArrive("lashy2", right?"sparkle":"droll", right?"cheer":"wry");
     later(function(){ $("#next").focus(); }, 60);
   }, reduced?0:620);
 }
@@ -567,6 +575,7 @@ function finish(){
   $("#hand").innerHTML="";
   $("#hand").className="hand";
   $("#said").classList.remove("on");
+  $("#stage").classList.remove("showing");
   /* the whole stage goes: no hand to lay anything over */
   $("#stage").hidden=true;
   /* The question row goes entirely: there is no question left to ask, and leaving

@@ -1946,12 +1946,18 @@ ok('...and every answer is on the table, none hidden',
    (await kc.$$eval('.card .txt', e => e.map(x => x.textContent.trim()))).sort().join('|') ===
    KC_DATA.questions[0].a.map(a => a.t).sort().join('|'));
 
-/* There is one Lashes. Three slots can hold her and exactly one ever does — she
-   poofs out of the question and into the feedback rather than being drawn twice.
-   Counting her is the canary: the first build had her beside both at once. */
+/* She is only here to react. Counting her is the canary either way: the first
+   build drew her beside the question AND the feedback at once, and the fix is not
+   "she moves" but "there is at most one of her, and none while they are choosing".
+   The question pill takes the width she was using. */
 const lashCount = () => kc.$$eval('.lashy svg', e => e.length);
-ok('there is exactly one of her while the question is on the table', await lashCount() === 1,
+ok('she is not standing over the learner while they choose', await lashCount() === 0,
    String(await lashCount()));
+ok('...so the question runs the full width', await kc.evaluate(() => {
+  const a = document.querySelector('.ask').getBoundingClientRect();
+  const f = document.querySelector('.felt').getBoundingClientRect();
+  return Math.abs(a.width - f.width) < 2;
+}));
 
 /* Deliberately the wrong card first: a learner has to be able to see what they
    should have taken, not just that they missed. */
@@ -1975,9 +1981,16 @@ ok('...with the script\'s own sentence as the feedback',
 ok('...and the hand closes rather than letting them pick again', await kc.evaluate(() =>
   !document.querySelector('#hand').classList.contains('live') &&
   [...document.querySelectorAll('.card')].every(c => c.getAttribute('aria-disabled') === 'true')));
-ok('she crossed to the feedback rather than being drawn there as well',
+ok('she turns up with the feedback, and only there',
    await lashCount() === 1 && await kc.evaluate(() => whereIs === 'lashy2'),
    (await lashCount()) + ' at ' + await kc.evaluate(() => whereIs));
+
+/* The hand goes to nothing under the panel rather than being masked by it. Masking
+   left the picked card's 10px lift and its coloured ring showing past the panel's
+   edge, which reads as a rendering fault — so the invariant is that there is
+   nothing behind the panel to show through, not that the panel is opaque. */
+ok('the hand fades out under the feedback rather than being masked by it',
+   await kc.evaluate(() => Number(getComputedStyle(document.querySelector('#hand')).opacity) === 0));
 
 /* The reported defect: the feedback arrived as a new row under the cards and grew
    the block by about 150px, which shunts everything below it in Rise. It lays over

@@ -533,10 +533,23 @@ together, the learner picks one, and the feedback is the sentence the script alr
   absolutely positioned inside `#stage`, and the panel names the card taken in words
   (*You took A. The one to take was B.*) because the marks on the cards are behind it.
   `.ask` has a `min-height` for the same reason: a three-line question and a one-line one
-  take the same room, so **the felt is 474px in every state at every width**. `test.mjs`
+  take the same room, so **the block is 402px in every state at every width**. `test.mjs`
   measures it before and after a pick; asserting the feedback is merely visible would pass
   either way.
-- **The setting is still a plain panel.** A dealer's-table scene was discussed and parked;
+- **The hand fades to nothing under the panel; the panel does not mask it.** A near-opaque
+  panel still let the picked card's 10px lift and its coloured ring show past the panel's
+  edge, which reads as a rendering fault. The invariant is that there is nothing behind the
+  panel to show through, not that the panel is opaque enough — asserted on `#hand`'s
+  computed opacity.
+- **She is not present for the question.** Two slots, not three: she turns up for the
+  feedback and for the reading. Her arrival *is* the answer landing, which is a stronger
+  entrance than a face that was already sitting there, and the question pill takes the width
+  she was using. `test.mjs` asserts zero of her while the cards are live.
+- **The container is transparent and the bluish is on the popups.** It was the other way
+  round — a tinted panel with white bubbles in it, which reads as a thing bolted onto the
+  Rise page. Now the question pill, the feedback panel and the card faces carry `--panel`
+  and the container carries nothing, so it sits on whatever Rise puts behind it.
+- **The setting is still a plain layout.** A dealer's-table scene was discussed and parked;
   hands or props on her would live in the character SVG, which is copied in three places
   now (lesson, page, maker) and should be extracted before anyone draws on it.
 
