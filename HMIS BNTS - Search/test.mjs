@@ -1825,10 +1825,19 @@ const HOST_HTML = `<!doctype html><title>host course</title>
 </script>
 <iframe id="f" src="/lesson.html" style="width:1460px;height:880px;border:0"></iframe>`;
 
+/* The knowledge check is a second Rise block with the same message contract, so it
+   is embedded through the same harness — a real same-origin frame, not file://. */
+const KC_HTML = readFileSync(new URL('./dist/knowledge-check.html', import.meta.url), 'utf8');
+const KC_HOST_HTML = HOST_HTML
+  .replace('src="/lesson.html"', 'src="/kc.html"')
+  .replace('width:1460px;height:880px', 'width:1000px;height:860px');
+
 const srv = createServer((req, res) => {
   const url = req.url.split('?')[0];
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-  res.end(url === '/lesson.html' ? LESSON_HTML : HOST_HTML);
+  res.end(url === '/lesson.html' ? LESSON_HTML
+        : url === '/kc.html'     ? KC_HTML
+        : url === '/kchost.html' ? KC_HOST_HTML : HOST_HTML);
 }).listen(0);
 const PORT = srv.address().port;
 
@@ -1886,6 +1895,157 @@ ok('with ?scorm=1 it does report to the LMS, which is how our own package launch
    await host.evaluate(() => window.hostCalls.includes('LMSInitialize')),
    JSON.stringify(await host.evaluate(() => window.hostCalls)));
 await host.close();
+
+console.log('\n— the knowledge check, dealt as cards —');
+/* Six questions, three cards each, and the only thing the page ever reports is
+   that it is finished — withheld until the pass mark is cleared. */
+const KC_DATA = JSON.parse(readFileSync(new URL('./src/kc.json', import.meta.url), 'utf8'));
+const kcHost = await b.newPage({ viewport: { width: 1100, height: 900 } });
+const kcErrs = [];
+kcHost.on('pageerror', e => kcErrs.push(String(e)));
+kcHost.on('console', m => { if (m.type() === 'error') kcErrs.push('console: ' + m.text()); });
+/* Same promise the simulation makes: one file, nothing fetched. The card backs and
+   her face are drawn, so there is nothing to request. */
+const kcNet = [];
+kcHost.on('request', r => {
+  if (!/\/(kc|kchost)\.html$/.test(r.url()) && !/favicon\.ico$/.test(r.url())) kcNet.push(r.url());
+});
+await kcHost.goto(`http://127.0.0.1:${PORT}/kchost.html`);
+await kcHost.waitForTimeout(400);
+const kc = kcHost.frames().find(fr => fr.url().includes('/kc.html'));
+
+/* One list, two renderings: the docx and this page both come from kc_data.py, so a
+   question edited in one place cannot survive in the other. */
+const kcQs = await kc.evaluate(() => KC.questions.map(q => q.q));
+ok('the page is built from the same questions as the script',
+   JSON.stringify(kcQs) === JSON.stringify(KC_DATA.questions.map(q => q.q)));
+ok('every question has exactly one right answer',
+   KC_DATA.questions.every(q => q.a.filter(a => a.ok).length === 1));
+
+/* 80% of six is 4.8, and you cannot get 4.8 questions right. Five. */
+ok('the pass mark is the script\'s, rounded up to a whole question',
+   await kc.evaluate(() => NEED) === 5 && KC_DATA.pass === 0.8,
+   String(await kc.evaluate(() => NEED)));
+
+/* The deal is the point of the mechanic, but a card you can click while it is still
+   blank is an invitation to guess — which is the one habit this lesson exists to
+   break. They turn over first, and only then does the hand go live. */
+ok('the cards are dealt face down', await kc.evaluate(() => {
+  const c = document.querySelector('.card');
+  return c && !c.classList.contains('up');
+}));
+ok('...and cannot be picked until they have turned over', await kc.evaluate(() =>
+  !document.querySelector('#hand').classList.contains('live') &&
+  [...document.querySelectorAll('.card')].every(c => c.getAttribute('aria-disabled') === 'true')));
+await kcHost.waitForTimeout(1400);
+ok('once they are face up the hand goes live', await kc.evaluate(() =>
+  document.querySelector('#hand').classList.contains('live') &&
+  [...document.querySelectorAll('.card')].every(c =>
+    c.classList.contains('up') && c.getAttribute('aria-disabled') === 'false' && c.tabIndex === 0)));
+ok('...and every answer is on the table, none hidden',
+   (await kc.$$eval('.card .txt', e => e.map(x => x.textContent.trim()))).sort().join('|') ===
+   KC_DATA.questions[0].a.map(a => a.t).sort().join('|'));
+
+/* Deliberately the wrong card first: a learner has to be able to see what they
+   should have taken, not just that they missed. */
+const wrongCard = await kc.evaluate(() =>
+  [...document.querySelectorAll('.card')].findIndex(c => c.dataset.ok === '0'));
+await kc.evaluate(i => document.querySelectorAll('.card')[i].click(), wrongCard);
+await kcHost.waitForTimeout(200);
+ok('a wrong pick is marked wrong', await kc.evaluate(i => {
+  const c = document.querySelectorAll('.card')[i];
+  return c.classList.contains('picked') && c.classList.contains('wrong');
+}, wrongCard));
+ok('...and the card they should have taken is turned up beside it', await kc.evaluate(() => {
+  const right = [...document.querySelectorAll('.card')].filter(c => c.dataset.ok === '1');
+  return right.length === 1 && right[0].classList.contains('shown');
+}));
+ok('...with the script\'s own sentence as the feedback',
+   (await kc.textContent('#fb')).trim() === KC_DATA.questions[0].fb);
+ok('...and the hand closes rather than letting them pick again', await kc.evaluate(() =>
+  !document.querySelector('#hand').classList.contains('live') &&
+  [...document.querySelectorAll('.card')].every(c => c.getAttribute('aria-disabled') === 'true')));
+
+/* Miss a second, then take the rest. Four of six is the interesting case: five of
+   six is 83% and clears the mark, which is the point of rounding it up to whole
+   questions rather than comparing percentages. */
+const kcAnswer = async (right) => {
+  await kcHost.waitForTimeout(1400);
+  await kc.evaluate(want => {
+    const cards = [...document.querySelectorAll('.card')];
+    (cards.find(c => (c.dataset.ok === '1') === want) || cards[0]).click();
+  }, right);
+  await kcHost.waitForTimeout(200);
+};
+for (let i = 1; i < KC_DATA.questions.length; i++) {
+  await kc.click('#next');
+  await kcAnswer(i !== 1);
+}
+ok('the last hand offers the reading rather than another question',
+   (await kc.textContent('#next')).includes('how you did'));
+await kc.click('#next');
+await kcHost.waitForTimeout(400);
+
+ok('four of six is short of the mark, and it says so',
+   (await kc.textContent('#score')).includes('4 of 6') &&
+   (await kc.textContent('#endTitle')).includes('Not quite'),
+   await kc.textContent('#score'));
+/* The whole reason the gate exists. Nothing goes to Rise until they clear it. */
+ok('below the mark, nothing is reported to Rise',
+   await kcHost.evaluate(() => !simMsgs.some(m => m.type === 'complete')),
+   JSON.stringify(await kcHost.evaluate(() => simMsgs)));
+ok('...and it offers to deal back only the ones they missed',
+   (await kc.textContent('#againBad')).includes('again') &&
+   (await kc.textContent('#endBody')).includes('Questions 1 and 2'),
+   await kc.textContent('#endBody'));
+
+/* The re-deal is the only way through, so it has to actually work: two questions
+   back, in the order they were missed, and the tally picks up where it was. */
+await kc.click('#againBad');
+await kcAnswer(true);
+await kc.click('#next');
+await kcAnswer(true);
+ok('the re-deal plays back only the missed questions',
+   (await kc.textContent('#next')).includes('how you did'));
+await kc.click('#next');
+await kcHost.waitForTimeout(400);
+ok('clearing the mark on the re-deal counts', (await kc.textContent('#score')).includes('6 of 6'),
+   await kc.textContent('#score'));
+ok('...and that is when the completion Rise marks the block on is sent',
+   await kcHost.evaluate(() => simMsgs.filter(m => m.type === 'complete').length === 1),
+   JSON.stringify(await kcHost.evaluate(() => simMsgs)));
+const kcDone = await kcHost.evaluate(() => simMsgs.find(m => m.type === 'complete'));
+ok('...tagged as ours so a host can tell it apart',
+   !!kcDone && kcDone.source === 'hmis-sim' && kcDone.lesson === 'hmis-bnts-search' &&
+   kcDone.section === 'kc', JSON.stringify(kcDone));
+/* There is no mark in these simulations, and Rise could not receive one anyway.
+   The tally on screen is for the learner; it must not leave the page. */
+ok('...and it carries no score, by decision',
+   await kcHost.evaluate(() => simMsgs.every(m =>
+     !('score' in m) && !('percent' in m) && !('correct' in m) && !('points' in m))),
+   JSON.stringify(await kcHost.evaluate(() => simMsgs)));
+ok('the only things it ever says are ready and complete',
+   await kcHost.evaluate(() => [...new Set(simMsgs.map(m => m.type))].sort().join(',')) === 'complete,ready');
+ok('it never touches the host course\'s SCORM session',
+   await kcHost.evaluate(() => window.hostCalls.length === 0),
+   JSON.stringify(await kcHost.evaluate(() => window.hostCalls)));
+/* Re-dealing a missed question has to reshuffle it, or the second attempt is
+   answered from where the card sat the first time rather than from the reasoning.
+   Last, because it drives the page directly and leaves a hand on the table. */
+const seats = await kc.evaluate(() => {
+  const seen = {};
+  for (let n = 0; n < 30; n++) {
+    order = [0]; at = 0; deal();
+    seen[[...document.querySelectorAll('.card')].findIndex(c => c.dataset.ok === '1')] = 1;
+  }
+  return Object.keys(seen).length;
+});
+ok('a re-dealt question comes back in a different order', seats === 3, String(seats));
+
+ok('it fetches nothing — one file, as promised', kcNet.length === 0, kcNet.join(', '));
+ok('and it does it without throwing', kcErrs.length === 0, kcErrs.join(' | '));
+await kcHost.close();
+
 srv.close();
 
 await b.close();

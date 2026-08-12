@@ -494,6 +494,34 @@ Two conventions to preserve:
 Two steps the simulation cannot cover, written as instruction in the script: the **Outreach
 module** location search, and **first-level verification** (record photo and the Files tab).
 
+## The knowledge check — slide 13.1, dealt as cards
+
+The manager asked whether it was needed at all given the practice, and if it stayed, how it
+could be gamified. It stays, as a card table: **`src/kc.template.html` → `dist/knowledge-check.html`**
+plus a Rise zip, its own Code block. Lashes deals three answers face down, they turn over
+together, the learner picks one, and the feedback is the sentence the script already carries.
+
+- **`script/kc_data.py` is the single list.** `make_script.py` renders it into the docx and
+  `build.sh` writes it to `src/kc.json` and stamps it into the page. Edit the questions
+  there, rebuild both; the test compares the built page against `kc.json`.
+- **A card cannot be clicked while it is face down.** The deal is the theatre, but a blank
+  card you can pick is an invitation to guess, which is the one habit this lesson exists to
+  break. The hand goes live only once every card has turned over.
+- **The pass mark is whole questions, not a percentage.** `NEED = ceil(0.8 × 6) = 5`.
+  Five of six is 83% and *passes* — that is not a bug, and the test fixture answers four to
+  exercise the failing path. Below the mark it deals the missed questions back, reshuffled,
+  and the learner cannot get past it any other way.
+- **`complete` is withheld until they clear it**, and is the only thing the page ever sends
+  besides `ready`. **No score, ever** — there is none in these simulations and Rise could not
+  receive one. The tally on screen is for the learner, so the gate makes sense to the person
+  facing it; `test.mjs` asserts no message carries `score`/`percent`/`correct`/`points`.
+- **It is a card dealer, not a fortune teller.** The mechanic came from the manager's note;
+  the framing did not follow. The lesson's whole argument is that you do not decide on one
+  signal and you do not guess, and a deck that reads the future says the opposite — on
+  records of people in homelessness, that is also a tone risk not worth taking.
+- The character is drawn from the **same SVG and palette as the lesson**, copied rather than
+  imported because the page is standalone. If her face changes, change it in both.
+
 ## Lesson 2 — Create
 
 Scope is adding a client. The Add (⊕) button already exists in Search and defers to

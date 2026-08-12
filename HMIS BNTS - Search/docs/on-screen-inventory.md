@@ -141,6 +141,37 @@ Both are teaching moments attached to live controls, not obstructions.
 
 ---
 
+## 5. The knowledge check — a different screen entirely
+
+Slide 13.1 is its own Rise block (`dist/knowledge-check.html`) and shares nothing with the
+simulation but the character and the palette. **There is no product layer on it at all** —
+no Clarity, no chrome, nothing blurred. It is all training layer, which is why it is safe
+for it to look like a card table.
+
+| Box | What it is |
+|---|---|
+| Header | *Knowledge check*, six progress pips, and the running tally |
+| **Dealer** | Lashes at the left with the question in a teal-bordered bubble — the same bubble as a tour beat, because she is asking rather than reacting |
+| **The hand** | Three cards. Dealt face down, they turn over together, and only then can one be picked. |
+| **Feedback** | A second bubble under the hand — green when the card was right, red when it was not — carrying the script's own sentence, and *Next question* |
+| **The spread** | Six mini cards laid out at the end, green or red, over the tally |
+| **The reading** | Her closing bubble: through, or which questions to deal again |
+
+Three things about it are deliberate and easy to undo by accident:
+
+- **A card cannot be clicked while it is still face down.** A blank card you can pick is an
+  invitation to guess, which is the one habit this lesson exists to break.
+- **The wrong pick shows what you should have taken.** Both cards stay up, marked.
+- **It is a card table, not a fortune teller's.** The mechanic came from the manager's note
+  about gamifying; the framing did not follow, because the lesson's whole argument is that
+  you do not decide on one signal and you do not guess. A deck that reads the future says
+  the opposite, and these are records of people in homelessness.
+
+The tally on screen is **for the learner**, so the pass mark makes sense to the person
+facing it. It is never sent anywhere — see `embedding.md`.
+
+---
+
 ## Quick answer: who said that?
 
 - **White box with a face beside it** → Lashes. Check the border colour for which kind.

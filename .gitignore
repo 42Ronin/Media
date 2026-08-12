@@ -15,3 +15,5 @@ HMIS BNTS - Search/script/section-*.docx
 
 # the launcher's intermediate page — the zip beside it is the deliverable
 HMIS BNTS - Search/launcher/dist/section-*-index.html
+
+__pycache__/

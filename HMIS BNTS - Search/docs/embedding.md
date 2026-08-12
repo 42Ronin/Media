@@ -104,6 +104,29 @@ window.addEventListener("message", function (e) {
 Then a normal Storyline trigger — *when `simDone` changes, jump to the next slide*, or
 *submit results* — and the Next button stays disabled until the simulation says so.
 
+## The knowledge check is a second block, on the same contract
+
+`dist/knowledge-check.zip` is its own Rise **Code block → Upload project** — slide 13.1,
+the six questions dealt as cards. It speaks the same `{source:"hmis-sim", …}` language and
+identifies itself as `section:"kc"`, but it says far less:
+
+| `type` | Fired when | Carries |
+|---|---|---|
+| `ready` | the page has loaded | `questions` — how many there are (6) |
+| `complete` | the learner has cleared the pass mark | nothing else |
+
+**`complete` is withheld until they are through**, which is the whole difference between
+this block and the simulation. The simulation reports completion when the last task is
+done; the knowledge check reports it only once at least 80% of the questions — five of the
+six, rounded up to a whole question — have been answered correctly. Below that it deals the
+missed questions back, reshuffled, and stays silent.
+
+**It never sends a score, and it never will.** There is no mark in these simulations, and
+Rise has no scripting to receive one with. The tally on screen is for the learner, so the
+gate makes sense to the person facing it. `test.mjs` asserts that no message carries
+`score`, `percent`, `correct` or `points`, and that the only two types it ever emits are
+`ready` and `complete`.
+
 ## Hosting: upload it to Rise
 
 Rise takes the HTML file directly and carries it in the course. That is the route to use.

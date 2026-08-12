@@ -1,0 +1,113 @@
+{
+  "pass": 0.8,
+  "questions": [
+    {
+      "q": "You search a participant's name and get no results. What does that tell you?",
+      "a": [
+        {
+          "t": "Very little on its own \u2014 the record may be under a different name or spelling",
+          "ok": true
+        },
+        {
+          "t": "That the participant has never received services before",
+          "ok": false
+        },
+        {
+          "t": "That you should create a new record",
+          "ok": false
+        }
+      ],
+      "fb": "An empty result is the single most misread signal in HMIS. It usually means the record is under a name, a spelling or an identifier you have not tried yet."
+    },
+    {
+      "q": "A participant says she was born in 1985 but cannot remember the exact date. What can you search?",
+      "a": [
+        {
+          "t": "The year on its own",
+          "ok": true
+        },
+        {
+          "t": "Nothing \u2014 a full date of birth is required",
+          "ok": false
+        },
+        {
+          "t": "Only the first three letters of her name",
+          "ok": false
+        }
+      ],
+      "fb": "A year on its own is a valid search. So is a fragment of a date. You do not need the whole thing to start narrowing."
+    },
+    {
+      "q": "Two records share a name, but you have not compared anything else yet. What is your next step?",
+      "a": [
+        {
+          "t": "Compare a second identifier \u2014 date of birth, or the SSN fragment",
+          "ok": true
+        },
+        {
+          "t": "Treat them as the same person, because the name matches",
+          "ok": false
+        },
+        {
+          "t": "Work from whichever record you opened first",
+          "ok": false
+        }
+      ],
+      "fb": "A name on its own is never enough. Two of the three \u2014 name, date of birth, SSN \u2014 have to agree before you treat a record as a match. Deciding on the name alone is how one person ends up with two records, and how two people end up sharing one."
+    },
+    {
+      "q": "A participant will not give you their Social Security Number. What can you still do?",
+      "a": [
+        {
+          "t": "Search on name and date of birth \u2014 the SSN is one route in, not the only one",
+          "ok": true
+        },
+        {
+          "t": "Nothing until they provide it",
+          "ok": false
+        },
+        {
+          "t": "Create a new record, since you cannot confirm the old one",
+          "ok": false
+        }
+      ],
+      "fb": "Refusing is a legitimate answer, and it is recorded as one. Plenty of records hold no SSN at all, or only part of one. Name and date of birth will find most people, and the rest of the record \u2014 household, program history, case notes \u2014 can confirm the match."
+    },
+    {
+      "q": "Two records look like they could be the same person, and you cannot tell them apart on name, date of birth or SSN alone. What do you do?",
+      "a": [
+        {
+          "t": "Keep looking at the rest of each record \u2014 household, program history, location \u2014 until one of them fits the person in front of you",
+          "ok": true
+        },
+        {
+          "t": "Pick whichever record you opened first",
+          "ok": false
+        },
+        {
+          "t": "Assume they are different people, because there are two records",
+          "ok": false
+        }
+      ],
+      "fb": "The identifiers are where you start, not where you stop. When they will not settle it, the rest of the record usually will \u2014 and it is worth the extra minute, because the alternative is working from somebody else's history."
+    },
+    {
+      "q": "When is it correct to create a new record?",
+      "a": [
+        {
+          "t": "Only after you have worked the whole list \u2014 alternate names and spellings, a different identifier, and your data staff if you have them \u2014 and still found nothing",
+          "ok": true
+        },
+        {
+          "t": "After the participant's name returns no results",
+          "ok": false
+        },
+        {
+          "t": "Whenever the participant says they have not received services before",
+          "ok": false
+        }
+      ],
+      "fb": "Creating a record is the last step, not the second one. An empty result means your search has not found them yet \u2014 it is not evidence that they are new. And when you do create one, send the Unique Identifier to HMIS Support and ask them to double-check."
+    }
+  ]
+}

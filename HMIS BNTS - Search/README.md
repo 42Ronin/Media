@@ -27,6 +27,12 @@ standalone, the SCORM layer silently no-ops. There is no separate "LMS build" to
 Reports `cmi.core.lesson_status` and `cmi.core.score.raw` (0–100). Mastery score **80**.
 Each lesson ships as its own package so LMS admins can assign and report on them separately.
 
+`build.sh` also produces **`dist/knowledge-check.html`** and its Rise zip — slide 13.1, the
+six questions dealt as cards. Its questions come from `script/kc_data.py`, which is the same
+list `script/make_script.py` renders into the docx, so the page and the script cannot drift.
+It reports nothing but completion, and withholds even that until the learner has 80% right —
+five of six, rounded up to a whole question. There is no score: see `docs/embedding.md`.
+
 ---
 
 ## Lesson 1 tasks
@@ -171,12 +177,17 @@ never silently break a task.
 npm i playwright && node test.mjs
 ```
 
-160 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
+444 browser tests: search engine, scenario-uniqueness guards, ROI and SSN columns, recents,
 pagination, sorting, filter chips, column selector, row expand, every task path including
 failure branches, and accessibility basics. Partial matching is covered directly: mixed
 name fragments at 1 and 2 characters, 2- and 4-digit years, month/day fragments, all three
 date separators, and SSN fragments at the start, middle and end. The record page is covered too: navigation
 in and back out, all 16 nav sections, the data-quality fields, and the eight rail cards.
+
+The orientation, the training panel and the knowledge check have their own sections. The
+knowledge check is walked end to end through a real same-origin frame: the deal, the gate at
+four of six, the re-deal of the missed questions, and the completion that only fires once the
+mark is cleared — plus assertions that no message it sends ever carries a score.
 
 Accessibility: labelled controls, `aria-live` result count, accessible names on every icon
 button, focus-visible outlines, `role="dialog"` modals, Escape to close. The real product's

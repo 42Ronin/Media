@@ -21,6 +21,7 @@ cd "$(dirname "$0")"
 
 SECTIONS=(7 10 11)
 STEPS=(11.1 11.2 11.3 11.4)
+KC_TEMPLATE="src/kc.template.html"
 # 0 is the combined page the test suite walks. Not a deliverable; prefixed so it
 # never gets mistaken for one.
 TEST_BUILD=0
@@ -30,6 +31,9 @@ WITH_SCORM=0
 [ "${1:-}" = "--scorm" ] && WITH_SCORM=1
 
 python3 tools/gen_roster.py
+# The knowledge check's questions live with the script, so the docx and the card
+# page are rendered from one list. This is the copy the page gets.
+python3 script/kc_data.py > src/kc.json
 
 rm -rf "$OUT"; mkdir -p "$OUT"
 
@@ -71,6 +75,22 @@ for ST in "${STEPS[@]}"; do
   ( cd "$OUT/_pkg" && zip -q -r "../$SLUG.zip" index.html )
   rm -rf "$OUT/_pkg"
 done
+
+# The knowledge check is its own Rise Code block: one page, six questions dealt as
+# cards, and the only thing it ever reports is completion — and only once the
+# learner has cleared the pass mark.
+python3 - "$KC_TEMPLATE" "src/kc.json" "$OUT/knowledge-check.html" <<'PY'
+import sys
+tpl, data, out = sys.argv[1:4]
+html = open(tpl).read()
+if "/*__KC__*/" not in html:
+    raise SystemExit("/*__KC__*/ missing from the knowledge-check template")
+open(out, "w").write(html.replace("/*__KC__*/", open(data).read().strip()))
+PY
+mkdir -p "$OUT/_pkg"
+cp "$OUT/knowledge-check.html" "$OUT/_pkg/index.html"
+( cd "$OUT/_pkg" && zip -q -r "../knowledge-check.zip" index.html )
+rm -rf "$OUT/_pkg"
 
 [ "$WITH_SCORM" = "1" ] || echo "scorm packaging skipped (run with --scorm to produce the zips)"
 

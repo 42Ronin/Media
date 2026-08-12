@@ -74,6 +74,9 @@ def answer(t, correct):
 # learner actually sees cannot drift. Regenerate with extract_tasks.mjs.
 import task_data
 TASKS = task_data.specs()
+# The knowledge check, shared with the card build so the two cannot drift.
+import math as _math
+from kc_data import QUESTIONS as KC_QUESTIONS, PASS_MARK
 
 def plain(html):
     """The lesson marks copy up for the screen; the script wants the words."""
@@ -857,60 +860,27 @@ body("What is not an option is creating a record and saying nothing.")
 # ───────────────────────────────── knowledge check ────────────────────────
 section("Knowledge Check")
 topic("Check What You Took In")
-note("Scored knowledge check. Correct answers in green, incorrect in orange. Randomise answer "
-     "order. Every option needs feedback text, not just a right-or-wrong mark — the feedback for "
-     "each question is given below it, and the wrong answers here are wrong for reasons worth "
-     "saying out loud.")
+note("Delivered as a card interaction rather than a question list, in its own Rise block. "
+     "Lashes deals the three answers face down; they turn over together, and only then can a "
+     "card be picked — a blank card the learner can choose is an invitation to guess, which is "
+     "the habit this lesson exists to break. The chosen card is marked, the card they should "
+     "have taken is turned up beside it, and the feedback below is the sentence written here. "
+     "Correct answers in green, incorrect in orange. Answer order is shuffled on every deal.")
+note("Nothing is reported to Rise but the completion itself — no score, by decision, and Rise "
+     "could not receive one anyway. That completion is withheld until the learner has %d%% of "
+     "them right, which is %d of the %d questions. Below that, the ones they missed are dealt "
+     "back in a different order; there is no other way past it."
+     # Same arithmetic as the card page's NEED, so the two cannot disagree about
+     # what the mark is: whole questions, rounded up.
+     % (int(PASS_MARK * 100), _math.ceil(PASS_MARK * len(KC_QUESTIONS)), len(KC_QUESTIONS)))
 
-body("1. You search a participant's name and get no results. What does that tell you?")
-answer("Very little on its own — the record may be under a different name or spelling", True)
-answer("That the participant has never received services before", False)
-answer("That you should create a new record", False)
-note("Feedback: an empty result is the single most misread signal in HMIS. It usually means the "
-     "record is under a name, a spelling or an identifier you have not tried yet.")
-
-body("2. A participant says she was born in 1985 but cannot remember the exact date. What can you search?")
-answer("The year on its own", True)
-answer("Nothing — a full date of birth is required", False)
-answer("Only the first three letters of her name", False)
-note("Feedback: a year on its own is a valid search. So is a fragment of a date. You do not need "
-     "the whole thing to start narrowing.")
-
-body("3. Two records share a name, but you have not compared anything else yet. What is your "
-     "next step?")
-answer("Compare a second identifier — date of birth, or the SSN fragment", True)
-answer("Treat them as the same person, because the name matches", False)
-answer("Work from whichever record you opened first", False)
-note("Feedback: a name on its own is never enough. Two of the three — name, date of birth, SSN — "
-     "have to agree before you treat a record as a match. Deciding on the name alone is how one "
-     "person ends up with two records, and how two people end up sharing one.")
-
-body("4. A participant will not give you their Social Security Number. What can you still do?")
-answer("Search on name and date of birth — the SSN is one route in, not the only one", True)
-answer("Nothing until they provide it", False)
-answer("Create a new record, since you cannot confirm the old one", False)
-note("Feedback: refusing is a legitimate answer, and it is recorded as one. Plenty of records hold "
-     "no SSN at all, or only part of one. Name and date of birth will find most people, and the "
-     "rest of the record — household, program history, case notes — can confirm the match.")
-
-body("5. Two records look like they could be the same person, and you cannot tell them apart on "
-     "name, date of birth or SSN alone. What do you do?")
-answer("Keep looking at the rest of each record — household, program history, location — until "
-       "one of them fits the person in front of you", True)
-answer("Pick whichever record you opened first", False)
-answer("Assume they are different people, because there are two records", False)
-note("Feedback: the identifiers are where you start, not where you stop. When they will not "
-     "settle it, the rest of the record usually will — and it is worth the extra minute, because "
-     "the alternative is working from somebody else's history.")
-
-body("6. When is it correct to create a new record?")
-answer("Only after you have worked the whole list — alternate names and spellings, a different "
-       "identifier, and your data staff if you have them — and still found nothing", True)
-answer("After the participant's name returns no results", False)
-answer("Whenever the participant says they have not received services before", False)
-note("Feedback: creating a record is the last step, not the second one. An empty result means your "
-     "search has not found them yet — it is not evidence that they are new. And when you do create "
-     "one, send the Unique Identifier to HMIS Support and ask them to double-check.")
+# Rendered from script/kc_data.py, which the card build reads too — so the
+# questions cannot drift between the script and the thing the learner answers.
+for _qi, (_prompt, _answers, _fb) in enumerate(KC_QUESTIONS, 1):
+    body("%d. %s" % (_qi, _prompt))
+    for _text, _correct in _answers:
+        answer(_text, _correct)
+    note("Feedback: " + _fb[0].lower() + _fb[1:])
 
 
 # ───────────────────────────────── job aid ────────────────────────────────
