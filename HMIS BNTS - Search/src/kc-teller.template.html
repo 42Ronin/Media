@@ -62,49 +62,73 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     radial-gradient(150% 140% at 20% -10%, #35204d 0%, #23133a 46%, #150b26 100%);
   box-shadow:0 22px 48px rgba(10,4,20,.4), inset 0 0 0 1px rgba(201,164,75,.4),
     inset 0 1px 0 rgba(236,212,137,.16)}
-/* The ball, as a pane. It keeps the glass — the depth, the turning smoke, the
-   sheen across the top, the light bleeding out of its edges — and gives up only
-   the circle, which was the part that wasted space on a paragraph. */
+/* The ball, as a pane.
+
+   What makes a crystal ball read as one is not its outline — it is cool blue
+   glass, a hard curved catchlight across the top, a heavy fall-off to a dark
+   rim, and something luminous suspended in the middle of it. All four survive
+   being rectangular. Zoltar's booth, the Jumanji dome, Jambi's box.
+   ============================================================ */
 .glass{position:relative;flex:1;min-width:0;overflow:hidden;border-radius:20px;
-  padding:16px 20px;display:flex;align-items:center;
+  padding:18px 22px;display:flex;align-items:center;
   /* the tallest reading at the narrowest column, measured — so the panel and the
      cards below it never move when she starts speaking */
   min-height:161px;
-  background:radial-gradient(130% 150% at 26% -20%, #7b4bb4 0%, #4a2578 40%, #2a1348 100%);
-  box-shadow:inset 0 0 0 1px rgba(201,164,75,.45),
-    inset 0 18px 34px rgba(232,214,255,.16), inset 0 -20px 38px rgba(14,5,28,.66),
-    0 0 34px rgba(160,110,230,.3), 0 8px 20px rgba(10,4,20,.4);
+  background:
+    radial-gradient(96% 108% at 50% 42%, #55c6d8 0%, #2a93b4 26%, #12607f 54%,
+      #08374e 76%, #041d2b 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(186,238,255,.4),           /* the edge of the glass */
+    inset 0 20px 34px rgba(206,244,255,.24),        /* light pooling at the top */
+    inset 0 0 40px rgba(3,18,28,.55),               /* fall-off toward the rim */
+    0 0 52px rgba(66,192,226,.42), 0 10px 24px rgba(4,16,26,.5);
   animation:breathe 7s ease-in-out infinite}
 @keyframes breathe{
-  0%,100%{box-shadow:inset 0 0 0 1px rgba(201,164,75,.4),
-    inset 0 18px 34px rgba(232,214,255,.13), inset 0 -20px 38px rgba(14,5,28,.66),
-    0 0 26px rgba(160,110,230,.22), 0 8px 20px rgba(10,4,20,.4)}
-  50%{box-shadow:inset 0 0 0 1px rgba(201,164,75,.52),
-    inset 0 18px 38px rgba(240,226,255,.2), inset 0 -20px 38px rgba(14,5,28,.66),
-    0 0 46px rgba(178,128,246,.4), 0 8px 20px rgba(10,4,20,.4)}}
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.09)}}
 /* Smoke turning inside it. A conic gradient converges to a hard star at its own
    centre, which read as a crease across the pane — so it is blurred, oversized,
    and its centre is pushed outside. */
 .smoke{position:absolute;left:-90%;right:-90%;top:-340%;bottom:-160%;pointer-events:none;
-  mix-blend-mode:screen;opacity:.4;filter:blur(30px);
-  background:conic-gradient(from 0deg, transparent, rgba(206,170,255,.5), transparent 52%,
-    rgba(150,104,220,.4), transparent);
+  mix-blend-mode:screen;opacity:.34;filter:blur(30px);
+  background:conic-gradient(from 0deg, transparent, rgba(150,232,255,.55), transparent 52%,
+    rgba(70,170,215,.45), transparent);
   animation:swirl 40s linear infinite}
 @keyframes swirl{to{transform:rotate(360deg)}}
-/* the surface of it */
-.gsheen{position:absolute;inset:0;pointer-events:none;z-index:1;
-  background:linear-gradient(158deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,.06) 22%,
-    transparent 46%)}
+/* Light pooling at the base, the way it does under a glass dome. */
+.glass::before{content:"";position:absolute;left:16%;right:16%;bottom:-6%;height:26%;
+  z-index:1;pointer-events:none;border-radius:50%;filter:blur(14px);
+  background:radial-gradient(closest-side, rgba(140,235,255,.34), transparent)}
+/* The fall-off. This is what makes a rectangle read as a globe: the light dies
+   into the corners, hard, so the middle is the only place anything is lit. */
+.glass::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(88% 96% at 50% 44%, transparent 30%, rgba(3,20,32,.42) 66%,
+    rgba(1,10,18,.86) 100%)}
+/* The catchlight, narrow and curved, where the light source actually is. Most of
+   what says "glass" once the outline is gone. */
+.gsheen{position:absolute;left:11%;right:11%;top:4%;height:30%;pointer-events:none;z-index:2;
+  border-radius:50%;filter:blur(8px);
+  background:linear-gradient(180deg, rgba(255,255,255,.46) 0%, rgba(255,255,255,.12) 52%,
+    transparent 100%)}
+.gsheen::after{content:"";position:absolute;left:5%;top:6%;width:17%;height:64%;
+  border-radius:50%;filter:blur(4px);
+  background:radial-gradient(closest-side, rgba(255,255,255,.72), transparent)}
 
 .inner{position:relative;z-index:2;display:flex;align-items:center;gap:18px}
-.words{position:relative;z-index:2;width:100%}
+.words{position:relative;z-index:3;width:100%;
+  text-shadow:0 0 20px rgba(130,226,255,.6), 0 0 44px rgba(90,200,245,.35),
+    0 2px 10px rgba(2,14,22,.85)}
+/* the glow it is suspended in */
+.words::before{content:"";position:absolute;left:-8%;right:-8%;top:-24%;bottom:-24%;
+  z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side, rgba(120,215,255,.2), transparent 76%)}
 .qn{margin:0 0 5px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:#cbb2e4;font-weight:700}
-.qt{font-size:18px;line-height:1.45;font-weight:600}
+  color:#a6dcf2;font-weight:700}
+.qt{font-size:18px;line-height:1.45;font-weight:600;color:#eafbff}
 .verdict{font-size:20px;font-weight:700;margin-bottom:5px}
-.panel.good .verdict{color:var(--ok)}
-.panel.bad .verdict{color:var(--bad)}
-.fb{font-size:15px;line-height:1.55;color:#eadff5}
+.panel.good .verdict{color:#8ff3c4}
+.panel.bad .verdict{color:#ffb3a8}
+.fb{font-size:15px;line-height:1.55;color:#dff4fb}
 .panel.mist .words>*{animation:mist .5s ease both}
 @keyframes mist{from{opacity:0;filter:blur(6px);transform:translateY(5px)}
   to{opacity:1;filter:blur(0);transform:none}}
