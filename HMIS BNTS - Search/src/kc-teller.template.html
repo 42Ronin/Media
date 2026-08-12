@@ -32,10 +32,10 @@
 <style>
 :root{
   --gold:#c9a44b; --gold-lt:#ecd489; --gold-dk:#8a6d22;
-  --ink:#f6ecdb; --mut:#c8aec2;
+  --ink:#f2ece2; --mut:#93aebc;
   --card:#f7f0df; --card-ink:#2b2320;
   --ok:#7fd8a6; --bad:#f0958f;
-  --focus:#a06fe0;
+  --focus:#7fd4ff;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
@@ -58,10 +58,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
      against the longest reading at the narrowest column we support. */
   min-height:236px;
   background:
-    repeating-linear-gradient(96deg, rgba(255,255,255,.022) 0 3px, transparent 3px 7px),
-    radial-gradient(150% 140% at 20% -10%, #35204d 0%, #23133a 46%, #150b26 100%);
-  box-shadow:0 22px 48px rgba(10,4,20,.4), inset 0 0 0 1px rgba(201,164,75,.4),
-    inset 0 1px 0 rgba(236,212,137,.16)}
+    repeating-linear-gradient(96deg, rgba(255,255,255,.02) 0 3px, transparent 3px 7px),
+    radial-gradient(150% 150% at 50% -18%, #162834 0%, #0e1c26 48%, #070f16 100%);
+  box-shadow:0 22px 48px rgba(3,10,16,.46), inset 0 0 0 1px rgba(201,164,75,.36),
+    inset 0 1px 0 rgba(236,212,137,.14)}
 /* The ball, as a pane.
 
    What makes a crystal ball read as one is not its outline — it is cool blue
@@ -143,17 +143,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .lashy svg{width:100%;height:100%;display:block;overflow:visible}
 
 .panelfoot{position:relative;z-index:2;display:flex;align-items:center;gap:14px;
-  margin-top:15px;padding-top:13px;border-top:1px solid rgba(201,164,75,.26);
+  margin-top:15px;padding-top:13px;border-top:1px solid rgba(201,164,75,.22);
   /* reserved for the button, which only appears once a card is taken — without
      this the whole panel grew by 21px and pushed the cards down */
   min-height:55px}
 .stones{display:flex;gap:9px}
 .stone{width:15px;height:15px;transform:rotate(45deg);border-radius:3px;
-  background:radial-gradient(circle at 34% 30%, #6a4a76, #33204a 70%);
-  box-shadow:inset 0 0 0 1px rgba(236,212,137,.24);transition:background .4s,box-shadow .4s}
+  background:radial-gradient(circle at 34% 30%, #2c4756, #142430 70%);
+  box-shadow:inset 0 0 0 1px rgba(236,212,137,.22);transition:background .4s,box-shadow .4s}
 .stone.lit{background:radial-gradient(circle at 34% 30%, #fff0bd, var(--gold) 60%, #7d6118);
   box-shadow:0 0 14px rgba(236,212,137,.7), inset 0 0 0 1px rgba(255,240,190,.6)}
-.stone.out{background:radial-gradient(circle at 34% 30%, #8a4148, #4a1c23 70%);
+.stone.out{background:radial-gradient(circle at 34% 30%, #7e3f45, #3f1a20 70%);
   box-shadow:inset 0 0 0 1px rgba(240,149,143,.32)}
 .count{margin:0;font-size:12.5px;color:var(--mut)}
 .count b{color:var(--ink)}
@@ -180,13 +180,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tface{position:absolute;inset:0;border-radius:13px;backface-visibility:hidden;
   -webkit-backface-visibility:hidden;overflow:hidden;transition:opacity .35s;
   /* a real edge, because these sit on the page rather than on a dark ground */
-  box-shadow:0 14px 30px rgba(40,20,60,.3), 0 2px 6px rgba(40,20,60,.18),
-    0 0 0 1px rgba(80,50,110,.16)}
+  box-shadow:0 14px 30px rgba(16,34,46,.26), 0 2px 6px rgba(16,34,46,.16),
+    0 0 0 1px rgba(40,74,96,.14)}
 .tback{background:
   repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 9px,transparent 9px 18px),
   radial-gradient(120% 90% at 30% 8%, #6a2050, #3d1030 58%, #23091c 100%);
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 14px 30px rgba(40,20,60,.34), inset 0 0 0 2px var(--gold-dk),
+  box-shadow:0 14px 30px rgba(16,34,46,.3), inset 0 0 0 2px var(--gold-dk),
     inset 0 0 0 3.5px rgba(236,212,137,.32)}
 /* the logo, whole. The gold bar is 33.4% of the lockup, so clear space is that
    again on every side: at 52% of a 242px card that is 42px against 58px of margin. */
@@ -197,7 +197,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--gold);transform:rotate(45deg)}
 .tfront{background:linear-gradient(180deg,#fffcf4,var(--card));color:var(--card-ink);
   transform:rotateY(180deg);display:flex;flex-direction:column;padding:16px 15px 14px;
-  box-shadow:0 14px 30px rgba(40,20,60,.3), inset 0 0 0 1.5px rgba(201,164,75,.55)}
+  box-shadow:0 14px 30px rgba(16,34,46,.26), inset 0 0 0 1.5px rgba(201,164,75,.55)}
 .tfront .idx{font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9b7d33}
 .tfront .txt{flex:1;display:flex;align-items:center;font-size:14.5px;line-height:1.44;
   padding:8px 0 6px}
@@ -217,14 +217,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 .tcard.taken{z-index:2;transform:rotate(0deg) translateY(-22px) rotateY(180deg) scale(1.07)}
 .spread.done .tcard.taken:hover{transform:rotate(0deg) translateY(-22px) rotateY(180deg) scale(1.07)}
-.tcard.taken .tfront{box-shadow:0 26px 48px rgba(40,20,60,.4), inset 0 0 0 2px currentColor}
+.tcard.taken .tfront{box-shadow:0 26px 48px rgba(16,34,46,.36), inset 0 0 0 2px currentColor}
 .tcard.right .tfront{color:#1c7a55;background:#eef7ef}
 .tcard.right .mark{color:#1c7a55}
 .tcard.wrong .tfront{color:#a5352c;background:#faece9}
 .tcard.wrong .mark{color:#a5352c}
 .tcard.answer{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 6px)) rotateY(180deg)}
 .tcard.answer .tfront{background:#f2faf3;
-  box-shadow:0 18px 34px rgba(28,122,85,.28), inset 0 0 0 2px #1c7a55}
+  box-shadow:0 18px 34px rgba(28,122,85,.26), inset 0 0 0 2px #1c7a55}
 .tcard.answer .mark{color:#1c7a55}
 /* Dim the FACES, never the card: opacity below 1 flattens a preserve-3d element,
    backface culling stops, and the back renders through — mirrored. */
