@@ -56,7 +56,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ============================================================
    The room — drawn, never fetched
    ============================================================ */
-.room{position:relative;min-height:552px;padding-bottom:10px;overflow:hidden;
+.room{position:relative;min-height:640px;padding-bottom:10px;overflow:hidden;
   border-radius:24px;box-shadow:0 24px 60px rgba(10,4,18,.4);
 
   background:
@@ -86,9 +86,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ============================================================
    Her side of the table
    ============================================================ */
-.reader{position:relative;z-index:4;display:flex;align-items:flex-start;gap:18px;
-  padding:26px 30px 0;max-width:940px;margin:0 auto}
-.lashy{flex:none;width:118px;height:118px;position:relative;
+.stage{position:relative;z-index:4;display:flex;flex-direction:column;align-items:center;
+  padding:18px 0 0}
+.lashy{flex:none;width:150px;height:150px;position:relative;
   filter:drop-shadow(0 0 30px rgba(255,196,110,.42))}
 .lashy svg{width:100%;height:100%;display:block;overflow:visible}
 .lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
@@ -100,20 +100,60 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   55%{transform:scale(1.16) rotate(14deg);opacity:1}100%{transform:none;opacity:1}}
 @keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
 
-/* what she says — the question, then the reading. One box, not two. */
-.says{flex:1;min-width:0;background:linear-gradient(180deg,rgba(52,26,68,.96),rgba(30,14,42,.97));border-radius:20px;
-  padding:16px 20px;min-height:112px;
-  box-shadow:0 18px 44px rgba(0,0,0,.5), inset 0 0 0 1px rgba(201,164,75,.42)}
-.says .qn{font-size:11.5px;letter-spacing:.2em;font-family:"Segoe UI",system-ui,sans-serif;text-transform:uppercase;
-  color:var(--mut);font-weight:700;margin-bottom:6px}
-.says .qt{font-size:18px;line-height:1.5;font-weight:600}
-.says .verdict{font-weight:700;margin-bottom:5px;font-size:17px}
-.says.good .verdict{color:var(--ok)}
-.says.bad  .verdict{color:var(--bad)}
-.says .fb{color:#ece0d2}
-.says .cue{margin-top:9px;font-size:14px;color:var(--mut);font-style:italic}
-.says .foot{display:flex;justify-content:flex-end;margin-top:14px;padding-top:12px;
-  border-top:1px solid rgba(201,164,75,.34)}
+/* ---------- the orb: what she is showing you ---------- */
+.orbwrap{flex:none;display:flex;flex-direction:column;align-items:center}
+.orb{position:relative;width:460px;height:460px;border-radius:50%;
+  background:
+    radial-gradient(circle at 34% 26%, rgba(255,255,255,.88) 0 3%, rgba(255,255,255,.18) 9%, transparent 26%),
+    radial-gradient(circle at 62% 74%, rgba(214,178,255,.34), transparent 52%),
+    radial-gradient(circle at 50% 46%, rgba(150,104,214,.5) 0 42%, rgba(59,29,99,.94) 74%, #24123c 100%);
+  box-shadow:0 0 70px rgba(160,110,230,.42), inset 0 -22px 44px rgba(20,8,38,.7),
+    inset 0 10px 30px rgba(226,205,255,.22), 0 22px 40px rgba(8,3,16,.55)}
+/* smoke turning inside the glass */
+.orb::before,.orb::after{content:"";position:absolute;inset:9%;border-radius:50%;
+  pointer-events:none;mix-blend-mode:screen;opacity:.5}
+.orb::before{background:conic-gradient(from 0deg, transparent, rgba(196,158,255,.4), transparent 52%, rgba(140,96,210,.34), transparent);
+  animation:swirl 26s linear infinite}
+.orb::after{background:conic-gradient(from 180deg, transparent, rgba(232,214,255,.26), transparent 46%);
+  animation:swirl 38s linear infinite reverse}
+@keyframes swirl{to{transform:rotate(360deg)}}
+/* the glass, in front of whatever it holds */
+.sheen{position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:3;
+  background:radial-gradient(circle at 32% 24%, rgba(255,255,255,.5) 0 4%, transparent 20%),
+    radial-gradient(circle at 50% 50%, transparent 62%, rgba(255,255,255,.1) 88%, rgba(255,255,255,.22) 100%)}
+/* A 460px ball has a 294x331 box inside it — (147² + 165²) is inside 230², so
+   everything she says fits without touching the glass. */
+.orb .inner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:64%;max-height:72%;z-index:2;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:7px;text-align:center;
+  text-shadow:0 2px 12px rgba(24,8,44,.92)}
+/* a scrim behind the words: a paragraph over turning smoke is a squint */
+.orb .inner::before{content:"";position:absolute;left:-16%;right:-16%;top:-10%;bottom:-10%;
+  border-radius:50%;z-index:-1;background:radial-gradient(closest-side, rgba(28,12,50,.62), transparent 78%)}
+.orb .qn{margin:0;font-family:"Segoe UI",system-ui,sans-serif;font-size:10.5px;
+  letter-spacing:.2em;text-transform:uppercase;color:#cbb2e4;font-weight:700}
+.orb .qt{font-size:16px;line-height:1.44;font-weight:600}
+.orb .fb{font-size:13.5px;line-height:1.5;color:#eadff5}
+.orb .verdict{font-size:20px;font-weight:700}
+.orb.good .verdict{color:var(--ok)}
+.orb.bad .verdict{color:var(--bad)}
+.orb .cue{font-size:12.5px;color:#d0bae8;font-style:italic}
+.orb .foot{margin-top:4px}
+.orb .inner>*{animation:mist .5s ease both}
+@keyframes mist{from{opacity:0;filter:blur(6px);transform:translateY(5px)}
+  to{opacity:1;filter:blur(0);transform:none}}
+/* the stand: three gold claws and a foot */
+.stand{width:206px;height:40px;position:relative;margin-top:-22px}
+.stand i{position:absolute;top:0;width:20px;height:32px;border-radius:0 0 50% 50%;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold-dk))}
+.stand i:nth-child(1){left:24px;transform:rotate(-16deg)}
+.stand i:nth-child(2){left:93px}
+.stand i:nth-child(3){right:24px;transform:rotate(16deg)}
+.stand em{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:164px;height:15px;border-radius:50%;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold-dk));
+  box-shadow:0 6px 16px rgba(8,3,16,.6)}
+
 .go{font-family:"Segoe UI",system-ui,sans-serif;background:linear-gradient(180deg,var(--gold-lt),var(--gold));color:#2b2010;border-radius:10px;padding:9px 20px;
   font-size:14.5px;font-weight:700;transition:background .15s}
 .go:hover{background:linear-gradient(180deg,#f6e3a6,var(--gold-lt))}
@@ -129,7 +169,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   min-height:262px}
 /* fanned, not stacked — a real spread overlaps, but the answers have to be
    readable, so the tilt carries the character and the gap carries the words */
-.tcard{position:relative;width:174px;height:226px;margin:0 9px;padding:0;
+.tcard{position:relative;width:176px;height:236px;margin:0 9px;padding:0;
   background:none;transform-style:preserve-3d;cursor:default;
   transform:rotate(var(--tilt)) translateY(var(--lift,0));
   transition:transform .42s cubic-bezier(.22,1.1,.36,1),opacity .35s}
@@ -156,7 +196,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   display:flex;flex-direction:column;padding:15px 14px 13px;
   box-shadow:0 16px 34px rgba(0,0,0,.5), inset 0 0 0 1.5px rgba(201,164,75,.6)}
 .tfront .idx{font-family:"Segoe UI",system-ui,sans-serif;font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9b7d33}
-.tfront .txt{flex:1;display:flex;align-items:center;font-size:14.5px;line-height:1.45;
+.tfront .txt{flex:1;display:flex;align-items:center;font-size:14px;line-height:1.42;
   padding:8px 0 6px}
 .tfront .mark{font-family:"Segoe UI",system-ui,sans-serif;height:18px;font-size:11.5px;font-weight:800;letter-spacing:.06em;
   text-transform:uppercase;color:transparent}
@@ -193,20 +233,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .spread.done .tcard,.spread.done .tcard:hover{cursor:default}
 
 /* ============================================================
-   Six candles, one per question
+   Six stones on the cloth, one per question. No candles — they read as a
+   birthday cake once there are six of them in a row.
    ============================================================ */
-.candles{position:relative;z-index:3;display:flex;justify-content:center;gap:20px;
-  padding:0 0 30px}
-.cdl{display:flex;flex-direction:column;align-items:center;gap:3px;width:30px}
-.cdl .stick{width:13px;height:34px;border-radius:3px;background:#e7dcc4;
-  box-shadow:inset -3px 0 0 rgba(0,0,0,.12)}
-.cdl .flame{width:14px;height:19px;border-radius:50% 50% 46% 46%;background:#3a4a55;
-  transition:background .35s,box-shadow .35s}
-.cdl.lit .flame{background:radial-gradient(circle at 50% 66%, #fff3c4, #ffbe4d 58%, #ff8f2e);
-  box-shadow:0 0 14px rgba(255,190,77,.8);animation:flicker 1.5s ease-in-out infinite}
-.cdl.out .flame{background:#5c3a3a;box-shadow:0 0 8px rgba(160,60,50,.35)}
-@keyframes flicker{0%,100%{transform:scaleY(1) translateY(0)}
-  40%{transform:scaleY(1.14) translateY(-1px)}70%{transform:scaleY(.92)}}
+.stones{position:relative;z-index:3;display:flex;justify-content:center;gap:16px;padding:14px 0 4px}
+.stone{width:19px;height:19px;transform:rotate(45deg);border-radius:4px;
+  background:radial-gradient(circle at 34% 30%, #55355f, #2a1636 70%);
+  box-shadow:inset 0 0 0 1px rgba(236,212,137,.22);transition:background .4s,box-shadow .4s}
+.stone.lit{background:radial-gradient(circle at 34% 30%, #fff0bd, var(--gold) 60%, #7d6118);
+  box-shadow:0 0 16px rgba(236,212,137,.7), inset 0 0 0 1px rgba(255,240,190,.6)}
+.stone.out{background:radial-gradient(circle at 34% 30%, #7a3b40, #43181f 70%);
+  box-shadow:inset 0 0 0 1px rgba(240,149,143,.3)}
 .count{font-family:"Segoe UI",system-ui,sans-serif;text-align:center;color:var(--mut);font-size:13.5px;padding-bottom:26px;
   position:relative;z-index:3}
 .count b{color:var(--ink)}
@@ -224,6 +261,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
 .m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
 .m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+/* The costume lives only in this prototype — the lesson's Lashes is untouched. */
+.m-scarf{fill:#5d1636}
+.m-scarf-2{fill:#7a1e46}
+.m-band{fill:none;stroke:#c9a44b;stroke-width:3;stroke-linecap:round}
+.m-jewel{fill:#ecd489;stroke:#8a6d22;stroke-width:.8}
+.m-hoop{fill:none;stroke:#c9a44b;stroke-width:2.4}
 .m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
 @keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
   25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
@@ -246,21 +289,26 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <div class="room">
   <div class="table" aria-hidden="true"></div>
 
-  <div class="reader">
-    <div class="lashy" id="lashy" aria-hidden="true"></div>
-    <div class="says" id="says">
-      <div class="qn" id="qn"></div>
-      <div class="qt" id="qt"></div>
-      <div class="verdict" id="verdict" hidden></div>
-      <div class="fb" id="fb" hidden></div>
-      <div class="cue" id="cue" hidden></div>
-      <div class="foot" id="foot" hidden><button class="go" id="next"></button></div>
+  <div class="stage">
+    <div class="orb" id="orb">
+      <div class="inner">
+        <div class="lashy" id="lashy" aria-hidden="true"></div>
+        <p class="qn" id="qn"></p>
+        <div class="verdict" id="verdict" hidden></div>
+        <div class="qt" id="qt"></div>
+        <div class="fb" id="fb" hidden></div>
+        <div class="cue" id="cue" hidden></div>
+        <div class="foot" id="foot" hidden><button class="go" id="next"></button></div>
+      </div>
+      <span class="sheen" aria-hidden="true"></span>
     </div>
+    <div class="stand" aria-hidden="true"><i></i><i></i><i></i><em></em></div>
   </div>
 
   <div class="spread" id="spread" role="group" aria-labelledby="qt"></div>
 
-  <div class="candles" id="candles" aria-hidden="true"></div>
+
+  <div class="stones" id="stones" aria-hidden="true"></div>
   <p class="count" id="count"></p>
 </div>
 </div>
@@ -300,6 +348,24 @@ var EYES={
 };
 var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
            wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
+/* Drawn over her rim. Her geometry is the bible's — face at (44,42), rim r=30 —
+   so the cap is an arc of r=31 across the top and the hoop hangs off the rim at
+   about four o'clock. */
+var COSTUME=
+  /* the tail, falling behind her left shoulder */
+  '<path class="m-scarf-2" d="M18 24 q-13 5 -15 16 q-2 11 4 18 q4 -10 6 -18 q2 -9 7 -14 z"/>'+
+  /* the wrap, sitting on the rim. It has to clear her lashes — she is called
+     Lashes, and a scarf that covers them takes her face away. The brow curve is
+     above the highest lash at every x. */
+  '<path class="m-scarf" d="M17.4 26 A31 31 0 0 1 70.5 26 Q44 30 17.4 26 Z"/>'+
+  /* the knot */
+  '<path class="m-scarf-2" d="M19 22 q-10 0 -13 7 q7 3 13 -1 q3 -3 0 -6 z"/>'+
+  /* the band, and the jewel on it */
+  '<path class="m-band" d="M18.4 24.2 Q44 28.6 69.6 24.2"/>'+
+  '<path class="m-jewel" d="M44 22.6 q3.6 3.1 0 7.6 q-3.6 -4.5 0 -7.6 z"/>'+
+  /* the hoop, off the rim at four o'clock */
+  '<circle class="m-hoop" cx="68" cy="63" r="6"/>';
+
 function svg(eyes,mouth){
   var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
   return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
@@ -309,15 +375,13 @@ function svg(eyes,mouth){
       '<g class="m-face"><g class="m-eyes">'+ex.e+'</g>'+LASH[ex.l]+
         '<path class="m-mouth" d="'+m+'"/></g>'+
       '<path class="m-shine" d="M27 30 q7-9 17-10"/>'+
+      COSTUME+
     '</g></svg>';
 }
 /* She is at the table the whole time here — it is her reading. Only her face
    changes, so there is no poofing about; the puff is kept for the first arrival. */
-function face(eyes,mouth,arrive){
-  var el=$("#lashy");
-  el.innerHTML='<span class="puff"></span><span class="mface">'+svg(eyes,mouth)+'</span>';
-  if(arrive){ el.classList.remove("in"); void el.offsetWidth; el.classList.add("in"); }
-}
+/* She is at the table throughout — it is her reading. Only her face changes. */
+function face(eyes,mouth){ $("#lashy").innerHTML=svg(eyes,mouth); }
 
 /* --- the only two things it ever says to a host --- */
 var EMBED=(function(){
@@ -346,25 +410,27 @@ function shuffle(a){ a=a.slice();
 function correctCount(){ var n=0; for(var i=0;i<got.length;i++) if(got[i]===true) n++; return n; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-function paintCandles(){
-  $("#candles").innerHTML=got.map(function(v){
-    return '<span class="cdl'+(v===true?" lit":v===false?" out":"")+'">'+
-             '<span class="flame"></span><span class="stick"></span></span>';
+function paintStones(){
+  $("#stones").innerHTML=got.map(function(v){
+    return '<span class="stone'+(v===true?" lit":v===false?" out":"")+'"></span>';
   }).join("");
-  $("#count").innerHTML="<b>"+correctCount()+"</b> of "+QS.length+" lit &mdash; "+NEED+" gets you through";
+  $("#count").innerHTML="<b>"+correctCount()+"</b> of "+QS.length+" &mdash; "+NEED+" gets you through";
 }
 
 function deal(){
   clearLater();
   var qi=order[at], q=QS[qi], deck=shuffle(q.a);
 
-  $("#verdict").hidden=$("#fb").hidden=$("#foot").hidden=true;
-  $("#says").className="says";
-  $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
+  $("#orb").className="orb";
+  $("#verdict").hidden=true;
+  $("#fb").hidden=true;
+  $("#foot").hidden=true;
+  $("#qt").hidden=false;
   $("#qt").textContent=q.q;
+  $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
   $("#cue").hidden=true;
-  face("open","tip", at===0);
-  paintCandles();
+  face("open","tip");
+  paintStones();
 
   var sp=$("#spread");
   sp.className="spread";
@@ -414,27 +480,29 @@ function take(card,cards,q){
     var mark=c.querySelector(".mark");
     if(c===card){
       c.classList.add("taken", right?"right":"wrong");
-      mark.textContent=right?"Your card — correct":"Your card";
+      mark.textContent=right?"Your card \u2713":"Your card";
     }else if(c.dataset.ok==="1"){
       c.classList.add("answer","spent");
-      mark.textContent="The one to take";
+      mark.textContent="Take this one";
     }else{
       c.classList.add("spent");
     }
   });
 
-  paintCandles();
+  paintStones();
   $("#live").textContent=(right?"Correct. ":"Not correct. ")+q.fb;
 
+  /* the orb clears and gives the verdict; the reading is too long to live in a
+     circle, so she says that underneath it */
   later(function(){
     face(right?"sparkle":"droll", right?"cheer":"wry");
-    $("#says").className="says "+(right?"good":"bad");
-    $("#qn").textContent="The reading";
-    $("#qt").textContent="";
+    $("#orb").className="orb "+(right?"good":"bad");
+    $("#qt").hidden=true; $("#cue").hidden=true;
     $("#verdict").textContent=right?"That is the one.":"Not that one.";
+    $("#verdict").hidden=false;
+    $("#qn").textContent="The reading";
     $("#fb").textContent=q.fb;
-    $("#cue").hidden=true;
-    $("#verdict").hidden=$("#fb").hidden=false;
+    $("#fb").hidden=false;
     $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
     $("#foot").hidden=false;
     later(function(){ $("#next").focus(); },60);
@@ -454,18 +522,17 @@ function finish(){
   for(var i=0;i<got.length;i++) if(got[i]===false) missed.push(i+1);
 
   $("#spread").innerHTML=""; $("#spread").className="spread";
-  paintCandles();
+  paintStones();
   face(passed?"sparkle":"droll", passed?"cheer":"hm");
-  $("#says").className="says "+(passed?"good":"bad");
+  $("#orb").className="orb "+(passed?"good":"bad");
   $("#qn").textContent="The table";
-  $("#qt").textContent="";
-  $("#verdict").textContent=passed?"You are through.":"Not quite — "+NEED+" of "+QS.length+" gets you through.";
+  $("#qt").hidden=true;
+  $("#verdict").textContent=passed?"You are through.":"Not quite — "+NEED+" of "+QS.length+".";
   $("#fb").textContent=passed
     ? "None of this is about remembering a rule. It is about not deciding on one signal — which is the difference between finding somebody's record and starting them a second one."
     : "Question"+(missed.length===1?" ":"s ")+list(missed)+" went the other way. I will lay "+
       (missed.length===1?"it":"them")+" again — the reasoning is in what you just read, and the cards come back in a different order.";
-  $("#verdict").hidden=$("#fb").hidden=false;
-  $("#cue").hidden=true;
+  $("#verdict").hidden=false; $("#cue").hidden=true; $("#fb").hidden=false;
   $("#live").textContent=(passed?"Passed. ":"Not passed. ")+score+" of "+QS.length+" right.";
 
   if(passed){
