@@ -34,9 +34,10 @@
      container itself is transparent so the check reads as part of the Rise
      page it is dropped into rather than a panel bolted onto it. */
   --panel:#e9f3f8; --panel-2:#f2f8fb;
-  /* the logo's own blue and gold, for the back of the cards */
-  --lahsa-blue:#2a6d8e; --lahsa-blue-lt:#37809f; --lahsa-blue-dk:#1f5b78;
-  --lahsa-gold:#b9a432; --lahsa-gold-lt:#cdb84a;
+  /* Brand palette, from the 2020 style guide via the LAHSA repo's brand/README.md
+     — not sampled off a screenshot. Teal and gold are surfaces there, never inks. */
+  --lahsa-blue:#006688; --lahsa-blue-lt:#33849f; --lahsa-blue-dk:#00506b;
+  --lahsa-gold:#b99c00;
   --ok:#0f6b45; --ok-soft:#e8f5ee; --bad:#a3312a; --bad-soft:#fbeae9;
   --focus:#0b6fd4;
 }
@@ -130,12 +131,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 10px,transparent 10px 20px),
   linear-gradient(155deg,var(--lahsa-blue-lt),var(--lahsa-blue) 58%,var(--lahsa-blue-dk));
   display:flex;align-items:center;justify-content:center;
-  /* gold trim, taken from the wordmark band on the logo */
-  box-shadow:0 8px 22px rgba(6,104,136,.16),
-    inset 0 0 0 2px var(--lahsa-gold), inset 0 0 0 3.5px rgba(255,255,255,.10)}
+  box-shadow:0 8px 22px rgba(6,104,136,.16), inset 0 0 0 1px rgba(255,255,255,.14)}
 /* `crest`, not `mark` — the front already has a `.mark` (the "Your card" label)
    and the back comes first in the DOM, so sharing the name sent every label to
    the wrong face of the card. */
+/* The style guide's clear space is the height of the gold LAHSA bar on all sides,
+   and that bar is 33.4% of the lockup's height. At 56% of a 226px card that is
+   42px of required clearance against 49px of actual margin vertically and 49px
+   at the narrowest card width — so it holds at every column width we support.
+   Sized by height, because the cards vary in width and not in height. */
+.back .logo{height:56%;width:auto;max-width:70%;display:block}
 .back .crest{width:54px;height:54px;border-radius:50%;
   border:2.5px solid var(--lahsa-gold);
   display:flex;align-items:center;justify-content:center}
@@ -302,6 +307,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    the docx is rendered from, so the two cannot drift. Same token convention as
    the lesson's roster: the unbuilt template is not runnable JS, by design. */
 var KC = /*__KC__*/;
+/* The LAHSA logo as a data URI, or null. build.sh and make_maker.py both inline
+   `src/lahsa-logo.svg` (or .png) here if it is present; if it is not, the card
+   back falls back to an abstract crest. The artwork is used as supplied — no
+   recolouring, no cropping, no redrawing. See CLAUDE.md. */
+var LOGO = /*__LOGO__*/;
 
 var $=function(s){return document.querySelector(s)};
 
@@ -432,6 +442,12 @@ var got=[];                                  /* true / false / null per question
 var order=[];                                /* which questions this pass plays */
 var at=0;                                    /* index into `order` */
 var LETTER=["A","B","C","D","E","F"];
+/* Nothing here is allowed to alter the artwork: it is placed whole, at its own
+   aspect ratio, on the card. When there is none, the crest is deliberately
+   abstract rather than a drawing of the logo. */
+var BACKMARK = LOGO
+  ? '<img class="logo" src="'+LOGO+'" alt="">'
+  : '<span class="crest"></span>';
 
 var reduced=!!(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches);
 var timers=[];
@@ -490,7 +506,7 @@ function deal(){
   hand.innerHTML=deck.map(function(a,i){
     return '<button class="card'+(reduced?" up":"")+'" type="button" data-ok="'+(a.ok?"1":"0")+'" '+
              'aria-disabled="true" tabindex="-1">'+
-             '<span class="face back" aria-hidden="true"><span class="crest"></span></span>'+
+             '<span class="face back" aria-hidden="true">'+BACKMARK+'</span>'+
              '<span class="face front">'+
                '<span class="idx" aria-hidden="true">'+LETTER[i]+'</span>'+
                '<span class="txt">'+esc(a.t)+'</span>'+

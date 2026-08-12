@@ -33,6 +33,19 @@ def build() -> None:
     if "/*__KC__*/" not in page:
         raise SystemExit("the page template has no /*__KC__*/ token for the maker to fill")
 
+    # The LAHSA logo, if the lesson has it, inlined the same way build.sh does —
+    # used whole and unaltered. Absent, the card back keeps its abstract crest.
+    logo = "null"
+    for ext, mime in ((".svg", "image/svg+xml"), (".png", "image/png")):
+        f = PAGE.parent / ("lahsa-logo" + ext)
+        if f.exists():
+            logo = '"data:%s;base64,%s"' % (mime, base64.b64encode(f.read_bytes()).decode())
+            break
+    token = "/*" + "__LOGO__" + "*/"
+    if page.count(token) != 1:
+        raise SystemExit("expected exactly one LOGO token in the page template")
+    page = page.replace(token, logo)
+
     payload = base64.b64encode(page.encode("utf-8")).decode("ascii")
     shell = TEMPLATE.read_text(encoding="utf-8")
     out, n = re.subn(

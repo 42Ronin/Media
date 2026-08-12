@@ -560,6 +560,18 @@ together, the learner picks one, and the feedback is the sentence the script alr
   round — a tinted panel with white bubbles in it, which reads as a thing bolted onto the
   Rise page. Now the question pill, the feedback panel and the card faces carry `--panel`
   and the container carries nothing, so it sits on whatever Rise puts behind it.
+- **The card back carries the real logo.** `src/lahsa-logo.png` is the official square
+  lockup, scaled down from the 2000×2000 master in `42Ronin/LAHSA` — scaling is the whole
+  of the permitted latitude. `build.sh` and `make_maker.py` both inline it as a data URI at
+  the LOGO token; when the file is absent both emit `null` and the back falls back to an
+  abstract crest. **Clear space is the height of the gold LAHSA bar on every side**, and
+  that bar is 33.4% of the lockup's height — the CSS is sized so that holds at every column
+  width, and `test.mjs` measures it rather than trusting the number.
+  **Colours come from `brand/README.md` in the LAHSA repo, not from sampling the artwork**:
+  teal `#006688`, gold `#b99c00`. Both are surfaces there, never inks.
+  **Open question for the owner:** that style guide says there is no red in the palette, and
+  this page uses one for a wrong answer. Ask before changing it — an answer check that
+  cannot show red is a real instructional constraint, not just a colour swap.
 - **Never draw the LAHSA logo.** The card back carried a hand-drawn approximation of it for
   one commit and that was wrong: an approximation of a real organisation's mark *is* a
   modified logo, and flagging it as approximate in a comment does not make it acceptable.

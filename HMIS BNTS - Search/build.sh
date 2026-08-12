@@ -80,9 +80,24 @@ done
 # cards, and the only thing it ever reports is completion — and only once the
 # learner has cleared the pass mark.
 python3 - "$KC_TEMPLATE" "src/kc.json" "$OUT/knowledge-check.html" <<'PY'
-import sys
+import base64, pathlib, sys
 tpl, data, out = sys.argv[1:4]
 html = open(tpl).read()
+
+# The LAHSA logo, if it has been added. Used whole and unaltered; when it is
+# absent the card back falls back to an abstract crest rather than a drawing of
+# the logo. See CLAUDE.md — never redraw it.
+LOGO_TYPES = {".svg": "image/svg+xml", ".png": "image/png"}
+logo = "null"
+for ext, mime in LOGO_TYPES.items():
+    f = pathlib.Path("src/lahsa-logo" + ext)
+    if f.exists():
+        logo = '"data:%s;base64,%s"' % (mime, base64.b64encode(f.read_bytes()).decode())
+        print("  logo: %s (%,d bytes)".replace(",", "") % (f.name, f.stat().st_size))
+        break
+if html.count("/*" + "__LOGO__" + "*/") != 1:
+    raise SystemExit("expected exactly one LOGO token in the knowledge-check template")
+html = html.replace("/*" + "__LOGO__" + "*/", logo)
 token = "/*" + "__KC__" + "*/"
 # Exactly one, not at least one. It used to be named in the page's own header
 # comment too, and replacing every occurrence quietly stamped the questions into
