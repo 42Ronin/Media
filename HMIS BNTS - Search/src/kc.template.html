@@ -115,23 +115,26 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   -webkit-backface-visibility:hidden;overflow:hidden;
   box-shadow:0 8px 22px rgba(6,104,136,.16),0 0 0 1px rgba(6,104,136,.1)}
 /* back: face down when dealt. Drawn, not fetched — this page makes no network
-   requests, same rule as the simulation, so the mark is SVG rather than an image.
-   It is a hand-drawn approximation of the LAHSA logo, and if the real artwork is
-   dropped into the repo it should be embedded as a data URI and this replaced. */
+   requests, same rule as the simulation.
+
+   The mark here is ABSTRACT ON PURPOSE. It carried a hand-drawn approximation of
+   the LAHSA logo for one commit, which was a mistake: an approximation of a real
+   organisation's mark is a modified logo, and saying so in a comment does not make
+   it acceptable. The colours are LAHSA's and that is fine — colours are not the
+   mark. Do not draw the logo. If the real artwork is added to the repo, inline it
+   as a data URI; until then this stays abstract. */
 .back{background:
   repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 10px,transparent 10px 20px),
   linear-gradient(155deg,var(--lahsa-blue-lt),var(--lahsa-blue) 58%,var(--lahsa-blue-dk));
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;
   /* gold trim, taken from the wordmark band on the logo */
   box-shadow:0 8px 22px rgba(6,104,136,.16),
     inset 0 0 0 2px var(--lahsa-gold), inset 0 0 0 3.5px rgba(255,255,255,.10)}
-.back .mark{flex:1;display:flex;align-items:center;justify-content:center;
-  width:100%;padding:16px 18px 6px}
-.back .mark svg{width:100%;height:auto;max-height:100%;display:block}
-/* the band runs the width of the card, as it does on the logo */
-.back .band{flex:none;width:100%;background:var(--lahsa-gold);color:#fff;
-  text-align:center;font-size:19px;font-weight:800;letter-spacing:.13em;
-  padding:5px 0 6px;line-height:1.15}
+.back .mark{width:54px;height:54px;border-radius:50%;
+  border:2.5px solid var(--lahsa-gold);
+  display:flex;align-items:center;justify-content:center}
+.back .mark::after{content:"";display:block;width:19px;height:19px;
+  border-radius:3px;background:var(--lahsa-gold);transform:rotate(45deg)}
 .front{background:var(--panel);transform:rotateY(180deg);
   display:flex;flex-direction:column;padding:16px 15px 14px;text-align:left}
 .front .idx{font-size:12px;font-weight:700;color:var(--teal-lt);letter-spacing:.1em}
@@ -429,38 +432,6 @@ var order=[];                                /* which questions this pass plays 
 var at=0;                                    /* index into `order` */
 var LETTER=["A","B","C","D","E","F"];
 
-/* ============================================================
-   The mark on the back of the cards
-
-   A hand-drawn approximation of the LAHSA logo: three figures beside a pentagon
-   carrying four dots, over the gold wordmark band. Drawn rather than embedded
-   because this page fetches nothing — if the real artwork lands in the repo,
-   inline it as a data URI and delete this.
-   ============================================================ */
-var LAHSA=(function(){
-  /* head plus a bell-shaped gown, the way the logo draws them. The white figure
-     takes a stroke in the field colour so it reads as a figure standing in front
-     of the pentagon rather than melting into it. */
-  function person(x,top,w,h,fill,edge){
-    var r=w*0.40, hy=top+r;
-    return '<g fill="'+fill+'"'+(edge?' stroke="'+edge+'" stroke-width="3.4" stroke-linejoin="round"':'')+'>'+
-      '<circle cx="'+x+'" cy="'+hy+'" r="'+r+'"/>'+
-      '<path d="M'+(x-w*0.46)+' '+(hy+r+3)+
-        ' q'+(w*0.46)+' -'+(r*1.05)+' '+(w*0.92)+' 0'+
-        ' l'+(w*0.20)+' '+h+
-        ' h-'+(w*1.32)+' z"/></g>';
-  }
-  return '<svg viewBox="0 0 140 104" aria-hidden="true">'+
-    '<path d="M70 17 L124 13 L133 55 L96 97 L64 60 Z" fill="#fff"/>'+
-    '<circle cx="92" cy="66" r="6.4" fill="#b9a432"/>'+
-    '<circle cx="107" cy="56" r="7.2" fill="#b9a432"/>'+
-    '<circle cx="119" cy="43" r="6" fill="#b9a432"/>'+
-    '<circle cx="121" cy="26" r="4.4" fill="#b9a432"/>'+
-    person(15, 36, 16, 38, "#b9a432")+
-    person(38, 22, 18, 52, "#b9a432")+
-    person(67, 27, 20, 47, "#fff", "#2a6d8e")+
-  '</svg>';
-})();
 var reduced=!!(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches);
 var timers=[];
 
@@ -518,8 +489,7 @@ function deal(){
   hand.innerHTML=deck.map(function(a,i){
     return '<button class="card'+(reduced?" up":"")+'" type="button" data-ok="'+(a.ok?"1":"0")+'" '+
              'aria-disabled="true" tabindex="-1">'+
-             '<span class="face back" aria-hidden="true">'+
-               '<span class="mark">'+LAHSA+'</span><span class="band">LAHSA</span></span>'+
+             '<span class="face back" aria-hidden="true"><span class="mark"></span></span>'+
              '<span class="face front">'+
                '<span class="idx" aria-hidden="true">'+LETTER[i]+'</span>'+
                '<span class="txt">'+esc(a.t)+'</span>'+
