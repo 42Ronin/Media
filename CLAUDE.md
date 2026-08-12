@@ -616,6 +616,15 @@ together, the learner picks one, and the feedback is the sentence the script alr
   object.
   **There is no label over the reading.** "THE READING" named what the learner was plainly
   looking at, and the room it took is better spent on her.
+  **Her viewBox is cropped to her drawing.** Her ink measures 71.5 × 61 in the 100-square box
+  the SVG was authored in, so a third of her was nothing — cropping is 1.3× of size for no
+  layout at all, and the square keeps a margin the bob and the tilt move inside.
+  **She cannot be doubled.** The ball's contents are centred in it, so growing her pushes the
+  reading and the button toward the rim, and the ink leaves the glass somewhere past 110px.
+  108 with the cropped box is about 1.6× what she was; a literal 2× needs a ball near 490,
+  which would hang over the answers. Measured, not guessed — and measure the *ink* (line rects
+  via a Range, the button's own box), never `.inner`'s corners: it is a full-width flex box, so
+  its corners sit outside the circle while everything drawn in it is comfortably inside.
   **Where the reservation goes is the whole layout problem.** A 380 ball has to have 380 of
   room, and the page is mostly the state where she is *not* there. Reserved in flow it left
   one long drop to the cards; the question is **centred** in the slot instead, so the same
@@ -625,16 +634,22 @@ together, the learner picks one, and the feedback is the sentence the script alr
   than as depth. Nothing moves between the two states; `orb.mjs` asserts it.
   **The overlap is measured against the first rendered line of every answer**, in every taken
   position — a Range over the text, not the box, because the box is flex-filled and says
-  nothing. The floor is ~9px. Two things had eaten it invisibly: the **taken card rises**
-  (22px and scale 1.07 put its first line inside the ball, on the one card the learner most
-  wants to read — now 12px and 1.04), and the answer was **centred in the card**. It is set
-  from the card's bottom now, which bought ~48px.
-  **Below that, every vertical is one budget.** The room between the question and the first
-  line of an answer is fixed by the ball. Shortening the card walks its top down and that
-  room stops being card and becomes white gap, one pixel for one; `.spread` keeps its height
-  for the same reason, since the cards are bottom-aligned in it and shrinking the box walks
-  every card upward. Card reads better than void, so the card keeps its height and the gap
-  takes the squeeze — 167px down to ~94.
+  nothing. The floor is ~9px. One thing had eaten it invisibly: the **taken card rises**, and
+  22px with scale 1.07 put its own first line inside the ball, on the one card the learner
+  most wants to read. 12px and 1.04 now. It survived an earlier measuring pass because that
+  pass always took the card in position A.
+  **Where the answer sits in the card and how big the white gap is are the same number.** The
+  ball has to clear the first line, so every pixel the text rises the whole spread drops.
+  Measured on a 242px card: text hung from the bottom is 83px of gap, centred 106, set to the
+  top 132. Bottom-set was tried and rejected — it puts the blank in the card's top half, which
+  is the wrong half to spend it in. **Centred is the trade.** A shorter card does not help
+  either: it walks its own top down and that room stops being card and becomes white gap, one
+  for one. `.spread` keeps its height for the same reason — the cards are bottom-aligned in it,
+  so shrinking the box walks every card upward.
+  **Anything measuring the ball must wait for it to settle.** Its transition is a spring
+  (`cubic-bezier(.3,1.5,.45,1)`), so it overshoots to ~471 on the way in; a guard that waited
+  for "width > 375" measured mid-overshoot and every fit came back flattering. Wait for the
+  rendered width to match `offsetWidth`.
   **Sizing is arithmetic.** The content box is 68% × 73% of the ball, and (0.34/0.5)² +
   (0.365/0.5)² = 0.997 — anything under 1 is inside the curve. The table screen carries a
   second button and does not fit that box, so `.orb.table` trades width for height at 59% ×

@@ -66,7 +66,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    showed up as one long drop to the cards; centred, the same room is two short ones
    and neither reads as a gap. The ball covers the question either way — it is 380
    tall over a 106 pill. */
-.slot{position:relative;z-index:5;height:233px;
+.slot{position:relative;z-index:5;height:280px;
   display:flex;align-items:center;justify-content:center}
 
 /* The question, plainly — the way it was before any of this. */
@@ -142,7 +142,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* She is not here while the learner is choosing — she turns up in the ball with
    the reading, lit like everything else in there. Her costume sits on the RIM,
    never over the glass: a scarf across her face covers her lashes. */
-.lashy{flex:none;width:88px;height:88px;position:relative;
+/* 108 with the cropped viewBox is about 1.6x the size she was. Twice does not fit:
+   the ball's contents are centred in it, so growing her pushes the reading and the
+   button toward the rim, and the ink leaves the glass somewhere past 110. Doubling
+   her outright needs a ball nearer 490, which would hang over the answers. */
+.lashy{flex:none;width:108px;height:108px;position:relative;
   filter:drop-shadow(0 0 22px rgba(150,230,255,.85)) drop-shadow(0 0 44px rgba(90,190,240,.5))}
 /* When she is away her box collapses, or the question sits 44px below the centre
    of the ball with nothing above it. Nothing else is beside her, so there is no
@@ -161,8 +165,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ============================================================
    Under it, on the page
    ============================================================ */
-.footrow{display:flex;align-items:center;gap:14px;width:100%;max-width:620px;
-  margin:24px auto 0}
+.footrow{display:flex;align-items:center;justify-content:center;gap:14px;
+  width:100%;margin:38px auto 0}
 .stones{display:flex;gap:9px}
 .stone{width:15px;height:15px;transform:rotate(45deg);border-radius:3px;
   background:radial-gradient(circle at 34% 30%, #e2e9ee, #c2cfd8 70%);
@@ -196,11 +200,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* The spread keeps its height even though the cards got shorter. They are bottom-
    aligned in it, so shrinking the box walks every card upward — and the clearance
    under the ball is measured from the card bottoms. */
-/* The card stays tall. Everything vertical here trades against one thing: the ball
-   hangs over the row above the spread, so the room between the question and the
-   first line of an answer is fixed. Shortening the card walks its top DOWN — that
-   room stops being card and becomes white gap, one pixel for one. Card reads better
-   than void, so the card keeps its height and the gap gets the squeeze. */
+/* Everything vertical here trades against one thing: the ball hangs over the row
+   above the spread, so the room between the question and the first line of an
+   answer is fixed. A shorter card does not help — it walks its own top down and
+   that room stops being card and becomes white gap, one pixel for one. */
 .tcard{position:relative;width:186px;height:242px;margin:0 10px;padding:0;background:none;
   transform-style:preserve-3d;cursor:default;
   transform:rotate(var(--tilt)) translateY(var(--lift,0));
@@ -228,11 +231,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   transform:rotateY(180deg);display:flex;flex-direction:column;padding:16px 15px 14px;
   box-shadow:0 14px 30px rgba(16,34,46,.26), inset 0 0 0 1.5px rgba(201,164,75,.55)}
 .tfront .idx{font-size:11.5px;font-weight:800;letter-spacing:.14em;color:#9b7d33}
-/* The answer sits low on the card, not centred in it. The ball hangs over the
-   row above the spread, and every pixel the text sits lower is a pixel the gap
-   between the question and the cards can lose. */
-.tfront .txt{flex:1;display:flex;align-items:flex-end;font-size:14.5px;line-height:1.44;
-  padding:8px 0 10px}
+/* The answer is centred in the card. It hung from the bottom to buy clearance under
+   the ball, and that put the blank in the card's top half, which is the wrong half
+   to spend it in. Where the text sits and how big the white gap above the spread is
+   are the same number: the ball has to clear the first line, so every pixel the text
+   rises the whole spread has to drop. Measured, on this card: bottom-set 83px of
+   gap, centred 106, top-set 132. Centred is the trade. */
+.tfront .txt{flex:1;display:flex;align-items:center;font-size:14.5px;line-height:1.44;
+  padding:8px 0 8px}
 /* One line: "Your card — correct" wrapped and was clipped by the card's fixed
    height, on the one card a learner most wants to read. */
 .tfront .mark{height:18px;white-space:nowrap;font-size:11.5px;font-weight:800;
@@ -295,7 +301,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
 
 @media(max-width:700px){
-  .slot{height:232px}
+  .slot{height:279px}
   .orb{top:172px;width:340px;height:340px}
   .tcard{width:160px;height:230px;margin:0 6px}
 }
@@ -398,7 +404,11 @@ var COSTUME=
 
 function svg(eyes,mouth){
   var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
-  return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
+  /* Cropped to the drawing. Her ink measures 71.5 x 61 in a 100-square box, so a
+     100-square viewBox spent a third of her on nothing — this is 1.3x of size for
+     no layout at all. The square is centred on the ink with a margin the bob and
+     the tilt can move inside. */
+  return '<svg viewBox="0.25 3.5 76 76" aria-hidden="true">'+
     '<g class="m-body">'+
       '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
       '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
