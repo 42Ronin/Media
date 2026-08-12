@@ -276,12 +276,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
 .m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
 .m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
-/* A dealer's visor. Whatever she wears uses the same envelope: on the rim, never
-   over the glass, above every lash at every x. She is called Lashes. */
-.m-visor{fill:#1f8a5f}
-.m-visor-lip{fill:none;stroke:#0d5637;stroke-width:1.6;stroke-linecap:round}
-.m-band{fill:none;stroke:#c9a44b;stroke-width:3;stroke-linecap:round}
-.m-hoop{fill:none;stroke:#c9a44b;stroke-width:2.4}
 .m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
 @keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
   25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
@@ -385,11 +379,10 @@ var EYES={
 var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
            wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
 
-var COSTUME=
-  '<path class="m-visor" d="M17.4 26 A31 31 0 0 1 70.5 26 Q44 31 17.4 26 Z"/>'+
-  '<path class="m-visor-lip" d="M18.6 26.6 Q44 31.4 69.3 26.6"/>'+
-  '<path class="m-band" d="M18.4 24.2 Q44 28.6 69.6 24.2"/>'+
-  '<circle class="m-hoop" cx="68" cy="63" r="6"/>';
+/* No costume at this table. The teller dresses her because the ball is a scene she
+   is inside; here she is the mark struck on a chip, and a chip's inlay is a face,
+   not a character in a hat. This is the lesson's drawing, untouched. */
+var COSTUME="";
 
 function svg(eyes,mouth){
   var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;

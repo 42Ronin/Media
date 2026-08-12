@@ -708,9 +708,11 @@ together, the learner picks one, and the feedback is the sentence the script alr
   before the card is taken.
   **Nothing hangs over the spread**, which is why this staging has none of the ball's clearance
   arithmetic: the answers are centred in their cards because there is nothing to clear.
-  **Her costume is a dealer's visor, not the teller's headscarf** — and it uses the teller's
-  envelope, because the rule that put the scarf there holds for anything she wears: on the rim,
-  never over the glass, above every lash at every x. She is called Lashes.
+  **She wears nothing at this table.** The teller dresses her because the ball is a scene she
+  is inside; here she is the mark struck on a chip, and a chip's inlay is a face, not a
+  character in a hat. The lesson's drawing, untouched. (If anything is ever put on her here,
+  the teller's rule governs it: on the rim, never over the glass, above every lash at every x.
+  She is called Lashes.)
 - **`TILT[i]` was read straight and the maker allows five answers.** `TILT` has three entries,
   so a four-answer question set `--tilt:undefined`, which makes `rotate(var(--tilt))` an
   invalid transform — the whole declaration is dropped, **including the `rotateY(180deg)` that
