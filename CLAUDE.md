@@ -528,7 +528,18 @@ together, the learner picks one, and the feedback is the sentence the script alr
   character crossing the panel. That is also why the end screen has no question bubble: it
   would be a second bubble with nobody beside it. `test.mjs` counts `.lashy svg` at every
   stage and it is always 1.
-- **The feedback lays over the hand, it does not arrive under it.** As a new row it grew the
+- **The feedback takes the question's slot, not the hand's.** It lays over the question and
+  the question fades out beneath it, so **the cards stay on screen and marked** — the
+  learner reads the reason and looks back at what they picked at the same time, which is
+  the whole teaching value of marking them. It used to cover the cards and re-state them in
+  words (*You took A…*); that line is gone, because it was a workaround for hiding the
+  thing it was describing.
+- **`.mark` belongs to the front of the card only.** The back's crest was briefly given the
+  same class, and the back comes first in the DOM, so `querySelector('.mark')` wrote every
+  *Your card* / *The one to take* label onto the face nobody was looking at. The lookup is
+  `.front .mark` now and the back's element is `.crest`. `test.mjs` asserts the back holds
+  no text.
+- **The earlier arrangement, for the record: the feedback lay over the hand.** As a new row it grew the
   block ~150px on every pick, which shunts everything below it in Rise. `#said` is now
   absolutely positioned inside `#stage`, and the panel names the card taken in words
   (*You took A. The one to take was B.*) because the marks on the cards are behind it.

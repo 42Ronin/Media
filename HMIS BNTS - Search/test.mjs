@@ -1985,37 +1985,42 @@ ok('she turns up with the feedback, and only there',
    await lashCount() === 1 && await kc.evaluate(() => whereIs === 'lashy2'),
    (await lashCount()) + ' at ' + await kc.evaluate(() => whereIs));
 
-/* The hand goes to nothing under the panel rather than being masked by it. Masking
-   left the picked card's 10px lift and its coloured ring showing past the panel's
-   edge, which reads as a rendering fault — so the invariant is that there is
-   nothing behind the panel to show through, not that the panel is opaque. */
-ok('the hand fades out under the feedback rather than being masked by it',
-   await kc.evaluate(() => Number(getComputedStyle(document.querySelector('#hand')).opacity) === 0));
+/* Nothing shows through the panel's edges because the question behind it fades to
+   nothing — masking it left artefacts poking out, which read as a rendering fault. */
+ok('the question fades out under the feedback rather than being masked by it',
+   await kc.evaluate(() => Number(getComputedStyle(document.querySelector('.ask')).opacity) === 0));
 
 /* The reported defect: the feedback arrived as a new row under the cards and grew
-   the block by about 150px, which shunts everything below it in Rise. It lays over
-   the hand now. Measuring the panel is the canary — asserting the feedback is
-   merely visible would pass either way. */
-ok('the feedback lays over the hand rather than growing the block',
+   the block by about 150px, which shunts everything below it in Rise. It replaces
+   the question now, in the same slot. Measuring the block is the canary — asserting
+   the feedback is merely visible would pass either way. */
+ok('the feedback replaces the question rather than growing the block',
    await feltH() === beforePick, beforePick + 'px before, ' + await feltH() + 'px after');
-/* It shares the stage with the hand and is bounded by it, rather than sitting in
-   flow underneath. The stage is a little taller than the cards on purpose — it is
-   sized for the longest feedback too — so the stage is what to measure against. */
-ok('...over it, not under it', await kc.evaluate(() => {
-  const s = document.querySelector('#said'), st = document.querySelector('#stage');
+/* It takes the question's slot, above the hand — not the hand's. */
+ok('...in the question\'s place, above the cards', await kc.evaluate(() => {
+  const s = document.querySelector('#said'), d = document.querySelector('#dealer');
   const h = document.querySelector('#hand');
-  const sr = s.getBoundingClientRect(), tr = st.getBoundingClientRect();
-  const hr = h.getBoundingClientRect();
+  const sr = s.getBoundingClientRect(), dr = d.getBoundingClientRect();
   return getComputedStyle(s).position === 'absolute' &&
-         sr.top >= tr.top - 1 && sr.bottom <= tr.bottom + 1 &&
-         sr.top <= hr.top + 1;          /* it covers the cards, not just sits near them */
+         sr.top >= dr.top - 1 && sr.bottom <= dr.bottom + 1 &&
+         sr.bottom <= h.getBoundingClientRect().top + 1;
 }));
-/* The card marks are behind the panel now, so the panel has to say in words which
-   card was taken and which was the one to take. */
-ok('...and names the card they took, since the marks are behind it',
-   /You took\s+\w\b/.test(await kc.textContent('#took')) &&
-   (await kc.textContent('#took')).includes('The one to take was'),
-   await kc.textContent('#took'));
+/* The whole point of moving it: the cards stay put, marked, so the learner can
+   read the reason and look back at what they picked at the same time. */
+ok('...leaving the cards on screen and marked', await kc.evaluate(() => {
+  const cards = [...document.querySelectorAll('.card')];
+  const vis = Number(getComputedStyle(document.querySelector('#hand')).opacity) === 1;
+  const mine = cards.find(c => c.classList.contains('picked'));
+  const right = cards.find(c => c.classList.contains('shown'));
+  return vis && !!mine && !!right &&
+         mine.querySelector('.front .mark').textContent.trim() === 'Your card' &&
+         right.querySelector('.front .mark').textContent.trim() === 'The one to take';
+}));
+/* The back's crest and the front's label used to share the class name, and the
+   back comes first in the DOM, so every label was written to the wrong face. */
+ok('...on the front of the card, not the back',
+   await kc.evaluate(() => [...document.querySelectorAll('.card')]
+     .every(c => c.querySelector('.back').textContent.trim() === '')));
 
 /* Miss a second, then take the rest. Four of six is the interesting case: five of
    six is 83% and clears the mark, which is the point of rounding it up to whole
@@ -2041,7 +2046,7 @@ await kcHost.waitForTimeout(900);
 
 ok('she is at the reading, and the question row has gone with her',
    await lashCount() === 1 && await kc.evaluate(() =>
-     whereIs === 'lashy3' && document.querySelector('.dealer').hidden),
+     whereIs === 'lashy3' && document.querySelector('#dealer').hidden),
    (await lashCount()) + ' at ' + await kc.evaluate(() => whereIs));
 ok('four of six is short of the mark, and it says so',
    (await kc.textContent('#score')).includes('4 of 6') &&

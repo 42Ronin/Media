@@ -69,7 +69,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* She is not here any more — she turns up for the feedback and for the reading,
    and the question pill takes the width she was using. */
-.dealer{margin-bottom:18px}
+/* Sized for the taller of the two things that live here — the question, and the
+   feedback that replaces it. The cards below never move, so a learner can sit on
+   the feedback and look back at what they picked for as long as they like. */
+.dealer{position:relative;margin-bottom:18px;min-height:217px}
 /* Two slots hold her — beside the feedback and beside the reading — and only one
    ever does. She is not present for the question at all: she turns up to react,
    which is a stronger entrance than standing there waiting, and it gives the
@@ -130,10 +133,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   /* gold trim, taken from the wordmark band on the logo */
   box-shadow:0 8px 22px rgba(6,104,136,.16),
     inset 0 0 0 2px var(--lahsa-gold), inset 0 0 0 3.5px rgba(255,255,255,.10)}
-.back .mark{width:54px;height:54px;border-radius:50%;
+/* `crest`, not `mark` — the front already has a `.mark` (the "Your card" label)
+   and the back comes first in the DOM, so sharing the name sent every label to
+   the wrong face of the card. */
+.back .crest{width:54px;height:54px;border-radius:50%;
   border:2.5px solid var(--lahsa-gold);
   display:flex;align-items:center;justify-content:center}
-.back .mark::after{content:"";display:block;width:19px;height:19px;
+.back .crest::after{content:"";display:block;width:19px;height:19px;
   border-radius:3px;background:var(--lahsa-gold);transform:rotate(45deg)}
 .front{background:var(--panel);transform:rotateY(180deg);
   display:flex;flex-direction:column;padding:16px 15px 14px;text-align:left}
@@ -164,8 +170,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    which turns backface culling off and shows the back of a card that is face up. */
 .card.rest .front{opacity:.55}
 .hand.done .card,.hand.done .card:hover{cursor:default}
-.hand{transition:opacity .26s}
-.stage.showing .hand{opacity:0;pointer-events:none}
+.ask{transition:opacity .24s}
+.dealer.showing .ask{opacity:0}
 
 /* ---------- feedback ----------
    It lays over the hand, not under it. Arriving as a new row grew the block by
@@ -173,28 +179,23 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    Rise and reads as the page jumping rather than the answer landing. */
 /* Tall enough for the cards AND for the longest feedback, so the overlay never
    spills past the stage and the felt is the same height either way. */
-.stage{position:relative;min-height:252px}
+.stage{position:relative}
 /* shared by the hand's feedback and the reading at the end */
 .said{display:flex;align-items:center;gap:14px}
-/* only the one over the hand is an overlay; the reading sits in normal flow */
-.stage .said{position:absolute;inset:0;z-index:3;border-radius:16px;
+/* only the one over the question is an overlay; the reading sits in normal flow */
+.dealer .said{position:absolute;inset:0;z-index:3;border-radius:16px;
   /* the felt colour, near-opaque — the marked cards ghost through rather than
      vanishing, so what you took is still suggested behind the reason */
-  /* No backdrop of its own. The hand fades out underneath instead — masking it
-     left the picked card's lift and its ring poking out past the panel's edge,
-     which read as a rendering fault. */
+  /* No backdrop of its own: the question fades out underneath instead. Nothing
+     behind it means nothing can show through its edges. */
   opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px);
   transition:opacity .28s,transform .34s cubic-bezier(.2,1.2,.4,1),visibility 0s .3s}
-.stage .said.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;
+.dealer .said.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;
   transition-delay:0s}
 .said .bub{flex:1;min-width:0;background:var(--panel);border-radius:17px;padding:14px 18px;
   border-left:5px solid var(--ok);
   box-shadow:0 8px 24px rgba(6,104,136,.13),0 1px 3px rgba(6,104,136,.12)}
 .said.no .bub{border-left-color:var(--bad)}
-/* Which card they took, in words — the marks on the cards are behind the panel
-   now, so the panel has to carry that fact itself. */
-.said .took{font-size:13.5px;color:var(--mut);margin-bottom:7px}
-.said .took b{color:var(--ink);font-weight:600}
 .said .verdict{font-weight:700;color:var(--ok);margin-bottom:4px}
 .said.no .verdict{color:var(--bad)}
 .said .foot{display:flex;justify-content:flex-end;margin-top:12px;padding-top:11px;
@@ -255,28 +256,28 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   </div>
 
   <div class="felt">
-    <div class="dealer">
+    <!-- The question and the feedback share the top slot: one replaces the other
+         in place, so the block never grows AND the cards stay where they are,
+         marked, for as long as the learner wants to look at them. -->
+    <div class="dealer" id="dealer">
       <div class="ask">
         <div class="qn" id="qn"></div>
         <div class="qt" id="qt"></div>
         <div class="qs" id="qs" hidden></div>
       </div>
-    </div>
-
-    <!-- The hand and the feedback share one stage. The feedback lays over the
-         cards rather than arriving under them, so the block never grows. -->
-    <div class="stage" id="stage">
-      <div class="hand" id="hand" role="group" aria-labelledby="qt"></div>
 
       <div class="said" id="said">
         <div class="lashy" id="lashy2" aria-hidden="true"></div>
         <div class="bub">
           <div class="verdict" id="verdict"></div>
-          <div class="took" id="took"></div>
           <div id="fb"></div>
           <div class="foot"><button class="go" id="next"></button></div>
         </div>
       </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="hand" id="hand" role="group" aria-labelledby="qt"></div>
     </div>
 
     <div id="end" hidden>
@@ -474,7 +475,7 @@ function deal(){
   var deck=shuffle(q.a);
 
   $("#said").classList.remove("on");
-  $("#stage").classList.remove("showing");
+  $("#dealer").classList.remove("showing");
   $("#end").hidden=true;
   $(".dealer").hidden=false;
   $("#stage").hidden=false;
@@ -489,7 +490,7 @@ function deal(){
   hand.innerHTML=deck.map(function(a,i){
     return '<button class="card'+(reduced?" up":"")+'" type="button" data-ok="'+(a.ok?"1":"0")+'" '+
              'aria-disabled="true" tabindex="-1">'+
-             '<span class="face back" aria-hidden="true"><span class="mark"></span></span>'+
+             '<span class="face back" aria-hidden="true"><span class="crest"></span></span>'+
              '<span class="face front">'+
                '<span class="idx" aria-hidden="true">'+LETTER[i]+'</span>'+
                '<span class="txt">'+esc(a.t)+'</span>'+
@@ -529,14 +530,11 @@ function pick(card,cards,q){
   var right=card.dataset.ok==="1";
   got[order[at]]=right;
 
-  var tookLetter="", rightLetter="";
-  cards.forEach(function(c,i){
+  cards.forEach(function(c){
     c.setAttribute("aria-disabled","true"); c.tabIndex=-1;
     c.classList.add("up");
-    var mark=c.querySelector(".mark");
-    if(c.dataset.ok==="1") rightLetter=LETTER[i];
+    var mark=c.querySelector(".front .mark");
     if(c===card){
-      tookLetter=LETTER[i];
       c.classList.add("picked", right?"right":"wrong");
       mark.textContent=right?"Your card — correct":"Your card";
     }else if(c.dataset.ok==="1"){
@@ -550,9 +548,6 @@ function pick(card,cards,q){
   paintHead();
   $("#said").className="said"+(right?"":" no");
   $("#verdict").textContent = right ? "That is the one." : "Not that one.";
-  $("#took").innerHTML = right
-    ? "You took <b>"+tookLetter+"</b>."
-    : "You took <b>"+tookLetter+"</b>. The one to take was <b>"+rightLetter+"</b>.";
   $("#fb").textContent = q.fb;
 
   var last=(at>=order.length-1);
@@ -565,7 +560,7 @@ function pick(card,cards,q){
      the marks stay visible through the panel's own fade, so the pause only has to
      be long enough to register the card, not long enough to read it. */
   later(function(){
-    $("#stage").classList.add("showing");
+    $("#dealer").classList.add("showing");
     $("#said").classList.add("on");
     lashesArrive("lashy2", right?"sparkle":"droll", right?"cheer":"wry");
     later(function(){ $("#next").focus(); }, 60);
@@ -589,7 +584,7 @@ function finish(){
   $("#hand").innerHTML="";
   $("#hand").className="hand";
   $("#said").classList.remove("on");
-  $("#stage").classList.remove("showing");
+  $("#dealer").classList.remove("showing");
   /* the whole stage goes: no hand to lay anything over */
   $("#stage").hidden=true;
   /* The question row goes entirely: there is no question left to ask, and leaving
