@@ -9,7 +9,7 @@ Begin mounts the simulation into a srcdoc iframe and requests full screen. The
 simulation itself is not in the template — it is base64'd into the empty
 `#payload` script at build time, so a launcher can never ship a stale build.
 
-Output is `dist/section-<n>-launcher.zip`, which is what Rise wants:
+Output is `dist/<simulator>-launcher.zip`, which is what Rise wants:
 Code block -> Upload project, one block per section. Re-import after any change;
 Rise runs the copy it imported, not the file on disk.
 """
@@ -29,7 +29,7 @@ TITLE = "Section {n} \u2014 Hands-on Simulations"
 
 
 def build(section: int, shell: str) -> None:
-    src = BUILDS / f"section-{section}.html"
+    src = BUILDS / f"{section}.html"
     if not src.exists():
         raise SystemExit(f"no build to wrap — run ./build.sh first ({src} missing)")
 
@@ -57,8 +57,8 @@ def build(section: int, shell: str) -> None:
     out = out.replace(".m-glass{fill:#dceaee;opacity:.85}", ".m-glass{fill:#e0eff5;opacity:1}")
 
     OUT_DIR.mkdir(exist_ok=True)
-    page = OUT_DIR / f"section-{section}-index.html"
-    zip_path = OUT_DIR / f"section-{section}-launcher.zip"
+    page = OUT_DIR / f"{section}-index.html"
+    zip_path = OUT_DIR / f"{section}-launcher.zip"
     page.write_text(out, encoding="utf-8")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
         z.write(page, "index.html")
@@ -68,7 +68,7 @@ def build(section: int, shell: str) -> None:
 
 shell_html = TEMPLATE.read_text(encoding="utf-8")
 wanted = [int(a) for a in sys.argv[1:]] or sorted(
-    int(m.group(1)) for m in (re.match(r"section-(\d+)\.html$", f.name) for f in BUILDS.glob("section-*.html")) if m
+    m.group(1) for m in (re.match(r"(simulator-\d+)\.html$", f.name) for f in BUILDS.glob("simulator-*.html")) if m
 )
 if not wanted:
     raise SystemExit("no section builds found in dist/ — run ./build.sh first")

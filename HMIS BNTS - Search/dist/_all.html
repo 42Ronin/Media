@@ -370,13 +370,21 @@ tbody tr.open{background:var(--indigo-soft)}
    goes wherever the thing she is reacting to happens to be. */
 html.step{--dock:0px}
 html.step .coach{display:none}
-/* She is not confined to the interface here. The block gives her a lane of her
-   own beside it — no panel is competing for the space, so she can sit properly
-   in it rather than tucking into a corner of a table. */
-html.step .app{top:0;left:0;right:380px;bottom:0}
+/* An embed is a block in a Rise page: it gets the column's full width, and the
+   author sets its height. So the interface fills the frame edge to edge, and the
+   instruction sits ABOVE it rather than in a lane beside it — a 380px side rail
+   inside an embed spends a third of the width on one sentence, and left the free-
+   play block with a dead gutter where the training panel used to be. */
+html.step .app{top:var(--steph,132px);left:0;right:0;bottom:0}
+html.play .app{top:0}
 html.step .lzlayer{display:none}
-.steppane{position:fixed;top:0;right:0;width:380px;bottom:0;z-index:170;
-  padding:18px 18px 18px 0;display:flex;flex-direction:column;gap:12px;overflow:auto}
+/* Free play: no way into a record, so none of the row's controls either. The
+   expander and the row menu are taught later in the script — showing them here,
+   inert, teaches the wrong thing about what a control does. */
+html.play .cwrap{cursor:default}
+html.play [data-exp],html.play [data-rowmenu],html.play .hhicon{display:none}
+.steppane{position:fixed;top:0;left:0;right:0;z-index:170;
+  padding:14px 16px 10px;display:flex;flex-direction:column;gap:10px}
 .stepcard{background:#fff;border-radius:14px;padding:16px 18px;font-size:15.5px;line-height:1.6;
   color:var(--coach-ink);box-shadow:0 8px 26px var(--teal-glow),0 1px 3px rgba(20,34,43,.08)}
 .stepcard b{display:block;font-size:12px;letter-spacing:.09em;text-transform:uppercase;
@@ -971,11 +979,18 @@ var SECTION = 0;
    launched. Rise carries the slide's text; this carries the doing. No training
    panel, because the text above it is the panel. */
 var STEP = null;
+/* A free-play build: the search bar and the results, and nothing else. No tasks,
+   no panel, no scoring, and rows do not open — the learner types to watch the list
+   move, which is the one thing the script asks for at "Now You Try". */
+var PLAY = false;
 /* 0 is every section in one page. It is not a deliverable — nothing ships it —
    but the test suite walks all thirteen tasks in order, and splitting that across
    two pages would lose the checkpoint that sits on the seam between them. */
+/* No section numbers on screen: the script dropped them, and the panel is the one
+   place a learner would read one. */
+var SIM_TITLE = {7:"Practice: Finding a Participant", 10:"Practice: Verifying a Record"};
 var SECTION_TITLE = SECTION
-  ? "Section " + SECTION + " \u2014 Hands-on Simulations"
+  ? (SIM_TITLE[SECTION] || "Practice")
   : "Finding a Participant \u2014 all sections";
 var CLIENTS = DATA.clients;
 var TODAY = new Date("2026-07-24T00:00:00");
@@ -1760,65 +1775,65 @@ var TOURS={
   act:function(){ if(window.setPanelMin){ setPanelMin(true); foldedPanel=true; } },
   /* No introduction: they met her in the course intro, and each section adds only
      what is new. A greeting, and what the next few minutes are for. */
-  html:'<p>Welcome to HMIS Clarity.</p>'+
-       '<p>This is a practice copy. A few things look different \u2014 but every step you take '+
-       'here is the step you will take in the real system. Let me show you round.</p>' },
+  html:"<p>Welcome to HMIS Clarity.</p><p>This is a practice copy. A few things look "+
+        "different, but every step you take here is the step you will take in the real system. "+
+        "Let me show you around.</p>" },
 { anchor:"search", eyes:"open", mouth:"tip", move:"dropin",
-  html:'<p>What follows is a practice version of Clarity. It behaves the way the real system '+
-       'behaves. Everyone in it is invented \u2014 nothing you do here touches a real record.</p>' },
+  html:"<p>What follows is a practice version of Clarity. It behaves the way the real system "+
+        "behaves. Everyone in it is invented. Nothing you do here touches a real record.</p>" },
 { anchor:"panel", eyes:"open", mouth:"plain", move:"lean",
-  html:'<p>You will be given {{COUNT_LOWER}} situations. Each one is a person standing in front '+
-       'of you and something they have told you. Your job is to find their record \u2014 and, '+
-       'later, to prove it is the right one.</p>' },
+  html:"<p>You will be given eight situations. Each one is a person standing in front of you "+
+        "and something they have told you. Your job is to find their record and, later, to "+
+        "prove it is the right one.</p>" },
 { anchor:"search", eyes:"wide", mouth:"plain", move:"hop", point:true,
   /* Typed a character at a time, so they watch the list narrow as it goes. */
   act:function(){ demoSearch(); },
-  html:'<p>The practice roster holds three hundred people. The live system holds hundreds of '+
-       'thousands. A search that returns a readable handful here can return pages there \u2014 '+
-       'so the habit to build is to narrow the search before you scan, not to scroll page '+
-       'after page.</p>' },
+  html:"<p>The practice roster holds three hundred people. The live system holds hundreds of "+
+        "thousands. A search that returns a readable handful here can return pages there. So "+
+        "the habit to build is to narrow the search before you scan, not to scroll page after "+
+        "page.</p>" },
 /* NOT IN THE SCRIPT, and requested rather than invented: three beats on what the
    field will take, typed out live so the learner sees the list respond rather than
    being told that it does. The grammar they demonstrate is the lesson's whole
    technique, so it is worth the thirty seconds. */
 { anchor:"results", eyes:"glance", mouth:"tip", point:true,
   act:function(){ var d=demoClient(); if(d) typeQuery(d.l+" "+d.f.slice(0,3)); },
-  html:'<p>Add a second word and it narrows. Every word has to match, but each one may '+
-       'match a different field \u2014 a surname and the first few letters of a first name '+
-       'is usually enough.</p>' },
+  html:"<p>Add a second word and it narrows. Every word has to match, but each one may match a "+
+        "different field. A last name and the first few letters of a first name is usually "+
+        "enough.</p>" },
 { anchor:"results", eyes:"open", mouth:"plain", point:true,
   act:function(){ var d=demoClient(); if(d) typeQuery(d.d.slice(0,4)); },
-  html:'<p>It is not only names. A year of birth works. So does a full date. So do the '+
-       '<b>last four digits of a Social Security Number</b> \u2014 often the only part '+
-       'somebody can remember, and enough on its own to cut a long list down.</p>' },
+  html:"<p>It is not only names. A year of birth works. So does a full date. So do the <b>last "+
+        "four digits of a Social Security Number</b>. Often the only part somebody can "+
+        "remember, and enough on its own to cut a long list down.</p>" },
 { anchor:"results", eyes:"wide", mouth:"tip", point:true,
   act:function(){ var d=demoClient(); if(d) typeQuery(d.l+" "+d.d.slice(0,4)); },
-  html:'<p>And any of them combine. Name and year. Surname and the last four. A first name '+
-       'and a date. Every word you add has to match, so each one narrows what is left \u2014 '+
-       'which is how you get a page of results down to a handful you can actually read.</p>' },
+  html:"<p>And any of them combine. Name and year. Last name and the last four. A first name "+
+        "and a date. Every word you add has to match, so each one narrows what is left. That is "+
+        "how you get a page of results down to a handful you can actually read.</p>" },
 /* NOT IN THE SCRIPT, and requested rather than invented: a walk through a record
    before the first task, so nobody meets the profile for the first time while being
    marked on it. She opens somebody who is not the answer to anything, names what is
    on the page, looks at where he has been contacted, and puts it back. */
 { anchor:"recname", eyes:"open", mouth:"plain", point:true,
   act:function(){ demoDo(function(){ var d=demoClient(); if(d) openProfile(d.i); }); },
-  html:'<p>Opening a row opens their record. This is not anybody you will be asked for \u2014 '+
-       'it is just to show you the shape of the page before you need it.</p>' },
+  html:"<p>Opening a row opens their record. This is not anybody you will be asked for. It is "+
+        "just to show you the shape of the page before you need it.</p>" },
 /* No arrow on these two: they describe a whole panel rather than a control, and an
    arrow aimed at a region lands on whichever field happens to be under it. */
 { anchor:"profile", eyes:"glance", mouth:"tip",
-  html:'<p>The top half is who they are: name, date of birth, age, Social Security Number and '+
-       'the quality codes beside each one. Those codes say how good the information is, and '+
-       'they are what tells you a record is thin rather than wrong.</p>' },
+  html:"<p>The top half is who they are: name, date of birth, age, Social Security Number, and "+
+        "the quality codes beside each one. Those codes say how good the information is, and "+
+        "they are what tells you a record is thin rather than wrong.</p>" },
 { anchor:"tabs", eyes:"open", mouth:"plain", point:true,
   act:function(){ demoDo(function(){ var d=demoClient(); if(d) showRecordTab("Location", d); }); },
-  html:'<p>Down the left are the rest of their record. Most are dimmed \u2014 clicking a dimmed '+
-       'control does nothing at all, and each lesson clears the part it teaches. Location is '+
-       'open, because where somebody has been contacted is often what settles who they are.</p>' },
+  html:"<p>Down the left are the rest of their record. Most are dimmed. Clicking a dimmed "+
+        "control does nothing at all, and each lesson clears the part it teaches. Location is "+
+        "open because where somebody has been contacted is often what settles who they are.</p>" },
 { anchor:"loclist", eyes:"wide", mouth:"plain",
-  html:'<p>Every place they have been recorded, with the date and who wrote it down. If somebody tells '+
-       'you they have been sleeping under a bridge, this is where you find out whether the record '+
-       'agrees with him.</p>' },
+  html:"<p>Every place they have been recorded, with the date and who wrote it down. If "+
+        "somebody tells you they have been sleeping under a bridge, this is where you find out "+
+        "whether the record agrees with them.</p>" },
 /* NOT IN THE SCRIPT. Slide 7.1 does not cover getting back, and every task after
    the first one starts by needing to: the learner opens a record, reads it, and
    has to return to Client Search. The simulation explains both shortcuts when you
@@ -1831,7 +1846,7 @@ var TOURS={
   html:'<p>Opening a client takes you off the search screen. This magnifying glass in the '+
        'top bar brings you back to Client Search from anywhere in the system.</p>' },
 { anchor:"clientsicon", eyes:"open", mouth:"plain", point:true,
-  html:'<p>So does this \u2014 the Clients icon at the top of the left rail. Either one works.</p>' },
+  html:"<p>So does this. The Clients icon at the top of the left rail. Either one works.</p>" },
 /* ALSO NOT IN THE SCRIPT, and flagged the same way as the two above. The panel is
    ours rather than the product's, so nothing in 7.1 describes it; a learner who
    cannot move it out of the way will work around it instead, and the last beat is
@@ -1839,9 +1854,9 @@ var TOURS={
 { anchor:"popout", eyes:"open", mouth:"plain", point:true,
   /* put the interface back the way the learner will find it */
   act:function(){ demoDo(demoReset); },
-  html:'<p>This panel is not part of Clarity \u2014 it is me. Drag it by its title bar to move '+
-       'it wherever suits you, or use this to pop it free of the edge. Nothing underneath it '+
-       'moves either way.</p>' },
+  html:"<p>This panel is not part of Clarity. It is me. Drag it by its title bar to move it "+
+        "wherever suits you, or use this to pop it free of the edge. Nothing underneath it "+
+        "moves either way.</p>" },
 { anchor:"minimise", eyes:"glance", mouth:"tip", point:true,
   html:'<p>And this rolls it up to just the title bar. The same button brings it back, with '+
        'your place kept.</p>' },
@@ -1887,39 +1902,27 @@ var SCENARIO_META={
 };
 
 var STEPS={
-/* `does` is the slide's "Learner does", verbatim — that is the guiding
-   information, and it belongs in the block rather than being left blank.
-   `html` is its "What happens", shown once they have done it. */
-"11.1":{ phases:[
+/* One per [Task Embed] in the script. `does` is the slide's instruction and `html`
+   is the feedback the script attaches to it — shown as her popup once the learner
+   has done the thing. An embed with no feedback in the script has no `html`, and
+   simply completes. */
+"1":{ phases:[
   { does:'<p>Searches <b>Desmond Carrow</b>. Then <b>Carrow</b> on its own.</p>',
     until:rowsAre(function(r,q){ return r.length===0 && q.indexOf("carrow")>-1; }),
-    html:'<p>Nothing, either way. The empty state says No results yet and that is all it says.</p>' }
+    html:'<p>An empty list is not proof this person has no record.</p>' }
 ]},
-"11.2":{ phases:[
-  { does:'<p>Searches <b>Dez Carrow</b>. Then the year on its own.</p>',
-    until:rowsAre(function(r,q){ return q.indexOf("1974")>-1 || (q.indexOf("dez")>-1 && q.indexOf("carrow")>-1); }),
-    html:'<p>Nothing. Carrow reaches nobody, so any search containing it reaches nobody either \u2014 '+
-         'every word has to match. The year returns a long list, and no Carrow is in it, because there '+
-         'is no Carrow to find.</p>' }
-]},
-"11.3":{ phases:[
-  { does:'<p>Searches <b>Dez</b> on its own.</p>',
-    until:rowsAre(function(r){ return r.length===5 && r.every(function(c){ return /^dez/i.test(c.f); }); }),
-    html:'<p>Five records \u2014 Dezirae, Dezra, Dezhawn, and two men called Dezmond.</p>' }
-]},
-"11.4":{ phases:[
-  { does:'<p>Adds <b>1974</b> to the fragment.</p>',
+"2":{ phases:[
+  { does:'<p>Searches the fragment <b>Dez</b> with the year, <b>1974</b>.</p>',
     until:rowsAre(function(r){ return r.length===2 && r.every(function(c){ return c.f==="Dezmond"; }); }),
-    html:'<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on '+
-         'file. Nothing he has told you separates them.</p>' },
-  { does:'<p>Goes back to him.</p>',
-    chat:[{who:"me",   text:"Where have you been staying?"},
-          {who:"them", text:"The underpass \u2014 the same block your team has been working for two days."}],
-    doesAfter:'<p>Opens both records and reads the Location tab.</p>',
-    until:function(){ return S.open==="UID#3906EMKLW"; },
-    html:'<p>When the identifiers run out, the rest of the record is what identifies somebody. And there '+
-         'it is \u2014 the contact somebody logged the day they took his details, and the referral he has '+
-         'been asking about ever since. He was never missing. He was four searches away.</p>' }
+    html:'<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number '+
+         'on file. Nothing he has told you separates them.</p>' }
+]},
+/* No feedback on this one in the script, so none here. Either route settles it:
+   the Location tab, or the Point of Contact who took his details. */
+"3":{ phases:[
+  { does:'<p>Opens each record in turn and compares the <b>Location</b> tab and the '+
+         '<b>Point of Contact</b> against what he has said.</p>',
+    until:function(){ return S.open==="UID#3906EMKLW"; } }
 ]}};
 
 /* Watches for the step's condition the same way a beat does, and for the same
@@ -1939,12 +1942,15 @@ var STEPRUN=(function(){
   }
   function land(){
     var ph=def.phases[i];
-    $("#stepRes").innerHTML="<b>What happens</b>"+ph.html;
-    $("#stepRes").hidden=false;
+    if(ph.html){
+      $("#stepRes").innerHTML="<b>What happens</b>"+ph.html;
+      $("#stepRes").hidden=false;
+    }
     i++;
     if(i<def.phases.length){ at=S.tick; prompt(); }
     else{
       $("#stepDo").hidden=true;
+      if($("#stepRes").hidden){ $("#stepRes").innerHTML=""; $("#stepRes").hidden=false; }
       $("#stepRes").insertAdjacentHTML("beforeend",'<p class="stepdone">Done. Carry on below.</p>');
       finished=true;
       EMBED.complete(true,1);
@@ -1955,6 +1961,16 @@ var STEPRUN=(function(){
       def=STEPS[STEP]; if(!def) return;
       $("#stepPane").hidden=false;
       at=S.tick; prompt();
+      /* The interface starts below the instruction rather than beside it, so it
+         has to know how tall the instruction is — and that changes when the
+         feedback lands. Measured, not assumed. */
+      var fit=function(){
+        document.documentElement.style.setProperty(
+          "--steph", Math.ceil($("#stepPane").getBoundingClientRect().height)+"px");
+      };
+      fit();
+      if(window.ResizeObserver) new ResizeObserver(fit).observe($("#stepPane"));
+      window.addEventListener("resize", fit);
     },
     check:function(){
       if(!def||finished||S.tick<=at) return;
@@ -2060,93 +2076,146 @@ var TASKS=[
 { id:"nickname", sec:7, title:"The name he gave you",
   brief:'A man at the front desk says <span class="q">"Everyone calls me Lefty. Lefty Torres. I stayed here last winter."</span> You type <code>Lefty</code>. Nothing comes back.',
   ask:"Find his record and open it.",
-  hint:"The name he gave you isn't the name on the record, and no alias was ever recorded for him. Drop it and search the surname on its own — <code>Tor</code> is enough.",
+  hint:"The name he gave you is not the name on the record, and no alias was ever recorded for "+
+        "him. Drop it and search the last name on its own. <code>Tor</code> is enough.",
   expect:{type:"open", id:"UID#1988ZLAPR"},
-  teach:"An empty result is not proof that someone is new. He is filed under his legal name, <b>Michael Torres</b>, with no alias on the record. Ask what else a participant has been called — a middle name, a second last name, a nickname, a shortening — and confirm the spelling of each. "+
-        "Typing <code>Lefty Torres</code> fails too: every word must match, so a word that matches nothing guarantees an empty list."
+  teach:"An empty result is not proof that someone is new. He is filed under his legal name, "+
+        "<b>Michael Torres</b>, with no alias on the record. Ask what else a participant has "+
+        "been called. A middle name, a second last name, a nickname, a shortening. Confirm the "+
+        "spelling of each. Typing <code>Lefty Torres</code> fails too: every word must match, "+
+        "so a word that matches nothing guarantees an empty list."
 },
 { id:"year", sec:7, title:"When the last name may have changed",
-  brief:'A woman says everyone calls her <span class="q">Kate.</span> She thinks her record may be under a former married name but isn\'t sure which. She knows she was born in <b>1985</b>.',
+  brief:"A woman says everyone calls her <span class=\"q\">Kate.</span> She thinks her record may "+
+        "be under a former married name but is not sure which. She knows she was born in "+
+        "<b>1985</b>.",
   ask:"Find and open her record.",
-  hint:"Start from one piece of information you trust. A year works on its own — <code>1985</code>, or just <code>85</code>.",
+  hint:"Start from one piece of information you trust. A year works on its own: "+
+        "<code>1985</code>, or just <code>85</code>.",
   expect:{type:"open", id:"UID#0935CZBLF"},
   teach:"She is filed as <b>Katherine Morrison</b>. Starting from a single reliable fact is the documented approach, and a year alone narrows three hundred records to a list you can read by eye."
 },
 { id:"last4", sec:7, title:"Starting from the last four of the SSN",
-  brief:'A woman gives her name as <span class="q">Danielle</span> and the last four of her Social Security Number: <b>7742</b>. She is not sure how her surname was spelled when she enrolled.',
+  brief:"A woman gives her name as <span class=\"q\">Danielle</span> and the last four of her "+
+        "Social Security Number: <b>7742</b>. She is not sure how her last name was spelled "+
+        "when she enrolled.",
   ask:"Find and open her record.",
-  hint:"Search the four digits on their own. Two people share them — use her first name to tell them apart.",
+  hint:"Search the four digits on their own. Two people share them. Use her first name to tell "+
+        "them apart.",
   expect:{type:"open", id:"UID#1485RDFXA"},
-  wrong:{"UID#5933AQRLV":"That's Marcus Pell — his SSN also ends 7742. A shared fragment narrows the list; it does not decide it."},
+  wrong:{"UID#5933AQRLV":"That is Marcus Pell. His SSN also ends 7742. A shared fragment narrows the list; it "+
+        "does not decide it."},
   teach:"Searching the last four is one of the documented starting points, and it works even when the name is unreliable. But a four-digit fragment is not unique: two people here end 7742. Narrow with it, then confirm on something else."
 },
 { id:"fragments", sec:7, title:"A name you cannot spell",
   brief:'A man gives his name as <span class="q">Krzysztof Wojciechowski.</span> You try your best guess at the spelling and get nothing.',
   ask:"Find and open his record.",
-  hint:"You do not need the whole name. The first few letters of each is enough — the same way <code>kat joh</code> finds Katherine Johnson.",
+  hint:"You do not need the whole name. The first few letters of each is enough. The same way "+
+        "<code>kat joh</code> finds Katherine Johnson.",
   expect:{type:"open", id:"UID#8645CJASU"},
-  teach:"Short fragments beat full names, because a full name has to be spelled the way somebody else typed it and a fragment does not. <code>krz woj</code> reaches him immediately."
+  teach:"Short fragments beat full names because a full name has to be spelled the way somebody "+
+        "else typed it and a fragment does not. <code>krz woj</code> reaches him immediately."
 },
 { id:"narrow", sec:7, title:"Too many results",
-  brief:'A woman gives her surname as <span class="q">Garcia.</span> You search it and get twelve records across two pages. She tells you her first name is <b>Esperanza</b>.',
+  brief:"A woman gives her last name as <span class=\"q\">Garcia.</span> You search it and get "+
+        "twelve records across two pages. She tells you her first name is <b>Esperanza</b>.",
   ask:"Narrow the search and open her record.",
-  hint:"Add a second term rather than starting again. Surname plus the first few letters of the first name will do it.",
+  hint:"Add a second term rather than starting again. Last name plus the first few letters of "+
+        "the first name will do it.",
   expect:{type:"open", id:"UID#2067CZKLL"},
-  teach:"When a search returns more than you can read, add another term — a first name, a middle name, a second last name, an SSN fragment, a date of birth. Adding narrows; you rarely need to start over."
+  teach:"When a search returns more than you can read, add another term. A first name, a middle "+
+        "name, a second last name, an SSN fragment, a date of birth. Adding narrows; you rarely "+
+        "need to start over."
 },
 { id:"swap", sec:7, title:"Nothing comes back",
   brief:'A man says he is <span class="q">Adrian Fenwick</span> and gives his date of birth as <b>04/12/1988</b>. Searching that date returns nothing. He also remembers the last four of his SSN: <b>5518</b>.',
   ask:"Find and open his record.",
   hint:"When a search returns nothing, replace one piece of information with another rather than adding to it. Swap the date of birth for the SSN fragment.",
   expect:{type:"open", id:"UID#9279TEDVJ"},
-  teach:"His record holds 12/04/1988 — the month and day the other way round, which is how dates get mistyped everywhere. When you get nothing, swap an identifier rather than piling more on: date of birth for last four of the SSN, first name for last."
+  teach:"His record holds 12/04/1988. The month and day are the other way round, which is how "+
+        "dates get mistyped everywhere. When you get nothing, swap an identifier rather than "+
+        "piling more on: date of birth for last four of the SSN, first name for last."
 },
 { id:"spelling", sec:7, title:"Spelled the way someone else heard it",
   brief:'A woman introduces herself as <span class="q">Cathleen Brennan.</span> Searching <code>Cathleen</code> returns nothing.',
   ask:"Find and open her record.",
   hint:"A previous provider may have written it down differently. Try the other spelling of that first sound.",
   expect:{type:"open", id:"UID#7734QCBZT"},
-  teach:"She is filed as <b>Kathleen</b>. The swaps worth trying first are the ones people make without noticing: <b>C and K</b>, <b>I and Y</b> — Catherine and Katherine, Jonson and Johnson. Try the alternate spelling before you conclude anyone is new."
+  teach:"She is filed as <b>Kathleen</b>. The swaps worth trying first are the ones people make "+
+        "without noticing: <b>C and K</b>, <b>I and Y</b>. Catherine and Katherine, Jonson and "+
+        "Johnson. Try the alternate spelling before you conclude anyone is new."
 },
 { id:"surname", sec:7, title:"A surname typed as one word",
   brief:'A caseworker asks you to pull up <span class="q">Maria de la Cruz.</span> You search <code>Cruz</code>, then <code>Maria Cruz</code>. Both come back empty.',
   ask:"Find and open her record.",
-  hint:"Her surname was typed as a single word. Search the fragment common to every spelling — <code>dela</code> — or drop the surname and search her first name.",
+  hint:"Her last name was typed as a single word. Search the fragment common to every "+
+        "spelling: <code>dela</code>. Or drop the last name and search her first name.",
   expect:{type:"open", id:"UID#5268GUCMQ"},
-  teach:"She is filed as <b>Maria Delacruz</b>, one word. Search matches from the start of a name, so <code>Cruz</code> never reaches it. Second last names and compound surnames get entered differently by every agency — search the distinctive fragment, or the first name."
+  teach:"She is filed as <b>Maria Delacruz</b>, one word. Search matches from the start of a "+
+        "name, so <code>Cruz</code> never reaches it. Second last names and compound last names "+
+        "get entered differently by every agency. Search the distinctive fragment, or the first "+
+        "name."
 },
 { id:"samename", sec:10, title:"Two people, one name",
   brief:'A man says he is <span class="q">James Wilson.</span> He gives his date of birth as 9/2/1968 and the last four of his SSN as 4471.',
   ask:"Open the correct James Wilson.",
-  hint:"Narrow it with what he told you — the fragment <code>4471</code>, or the date of birth — or read the SSN and DOB columns and compare.",
+  hint:"Narrow it with what he told you. The fragment <code>4471</code>, or the date of birth. "+
+        "Or read the SSN and DOB columns and compare.",
   expect:{type:"open", id:"UID#5007LBGBH"},
-  wrong:{"UID#7030TTZUM":"That's the other James Wilson — born 4/17/1991, SSN ending 9038. Two records sharing a name are not automatically duplicates."},
-  teach:"These are two different people. As a rule of thumb a record is a match when at least <b>two of the three</b> — name, date of birth, SSN — match the participant. A name on its own is never enough."
+  wrong:{"UID#7030TTZUM":"That is the other James Wilson. Born 4/17/1991, SSN ending 9038. Two records sharing a "+
+        "name are not automatically duplicates."},
+  teach:"These are two different people. As a rule of thumb, a record is a match when at least "+
+        "<b>two of the three</b> (name, date of birth, SSN) match the participant. A name on "+
+        "its own is never enough."
 },
 { id:"household", sec:10, title:"When the identifiers are thin",
   brief:'A woman says her name is <span class="q">Yolanda Amari.</span> She does not know her Social Security Number and is unsure of her exact date of birth. She mentions her daughter, <b>Iris</b>, who is with her.',
   ask:"Open the record that belongs to the mother.",
-  hint:"Search the surname, then open a row's chevron to see its household members. The record you want lists Iris.",
+  hint:"Search the last name, then open a row's chevron to see its household members. The "+
+        "record you want lists Iris.",
   expect:{type:"open", id:"UID#9197GHPYC"},
-  wrong:{"UID#3846JQQXA":"That's Iris — the daughter. You are looking for the record that lists Iris as a household member, not Iris's own record."},
-  teach:"When name, date of birth and SSN cannot settle it, the record holds other things you can confirm with the participant: household members, program history, case notes, location, veteran status. Here the household is what identifies her."
+  wrong:{"UID#3846JQQXA":"That is Iris, the daughter. You are looking for the record that lists Iris as a "+
+        "household member, not Iris's own record."},
+  teach:"When name, date of birth, and SSN cannot settle it, the record holds other things you "+
+        "can confirm with the participant: household members, program history, case notes, "+
+        "location, veteran status. Here the household is what identifies her."
 },
 { id:"location", sec:10, title:"Where they have been staying",
-  brief:'A man gives his name as <span class="q">David Nguyen.</span> Two records come back — both David Nguyen, both born in 1982. He does not know his Social Security Number and cannot remember which agency he last worked with. He does tell you he has been staying by the wash under the <b>6th Street bridge</b>, and has been for about a year.',
+  brief:"A man gives his name as <span class=\"q\">David Nguyen.</span> Two records come back. "+
+        "Both David Nguyen, both born in 1982. He does not know his Social Security Number and "+
+        "cannot remember which agency he last worked with. He does tell you he has been staying "+
+        "by the wash under the <b>6th Street bridge</b>, and has been for about a year.",
   ask:"Open the record whose location history matches where he has been staying.",
-  hint:"Name and date of birth cannot separate these two. Open each record, go to the <b>Location</b> tab, and compare — one of them has been contacted at the 6th Street bridge.",
+  hint:"Name and date of birth cannot separate these two. Open each record, go to the "+
+        "<b>Location</b> tab, and compare. One of them has been contacted at the 6th Street "+
+        "bridge.",
   expect:{type:"open", id:"UID#2524YDABQ"},
-  teach:"When name and date of birth cannot separate two records, the rest of the record can. In outreach, location is often the fastest of them: where someone has been contacted before is a fact you can both check, and it does not ask the participant to remember an agency name or a date. "+
-        "Confirm it with them rather than assuming. People move, and a location recorded a year ago proves less than one recorded last month — treat it as one identifier among several, not as the answer on its own."
+  teach:"When name and date of birth cannot separate two records, the rest of the record can. "+
+        "In outreach, location is often the fastest of them: where someone has been contacted "+
+        "before is a fact you can both check, and it does not ask the participant to remember "+
+        "an agency name or a date. Confirm it with them rather than assuming. People move, and "+
+        "a location recorded a year ago proves less than one recorded last month. Treat it as "+
+        "one identifier among several, not as the answer on its own."
 },
 { id:"smoke", sec:10, title:"Everything at once",
-  brief:'A man introduces himself as <span class="q">Smoke.</span> It is the only name anyone out here uses for him. Pressed, he gives a last name — <b>Reyes</b>, he thinks, though it might have been written down as Reyez or Rios. He does not know his date of birth beyond the year, <b>1971</b>, and he will not give a Social Security Number. He does tell you he served — Army, a long time ago.',
+  brief:"A man introduces himself as <span class=\"q\">Smoke.</span> It is the only name anyone "+
+        "out here uses for him. Pressed, he gives a last name. <b>Reyes</b>, he thinks, though "+
+        "it might have been written down as Reyez or Rios. He does not know his date of birth "+
+        "beyond the year, <b>1971</b>, and he will not give a Social Security Number. He does "+
+        "tell you he served. Army, a long time ago.",
   ask:"Find his record and open it.",
-  hint:"Nothing you have been given finds him on its own. The first three letters are the same in all three spellings — search <code>Rey</code>, then use the year and the Veteran Status column to cut the list down.",
+  hint:"Nothing you have been given finds him on its own. The first three letters are the same "+
+        "in all three spellings. Search <code>Rey</code>, then use the year and the Veteran "+
+        "Status column to cut the list down.",
   expect:{type:"open", id:"UID#0763PPKNR"},
-  teach:"This is the real thing. No date of birth, no Social Security Number, a street name that is on no record, and a surname three plausible spellings deep. What is left is a fragment, a year, and one fact he volunteered — he is filed as <b>Elias Reyez</b>. "+
-        "Veteran status is worth remembering precisely because it is the kind of thing people tell you without being asked. When the identifiers are thin, the thing they mentioned in passing is often what closes it. "+
-        "And notice what you did not do: you did not conclude he was new because a search came back empty. You cleared the box and typed something else, and then did it again."
+  teach:"This is the real thing. No date of birth, no Social Security Number, a street name "+
+        "that is on no record, and a last name three plausible spellings deep. What is left is "+
+        "a fragment, a year, and one fact he volunteered. He is filed as <b>Elias Reyez</b>. "+
+        "Veteran status is worth remembering precisely because it is the kind of thing people "+
+        "tell you without being asked. When the identifiers are thin, the thing they mentioned "+
+        "in passing is often what closes it. And notice what you did not do: you did not "+
+        "conclude he was new because a search came back empty. You cleared the box and typed "+
+        "something else, and then did it again."
 },
 { id:"desmond", sec:11, title:"Somebody nobody can find",
   brief:'Second morning of the cleanup. You are packing up when you see him again \u2014 <span class="q">Desmond</span>, '+
@@ -2170,12 +2239,15 @@ var TASKS=[
 { id:"several", sec:10, title:"More than one record matches",
   brief:'You search <span class="q">Vega</span> and find three records. All three are Rosalind Vega, born 4/11/1983. All three appear to be the same person.',
   ask:"Open the record you would work from.",
-  hint:"Choose the most complete one — full SSN, full date of birth, full name, an alias, the fullest history. Open a row's chevron and the record page to compare.",
+  hint:"Choose the most complete one. Full SSN, full date of birth, full name, an alias, the "+
+        "fullest history. Open a row's chevron and the record page to compare.",
   expect:{type:"open", id:"UID#2400YEPCC"},
   wrong:{"UID#7295UEJLQ":"That record has only a partial SSN and no alias. A more complete record exists.",
          "UID#7485MGJTB":"That record has no SSN on file at all, and it is the newest. A more complete record exists."},
-  teach:"Work from the <b>most complete</b> record — full SSN, full date of birth, full name, full program history. Where that is unclear, take the one with the <b>longest enrollment history</b>, based on the oldest enrollment. "+
-        "Note the Unique Identifiers of the others as you go, so you are not starting from nothing if it comes up again."
+  teach:"Work from the <b>most complete</b> record. Full SSN, full date of birth, full name, "+
+        "full program history. Where that is unclear, take the one with the <b>longest "+
+        "enrollment history</b>, based on the oldest enrollment. Note the Unique Identifiers of "+
+        "the others as you go, so you are not starting from nothing if it comes up again."
 }];
 
 var ALL_TASKS=TASKS;
@@ -2644,10 +2716,11 @@ function nextTask(){
   renderCoach();
 }
 var CLOSING={
-  7:'<p style="margin:0 0 16px">You searched on a name fragment, on a year, on four digits of a Social Security Number, '+
-    'and on a name that had been typed a different way. You narrowed a search that returned too much, and you swapped an '+
-    'identifier when a search returned nothing.</p>'+
-    '<p style="margin:0 0 16px">Finding a candidate record is not the same as finding the right one. That is what comes next.</p>',
+  7:"You searched on a name fragment, on a year, on four digits of a Social Security "+
+        "Number, and on a name that had been typed a different way. You narrowed a search that "+
+        "returned too much, and you swapped an identifier when a search returned "+
+        "nothing.</p><p>Finding a candidate record is not the same as finding the right one. "+
+        "That is what comes next.</p><p>",
   10:'<p style="margin:0 0 16px">You told two people with the same name apart on a second identifier. You identified someone '+
     'whose record held almost no identifiers, using her household. You confirmed another on where he had been staying. '+
     'You chose between three records that all matched. And you found someone the identifiers could not reach at all, from '+
@@ -2848,7 +2921,7 @@ $("#tb").addEventListener("click",function(e){
   }
   var exp=e.target.closest("[data-exp]");
   if(exp){ var id=exp.dataset.exp; S.expanded[id]=!S.expanded[id]; renderTable(); return; }
-  var op=e.target.closest("[data-open]");
+  var op=PLAY ? null : e.target.closest("[data-open]");
   if(op){ openProfile(op.dataset.open); return; }
   var tr=e.target.closest("[data-row]");
   if(tr) openProfile(tr.dataset.row);
@@ -2989,6 +3062,10 @@ function renderPOC(c){
   $("#pocBlock").innerHTML=html;
 }
 function openProfile(id){
+  /* Free play has no record page. Guarding here rather than only on the click
+     catches every other way in — the recents list, a keyboard activation, the
+     unique-identifier lookup — instead of the one path I happened to think of. */
+  if(PLAY) return;
   var c=byId(id); if(!c) return;
   S.open=id; S.tick++;
   S.recent=[id].concat(S.recent.filter(function(x){return x!==id;})).slice(0,5);
@@ -3602,15 +3679,17 @@ document.addEventListener("keydown",function(e){
 /* boot */
 document.title=SECTION_TITLE;
 $("#secTitle").textContent=SECTION_TITLE;
-if(STEP) document.documentElement.classList.add("step");
+if(STEP || PLAY) document.documentElement.classList.add("step");
+if(PLAY) document.documentElement.classList.add("play");
 LZ.boot();
 renderChips(); renderTable();
-if(!STEP) renderCoach();
+if(!STEP && !PLAY) renderCoach();
 /* When the orientation finishes into a task bank rather than straight into a
    scenario, the first situation is already sitting in the window behind her —
    she just leaves. Pulse it once so the learner's eye goes there instead of
    to an empty screen. */
-if(STEP){ STEPRUN.start(); }
+if(PLAY){ /* nothing to run: it is a sandbox */ }
+else if(STEP){ STEPRUN.start(); }
 else if(TOUR) BEAT.run(TOUR, SCENARIOS[SECTION] ? function(){ BEAT.run(SCENARIOS[SECTION]); } : pulseWin);
 else if(SCENARIOS[SECTION]) BEAT.run(SCENARIOS[SECTION]);
 EMBED.ready(TASKS.length);

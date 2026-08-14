@@ -35,18 +35,19 @@
 -->
 <style>
 :root{
-  --felt:#166b4b; --felt-dk:#0c4630; --felt-ink:#e8f7ee;
-  --rail:#7d5a2c; --rail-lt:#a8813f;
+  --felt:#1a7350; --felt-dk:#0d4a33; --felt-ink:#eaf7ee;
+  --line:rgba(236,212,137,.34);            /* the paint on the felt */
+  --leather:#5f4224; --leather-lt:#8a6335;
   --gold:#c9a44b; --gold-lt:#ecd489; --gold-dk:#8a6d22;
   --card:#f7f0df; --card-ink:#2b2320;
-  --say:#f6f1e4; --say-ink:#241d17;
-  --ink:#1e2f3a; --mut:#5f7787;
+  --win:#1f8a5f; --lose:#a5352c;
+  --ink:#1e2f3a;
   --focus:#7fd8ff;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
 html,body{margin:0;padding:0}
-/* transparent — Rise owns the page */
+/* transparent — Rise owns the page. The table is a bounded object on it. */
 body{font:15.5px/1.62 Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
   color:var(--ink);background:var(--stage-bg,transparent);-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -57,79 +58,58 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .frame{max-width:940px;margin:0 auto;padding:10px 16px 22px}
 
 /* ============================================================
-   The table
+   The table: a padded leather rail all the way round the felt.
 
-   A rail across the top with the dealer behind it, felt below. The curve is the
-   whole reason it reads as a table rather than a green box: the top edge is the
-   arc a dealer stands inside.
+   The rail used to be a brown bar across the top, because she stood behind it.
+   She does not stand anywhere now — she arrives on a chip — so the rail went
+   back to being what a rail is: the edge of the table, on every side.
    ============================================================ */
-.table{position:relative;border-radius:26px 26px 34px 34px;padding:0 0 22px;
-  background:
-    radial-gradient(120% 78% at 50% 4%, #1d7d59 0%, var(--felt) 44%, var(--felt-dk) 100%);
-  box-shadow:0 26px 54px rgba(10,40,28,.28), 0 2px 0 rgba(255,255,255,.12) inset,
-    0 0 0 1px rgba(9,52,36,.5);
-  overflow:hidden}
-/* the rail: brass over wood, curved to hold the dealer's station */
-.rail{position:relative;height:96px;
-  background:linear-gradient(180deg,var(--rail-lt),var(--rail) 58%,#5d4220);
-  box-shadow:inset 0 -3px 0 rgba(0,0,0,.28), inset 0 2px 0 rgba(255,255,255,.28)}
-.rail::after{content:"";position:absolute;left:-6%;right:-6%;bottom:-38px;height:76px;
-  border-radius:50%;background:radial-gradient(60% 100% at 50% 0,#1d7d59,var(--felt) 70%);
-  box-shadow:0 -3px 0 rgba(255,255,255,.14) inset}
-/* the felt's own arc, drawn once under the rail so the seam is a curve not a line */
-.arc{position:absolute;left:6%;right:6%;top:74px;height:120px;border-radius:50%;
-  border-top:2px solid rgba(236,212,137,.28);pointer-events:none}
+.table{border-radius:34px;padding:15px;
+  background:linear-gradient(180deg,var(--leather-lt),var(--leather) 40%,#3c2916);
+  box-shadow:0 26px 54px rgba(10,40,28,.3), inset 0 2px 0 rgba(255,255,255,.22),
+    inset 0 -3px 0 rgba(0,0,0,.35)}
+.felt{position:relative;border-radius:22px;padding:22px 22px 20px;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 0%, #22855e 0%, var(--felt) 46%, var(--felt-dk) 100%);
+  box-shadow:inset 0 6px 18px rgba(0,0,0,.34), inset 0 0 0 1px rgba(9,52,36,.6)}
+/* the arc a dealer works inside, painted on the felt like the rest of the markings */
+.felt::before{content:"";position:absolute;left:-14%;right:-14%;top:-46%;height:150%;
+  border-radius:50%;border-bottom:2px solid var(--line);pointer-events:none;opacity:.7}
 
 /* ============================================================
-   The dealer's station: her, and the one bubble she speaks in
-   ============================================================ */
-.station{position:relative;z-index:3;display:flex;align-items:flex-start;gap:20px;
-  max-width:820px;margin:-70px auto 0;padding:0 22px}
-/* She stands at the rail — half over it, which is what puts her BEHIND the table
-   rather than on it. */
-.lashy{flex:none;width:118px;height:118px;position:relative;
-  filter:drop-shadow(0 10px 18px rgba(8,36,24,.45))}
-.lashy svg{width:100%;height:100%;display:block;overflow:visible}
-.lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
-.lashy .puff{position:absolute;left:4%;top:2%;width:90%;height:90%;border-radius:50%;
-  border:2.5px solid rgba(255,236,190,.75);opacity:0;pointer-events:none}
-.lashy.in .mface{animation:poofIn .5s cubic-bezier(.3,1.45,.5,1)}
-.lashy.in .puff{animation:puffRing .5s ease-out}
-@keyframes poofIn{0%{transform:scale(.7) rotate(-12deg);opacity:0}
-  60%{transform:scale(1.06) rotate(4deg);opacity:1}100%{transform:none;opacity:1}}
-@keyframes puffRing{0%{transform:scale(.4);opacity:.6}100%{transform:scale(1.5);opacity:0}}
+   What she says: one box, two things in it
 
-/* One bubble, two things in it. They are stacked in a single grid cell and
-   cross-faded rather than swapped: the bubble is then as tall as the TALLER of
-   the two, so the table cannot move when the hand turns over. Positioning the
-   feedback absolutely instead left the bubble at the question's height and put
-   the Next button out on the felt. Between hands the height may change — that
-   happens while the cards are flying in from the rail, so there is nothing
-   settled on the table for it to move. */
-.bubble{position:relative;flex:1;min-width:0;margin-top:26px;display:grid;
-  background:var(--say);color:var(--say-ink);border-radius:16px;padding:15px 20px;
-  box-shadow:0 14px 28px rgba(8,36,24,.3), inset 0 0 0 1px rgba(120,92,40,.22)}
-/* the tail, pointing back at the dealer */
-.bubble::before{content:"";position:absolute;left:-11px;top:24px;width:0;height:0;
-  border:11px solid transparent;border-right-color:var(--say);border-left:0}
-/* `visibility` as well as opacity: the hidden layer has to keep its box — that is
-   what makes the bubble the taller of the two — but a transparent element is still
-   in the accessibility tree, and the reading must not be readable before the card
-   is taken. Visibility is switched at the END of the fade out and the START of the
-   fade in, so neither transition snaps. */
-.layer{grid-area:1/1;transition:opacity .28s}
+   Stacked in a single grid cell and cross-faded, so the box is as tall as the
+   taller of them and the table cannot move when the hand turns over.
+   ============================================================ */
+.say{position:relative;z-index:3;display:grid;max-width:760px;margin:0 auto}
+.layer{grid-area:1/1;transition:opacity .3s}
+/* `visibility` as well as opacity: the hidden layer keeps its box — that is what
+   makes the box the taller of the two — but a transparent element is still in the
+   accessibility tree, and the reading must not be readable before the card is
+   taken. Switched at the end of the fade out, so neither transition snaps. */
 .layer.gone{opacity:0;visibility:hidden;pointer-events:none;
-  transition:opacity .28s, visibility 0s linear .28s}
+  transition:opacity .3s, visibility 0s linear .3s}
+
+/* The question is glass on the felt, not a slab laid over it: the green reads
+   through, which is what keeps the table one object. */
+.ask{align-self:start;background:rgba(4,38,25,.42);backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);color:var(--felt-ink);
+  border-radius:16px;padding:15px 20px;
+  box-shadow:inset 0 0 0 1px var(--line), 0 10px 22px rgba(4,30,20,.28)}
 .qn{margin:0 0 5px;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:#8a6a3a;font-weight:700}
+  color:#bfe6cf;font-weight:700}
 .qt{font-size:17.5px;line-height:1.45;font-weight:600}
+
+/* The reading: a chip on the felt, and what she says about it beside it. */
+.said{display:flex;align-items:flex-start;gap:20px}
+.saidtext{flex:1;min-width:0;padding-top:6px;color:var(--felt-ink)}
 .verdict{font-size:18px;font-weight:700;margin-bottom:5px}
-.verdict.good{color:#186c4a}
-.verdict.bad{color:#a5352c}
-.fb{font-size:14.5px;line-height:1.5}
+.verdict.good{color:#8ff0c0}
+.verdict.bad{color:#ffb9b0}
+.fb{font-size:14.5px;line-height:1.5;color:var(--felt-ink)}
 /* A question can ship with no feedback at all — the maker lets each one be
-   switched off. An empty box still costs the flex gap above the button, so it
-   goes entirely rather than leaving a hole where a paragraph was. */
+   switched off. Then the chip is the whole answer, and an empty box would only
+   leave a hole above the button. */
 .fb:empty{display:none}
 .foot{margin-top:12px;display:flex;flex-wrap:wrap;gap:9px}
 .tablebtns{display:contents}
@@ -139,20 +119,78 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   border-radius:10px;padding:9px 20px;font-size:14.5px;font-weight:700;transition:filter .15s;
   box-shadow:0 2px 0 var(--gold-dk)}
 .go:hover{filter:brightness(1.08)}
-.go.quiet{background:none;color:#6b5410;box-shadow:inset 0 0 0 1px rgba(140,110,30,.55)}
-.go.quiet:hover{background:rgba(201,164,75,.16)}
+.go.quiet{background:none;color:var(--gold-lt);
+  box-shadow:inset 0 0 0 1px rgba(236,212,137,.5)}
+.go.quiet:hover{background:rgba(236,212,137,.14)}
 
 /* ============================================================
-   The spread — cards laid on the felt
+   The chip
+
+   She arrives on it. A chip is what a table pays out in, so the verdict landing
+   as one is the table's own way of saying it — and when a question ships with no
+   feedback the chip is the entire answer, carrying a check or a cross instead of
+   her face.
+
+   The edge spots are a conic-gradient with hard stops, which converges to a star
+   at its own centre. That is fine HERE and nowhere else: the inlay is an opaque
+   disc over the middle, so the star is covered by construction.
    ============================================================ */
-.spread{position:relative;z-index:2;display:flex;justify-content:center;align-items:flex-end;
-  margin:26px auto 0;perspective:1400px;min-height:238px}
+.chip{flex:none;position:relative;width:132px;height:132px;border-radius:50%;
+  background:conic-gradient(var(--chip-edge) 0 12.5%, var(--chip) 0 25%,
+    var(--chip-edge) 0 37.5%, var(--chip) 0 50%, var(--chip-edge) 0 62.5%,
+    var(--chip) 0 75%, var(--chip-edge) 0 87.5%, var(--chip) 0);
+  box-shadow:0 12px 22px rgba(4,30,20,.5), inset 0 0 0 3px rgba(255,255,255,.2);
+  --chip:#7a7f86; --chip-edge:#e8ecef}
+.chip.win{--chip:var(--win); --chip-edge:#f2fbf5}
+.chip.lose{--chip:var(--lose); --chip-edge:#fdf1ef}
+/* the ring inside the spots, and the inlay the face sits on */
+.chip::before{content:"";position:absolute;inset:11px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.5)}
+.inlay{position:absolute;inset:18px;border-radius:50%;
+  background:radial-gradient(circle at 34% 26%, #fffdf6, #efe6cf 72%, #dcceac);
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.12), 0 2px 5px rgba(0,0,0,.22);
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* it is thrown onto the felt, and it spins */
+.said:not(.gone) .chip{animation:chipIn .55s cubic-bezier(.25,1.25,.4,1) both}
+@keyframes chipIn{
+  from{transform:translate(38px,-84px) rotate(-260deg) scale(.45);opacity:0}
+  to{transform:none;opacity:1}}
+
+.lashy{width:88%;height:88%;position:relative}
+.lashy svg{width:100%;height:100%;display:block;overflow:visible}
+.lashy .mface{display:block;width:100%;height:100%;transform-origin:44% 42%}
+/* The mark, for a question that ships without feedback. Drawn, not typed: a glyph
+   would arrive in whatever the reader's font has for it. */
+.mark-svg{width:56%;height:56%}
+.mark-svg path{fill:none;stroke-width:11;stroke-linecap:round;stroke-linejoin:round}
+.chip.win .mark-svg path{stroke:var(--win)}
+.chip.lose .mark-svg path{stroke:var(--lose)}
+
+/* ============================================================
+   The spread, and the places painted on the felt for it
+
+   A card table tells you where a card goes before there is a card there. The
+   outlines are generated with the hand, so they follow however many answers the
+   question was written with.
+   ============================================================ */
+.spreadwrap{position:relative;z-index:2;margin:26px auto 0}
+/* The outline FRAMES the card rather than sitting under it: 8px proud on every
+   side, and the box drops 8px lower so that margin is even top and bottom. Same
+   pitch as the cards (194+6 = 178+22 = 200), so they stay registered however many
+   answers the question was written with. */
+.places{position:absolute;inset:0 0 -8px 0;display:flex;justify-content:center;
+  align-items:flex-end;pointer-events:none}
+.place{width:194px;height:248px;margin:0 3px;border-radius:17px;
+  border:2px solid var(--line);
+  box-shadow:inset 0 0 22px rgba(0,0,0,.16)}
+.spread{position:relative;display:flex;justify-content:center;align-items:flex-end;
+  perspective:1400px;min-height:238px}
 .tcard{position:relative;width:178px;height:232px;margin:0 11px;padding:0;background:none;
   transform-style:preserve-3d;cursor:default;
-  transform:rotate(var(--tilt)) translateY(var(--lift,0));
+  transform:none;
   transition:transform .42s cubic-bezier(.22,1.1,.36,1)}
 .spread.live .tcard{cursor:pointer}
-.spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 16px))}
+.spread.live .tcard:hover{transform:translateY(-16px)}
 .tface{position:absolute;inset:0;border-radius:13px;backface-visibility:hidden;
   -webkit-backface-visibility:hidden;overflow:hidden;transition:opacity .35s;
   box-shadow:0 16px 26px rgba(6,34,22,.42), 0 2px 5px rgba(6,34,22,.3)}
@@ -180,20 +218,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tfront .mark{height:18px;white-space:nowrap;font-size:11.5px;font-weight:800;
   letter-spacing:.06em;text-transform:uppercase;color:transparent}
 
-.tcard.up{transform:rotate(var(--tilt)) translateY(var(--lift,0)) rotateY(180deg)}
+.tcard.up{transform:rotateY(180deg)}
 .spread.live .tcard.up:hover{
-  transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 16px)) rotateY(180deg)}
-/* dealt from her hand: in from the rail, not from nowhere */
+  transform:translateY(-16px) rotateY(180deg)}
+/* dealt onto the places, from the dealer's side */
 .tcard.dealt{animation:dealIn .52s cubic-bezier(.25,1.05,.35,1) backwards}
 @keyframes dealIn{
   from{transform:translate(0,-210px) rotate(-9deg) scale(.72);opacity:0}
-  to{transform:rotate(var(--tilt)) translateY(var(--lift,0));opacity:1}}
+  to{transform:none;opacity:1}}
 
-/* The taken card comes forward to the dealer. 12px and 1.04 — a bigger rise put
-   the card's own first line under things in the other staging, and there is no
-   reason to relearn that here. */
-.tcard.taken{z-index:2;transform:rotate(0deg) translateY(-12px) rotateY(180deg) scale(1.04)}
-.spread.done .tcard.taken:hover{transform:rotate(0deg) translateY(-12px) rotateY(180deg) scale(1.04)}
+.tcard.taken{z-index:2;transform:translateY(-12px) rotateY(180deg) scale(1.04)}
+.spread.done .tcard.taken:hover{transform:translateY(-12px) rotateY(180deg) scale(1.04)}
 .tcard.taken .tfront{box-shadow:0 26px 40px rgba(6,34,22,.5), inset 0 0 0 2px currentColor}
 .tcard.right .tfront{color:#1c7a55;background:#eef7ef}
 .tcard.right .mark{color:#1c7a55}
@@ -201,36 +236,36 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tcard.wrong .mark{color:#a5352c}
 /* NOT dimmed: this is the card they should have taken, and dimming it made the
    answer the least legible thing on the table. */
-.tcard.answer{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) - 6px)) rotateY(180deg)}
+.tcard.answer{transform:translateY(-6px) rotateY(180deg)}
 .tcard.answer .tfront{background:#f2faf3;
   box-shadow:0 20px 30px rgba(28,122,85,.34), inset 0 0 0 2px #1c7a55}
 .tcard.answer .mark{color:#1c7a55}
 /* Dim the FACES, never the card: opacity below 1 flattens a preserve-3d element,
    which turns backface culling off and shows the back of a card that is face up. */
 .tcard.spent .tface{opacity:.44;filter:saturate(.7)}
-.tcard.spent{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) + 14px)) rotateY(180deg) scale(.93)}
+/* Barely moved. The place is painted on the felt and stays put, so a card that
+   shrinks inside its own outline reads as a printing error rather than as spent. */
+.tcard.spent{transform:translateY(6px) rotateY(180deg) scale(.98)}
 .spread.done .tcard,.spread.done .tcard:hover{cursor:default}
 
 /* ============================================================
-   The chip tray — the tally, in the currency of the table
+   The rack — the tally, in the currency of the table
    ============================================================ */
 .footrow{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;
-  gap:14px;margin:28px auto 0}
+  gap:14px;margin:26px auto 0}
 .stones{display:flex;gap:7px}
 .stone{width:22px;height:22px;border-radius:50%;
   background:radial-gradient(circle at 36% 30%, #f2f6f8, #c9d6dd 68%, #93a6b0);
   box-shadow:0 2px 4px rgba(4,26,17,.4), inset 0 0 0 2px rgba(255,255,255,.55);
   transition:background .4s,box-shadow .4s}
-/* the notches a chip's edge has, drawn rather than described */
-.stone::after{content:"";position:absolute;inset:0}
-.stone.lit{background:radial-gradient(circle at 36% 30%, #ffeaa6, var(--gold) 60%, #8a6d22);
-  box-shadow:0 3px 7px rgba(4,26,17,.45), inset 0 0 0 2px rgba(255,244,206,.75)}
-.stone.out{background:radial-gradient(circle at 36% 30%, #e0aaa5, #a5352c 68%, #7a241d);
-  box-shadow:0 2px 4px rgba(4,26,17,.4), inset 0 0 0 2px rgba(255,220,215,.5)}
+.stone.lit{background:radial-gradient(circle at 36% 30%, #7fe3b3, var(--win) 62%, #10593a);
+  box-shadow:0 3px 7px rgba(4,26,17,.45), inset 0 0 0 2px rgba(242,251,245,.8)}
+.stone.out{background:radial-gradient(circle at 36% 30%, #e0aaa5, var(--lose) 68%, #7a241d);
+  box-shadow:0 2px 4px rgba(4,26,17,.4), inset 0 0 0 2px rgba(253,241,239,.7)}
 .count{margin:0;font-size:12.5px;color:var(--felt-ink);opacity:.85}
 .count b{opacity:1;font-weight:700}
 
-/* ---------- her drawing: the lesson's, with the costume the teller gave her ---------- */
+/* ---------- her drawing: the lesson's, with a visor for the table ---------- */
 .m-rim{fill:none;stroke:#066888;stroke-width:6}
 .m-glass{fill:#f2fbff}
 .m-eye{fill:#14222b}
@@ -241,13 +276,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
 .m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
 .m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
-/* A dealer's visor, not the teller's headscarf — same envelope, because the rule
-   that put the scarf there holds for anything she wears: on the rim, never over
-   the glass, and above every lash at every x. She is called Lashes. */
-.m-visor{fill:#1f8a5f}
-.m-visor-lip{fill:none;stroke:#0d5637;stroke-width:1.6;stroke-linecap:round}
-.m-band{fill:none;stroke:#c9a44b;stroke-width:3;stroke-linecap:round}
-.m-hoop{fill:none;stroke:#c9a44b;stroke-width:2.4}
 .m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
 @keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
   25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
@@ -257,14 +285,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
 
 @media(max-width:700px){
-  .station{gap:14px;padding:0 14px}
-  .lashy{width:92px;height:92px}
+  .chip{width:104px;height:104px}
   .tcard{width:152px;height:212px;margin:0 6px}
+  .place{width:168px;height:228px;margin:0 -2px}
 }
 @media(prefers-reduced-motion:reduce){
-  .m-body,.m-face,.m-eyes,.lashy.in .mface,.lashy.in .puff{animation:none !important}
+  .m-body,.m-face,.m-eyes,.said:not(.gone) .chip{animation:none !important}
   .tcard,.tcard.dealt{animation:none;transition:none}
-  .spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(var(--lift,0))}
+  .spread.live .tcard:hover{transform:none}
 }
 </style>
 </head>
@@ -272,39 +300,42 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 <div class="frame">
   <div class="table">
-    <div class="rail" aria-hidden="true"></div>
-    <div class="arc" aria-hidden="true"></div>
+    <div class="felt">
 
-    <!-- The dealer, at the rail the whole time, and the one bubble she speaks in.
-         The question and the reading are stacked in it and cross-faded, so the
-         table never moves when the hand turns over. -->
-    <div class="station">
-      <div class="lashy" id="lashy" aria-hidden="true"></div>
-      <div class="bubble" id="bubble">
-        <div class="layer" id="ask">
+      <!-- The question, in glass on the felt; then the chip and what she says
+           about it. Stacked, so nothing on the table moves when it changes. -->
+      <div class="say">
+        <div class="layer ask" id="ask">
           <p class="qn sans" id="qn"></p>
           <div class="qt" id="qt"></div>
         </div>
-        <div class="layer gone" id="said">
-          <div class="verdict" id="verdict" hidden></div>
-          <div class="fb" id="fb"></div>
-          <!-- Next is a permanent child. The table screen writes its own two
-               buttons into #tablebtns beside it rather than over it, because
-               innerHTML on the foot deleted this button and the next reading
-               then threw on setting its label. -->
-          <div class="foot" id="foot">
-            <button class="go" id="next"></button>
-            <span class="tablebtns" id="tablebtns"></span>
+        <div class="layer said gone" id="said">
+          <div class="chip" id="chip" aria-hidden="true"></div>
+          <div class="saidtext">
+            <div class="verdict" id="verdict" hidden></div>
+            <div class="fb" id="fb"></div>
+            <!-- Next is a permanent child. The table screen writes its own two
+                 buttons into #tablebtns beside it rather than over it: innerHTML
+                 on the foot deleted this button, and the next reading then threw
+                 on setting its label. -->
+            <div class="foot" id="foot">
+              <button class="go" id="next"></button>
+              <span class="tablebtns" id="tablebtns"></span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="spread" id="spread" role="group" aria-labelledby="qt"></div>
+      <div class="spreadwrap">
+        <div class="places" id="places" aria-hidden="true"></div>
+        <div class="spread" id="spread" role="group" aria-labelledby="qt"></div>
+      </div>
 
-    <div class="footrow">
-      <div class="stones" id="stones" aria-hidden="true"></div>
-      <p class="count sans" id="count"></p>
+      <div class="footrow">
+        <div class="stones" id="stones" aria-hidden="true"></div>
+        <p class="count sans" id="count"></p>
+      </div>
+
     </div>
   </div>
 </div>
@@ -316,7 +347,10 @@ var KC = /*__KC__*/;
 var LOGO = /*__LOGO__*/;
 var $=function(s){return document.querySelector(s)};
 var LETTER=["A","B","C","D","E"];
-var TILT=["-4deg","0.5deg","4deg"], LIFT=["10px","0px","9px"];
+/* No tilt at this table. A dealer lays a card square on its mark, and a tilted
+   card leaves the painted outline showing as a sliver behind it, which reads as
+   a misprint rather than as a marking. (The teller keeps its fan — there the
+   cards are objects on a table, not a dealt hand.) */
 
 /* --- her face: the lesson's drawing, plus the costume that lives in the themes --- */
 var LASH={
@@ -345,11 +379,10 @@ var EYES={
 var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
            wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
 
-var COSTUME=
-  '<path class="m-visor" d="M17.4 26 A31 31 0 0 1 70.5 26 Q44 31 17.4 26 Z"/>'+
-  '<path class="m-visor-lip" d="M18.6 26.6 Q44 31.4 69.3 26.6"/>'+
-  '<path class="m-band" d="M18.4 24.2 Q44 28.6 69.6 24.2"/>'+
-  '<circle class="m-hoop" cx="68" cy="63" r="6"/>';
+/* No costume at this table. The teller dresses her because the ball is a scene she
+   is inside; here she is the mark struck on a chip, and a chip's inlay is a face,
+   not a character in a hat. This is the lesson's drawing, untouched. */
+var COSTUME="";
 
 function svg(eyes,mouth){
   var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
@@ -365,12 +398,25 @@ function svg(eyes,mouth){
       COSTUME+
     '</g></svg>';
 }
-/* She is at the table throughout — this only changes her face. The other two
-   stagings use it to make her appear; here appearing is not the event. */
-function face(eyes,mouth){
-  var el=$("#lashy");
-  el.innerHTML='<span class="puff"></span><span class="mface">'+svg(eyes,mouth)+'</span>';
-  el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+var TICK='<svg class="mark-svg" viewBox="0 0 100 100" aria-hidden="true">'+
+  '<path d="M22 54 L42 74 L79 30"/></svg>';
+var CROSS='<svg class="mark-svg" viewBox="0 0 100 100" aria-hidden="true">'+
+  '<path d="M28 28 L72 72 M72 28 L28 72"/></svg>';
+
+/* The chip is the verdict. She is on it — and she is on it ONLY here, which is
+   what makes her arrival the answer landing rather than furniture that was
+   already at the table.
+
+   A question can ship with no feedback. Then the chip is the whole answer and it
+   carries a check or a cross in her place: there is nothing for her to say, and a
+   face with no words beside it is a character waiting for a line. */
+function chip(right,withFace,eyes,mouth){
+  var el=$("#chip");
+  el.className="chip "+(right?"win":"lose");
+  el.innerHTML='<span class="inlay">'+
+    (withFace ? '<span class="lashy" id="lashy"><span class="mface">'+svg(eyes,mouth)+'</span></span>'
+              : (right?TICK:CROSS))+
+    '</span>';
 }
 
 /* The bubble holds one of two things. They are stacked, so the swap costs the
@@ -435,14 +481,17 @@ function deal(){
   $("#fb").textContent=q.fb;
   $("#tablebtns").innerHTML=""; $("#next").hidden=false;
   $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
-  face("open","plain");
   paintStones();
 
   var sp=$("#spread");
   sp.className="spread";
+  /* One outline per answer, generated with the hand — a question written with
+     five answers gets five places, and they are the cards' own box so they line
+     up by construction rather than by a number typed twice. */
+  $("#places").innerHTML=deck.map(function(){ return '<span class="place"></span>'; }).join("");
   sp.innerHTML=deck.map(function(a,i){
     return '<button class="tcard'+(reduced?" up":"")+'" type="button" data-ok="'+(a.ok?"1":"0")+'"'+
-      ' style="--tilt:'+TILT[i]+';--lift:'+LIFT[i]+'" aria-disabled="true" tabindex="-1">'+
+      ' aria-disabled="true" tabindex="-1">'+
       '<span class="tface tback" aria-hidden="true">'+
         (LOGO?'<img src="'+LOGO+'" alt="">':'<span class="crest"></span>')+'</span>'+
       '<span class="tface tfront">'+
@@ -501,7 +550,7 @@ function take(card,cards,q){
        No line announcing the result either — the cards on the felt are already
        marked right and wrong, in colour, on the one the learner actually picked.
        The table screen keeps its line, because the gate has to state itself. */
-    face(right?"sparkle":"droll", right?"cheer":"wry");
+    chip(right, !!q.fb, right?"sparkle":"droll", right?"cheer":"wry");
     sayIn(right?"good":"bad");
     later(function(){ $("#next").focus(); },60);
   }, reduced?0:300);
@@ -517,7 +566,7 @@ function finish(){
   var score=correctCount(), passed=score>=NEED, missed=[];
   for(var i=0;i<got.length;i++) if(got[i]===false) missed.push(i+1);
 
-  $("#spread").innerHTML=""; $("#spread").className="spread";
+  $("#spread").innerHTML=""; $("#spread").className="spread"; $("#places").innerHTML="";
   paintStones();
   $("#qn").textContent=""; $("#qt").textContent="";
   $("#verdict").hidden=false;
@@ -527,7 +576,7 @@ function finish(){
     ? "None of this is about remembering a rule. It is about not deciding on one signal — which is the difference between finding somebody's record and starting them a second one."
     : "Question"+(missed.length===1?" ":"s ")+list(missed)+" went the other way. I will lay "+
       (missed.length===1?"it":"them")+" again, in a different order.";
-  face(passed?"sparkle":"droll", passed?"cheer":"hm");
+  chip(passed, true, passed?"sparkle":"droll", passed?"cheer":"hm");
   sayIn(passed?"good":"bad");
   $("#live").textContent=(passed?"Passed. ":"Not passed. ")+score+" of "+QS.length+" right.";
 

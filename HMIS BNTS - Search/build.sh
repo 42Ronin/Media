@@ -19,8 +19,12 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-SECTIONS=(7 10 11)
-STEPS=(11.1 11.2 11.3 11.4)
+# The two simulators. Section 11 is retired: the script replaced its scenario with
+# narration and three task embeds, so nothing ships that page any more.
+SECTIONS=(7 10)
+# Output names. The script dropped section numbers, so the files follow it.
+name_of() { case "$1" in 7) echo simulator-1;; 10) echo simulator-2;; *) echo "section-$1";; esac; }
+STEPS=(1 2 3)
 KC_TEMPLATE="src/kc.template.html"
 # 0 is the combined page the test suite walks. Not a deliverable; prefixed so it
 # never gets mistaken for one.
@@ -43,9 +47,11 @@ stamp() {
   python3 - "$@" <<'PY'
 import sys
 tpl, roster, out, sec, step = sys.argv[1:6]
+play = sys.argv[6] if len(sys.argv) > 6 else "false"
 html = open(tpl).read()
 data = open(roster).read().strip()
-for token, value in (("/*__ROSTER__*/", data), ("/*__SECTION__*/", sec), ("/*__STEP__*/", step)):
+for token, value in (("/*__ROSTER__*/", data), ("/*__SECTION__*/", sec),
+                     ("/*__STEP__*/", step), ("/*__PLAY__*/", play)):
     if token not in html:
         raise SystemExit(f"{token} missing from template")
     html = html.replace(token, value)
@@ -54,27 +60,37 @@ PY
 }
 
 for SEC in "${SECTIONS[@]}" "$TEST_BUILD"; do
-  [ "$SEC" = "0" ] && NAME="_all" || NAME="section-$SEC"
+  [ "$SEC" = "0" ] && NAME="_all" || NAME="$(name_of "$SEC")"
   stamp "$TEMPLATE" "src/roster.json" "$OUT/$NAME.html" "$SEC" "null"
 
   if [ "$WITH_SCORM" = "1" ] && [ "$SEC" != "0" ]; then
     mkdir -p "$OUT/_pkg"
-    cp "$OUT/section-$SEC.html" "$OUT/_pkg/index.html"
+    cp "$OUT/$NAME.html" "$OUT/_pkg/index.html"
     sed "s/__SECTION__/$SEC/g" scorm/imsmanifest.xml > "$OUT/_pkg/imsmanifest.xml"
-    ( cd "$OUT/_pkg" && zip -q -r "../section-$SEC-scorm.zip" . )
+    ( cd "$OUT/_pkg" && zip -q -r "../$NAME-scorm.zip" . )
     rm -rf "$OUT/_pkg"
   fi
 done
 
+# The task embeds. They run inline in the Rise page rather than full screen, so
+# they get no launcher — just the page and its zip.
 for ST in "${STEPS[@]}"; do
-  SEC="${ST%%.*}"
-  SLUG="step-${ST//./-}"
+  SEC=11
+  SLUG="task-embed-$ST"
   stamp "$TEMPLATE" "src/roster.json" "$OUT/$SLUG.html" "$SEC" "\"$ST\""
   mkdir -p "$OUT/_pkg"
   cp "$OUT/$SLUG.html" "$OUT/_pkg/index.html"
   ( cd "$OUT/_pkg" && zip -q -r "../$SLUG.zip" index.html )
   rm -rf "$OUT/_pkg"
 done
+
+# "Now You Try": the search bar and the results, nothing else. Its own Rise block,
+# so the learner can type freely before the first task asks anything of them.
+stamp "$TEMPLATE" "src/roster.json" "$OUT/search-practice.html" "7" "null" "true"
+mkdir -p "$OUT/_pkg"
+cp "$OUT/search-practice.html" "$OUT/_pkg/index.html"
+( cd "$OUT/_pkg" && zip -q -r "../search-practice.zip" index.html )
+rm -rf "$OUT/_pkg"
 
 # The knowledge check is its own Rise Code block: one page, six questions dealt as
 # cards, and the only thing it ever reports is completion — and only once the
