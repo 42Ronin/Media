@@ -1492,7 +1492,7 @@ console.log('\n— what to do next is where she says it —');
 {
   const q2 = await b.newPage({ viewport: { width: 1500, height: 950 } });
   const q2e = []; q2.on('pageerror', e => q2e.push(String(e)));
-  await q2.goto('file://' + new URL('./dist/section-7.html', import.meta.url).pathname);
+  await q2.goto('file://' + new URL('./dist/simulator-1.html', import.meta.url).pathname);
   await q2.waitForTimeout(600);
   /* Walk the orientation out rather than counting clicks — it grows. */
   while (await q2.$eval('#lzBub', e => e.classList.contains('on'))) {
@@ -1546,139 +1546,23 @@ ok('the product keeps its own indigo, so the two never read as one thing',
    }));
 
 /* ------------------------------------------------------------------
-   Section 11 is not a task bank. One person, one attempt at finding him,
-   four spiralling steps played without closing anything in between. Every
-   beat is gated on the state of the search rather than on a button, so the
-   story only moves when the learner has actually done the thing.
+   Task embeds. One per [Task Embed] in the script, inline in the Rise page
+   rather than launched. The slide's own words sit above the block; the block
+   is the doing. Two carry feedback the script attached to them; the third
+   does not, and simply completes.
+
+   Section 11's running scenario is retired — the script replaced its beats
+   with narration, so the only thing that ships from it is these three.
    ------------------------------------------------------------------ */
-console.log('\n— section 11: the running scenario —');
+console.log('\n— the task embeds —');
 {
-  const sc = await b.newPage({ viewport: { width: 1600, height: 1000 } });
-  const scErrs = [];
-  sc.on('pageerror', e => scErrs.push(String(e)));
-  await sc.goto('file://' + new URL('./dist/section-11.html', import.meta.url).pathname);
-  const said = () => sc.textContent('#fb');
-  const gated = () => sc.$eval('#lzStep', e => e.hidden);
-  const key = async (q) => { await sc.fill('#q', q); await sc.waitForTimeout(800); };
-  const on = async () => { await sc.click('#lzStep'); await sc.waitForTimeout(500); };
-  await sc.waitForTimeout(700);
-
-  /* Every line of it is the document's. The suite asserts that rather than
-     asserting wording I chose, because I do not get to choose the wording. */
-  ok('every paragraph in the scenario is verbatim from the script', await sc.evaluate(() => {
-    const paras = SCENARIOS[11].concat(SCENARIO_CLOSE[11])
-      .flatMap(x => x.html.split('</p>').map(t => t.replace(/<[^>]+>/g, ' ')).filter(t => t.trim()));
-    return paras.length >= 15;
-  }));
-  ok('it has no orientation, having no 7.1 of its own',
-     await sc.evaluate(() => TOUR === null));
-
-  ok('it opens on the list the section is built around',
-     (await said()).includes('work through this list'));
-
-  await on();
-  ok('11.1 gives the surname he actually offers', (await said()).includes('Carrow'));
-  ok('...and waits for a search rather than a button', await gated());
-
-  await key('Desmond Carrow');
-  ok('what he leads with reaches nobody', await sc.evaluate(() => S.rows.length === 0));
-  ok('11.1 lands its point on the empty result',
-     (await said()).includes('not proof that somebody is new'));
-  await on();
-  ok('11.2 opens with the instruction, not the story',
-     (await said()).includes('Ask the participant what else they have been called'));
-  await on();
-  ok('...then what he tells you', (await said()).includes('Everyone calls him Dez'));
-
-  await key('Dez Carrow');
-  ok('11.2 lands its point', (await said()).includes('ruled out a fourth'));
-  await on();
-  ok('11.3 opens with the alternate-spellings instruction',
-     (await said()).includes('Try the spellings a previous provider'));
-  await on();
-  ok('...then names the word doing the damage', (await said()).includes('word doing the damage'));
-
-  await key('Dez');
-  ok('the fragment alone returns a readable five', await sc.evaluate(() => S.rows.length === 5));
-  ok('11.3 lands its point', (await said()).includes('fragment beats the full name'));
-  await on();
-  ok('11.4 opens with the start-over instruction',
-     (await said()).includes('start from a different piece of information'));
-  await on();
-  ok('...then tells him to narrow', (await said()).includes('Five is readable'));
-
-  await key('Dez 1974');
-  ok('adding the year leaves two Dezmonds, neither with an SSN',
-     await sc.evaluate(() => S.rows.length === 2 && S.rows.every(c => c.f === 'Dezmond' && !c.s)));
-  /* 11.4's "Learner does next" is a conversation written as a stage direction.
-     It is shown as the exchange it describes: every word stands, and nothing is
-     narrated in the third person at the learner. */
-  ok('...and he gives up the one fact that separates them, as an exchange',
-     await sc.$$eval('#fb .lzchat p', els => {
-       const t = els.map(e => e.className + '|' + e.textContent.trim());
-       return t.length === 2 &&
-              t[0].startsWith('me|Where have you been staying?') &&
-              t[1].startsWith('them|The underpass');
-     }));
-  ok('...and the instruction sits in the prompt, not in her mouth',
-     (await sc.$eval('#lzFoot .lzwait', e => e.textContent)).includes('Location tab') &&
-     !(await said()).includes('Opens both records'));
-
-  await sc.click('tr[data-row="UID#4693CCFAR"]'); await sc.waitForTimeout(700);
-  ok('the other Dezmond is rejected on his location, not his name',
-     (await said()).includes('never been at the Alameda St underpass'));
-  ok('...and that rejection can be dismissed too',
-     await sc.$$eval('#lzActs button', e => e.some(x => x.textContent === 'Got it')));
-  await sc.keyboard.press('Escape'); await sc.waitForTimeout(400);
-  await sc.click('tr[data-row="UID#3906EMKLW"]'); await sc.waitForTimeout(800);
-  ok('the one contacted there is the answer',
-     await sc.evaluate(() => S.results.some(r => r.id === 'desmond')));
-  ok('...and 11.4 lands its point rather than ending',
-     (await said()).includes('rest of the record is what identifies somebody'));
-  await on();
-  ok('11.5 places the sentence the section exists for',
-     (await said()).includes('still cannot find a candidate record') &&
-     (await said()).includes('how far down this list that sentence is'));
-  await on();
-  ok('and only then is it complete', !(await sc.$eval('#done', e => e.hidden)));
-  ok('no errors anywhere in the scenario', scErrs.length === 0, scErrs.join(' | '));
-  await sc.close();
-}
-
-/* A gate asks about the state of the search, and the learner may already have
-   reached that state two steps earlier. A beat waits for something new rather
-   than firing the moment it appears — without that, searching ahead made several
-   beats flash past at once and the story ran to the end. */
-{
-  const ahead = await b.newPage({ viewport: { width: 1500, height: 940 } });
-  await ahead.goto('file://' + new URL('./dist/section-11.html', import.meta.url).pathname);
-  await ahead.waitForTimeout(700);
-  await ahead.click('#lzStep'); await ahead.waitForTimeout(450);
-  const before = await ahead.evaluate(() => BEAT.pos().i);
-  await ahead.fill('#q', 'Dez 1974'); await ahead.waitForTimeout(800);
-  ok('searching ahead does not run the story to the end',
-     await ahead.evaluate(i => BEAT.pos().i === i, before));
-  await ahead.fill('#q', 'Desmond Carrow'); await ahead.waitForTimeout(800);
-  ok('...and the step it was on still completes on its own condition',
-     await ahead.evaluate(i => BEAT.pos().i === i + 1, before));
-  await ahead.close();
-}
-
-/* ------------------------------------------------------------------
-   Step embeds. One slide's worth of interface, inline in Rise. The slide's
-   own words sit above the block; the block is the doing. Every step is
-   interactive, including the two whose point is that nothing comes back —
-   those are the ones worth doing rather than reading.
-   ------------------------------------------------------------------ */
-console.log('\n— section 11 as inline step embeds —');
-{
-  const STEP = [
-    ['step-11-1', 'Desmond Carrow', 'Searches Desmond Carrow', 'No results yet and that is all it says'],
-    ['step-11-2', '1974',           'Searches Dez Carrow',     'there is no Carrow to find'],
-    ['step-11-3', 'Dez',            'Searches Dez on its own', 'Dezirae, Dezra, Dezhawn'],
-    ['step-11-4', 'Dez 1974',       'Adds 1974 to the fragment','Nothing he has told you separates them'],
+  const EMBED = [
+    ['task-embed-1', ['Desmond Carrow', 'Carrow'], 'Searches Desmond Carrow',
+     'An empty list is not proof this person has no record'],
+    ['task-embed-2', ['Dez 1974'], 'Searches the fragment Dez',
+     'Nothing he has told you separates them'],
   ];
-  for (const [file, query, asks, lands] of STEP) {
+  for (const [file, queries, asks, lands] of EMBED) {
     const st = await b.newPage({ viewport: { width: 1000, height: 620 } });
     const stErrs = [];
     st.on('pageerror', e => stErrs.push(String(e)));
@@ -1687,43 +1571,61 @@ console.log('\n— section 11 as inline step embeds —');
 
     ok(`${file}: no training panel — the Rise text above it is the panel`,
        await st.$eval('#coachWin', e => getComputedStyle(e).display === 'none'));
-    /* No character in a step block. It is one small thing to do, and she would be
-       decoration; she comes back where she earns her place. */
     ok(`${file}: no character in the block`,
        await st.$eval('#lzLayer', e => getComputedStyle(e).display === 'none'));
-    /* And the lane is never blank — the learner is told what to do. */
     ok(`${file}: the block asks for something rather than sitting blank`,
        (await st.textContent('#stepDo')).includes(asks));
     ok(`${file}: and says nothing about the outcome yet`,
        await st.$eval('#stepRes', e => e.hidden));
 
-    await st.fill('#q', query);
-    await st.waitForTimeout(1000);
-    ok(`${file}: lands on the script's own account of what happens`,
+    for (const q of queries) { await st.fill('#q', q); await st.waitForTimeout(900); }
+    ok(`${file}: lands on the feedback the script attached to it`,
        (await st.textContent('#stepRes')).includes(lands));
+    ok(`${file}: and reports itself complete`,
+       (await st.textContent('#stepRes')).includes('Carry on below'));
     ok(`${file}: no errors`, stErrs.length === 0, stErrs.join(' | '));
     await st.close();
   }
 
-  /* 11.4 is the only step with two things in it: narrow, then compare. */
-  const four = await b.newPage({ viewport: { width: 1000, height: 620 } });
-  await four.goto('file://' + new URL('./dist/step-11-4.html', import.meta.url).pathname);
-  await four.fill('#q', 'Dez 1974'); await four.waitForTimeout(1000);
-  ok('step-11-4: the exchange gives up the fact that separates them',
-     await four.$$eval('#stepDo .lzchat p', els => els.length === 2 &&
-       els[1].textContent.includes('The underpass')));
-  ok('step-11-4: and it asks for the next thing rather than finishing',
-     (await four.textContent('#stepDo')).includes('Location tab') &&
-     !(await four.textContent('#stepRes')).includes('Carry on below'));
-  await four.click('tr[data-row="UID#4693CCFAR"]'); await four.waitForTimeout(900);
-  ok('step-11-4: the wrong Dezmond does not complete it',
-     !(await four.textContent('#stepRes')).includes('Carry on below'));
-  await four.keyboard.press('Escape'); await four.waitForTimeout(400);
-  await four.click('tr[data-row="UID#3906EMKLW"]'); await four.waitForTimeout(900);
-  ok('step-11-4: the one contacted at the underpass finishes it',
-     (await four.textContent('#stepRes')).includes('rest of the record is what identifies somebody') &&
-     (await four.textContent('#stepRes')).includes('Carry on below'));
-  await four.close();
+  /* The third embed has no feedback in the script, so it must not invent any —
+     and it is the one that has to accept the record being settled by Location or
+     by the Point of Contact who took his details. */
+  const three = await b.newPage({ viewport: { width: 1200, height: 800 } });
+  const thErrs = [];
+  three.on('pageerror', e => thErrs.push(String(e)));
+  await three.goto('file://' + new URL('./dist/task-embed-3.html', import.meta.url).pathname);
+  await three.waitForTimeout(400);
+  ok('task-embed-3: it names both routes, not just the location',
+     (await three.textContent('#stepDo')).includes('Location') &&
+     (await three.textContent('#stepDo')).includes('Point of Contact'));
+  await three.fill('#q', 'Dez 1974'); await three.waitForTimeout(900);
+  ok('task-embed-3: the search leaves exactly the two Dezmonds',
+     await three.$$eval('[data-open]', els => els.length === 2));
+
+  const openRow = (page, id) => page.evaluate(uid => {
+    [...document.querySelectorAll('[data-open]')].find(e => e.dataset.open === uid).click();
+  }, id);
+
+  await openRow(three, 'UID#4693CCFAR'); await three.waitForTimeout(800);
+  ok('task-embed-3: the other Dezmond does not complete it',
+     !(await three.textContent('#stepRes')).includes('Carry on below'));
+  await three.keyboard.press('Escape'); await three.waitForTimeout(400);
+  await three.fill('#q', 'Dez 1974'); await three.waitForTimeout(800);
+  await openRow(three, 'UID#3906EMKLW'); await three.waitForTimeout(900);
+  ok('task-embed-3: the one contacted at the underpass finishes it',
+     (await three.textContent('#stepRes')).includes('Carry on below'));
+  ok('task-embed-3: and it adds no feedback of its own',
+     !(await three.textContent('#stepRes')).includes('What happens'));
+  ok('task-embed-3: no errors', thErrs.length === 0, thErrs.join(' | '));
+
+  /* The record he is settled on is the one that carries both signals. */
+  ok('task-embed-3: that record holds the underpass and the contact who took his details',
+     await three.evaluate(() => {
+       const c = CLIENTS.find(x => x.i === 'UID#3906EMKLW');
+       return c.lo.some(l => /Alameda St underpass/.test(l.p)) &&
+              c.poc.some(pc => /^Devon\b/.test(pc.nm || ''));
+     }));
+  await three.close();
 }
 
 /* Hero is a property of the line, not a mode left switched on. It used to be toggled

@@ -2,7 +2,7 @@
   "sections": [
     {
       "section": 7,
-      "title": "Section 7 — Hands-on Simulations",
+      "title": "Practice: Finding a Participant",
       "scenarioTitle": null,
       "scenarioSteps": [],
       "orientation": [
@@ -225,7 +225,7 @@
     },
     {
       "section": 10,
-      "title": "Section 10 — Hands-on Simulations",
+      "title": "Practice: Verifying a Record",
       "scenarioTitle": null,
       "scenarioSteps": [],
       "orientation": [],
@@ -333,182 +333,39 @@
           ]
         }
       ]
-    },
-    {
-      "section": 11,
-      "title": "Section 11 — Hands-on Simulations",
-      "scenarioTitle": "When Search Comes Up Empty",
-      "scenarioSteps": [
-        "Somebody Nobody Can Find",
-        "Alternate Names",
-        "Alternate Spellings",
-        "Start Over From a Different Fact",
-        "Only Then, Create a Record"
-      ],
-      "orientation": [],
-      "scenarioOpen": [
-        {
-          "n": 1,
-          "html": "<p>You have searched and found nothing. Before you conclude the participant is new, work through this list — and this time you work it on one person, start to finish, choosing for yourself which step to reach for.</p>",
-          "next": "Start"
-        },
-        {
-          "n": 2,
-          "html": "<p>Second morning of the cleanup. You are packing up when you see him again — Desmond, the man who asked yesterday whether there was any news about interim housing. He has come back to find out whether you got anywhere. He gives his last name as Carrow.</p>",
-          "next": null
-        },
-        {
-          "n": 3,
-          "html": "<p>An empty result is not proof that somebody is new — and you already have a reason to think he is not. Somebody took his details months ago. That record is somewhere.</p>",
-          "next": null
-        },
-        {
-          "n": 4,
-          "html": "<p>Ask the participant what else they have been called: a middle name, a second last name, a nickname, a shortened name. Confirm the spelling of each one.</p><p>Some of what you hear will not be a nickname at all. A participant may give you the name they use — a chosen name, or the name that fits who they are — while the record was created under a different one. Ask for both, without making it a thing: the name they go by, and any other name a record might be under. Search on both, and address them by the one they gave you.</p>",
-          "next": null
-        },
-        {
-          "n": 5,
-          "html": "<p>You tell him the search is not finding him, which is not the same as him not being there, and you ask what else he has been called. Everyone calls him Dez. He has not used Carrow in years — there was another name before it and he cannot remember which one the outreach worker wrote down. He was born in 1974 but does not know the day. He would rather not give his Social Security Number, and that is fine.</p>",
-          "next": null
-        },
-        {
-          "n": 6,
-          "html": "<p>Asking got you three new facts and ruled out a fourth. None of them has found him yet, and that is still progress.</p>",
-          "next": null
-        },
-        {
-          "n": 7,
-          "html": "<p>Try the spellings a previous provider might have used by mistake. For Katherine Johnson: catherine, cat, jonson, jon.</p>",
-          "next": null
-        },
-        {
-          "n": 8,
-          "html": "<p>Dez is not a nickname. Somebody wrote his name down while listening rather than reading, and the s came out as a z. And the surname he gave you is the one he stopped using — it is the word doing the damage. Drop it and search what is left.</p>",
-          "next": null
-        },
-        {
-          "n": 9,
-          "html": "<p>The fragment beats the full name, because a fragment does not have to be spelled the way somebody else typed it. And taking a word away is what let the fragment work at all.</p>",
-          "next": null
-        },
-        {
-          "n": 10,
-          "html": "<p>Go back to the beginning and start from a different piece of information. If you began with the date of birth, begin this time with the first three letters of the first and last name.</p>",
-          "next": null
-        },
-        {
-          "n": 11,
-          "html": "<p>Five is readable and three of them are plainly not him. Two are not. You started from his name and the name was wrong twice over — so start from the other thing he gave you.</p>",
-          "next": null
-        },
-        {
-          "n": 12,
-          "html": "<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on file. Nothing he has told you separates them.</p>",
-          "next": null
-        }
-      ],
-      "scenarioClose": [
-        {
-          "n": 1,
-          "html": "<p>When the identifiers run out, the rest of the record is what identifies somebody. And there it is — the contact somebody logged the day they took his details, and the referral he has been asking about ever since. He was never missing. He was four searches away.</p>",
-          "next": null
-        },
-        {
-          "n": 2,
-          "html": "<p>If you have worked through all of the above and still cannot find a candidate record, create a new one. At that point it is the right thing to do.</p><p>Notice how far down this list that sentence is. Desmond was four searches from being a second record for a man who already had one — and every one of those searches was something you had already practiced.</p>",
-          "next": "Finish"
-        }
-      ],
-      "interstitial": null,
-      "closing": null,
-      "tasks": [
-        {
-          "n": 1,
-          "id": "desmond",
-          "title": "Somebody nobody can find",
-          "note": false,
-          "situation": "Second morning of the cleanup. You are packing up when you see him again — <span class=\"q\">Desmond</span>, the man who asked yesterday whether there was any news about interim housing. He has come back to find out whether you got anywhere. He gives his last name as <b>Carrow</b>.",
-          "instruction": "Find him, and open the record that matches where he has been staying.",
-          "hint": "Nothing he leads with reaches anybody. Ask what else he has been called, drop the surname he stopped using, and search the fragment on its own — <code>Dez</code>. Then add the year, and read the Location tab.",
-          "feedback": "He was never missing. He was four searches away, and every one of them was something you had already practised: you did not treat an empty result as an answer, you asked rather than guessed, you dropped the word that was doing the damage, and when the identifiers ran out you used the rest of the record. <b>This is the point at which creating a record is the right thing to do — and not before.</b> Notice how far down the list that sentence comes.",
-          "answer": {
-            "id": "UID#3906EMKLW",
-            "name": "Dezmond Ellery"
-          },
-          "wrong": [
-            {
-              "id": "UID#4693CCFAR",
-              "name": "Dezmond Achebe",
-              "text": "That is the other Dezmond. Same name, same year of birth, no Social Security Number on either. His record has never been at the Alameda St underpass."
-            },
-            {
-              "id": "UID#2959QLPPZ",
-              "name": "Dezirae Ellsworth",
-              "text": "Not him. Read the first name, not just the fragment."
-            },
-            {
-              "id": "UID#9491JNCMB",
-              "name": "Dezra Achterberg",
-              "text": "Not him. Read the first name, not just the fragment."
-            },
-            {
-              "id": "UID#7795LLNSX",
-              "name": "Dezhawn Arrington",
-              "text": "Not him. Read the first name, not just the fragment."
-            }
-          ]
-        }
-      ]
     }
   ],
   "steps": [
     {
-      "key": "11.1",
-      "file": "step-11-1.html",
+      "key": "1",
+      "file": "task-embed-1.html",
       "phases": [
         {
           "n": 1,
           "does": "<p>Searches <b>Desmond Carrow</b>. Then <b>Carrow</b> on its own.</p>",
-          "happens": "<p>Nothing, either way. The empty state says No results yet and that is all it says.</p>"
+          "happens": "<p>An empty list is not proof this person has no record.</p>"
         }
       ]
     },
     {
-      "key": "11.2",
-      "file": "step-11-2.html",
+      "key": "2",
+      "file": "task-embed-2.html",
       "phases": [
         {
           "n": 1,
-          "does": "<p>Searches <b>Dez Carrow</b>. Then the year on its own.</p>",
-          "happens": "<p>Nothing. Carrow reaches nobody, so any search containing it reaches nobody either — every word has to match. The year returns a long list, and no Carrow is in it, because there is no Carrow to find.</p>"
-        }
-      ]
-    },
-    {
-      "key": "11.3",
-      "file": "step-11-3.html",
-      "phases": [
-        {
-          "n": 1,
-          "does": "<p>Searches <b>Dez</b> on its own.</p>",
-          "happens": "<p>Five records — Dezirae, Dezra, Dezhawn, and two men called Dezmond.</p>"
-        }
-      ]
-    },
-    {
-      "key": "11.4",
-      "file": "step-11-4.html",
-      "phases": [
-        {
-          "n": 1,
-          "does": "<p>Adds <b>1974</b> to the fragment.</p>",
+          "does": "<p>Searches the fragment <b>Dez</b> with the year, <b>1974</b>.</p>",
           "happens": "<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on file. Nothing he has told you separates them.</p>"
-        },
+        }
+      ]
+    },
+    {
+      "key": "3",
+      "file": "task-embed-3.html",
+      "phases": [
         {
-          "n": 2,
-          "does": "<p>Goes back to him.</p>",
-          "happens": "<p>When the identifiers run out, the rest of the record is what identifies somebody. And there it is — the contact somebody logged the day they took his details, and the referral he has been asking about ever since. He was never missing. He was four searches away.</p>"
+          "n": 1,
+          "does": "<p>Opens each record in turn and compares the <b>Location</b> tab and the <b>Point of Contact</b> against what he has said.</p>",
+          "happens": ""
         }
       ]
     }

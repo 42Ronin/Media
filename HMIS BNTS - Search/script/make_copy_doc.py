@@ -27,7 +27,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = json.load(open(os.path.join(HERE, "copy.json"), encoding="utf-8"))
-OUT = os.path.join(HERE, "..", "Learner Text - HMIS BNTS Search (Sections 7, 10, 11).docx")
+OUT = os.path.join(HERE, "..", "Learner Text - HMIS BNTS Search.docx")
 
 TEAL   = RGBColor(0x06, 0x68, 0x88)
 GREY   = RGBColor(0x5F, 0x77, 0x87)
@@ -179,7 +179,8 @@ SECTION_NOTE = {
 
 for sec in DATA["sections"]:
     n = sec["section"]
-    h1("Section %d" % n)
+    h1({7: "Simulator 1 — Finding a Participant",
+        10: "Simulator 2 — Verifying a Record"}.get(n, "Section %d" % n))
     para(sec["title"], color=GREY, space_after=4)
     if sec.get("scenarioTitle"):
         para("Scenario: %s" % sec["scenarioTitle"], bold=True, space_after=4)
@@ -262,7 +263,7 @@ for sec in DATA["sections"]:
 # ============================================================
 # the step embeds
 # ============================================================
-h1("Section 11 — the step embeds")
+h1("The task embeds")
 para("Four separate tools, one per slide. Each waits for the learner to do the thing the slide "
      "describes and then says what happened.", color=GREY, space_after=10)
 note("These are not scored. The gate is the search itself: nothing advances until the learner "

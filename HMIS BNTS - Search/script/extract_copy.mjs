@@ -3,7 +3,7 @@
  *
  *   node script/extract_copy.mjs      ->  script/copy.json
  *
- * Sections 7, 10 and 11 plus the four step embeds. What comes out is the coaching
+ * The two simulators plus the three task embeds. What comes out is the coaching
  * layer only: orientation, tasks, hints, feedback, the guided steps and the closing
  * screens. The simulated product's own chrome — menu items, column headings, field
  * labels, the empty state — is Clarity's wording, not ours, and is deliberately left
@@ -19,8 +19,8 @@ import { dirname, join } from 'path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, '..', 'dist');
-const SECTIONS = [7, 10, 11];
-const STEP_FILES = ['step-11-1', 'step-11-2', 'step-11-3', 'step-11-4'];
+const SECTIONS = [7, 10];   // simulator-1, simulator-2
+const STEP_FILES = ['task-embed-1', 'task-embed-2', 'task-embed-3'];
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 const p = await b.newPage();
@@ -28,7 +28,7 @@ const p = await b.newPage();
 /* ---- the structured copy, read out of each section in turn ---- */
 const sections = [];
 for (const n of SECTIONS) {
-  await p.goto('file://' + join(DIST, `section-${n}.html`));
+  await p.goto('file://' + join(DIST, `${{7:'simulator-1',10:'simulator-2'}[n]}.html`));
   sections.push(await p.evaluate((n) => {
     const clients = {};
     CLIENTS.forEach(c => { clients[c.i] = c.f + ' ' + c.l; });
@@ -66,10 +66,10 @@ for (const n of SECTIONS) {
 }
 
 /* ---- the guided steps: one embed per slide, each with its own gate ---- */
-await p.goto('file://' + join(DIST, 'step-11-1.html'));
+await p.goto('file://' + join(DIST, 'task-embed-1.html'));
 const stepData = await p.evaluate(() => STEPS);
 const steps = STEP_FILES.map(f => {
-  const key = f.replace('step-', '').replace(/-/g, '.');
+  const key = f.replace('task-embed-', '');
   const meta = stepData[key] || { phases: [] };
   return {
     key, file: f + '.html',
