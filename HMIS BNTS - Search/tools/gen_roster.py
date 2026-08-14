@@ -240,6 +240,20 @@ SCRIPTED = [
     C("UID#9491JNCMB", "Dezra",   "Achterberg","1988-05-23", "917-62-9084", p="She/Her/Hers"),
     C("UID#7795LLNSX", "Dezhawn", "Arrington", "2001-01-30", "955-40-3372"),
 
+    # ---- the script's own worked example ------------------------------------
+    # "For Katherine Johnson, typing kat joh will find her" is in the lesson text
+    # and in task 4's hint, and there was no Katherine Johnson to find. She is
+    # pinned rather than left to the generator because rule 7 below bans every
+    # generated Kath* first name, to keep task 7's Cathleen/Kathleen swap clean.
+    #
+    # Two near-misses ride with her, so the example demonstrates what it claims:
+    # a fragment narrows to a short list you can read, rather than landing on one
+    # record and making search look more decisive than it is. Not 1985 — rule 2
+    # keeps that year clear for Katherine Morrison.
+    C("UID#4180TSVQK", "Katherine", "Johnson",  "1990-06-08", "927-53-6014", p="She/Her/Hers"),
+    C("UID#6725BHNQZ", "Katia",     "Johnston", "1983-02-17", "941-08-2276", p="She/Her/Hers"),
+    C("UID#3947VKDLT", "Katrina",   "Johns",    "1977-09-30", "958-22-4103", p="She/Her/Hers"),
+
     # ---- prefix decoys ------------------------------------------------------
     # Typing the first few letters of a name is what everybody does first, and it
     # was landing on exactly one record for most of the cast — the guards that keep
@@ -682,6 +696,19 @@ for c in clients:
     # actually have three. Dates run from the year after intake to now.
     c["poc"] = [poc_block(rnd, iso(rnd.randint(2023, 2026), rnd.randint(1, 12), rnd.randint(1, 28)))
                 for _ in range(weighted([(0, .22), (1, .48), (2, .21), (3, .09)]))]
+    # The script has Desmond remember the worker who took his details by first
+    # name, and it names her. That cannot be left to the generator: any change to
+    # the roster shifts the stream and she becomes somebody else, which is exactly
+    # what happened when three records were pinned for the kat joh example. So the
+    # name the script says out loud is pinned here, on the record the learner is
+    # meant to land on — and only there, so it still separates the two Dezmonds.
+    if c["i"] == "UID#3906EMKLW":
+        if not c["poc"]:
+            c["poc"] = [poc_block(rnd, "2024-08-25")]
+        c["poc"][0]["dt"] = "2024-08-25"
+        c["poc"][0]["nm"] = "Devon Castellanos"
+        c["poc"][0]["em"] = "devon.castellanos@example.org"
+        c["poc"][0]["cat"] = "LAHSA Funded Interim Housing (Host Home)"
     c["n"] = {                                            # right-rail accordion counts
         "pr": weighted([(0, .45), (1, .2), (2, .15), (3, .1), (6, .1)]),
         "cq": weighted([(0, .6), (1, .3), (2, .1)]),
