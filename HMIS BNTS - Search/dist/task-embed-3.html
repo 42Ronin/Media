@@ -1068,9 +1068,24 @@ function ssnPlain(s){
   return s.split("-").map(function(seg){ return /^\d+$/.test(seg) ? seg : "·"; }).join("");
 }
 function matchesSsn(c, tok){
+  /* Digits only. Stripping the letters out of any token and matching what was left
+     meant a unique identifier searched as UID#3906EMKLW came back as every record
+     whose SSN happened to contain 3906 — the code returned somebody else entirely.
+     A number is a number; a token with letters in it is not one. */
+  if(!/^[\d\-. ]+$/.test(tok)) return false;
   var dg=digitsOnly(tok);
   if(dg.length<2 || !c.s) return false;
   return ssnPlain(c.s).indexOf(dg)>-1;
+}
+/* The unique identifier, which the lesson teaches as the fastest way back to a
+   record you have already found. Whole codes only, with or without the UID# in
+   front — a fragment of one is not something anybody reads off a screen and types,
+   and matching fragments would let a stray four digits collide with an SSN. */
+function matchesUid(c, tok){
+  var t=tok.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(t.length<9) return false;
+  var id=c.i.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  return id===t || id==="UID"+t;
 }
 /* whole or partial dates: 1977, 77, 3/14, 3/14/79, 03/14/1979, dots or dashes */
 function matchesDob(c, tok){
@@ -1092,7 +1107,7 @@ function matchesDob(c, tok){
   return false;
 }
 function tokenMatch(c, tok){
-  return matchesName(c,tok) || matchesDob(c,tok) || matchesSsn(c,tok);
+  return matchesName(c,tok) || matchesDob(c,tok) || matchesSsn(c,tok) || matchesUid(c,tok);
 }
 function search(query, chips){
   var raw=(query||"").trim().toLowerCase();
