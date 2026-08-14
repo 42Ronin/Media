@@ -1,0 +1,549 @@
+{
+  "sections": [
+    {
+      "section": 7,
+      "title": "Section 7 — Hands-on Simulations",
+      "scenarioTitle": null,
+      "scenarioSteps": [],
+      "orientation": [
+        {
+          "n": 1,
+          "html": "<p>Welcome to HMIS Clarity.</p><p>This is a practice copy. A few things look different — but every step you take here is the step you will take in the real system. Let me show you round.</p>",
+          "next": "Let's go →"
+        },
+        {
+          "n": 2,
+          "html": "<p>What follows is a practice version of Clarity. It behaves the way the real system behaves. Everyone in it is invented — nothing you do here touches a real record.</p>",
+          "next": null
+        },
+        {
+          "n": 3,
+          "html": "<p>You will be given eight situations. Each one is a person standing in front of you and something they have told you. Your job is to find their record — and, later, to prove it is the right one.</p>",
+          "next": null
+        },
+        {
+          "n": 4,
+          "html": "<p>The practice roster holds three hundred people. The live system holds hundreds of thousands. A search that returns a readable handful here can return pages there — so the habit to build is to narrow the search before you scan, not to scroll page after page.</p>",
+          "next": null
+        },
+        {
+          "n": 5,
+          "html": "<p>Add a second word and it narrows. Every word has to match, but each one may match a different field — a surname and the first few letters of a first name is usually enough.</p>",
+          "next": null
+        },
+        {
+          "n": 6,
+          "html": "<p>It is not only names. A year of birth works. So does a full date. So do the <b>last four digits of a Social Security Number</b> — often the only part somebody can remember, and enough on its own to cut a long list down.</p>",
+          "next": null
+        },
+        {
+          "n": 7,
+          "html": "<p>And any of them combine. Name and year. Surname and the last four. A first name and a date. Every word you add has to match, so each one narrows what is left — which is how you get a page of results down to a handful you can actually read.</p>",
+          "next": null
+        },
+        {
+          "n": 8,
+          "html": "<p>Opening a row opens their record. This is not anybody you will be asked for — it is just to show you the shape of the page before you need it.</p>",
+          "next": null
+        },
+        {
+          "n": 9,
+          "html": "<p>The top half is who they are: name, date of birth, age, Social Security Number and the quality codes beside each one. Those codes say how good the information is, and they are what tells you a record is thin rather than wrong.</p>",
+          "next": null
+        },
+        {
+          "n": 10,
+          "html": "<p>Down the left are the rest of their record. Most are dimmed — clicking a dimmed control does nothing at all, and each lesson clears the part it teaches. Location is open, because where somebody has been contacted is often what settles who they are.</p>",
+          "next": null
+        },
+        {
+          "n": 11,
+          "html": "<p>Every place they have been recorded, with the date and who wrote it down. If somebody tells you they have been sleeping under a bridge, this is where you find out whether the record agrees with him.</p>",
+          "next": null
+        },
+        {
+          "n": 12,
+          "html": "<p>Opening a client takes you off the search screen. This magnifying glass in the top bar brings you back to Client Search from anywhere in the system.</p>",
+          "next": null
+        },
+        {
+          "n": 13,
+          "html": "<p>So does this — the Clients icon at the top of the left rail. Either one works.</p>",
+          "next": null
+        },
+        {
+          "n": 14,
+          "html": "<p>This panel is not part of Clarity — it is me. Drag it by its title bar to move it wherever suits you, or use this to pop it free of the edge. Nothing underneath it moves either way.</p>",
+          "next": null
+        },
+        {
+          "n": 15,
+          "html": "<p>And this rolls it up to just the title bar. The same button brings it back, with your place kept.</p>",
+          "next": null
+        },
+        {
+          "n": 16,
+          "html": "<p>Your first situation is waiting here. Read who is in front of you, then search for them the way you would on the street.</p>",
+          "next": "Start"
+        }
+      ],
+      "scenarioOpen": [],
+      "scenarioClose": [],
+      "interstitial": {
+        "title": "From finding to verifying",
+        "html": "<p>That is the search half. You now have every documented way in: a name fragment, a year, four digits of an SSN, an alternate spelling, a term added to narrow, and a term swapped when nothing came back.</p><p><b>Finding a candidate record is not the same as finding the right one.</b> The rest of this lesson is verifying: proving a record belongs to the person in front of you, and deciding what to do when more than one does.</p>"
+      },
+      "closing": "<p style=\"margin:0 0 16px\">You searched on a name fragment, on a year, on four digits of a Social Security Number, and on a name that had been typed a different way. You narrowed a search that returned too much, and you swapped an identifier when a search returned nothing.</p><p style=\"margin:0 0 16px\">Finding a candidate record is not the same as finding the right one. That is what comes next.</p>",
+      "tasks": [
+        {
+          "n": 1,
+          "id": "nickname",
+          "title": "The name he gave you",
+          "note": false,
+          "situation": "A man at the front desk says <span class=\"q\">\"Everyone calls me Lefty. Lefty Torres. I stayed here last winter.\"</span> You type <code>Lefty</code>. Nothing comes back.",
+          "instruction": "Find his record and open it.",
+          "hint": "The name he gave you isn't the name on the record, and no alias was ever recorded for him. Drop it and search the surname on its own — <code>Tor</code> is enough.",
+          "feedback": "An empty result is not proof that someone is new. He is filed under his legal name, <b>Michael Torres</b>, with no alias on the record. Ask what else a participant has been called — a middle name, a second last name, a nickname, a shortening — and confirm the spelling of each. Typing <code>Lefty Torres</code> fails too: every word must match, so a word that matches nothing guarantees an empty list.",
+          "answer": {
+            "id": "UID#1988ZLAPR",
+            "name": "Michael Torres"
+          },
+          "wrong": []
+        },
+        {
+          "n": 2,
+          "id": "year",
+          "title": "When the last name may have changed",
+          "note": false,
+          "situation": "A woman says everyone calls her <span class=\"q\">Kate.</span> She thinks her record may be under a former married name but isn't sure which. She knows she was born in <b>1985</b>.",
+          "instruction": "Find and open her record.",
+          "hint": "Start from one piece of information you trust. A year works on its own — <code>1985</code>, or just <code>85</code>.",
+          "feedback": "She is filed as <b>Katherine Morrison</b>. Starting from a single reliable fact is the documented approach, and a year alone narrows three hundred records to a list you can read by eye.",
+          "answer": {
+            "id": "UID#0935CZBLF",
+            "name": "Katherine Morrison"
+          },
+          "wrong": []
+        },
+        {
+          "n": 3,
+          "id": "last4",
+          "title": "Starting from the last four of the SSN",
+          "note": false,
+          "situation": "A woman gives her name as <span class=\"q\">Danielle</span> and the last four of her Social Security Number: <b>7742</b>. She is not sure how her surname was spelled when she enrolled.",
+          "instruction": "Find and open her record.",
+          "hint": "Search the four digits on their own. Two people share them — use her first name to tell them apart.",
+          "feedback": "Searching the last four is one of the documented starting points, and it works even when the name is unreliable. But a four-digit fragment is not unique: two people here end 7742. Narrow with it, then confirm on something else.",
+          "answer": {
+            "id": "UID#1485RDFXA",
+            "name": "Danielle Whitmore"
+          },
+          "wrong": [
+            {
+              "id": "UID#5933AQRLV",
+              "name": "Marcus Pell",
+              "text": "That's Marcus Pell — his SSN also ends 7742. A shared fragment narrows the list; it does not decide it."
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "id": "fragments",
+          "title": "A name you cannot spell",
+          "note": false,
+          "situation": "A man gives his name as <span class=\"q\">Krzysztof Wojciechowski.</span> You try your best guess at the spelling and get nothing.",
+          "instruction": "Find and open his record.",
+          "hint": "You do not need the whole name. The first few letters of each is enough — the same way <code>kat joh</code> finds Katherine Johnson.",
+          "feedback": "Short fragments beat full names, because a full name has to be spelled the way somebody else typed it and a fragment does not. <code>krz woj</code> reaches him immediately.",
+          "answer": {
+            "id": "UID#8645CJASU",
+            "name": "Krzysztof Wojciechowski"
+          },
+          "wrong": []
+        },
+        {
+          "n": 5,
+          "id": "narrow",
+          "title": "Too many results",
+          "note": false,
+          "situation": "A woman gives her surname as <span class=\"q\">Garcia.</span> You search it and get twelve records across two pages. She tells you her first name is <b>Esperanza</b>.",
+          "instruction": "Narrow the search and open her record.",
+          "hint": "Add a second term rather than starting again. Surname plus the first few letters of the first name will do it.",
+          "feedback": "When a search returns more than you can read, add another term — a first name, a middle name, a second last name, an SSN fragment, a date of birth. Adding narrows; you rarely need to start over.",
+          "answer": {
+            "id": "UID#2067CZKLL",
+            "name": "Esperanza Garcia"
+          },
+          "wrong": []
+        },
+        {
+          "n": 6,
+          "id": "swap",
+          "title": "Nothing comes back",
+          "note": false,
+          "situation": "A man says he is <span class=\"q\">Adrian Fenwick</span> and gives his date of birth as <b>04/12/1988</b>. Searching that date returns nothing. He also remembers the last four of his SSN: <b>5518</b>.",
+          "instruction": "Find and open his record.",
+          "hint": "When a search returns nothing, replace one piece of information with another rather than adding to it. Swap the date of birth for the SSN fragment.",
+          "feedback": "His record holds 12/04/1988 — the month and day the other way round, which is how dates get mistyped everywhere. When you get nothing, swap an identifier rather than piling more on: date of birth for last four of the SSN, first name for last.",
+          "answer": {
+            "id": "UID#9279TEDVJ",
+            "name": "Adrian Fenwick"
+          },
+          "wrong": []
+        },
+        {
+          "n": 7,
+          "id": "spelling",
+          "title": "Spelled the way someone else heard it",
+          "note": false,
+          "situation": "A woman introduces herself as <span class=\"q\">Cathleen Brennan.</span> Searching <code>Cathleen</code> returns nothing.",
+          "instruction": "Find and open her record.",
+          "hint": "A previous provider may have written it down differently. Try the other spelling of that first sound.",
+          "feedback": "She is filed as <b>Kathleen</b>. The swaps worth trying first are the ones people make without noticing: <b>C and K</b>, <b>I and Y</b> — Catherine and Katherine, Jonson and Johnson. Try the alternate spelling before you conclude anyone is new.",
+          "answer": {
+            "id": "UID#7734QCBZT",
+            "name": "Kathleen Brennan"
+          },
+          "wrong": []
+        },
+        {
+          "n": 8,
+          "id": "surname",
+          "title": "A surname typed as one word",
+          "note": false,
+          "situation": "A caseworker asks you to pull up <span class=\"q\">Maria de la Cruz.</span> You search <code>Cruz</code>, then <code>Maria Cruz</code>. Both come back empty.",
+          "instruction": "Find and open her record.",
+          "hint": "Her surname was typed as a single word. Search the fragment common to every spelling — <code>dela</code> — or drop the surname and search her first name.",
+          "feedback": "She is filed as <b>Maria Delacruz</b>, one word. Search matches from the start of a name, so <code>Cruz</code> never reaches it. Second last names and compound surnames get entered differently by every agency — search the distinctive fragment, or the first name.",
+          "answer": {
+            "id": "UID#5268GUCMQ",
+            "name": "Maria Delacruz"
+          },
+          "wrong": []
+        }
+      ]
+    },
+    {
+      "section": 10,
+      "title": "Section 10 — Hands-on Simulations",
+      "scenarioTitle": null,
+      "scenarioSteps": [],
+      "orientation": [],
+      "scenarioOpen": [],
+      "scenarioClose": [],
+      "interstitial": null,
+      "closing": "<p style=\"margin:0 0 16px\">You told two people with the same name apart on a second identifier. You identified someone whose record held almost no identifiers, using her household. You confirmed another on where he had been staying. You chose between three records that all matched. And you found someone the identifiers could not reach at all, from a fragment, a year, and one thing he mentioned in passing.</p>",
+      "tasks": [
+        {
+          "n": 1,
+          "id": "samename",
+          "title": "Two people, one name",
+          "note": false,
+          "situation": "A man says he is <span class=\"q\">James Wilson.</span> He gives his date of birth as 9/2/1968 and the last four of his SSN as 4471.",
+          "instruction": "Open the correct James Wilson.",
+          "hint": "Narrow it with what he told you — the fragment <code>4471</code>, or the date of birth — or read the SSN and DOB columns and compare.",
+          "feedback": "These are two different people. As a rule of thumb a record is a match when at least <b>two of the three</b> — name, date of birth, SSN — match the participant. A name on its own is never enough.",
+          "answer": {
+            "id": "UID#5007LBGBH",
+            "name": "James Wilson"
+          },
+          "wrong": [
+            {
+              "id": "UID#7030TTZUM",
+              "name": "James Wilson",
+              "text": "That's the other James Wilson — born 4/17/1991, SSN ending 9038. Two records sharing a name are not automatically duplicates."
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "id": "household",
+          "title": "When the identifiers are thin",
+          "note": false,
+          "situation": "A woman says her name is <span class=\"q\">Yolanda Amari.</span> She does not know her Social Security Number and is unsure of her exact date of birth. She mentions her daughter, <b>Iris</b>, who is with her.",
+          "instruction": "Open the record that belongs to the mother.",
+          "hint": "Search the surname, then open a row's chevron to see its household members. The record you want lists Iris.",
+          "feedback": "When name, date of birth and SSN cannot settle it, the record holds other things you can confirm with the participant: household members, program history, case notes, location, veteran status. Here the household is what identifies her.",
+          "answer": {
+            "id": "UID#9197GHPYC",
+            "name": "Yolanda Amari"
+          },
+          "wrong": [
+            {
+              "id": "UID#3846JQQXA",
+              "name": "Iris Amari",
+              "text": "That's Iris — the daughter. You are looking for the record that lists Iris as a household member, not Iris's own record."
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "id": "location",
+          "title": "Where they have been staying",
+          "note": false,
+          "situation": "A man gives his name as <span class=\"q\">David Nguyen.</span> Two records come back — both David Nguyen, both born in 1982. He does not know his Social Security Number and cannot remember which agency he last worked with. He does tell you he has been staying by the wash under the <b>6th Street bridge</b>, and has been for about a year.",
+          "instruction": "Open the record whose location history matches where he has been staying.",
+          "hint": "Name and date of birth cannot separate these two. Open each record, go to the <b>Location</b> tab, and compare — one of them has been contacted at the 6th Street bridge.",
+          "feedback": "When name and date of birth cannot separate two records, the rest of the record can. In outreach, location is often the fastest of them: where someone has been contacted before is a fact you can both check, and it does not ask the participant to remember an agency name or a date. Confirm it with them rather than assuming. People move, and a location recorded a year ago proves less than one recorded last month — treat it as one identifier among several, not as the answer on its own.",
+          "answer": {
+            "id": "UID#2524YDABQ",
+            "name": "David Nguyen"
+          },
+          "wrong": []
+        },
+        {
+          "n": 4,
+          "id": "smoke",
+          "title": "Everything at once",
+          "note": false,
+          "situation": "A man introduces himself as <span class=\"q\">Smoke.</span> It is the only name anyone out here uses for him. Pressed, he gives a last name — <b>Reyes</b>, he thinks, though it might have been written down as Reyez or Rios. He does not know his date of birth beyond the year, <b>1971</b>, and he will not give a Social Security Number. He does tell you he served — Army, a long time ago.",
+          "instruction": "Find his record and open it.",
+          "hint": "Nothing you have been given finds him on its own. The first three letters are the same in all three spellings — search <code>Rey</code>, then use the year and the Veteran Status column to cut the list down.",
+          "feedback": "This is the real thing. No date of birth, no Social Security Number, a street name that is on no record, and a surname three plausible spellings deep. What is left is a fragment, a year, and one fact he volunteered — he is filed as <b>Elias Reyez</b>. Veteran status is worth remembering precisely because it is the kind of thing people tell you without being asked. When the identifiers are thin, the thing they mentioned in passing is often what closes it. And notice what you did not do: you did not conclude he was new because a search came back empty. You cleared the box and typed something else, and then did it again.",
+          "answer": {
+            "id": "UID#0763PPKNR",
+            "name": "Elias Reyez"
+          },
+          "wrong": []
+        },
+        {
+          "n": 5,
+          "id": "several",
+          "title": "More than one record matches",
+          "note": false,
+          "situation": "You search <span class=\"q\">Vega</span> and find three records. All three are Rosalind Vega, born 4/11/1983. All three appear to be the same person.",
+          "instruction": "Open the record you would work from.",
+          "hint": "Choose the most complete one — full SSN, full date of birth, full name, an alias, the fullest history. Open a row's chevron and the record page to compare.",
+          "feedback": "Work from the <b>most complete</b> record — full SSN, full date of birth, full name, full program history. Where that is unclear, take the one with the <b>longest enrollment history</b>, based on the oldest enrollment. Note the Unique Identifiers of the others as you go, so you are not starting from nothing if it comes up again.",
+          "answer": {
+            "id": "UID#2400YEPCC",
+            "name": "Rosalind Vega"
+          },
+          "wrong": [
+            {
+              "id": "UID#7295UEJLQ",
+              "name": "Rosalind Vega",
+              "text": "That record has only a partial SSN and no alias. A more complete record exists."
+            },
+            {
+              "id": "UID#7485MGJTB",
+              "name": "Rosalind Vega",
+              "text": "That record has no SSN on file at all, and it is the newest. A more complete record exists."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section": 11,
+      "title": "Section 11 — Hands-on Simulations",
+      "scenarioTitle": "When Search Comes Up Empty",
+      "scenarioSteps": [
+        "Somebody Nobody Can Find",
+        "Alternate Names",
+        "Alternate Spellings",
+        "Start Over From a Different Fact",
+        "Only Then, Create a Record"
+      ],
+      "orientation": [],
+      "scenarioOpen": [
+        {
+          "n": 1,
+          "html": "<p>You have searched and found nothing. Before you conclude the participant is new, work through this list — and this time you work it on one person, start to finish, choosing for yourself which step to reach for.</p>",
+          "next": "Start"
+        },
+        {
+          "n": 2,
+          "html": "<p>Second morning of the cleanup. You are packing up when you see him again — Desmond, the man who asked yesterday whether there was any news about interim housing. He has come back to find out whether you got anywhere. He gives his last name as Carrow.</p>",
+          "next": null
+        },
+        {
+          "n": 3,
+          "html": "<p>An empty result is not proof that somebody is new — and you already have a reason to think he is not. Somebody took his details months ago. That record is somewhere.</p>",
+          "next": null
+        },
+        {
+          "n": 4,
+          "html": "<p>Ask the participant what else they have been called: a middle name, a second last name, a nickname, a shortened name. Confirm the spelling of each one.</p><p>Some of what you hear will not be a nickname at all. A participant may give you the name they use — a chosen name, or the name that fits who they are — while the record was created under a different one. Ask for both, without making it a thing: the name they go by, and any other name a record might be under. Search on both, and address them by the one they gave you.</p>",
+          "next": null
+        },
+        {
+          "n": 5,
+          "html": "<p>You tell him the search is not finding him, which is not the same as him not being there, and you ask what else he has been called. Everyone calls him Dez. He has not used Carrow in years — there was another name before it and he cannot remember which one the outreach worker wrote down. He was born in 1974 but does not know the day. He would rather not give his Social Security Number, and that is fine.</p>",
+          "next": null
+        },
+        {
+          "n": 6,
+          "html": "<p>Asking got you three new facts and ruled out a fourth. None of them has found him yet, and that is still progress.</p>",
+          "next": null
+        },
+        {
+          "n": 7,
+          "html": "<p>Try the spellings a previous provider might have used by mistake. For Katherine Johnson: catherine, cat, jonson, jon.</p>",
+          "next": null
+        },
+        {
+          "n": 8,
+          "html": "<p>Dez is not a nickname. Somebody wrote his name down while listening rather than reading, and the s came out as a z. And the surname he gave you is the one he stopped using — it is the word doing the damage. Drop it and search what is left.</p>",
+          "next": null
+        },
+        {
+          "n": 9,
+          "html": "<p>The fragment beats the full name, because a fragment does not have to be spelled the way somebody else typed it. And taking a word away is what let the fragment work at all.</p>",
+          "next": null
+        },
+        {
+          "n": 10,
+          "html": "<p>Go back to the beginning and start from a different piece of information. If you began with the date of birth, begin this time with the first three letters of the first and last name.</p>",
+          "next": null
+        },
+        {
+          "n": 11,
+          "html": "<p>Five is readable and three of them are plainly not him. Two are not. You started from his name and the name was wrong twice over — so start from the other thing he gave you.</p>",
+          "next": null
+        },
+        {
+          "n": 12,
+          "html": "<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on file. Nothing he has told you separates them.</p>",
+          "next": null
+        }
+      ],
+      "scenarioClose": [
+        {
+          "n": 1,
+          "html": "<p>When the identifiers run out, the rest of the record is what identifies somebody. And there it is — the contact somebody logged the day they took his details, and the referral he has been asking about ever since. He was never missing. He was four searches away.</p>",
+          "next": null
+        },
+        {
+          "n": 2,
+          "html": "<p>If you have worked through all of the above and still cannot find a candidate record, create a new one. At that point it is the right thing to do.</p><p>Notice how far down this list that sentence is. Desmond was four searches from being a second record for a man who already had one — and every one of those searches was something you had already practiced.</p>",
+          "next": "Finish"
+        }
+      ],
+      "interstitial": null,
+      "closing": null,
+      "tasks": [
+        {
+          "n": 1,
+          "id": "desmond",
+          "title": "Somebody nobody can find",
+          "note": false,
+          "situation": "Second morning of the cleanup. You are packing up when you see him again — <span class=\"q\">Desmond</span>, the man who asked yesterday whether there was any news about interim housing. He has come back to find out whether you got anywhere. He gives his last name as <b>Carrow</b>.",
+          "instruction": "Find him, and open the record that matches where he has been staying.",
+          "hint": "Nothing he leads with reaches anybody. Ask what else he has been called, drop the surname he stopped using, and search the fragment on its own — <code>Dez</code>. Then add the year, and read the Location tab.",
+          "feedback": "He was never missing. He was four searches away, and every one of them was something you had already practised: you did not treat an empty result as an answer, you asked rather than guessed, you dropped the word that was doing the damage, and when the identifiers ran out you used the rest of the record. <b>This is the point at which creating a record is the right thing to do — and not before.</b> Notice how far down the list that sentence comes.",
+          "answer": {
+            "id": "UID#3906EMKLW",
+            "name": "Dezmond Ellery"
+          },
+          "wrong": [
+            {
+              "id": "UID#4693CCFAR",
+              "name": "Dezmond Achebe",
+              "text": "That is the other Dezmond. Same name, same year of birth, no Social Security Number on either. His record has never been at the Alameda St underpass."
+            },
+            {
+              "id": "UID#2959QLPPZ",
+              "name": "Dezirae Ellsworth",
+              "text": "Not him. Read the first name, not just the fragment."
+            },
+            {
+              "id": "UID#9491JNCMB",
+              "name": "Dezra Achterberg",
+              "text": "Not him. Read the first name, not just the fragment."
+            },
+            {
+              "id": "UID#7795LLNSX",
+              "name": "Dezhawn Arrington",
+              "text": "Not him. Read the first name, not just the fragment."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "key": "11.1",
+      "file": "step-11-1.html",
+      "phases": [
+        {
+          "n": 1,
+          "does": "<p>Searches <b>Desmond Carrow</b>. Then <b>Carrow</b> on its own.</p>",
+          "happens": "<p>Nothing, either way. The empty state says No results yet and that is all it says.</p>"
+        }
+      ]
+    },
+    {
+      "key": "11.2",
+      "file": "step-11-2.html",
+      "phases": [
+        {
+          "n": 1,
+          "does": "<p>Searches <b>Dez Carrow</b>. Then the year on its own.</p>",
+          "happens": "<p>Nothing. Carrow reaches nobody, so any search containing it reaches nobody either — every word has to match. The year returns a long list, and no Carrow is in it, because there is no Carrow to find.</p>"
+        }
+      ]
+    },
+    {
+      "key": "11.3",
+      "file": "step-11-3.html",
+      "phases": [
+        {
+          "n": 1,
+          "does": "<p>Searches <b>Dez</b> on its own.</p>",
+          "happens": "<p>Five records — Dezirae, Dezra, Dezhawn, and two men called Dezmond.</p>"
+        }
+      ]
+    },
+    {
+      "key": "11.4",
+      "file": "step-11-4.html",
+      "phases": [
+        {
+          "n": 1,
+          "does": "<p>Adds <b>1974</b> to the fragment.</p>",
+          "happens": "<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on file. Nothing he has told you separates them.</p>"
+        },
+        {
+          "n": 2,
+          "does": "<p>Goes back to him.</p>",
+          "happens": "<p>When the identifiers run out, the rest of the record is what identifies somebody. And there it is — the contact somebody logged the day they took his details, and the referral he has been asking about ever since. He was never missing. He was four searches away.</p>"
+        }
+      ]
+    }
+  ],
+  "feedback": [
+    {
+      "kind": "Correct",
+      "title": "Correct",
+      "body": "You found the right record."
+    },
+    {
+      "kind": "Incorrect",
+      "title": "Not this client",
+      "body": "That isn't the participant described in the task. Close the profile and refine your search."
+    },
+    {
+      "kind": "Incorrect",
+      "title": "Wrong record",
+      "body": "That record isn't part of the duplicate pair described in this task."
+    },
+    {
+      "kind": "Incorrect",
+      "title": "Not a duplicate",
+      "body": "Flagging is for records that appear to describe the same person twice. This task asks you to find and open one specific client."
+    },
+    {
+      "kind": "Prompt",
+      "title": "No results is not an answer",
+      "body": "An empty list is not proof this person has no record. Before you conclude that, try a shorter fragment of the name, the surname instead of the first name, or the year of birth on its own."
+    }
+  ],
+  "panel": {
+    "hint": "Show hint",
+    "next": "Next task →",
+    "hover": "This panel is mine, not Clarity's. Drag it by the title bar to move it anywhere. <b>Pop out</b> lifts it off the edge; <b>collapse</b> rolls it up to the title bar. Neither moves the interface, and neither loses your place.",
+    "habit": "An empty result is not proof that someone is new. Search the surname fragment, search the year of birth, confirm on a second identifier — and only then create a record."
+  }
+}
