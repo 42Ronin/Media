@@ -23,16 +23,16 @@ import { chromium } from 'playwright';
 import { readdirSync } from 'fs';
 
 const DIST = new URL('../dist/', import.meta.url);
-const want = process.argv.slice(2).map(Number);
+const want = process.argv.slice(2);
 const sections = readdirSync(DIST)
-  .map(f => /^section-(\d+)\.html$/.exec(f))
+  .map(f => /^(simulator-\d+)\.html$/.exec(f))
   .filter(Boolean)
-  .map(m => Number(m[1]))
+  .map(m => m[1])
   .filter(n => !want.length || want.includes(n))
-  .sort((a, b) => a - b);
+  .sort();
 
 if (!sections.length) {
-  console.error('no section builds found — run ./build.sh first');
+  console.error('no simulator builds found — run ./build.sh first');
   process.exit(1);
 }
 
@@ -85,7 +85,7 @@ let flagged = 0, checked = 0, lenient = 0;
 
 for (const sec of sections) {
   const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
-  await page.goto(new URL(`section-${sec}.html`, DIST).href);
+  await page.goto(new URL(`${sec}.html`, DIST).href);
 
   const rows = await page.evaluate(() => TASKS.map(t => {
     const c = CLIENTS.find(x => x.i === t.expect.id);
