@@ -70,7 +70,12 @@ Michael Torres. A token matches:
 
 - a **name prefix** — first, last, alias, or any word of a multi-word surname
 - a **DOB fragment** — `1977`, `77`, `3/14`, `3/14/79`, `03/14/1979`, with `/` `.` or `-`
-- an **SSN fragment** — any digit run inside it
+- an **SSN fragment** — any digit run inside it. **The token must be numeric**: letters used
+  to be stripped before matching, so a unique identifier searched as `UID#3906EMKLW` came back
+  as every record whose SSN happened to contain `3906`
+- the **unique identifier**, whole, with or without the `UID#` in front. Whole codes only —
+  a fragment of one is not something anybody reads off a screen and types, and matching
+  fragments would let a stray four digits collide with an SSN
 
 Partial SSNs are stored HMIS-style with unrecalled segments filled `X` or `0` at the
 segment's width. A masked segment collapses to a marker so a search cannot match *across*
