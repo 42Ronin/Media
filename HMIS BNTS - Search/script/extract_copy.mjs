@@ -73,8 +73,11 @@ const steps = STEP_FILES.map(f => {
   const meta = stepData[key] || { phases: [] };
   return {
     key, file: f + '.html',
+    /* No instruction to pull: an embed holds the interface only, and the slide
+       above it carries what to do. All that is learner-facing in here is the
+       feedback the script attached to the task — and some tasks have none. */
     phases: (meta.phases || []).map((ph, i) => ({
-      n: i + 1, does: ph.does || '', happens: ph.html || ''
+      n: i + 1, happens: ph.html || ''
     }))
   };
 });
