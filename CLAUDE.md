@@ -388,6 +388,25 @@ document. Three consequences the sim has to live with, all covered by tests:
   "Paused — your progress is saved" and Resume genuinely resumes. In-session state survives;
   a block reload still starts over.
 
+**The task embeds are the interface and nothing else.** `task-embed-1/2/3` sit inline in the
+Rise page rather than launching, and the slide above each one carries the instruction — so
+there is no step pane, no side rail and no training panel inside the frame, and the app runs
+edge to edge (`html.step .app{top:0;left:0;right:0;bottom:0}`). Repeating the slide's words
+inside the block said the same thing twice, in a smaller font, in a box the learner had to
+look past to reach what they were told to do. All that is left of the copy is the feedback
+the script attached to a task, which **Lashes** says once it is done; an embed the script
+gives nothing to say stays silent and simply completes. Two things follow:
+- **She is placed in an embed, not solved.** The placement solver is built for the lesson's
+  own stage — a tall window with a docked panel and keep-clear regions — and in a 600px Rise
+  block it parked her bubble off the right-hand edge whatever it was anchored to. In `html.step`
+  she is a fixed bottom-right cluster and the arrow, which has nothing to point at, does not draw.
+- **Her bubble takes pointer events only when it is `.on`.** Silent, it still holds its box in
+  that flex row, and an invisible 560px panel over the bottom-right of the results table eats
+  clicks on the rows under it.
+- **Completion leaves the block entirely** — it is a `postMessage`, not a line of text. So the
+  embed tests play each one *in a frame*; a top-level page asserts the gate and silently skips
+  the contract that marks the Rise block done.
+
 ## Where this lesson sits — HMIS Essentials
 
 The existing course is **HMIS Essentials (v1.1.0)** on `cta.lahsa.org`. Its five training

@@ -27,7 +27,7 @@ const OUT = join(HERE, '..', 'gifs', 'frames');
 
 /* Capture-only styling. Nothing here ships. */
 const BARE = `
-  #coachWin,#lzLayer,#stepPane{display:none !important}
+  #coachWin,#lzLayer{display:none !important}
   html{--dock:0px !important}
   .app{right:0 !important}
   /* the caret keeps blinking through a screenshot run, which reads as flicker

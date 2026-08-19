@@ -1547,80 +1547,105 @@ ok('the product keeps its own indigo, so the two never read as one thing',
 
 /* ------------------------------------------------------------------
    Task embeds. One per [Task Embed] in the script, inline in the Rise page
-   rather than launched. The slide's own words sit above the block; the block
-   is the doing. Two carry feedback the script attached to them; the third
-   does not, and simply completes.
+   rather than launched. The block is the INTERFACE and nothing else — the
+   slide's own words sit above it, on the Rise page, so there is no instruction
+   card and no training panel inside the frame. Two embeds carry feedback the
+   script attached to them, which she says once the thing is done; the third
+   has none in the script and so says nothing at all, and simply completes.
+
+   Completion leaves the block entirely — it is a postMessage, not a line of
+   text — so these are played inside a frame, the way Rise plays them. A
+   top-level page would assert the gate and silently skip the contract that
+   marks the block done.
 
    Section 11's running scenario is retired — the script replaced its beats
    with narration, so the only thing that ships from it is these three.
    ------------------------------------------------------------------ */
 console.log('\n— the task embeds —');
 {
+  /* Mount an embed the way the Rise block does and hand back the frame plus a
+     reader for whatever it has posted up. */
+  const mount = async (file, viewport) => {
+    const host = await b.newPage({ viewport });
+    const errs = [];
+    host.on('pageerror', e => errs.push(String(e)));
+    await host.setContent(`<style>html,body{margin:0;height:100%}
+      iframe{width:100%;height:100%;border:0;display:block}</style>
+      <script>window.msgs=[];addEventListener('message',e=>msgs.push(e.data));<\/script>`);
+    await host.evaluate(html => {
+      const f = document.createElement('iframe');
+      f.srcdoc = html;
+      document.body.appendChild(f);
+    }, readFileSync(new URL(`./dist/${file}.html`, import.meta.url), 'utf8'));
+    await host.waitForTimeout(700);
+    const fr = host.frames().find(f => f !== host.mainFrame());
+    fr.on('pageerror', e => errs.push(String(e)));
+    const done = () => host.evaluate(() => window.msgs.some(
+      m => m && m.source === 'hmis-sim' && m.type === 'complete' && m.completed));
+    return { host, fr, errs, done };
+  };
+  /* Absent means both halves of her: the face is opacity 0 until it is `.on`,
+     and the bubble is visibility:hidden until it is. */
+  const speaking = fr => fr.evaluate(() =>
+    document.querySelector('#lzChar').classList.contains('on') &&
+    document.querySelector('#lzBub').classList.contains('on'));
+
   const EMBED = [
-    ['task-embed-1', ['Desmond Carrow', 'Carrow'], 'Searches Desmond Carrow',
+    ['task-embed-1', ['Desmond Carrow', 'Carrow'],
      'An empty list is not proof this person has no record'],
-    ['task-embed-2', ['Dez 1974'], 'Searches the fragment Dez',
+    ['task-embed-2', ['Dez 1974'],
      'Nothing he has told you separates them'],
   ];
-  for (const [file, queries, asks, lands] of EMBED) {
-    const st = await b.newPage({ viewport: { width: 1000, height: 620 } });
-    const stErrs = [];
-    st.on('pageerror', e => stErrs.push(String(e)));
-    await st.goto('file://' + new URL(`./dist/${file}.html`, import.meta.url).pathname);
-    await st.waitForTimeout(400);
+  for (const [file, queries, lands] of EMBED) {
+    const { host, fr, errs, done } = await mount(file, { width: 1000, height: 620 });
 
     ok(`${file}: no training panel — the Rise text above it is the panel`,
-       await st.$eval('#coachWin', e => getComputedStyle(e).display === 'none'));
-    ok(`${file}: no character in the block`,
-       await st.$eval('#lzLayer', e => getComputedStyle(e).display === 'none'));
-    ok(`${file}: the block asks for something rather than sitting blank`,
-       (await st.textContent('#stepDo')).includes(asks));
-    ok(`${file}: and says nothing about the outcome yet`,
-       await st.$eval('#stepRes', e => e.hidden));
+       await fr.$eval('#coachWin', e => getComputedStyle(e).display === 'none'));
+    ok(`${file}: nothing above the interface either — no instruction card in the block`,
+       await fr.evaluate(() => !document.querySelector('#stepPane') &&
+                               !document.querySelector('.steppane')));
+    ok(`${file}: the interface starts at the top of the frame`,
+       await fr.evaluate(() => document.querySelector('.app').getBoundingClientRect().top === 0));
+    ok(`${file}: she is absent while the learner works`, !(await speaking(fr)));
+    ok(`${file}: and nothing is claimed complete yet`, !(await done()));
 
-    for (const q of queries) { await st.fill('#q', q); await st.waitForTimeout(900); }
-    ok(`${file}: lands on the feedback the script attached to it`,
-       (await st.textContent('#stepRes')).includes(lands));
-    ok(`${file}: and reports itself complete`,
-       (await st.textContent('#stepRes')).includes('Carry on below'));
-    ok(`${file}: no errors`, stErrs.length === 0, stErrs.join(' | '));
-    await st.close();
+    for (const q of queries) { await fr.fill('#q', q); await fr.waitForTimeout(900); }
+    ok(`${file}: she arrives with the feedback the script attached to it`,
+       (await speaking(fr)) && (await fr.textContent('#fb')).includes(lands));
+    ok(`${file}: and the block reports itself complete to the course`, await done());
+    ok(`${file}: no errors`, errs.length === 0, errs.join(' | '));
+    await host.close();
   }
 
   /* The third embed has no feedback in the script, so it must not invent any —
      and it is the one that has to accept the record being settled by Location or
      by the Point of Contact who took his details. */
-  const three = await b.newPage({ viewport: { width: 1200, height: 800 } });
-  const thErrs = [];
-  three.on('pageerror', e => thErrs.push(String(e)));
-  await three.goto('file://' + new URL('./dist/task-embed-3.html', import.meta.url).pathname);
-  await three.waitForTimeout(400);
-  ok('task-embed-3: it names both routes, not just the location',
-     (await three.textContent('#stepDo')).includes('Location') &&
-     (await three.textContent('#stepDo')).includes('Point of Contact'));
-  await three.fill('#q', 'Dez 1974'); await three.waitForTimeout(900);
+  const { host: three, fr: tf, errs: thErrs, done: thDone } =
+    await mount('task-embed-3', { width: 1200, height: 800 });
+
+  await tf.fill('#q', 'Dez 1974'); await tf.waitForTimeout(900);
   ok('task-embed-3: the search leaves exactly the two Dezmonds',
-     await three.$$eval('[data-open]', els => els.length === 2));
+     await tf.$$eval('[data-open]', els => els.length === 2));
 
-  const openRow = (page, id) => page.evaluate(uid => {
-    [...document.querySelectorAll('[data-open]')].find(e => e.dataset.open === uid).click();
-  }, id);
+  const openRow = uid => tf.evaluate(id => {
+    [...document.querySelectorAll('[data-open]')].find(e => e.dataset.open === id).click();
+  }, uid);
 
-  await openRow(three, 'UID#4693CCFAR'); await three.waitForTimeout(800);
-  ok('task-embed-3: the other Dezmond does not complete it',
-     !(await three.textContent('#stepRes')).includes('Carry on below'));
-  await three.keyboard.press('Escape'); await three.waitForTimeout(400);
-  await three.fill('#q', 'Dez 1974'); await three.waitForTimeout(800);
-  await openRow(three, 'UID#3906EMKLW'); await three.waitForTimeout(900);
-  ok('task-embed-3: the one contacted at the underpass finishes it',
-     (await three.textContent('#stepRes')).includes('Carry on below'));
-  ok('task-embed-3: and it adds no feedback of its own',
-     !(await three.textContent('#stepRes')).includes('What happens'));
+  await openRow('UID#4693CCFAR'); await tf.waitForTimeout(800);
+  ok('task-embed-3: the other Dezmond does not complete it', !(await thDone()));
+  await tf.evaluate(() => document.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
+  await tf.waitForTimeout(400);
+  await tf.fill('#q', 'Dez 1974'); await tf.waitForTimeout(800);
+  await openRow('UID#3906EMKLW'); await tf.waitForTimeout(900);
+  ok('task-embed-3: the one contacted at the underpass finishes it', await thDone());
+  ok('task-embed-3: and it stays silent, because the script gave it nothing to say',
+     !(await speaking(tf)));
   ok('task-embed-3: no errors', thErrs.length === 0, thErrs.join(' | '));
 
   /* The record he is settled on is the one that carries both signals. */
   ok('task-embed-3: that record holds the underpass and the contact who took his details',
-     await three.evaluate(() => {
+     await tf.evaluate(() => {
        const c = CLIENTS.find(x => x.i === 'UID#3906EMKLW');
        return c.lo.some(l => /Alameda St underpass/.test(l.p)) &&
               c.poc.some(pc => /^Devon\b/.test(pc.nm || ''));

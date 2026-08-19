@@ -342,7 +342,6 @@
       "phases": [
         {
           "n": 1,
-          "does": "<p>Searches <b>Desmond Carrow</b>. Then <b>Carrow</b> on its own.</p>",
           "happens": "<p>An empty list is not proof this person has no record.</p>"
         }
       ]
@@ -353,7 +352,6 @@
       "phases": [
         {
           "n": 1,
-          "does": "<p>Searches the fragment <b>Dez</b> with the year, <b>1974</b>.</p>",
           "happens": "<p>Two records. Both Dezmond, both born that year, neither with a Social Security Number on file. Nothing he has told you separates them.</p>"
         }
       ]
@@ -364,7 +362,6 @@
       "phases": [
         {
           "n": 1,
-          "does": "<p>Opens each record in turn and compares the <b>Location</b> tab and the <b>Point of Contact</b> against what he has said.</p>",
           "happens": ""
         }
       ]

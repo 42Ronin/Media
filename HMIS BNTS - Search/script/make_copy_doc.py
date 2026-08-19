@@ -264,16 +264,16 @@ for sec in DATA["sections"]:
 # the step embeds
 # ============================================================
 h1("The task embeds")
-para("Four separate tools, one per slide. Each waits for the learner to do the thing the slide "
+para("Three separate tools, one per slide. Each is the interface and nothing else — the slide "
+     "carries the instruction — and each waits for the learner to do the thing the slide "
      "describes and then says what happened.", color=GREY, space_after=10)
 note("These are not scored. The gate is the search itself: nothing advances until the learner "
-     "has run it.")
+     "has run it. An embed the script gives nothing to say has no text here, and says nothing.")
 
 for st_ in DATA["steps"]:
     h2("Step %s  (%s)" % (st_["key"], st_["file"]))
     for ph in st_["phases"]:
         base = "STEP%s.%d" % (st_["key"].replace(".", "-"), ph["n"])
-        block(base + ".DOES", "Learner does", ph["does"])
         block(base + ".HAPPENS", "What happens", ph["happens"])
     rule()
 
