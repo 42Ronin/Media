@@ -341,8 +341,18 @@ await p.waitForTimeout(250);
   ok('...and never asks for a correct answer',
      !probs.some(s => /correct/.test(s)), probs.join(' ; '));
 }
-await p.fill('#fbtext', 'An empty result is the most misread signal in HMIS.\n\n' +
-                        'It usually means the record is under something you have not tried.');
+/* Deliberately LONGER than the answers it replaces. Both states share one grid
+   cell and the cell is as tall as the taller of them, so a short reveal makes the
+   height assertion below prove nothing — it was short, and it hid the box being
+   written at the pick rather than at the deal, which grew the block by 40px the
+   moment the last answer went. */
+await p.fill('#fbtext',
+  'An empty result is the single most misread signal in HMIS. It usually means the ' +
+  'record is under a name, a spelling or an identifier you have not tried yet, and ' +
+  'not that the person in front of you is new to the system.\n\n' +
+  'Creating a second record for somebody who already has one is the error that ' +
+  'corrupts the count everything else is planned from, and it is far harder to undo ' +
+  'than it is to avoid.');
 await p.waitForTimeout(250);
 ok('...and once it is written, the gate it states is exhaustion, not a mark',
    /complete once the learner has taken all/.test(await p.textContent('#okline')) &&
@@ -393,6 +403,21 @@ ok('the export is the Copperfield page, not a check in disguise',
   ok('every answer is on the table', n === 3, String(n));
   ok('...and what is under them cannot be read yet',
      await fr.$eval('#reveal', e => getComputedStyle(e).visibility === 'hidden'));
+  /* The Name is the filename, and on a deck it is also the heading — but one box
+     under a Rise slide that already has a title does not want it repeated inside
+     the block. It came back once through a fallback to the page title. */
+  ok('...and no heading repeating the slide title above it',
+     await fr.$eval('#heading', e => e.hidden));
+  /* The height assertion further down is only worth anything if the state being
+     revealed is the TALLER of the two — otherwise the cell is sized by the cards
+     and a reveal arriving with no room reserved would still measure equal.
+     Measured on `#say` against `.hand`, because those are content-sized: the two
+     states are grid items stretched to the same cell, so comparing THEM compares
+     the cell with itself and passes whatever is in them. */
+  ok('...and the box underneath is the taller state, so height means something',
+     await fr.evaluate(() =>
+       document.querySelector('#say').getBoundingClientRect().height >
+       document.querySelector('.hand').getBoundingClientRect().height));
   const h0 = await height(), boxes0 = await slotBoxes();
 
   /* Resting on a card is what takes it. The dwell is the whole reason this is
