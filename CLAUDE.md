@@ -804,7 +804,17 @@ correct, write the feedback, set the pass mark, press Export.
     between them read as the box stalling before it got to the point.
     **Its class goes on before its motes are built.** Two hundred elements created in the
     same frame as the class left the transition waiting behind that work and the sweep did
-    not start moving for about 200ms. **Click and the keyboard
+    not start moving for about 200ms. The reveal has the same ordering for the same reason —
+    words armed first, motes after.
+    **And the writing overlaps the question in turn.** It starts a quarter of the way into
+    the question's sweep, so half of it is in before the question has gone; both sweeps run
+    left to right, so the words arrive in the WAKE of the erasure rather than over the top
+    of it. The state the question is in is only switched off once its own sweep has
+    finished, or the fade would cut the disintegration short.
+    **Cost lives in `blur()`, not in the mote count.** Thirty words animating a 9px blur
+    over the question's own motes starved the main thread for ~290ms; at 6px it is 116ms and
+    reads the same. Measured by how badly a `setInterval` gets starved, which is a decent
+    proxy for whether the animation itself is stuttering. **Click and the keyboard
     still take a card** — hover is the interaction, those are the floor, because a pointer is
     not something every learner has and a box that cannot be finished is worse than one
     finished the ordinary way. All three routes are asserted, as are the crossing mouse

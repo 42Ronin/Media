@@ -181,11 +181,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    the dust. Each word's delay comes from where it sits, so the assembly runs
    across and slightly down — the same direction the sweep ran. */
 .reveal .w{display:inline-block;white-space:pre-wrap}
-.reveal.armed .w{opacity:0;filter:blur(9px);transform:translate(10px,-5px) scale(.94)}
+/* 6px, not 9: blur is rastered on the main thread and thirty of them animating
+   at once — over the question's own motes — starved everything else for about
+   a quarter of a second. It reads as out of focus either way. */
+.reveal.armed .w{opacity:0;filter:blur(6px);transform:translate(10px,-5px) scale(.94)}
 .reveal.armed.forming .w{opacity:1;filter:blur(0);transform:none;
-  transition:opacity .5s ease-out var(--wd,0s),
-             filter .55s cubic-bezier(.2,.7,.3,1) var(--wd,0s),
-             transform .55s cubic-bezier(.2,.8,.3,1) var(--wd,0s)}
+  transition:opacity .34s ease-out var(--wd,0s),
+             filter .42s cubic-bezier(.2,.7,.3,1) var(--wd,0s),
+             transform .42s cubic-bezier(.2,.8,.3,1) var(--wd,0s)}
 
 /* A link is the one thing in here that is meant to be clicked, so it is the one
    thing that carries the accent. */
@@ -536,12 +539,21 @@ function finish(){
     spawn(ask,ask,Math.min(200,Math.round(
       ask.getBoundingClientRect().width*ask.getBoundingClientRect().height/130)),0,1,0.42);
   }
-  setTimeout(reveal, reduced?0:GONE+90);
+  /* The writing starts forming while the question is still coming apart, the way
+     the question started while the last answer was. Both sweeps run left to
+     right, so the words arrive in the wake of the erasure rather than over the
+     top of it: where a word has landed the question has already gone from that
+     column, and where the question is still standing the words there have not
+     arrived yet. */
+  setTimeout(reveal, reduced?0:Math.round(GONE/4));
+  /* The state the question was in goes only once its sweep has actually
+     finished. Flipped off at the same moment the reveal arrives, the question
+     would be cut short by the fade instead of finishing its own disintegration. */
+  setTimeout(function(){ $("#live-state").dataset.on="0"; }, reduced?0:GONE+120);
   EMBED.complete();
 }
 
 function reveal(){
-  $("#live-state").dataset.on="0";
   $("#reveal").dataset.on="1";          /* already written — see `deal` */
   /* The writing comes together out of dust, on the same sweep the cards came
      apart on. Word by word rather than one flat wipe: each one arrives out of
@@ -549,8 +561,15 @@ function reveal(){
      the reverse of the disintegration rather than as a mask sliding over text.
      The motes settle onto it at the same rate. */
   if(!reduced){
-    spawn($("#say"),$("#say"),190,0,1,0.9,true);
+    /* Words first, motes after. Built the other way round, the hundred and ninety
+       mote elements landed before the class that starts the words and held the
+       whole assembly back by about four hundred milliseconds — the same trap the
+       question's sweep hit. */
     formWords($("#say"));
+    /* Fewer than the card burst. Each mote is six style writes, and at a hundred
+       and ninety the build blocked the main thread long enough to stall the very
+       words it was supposed to be arriving with. */
+    spawn($("#say"),$("#say"),110,0,1,0.72,true);
   }
   $("#live").textContent=$("#say").textContent;
 }
@@ -566,7 +585,7 @@ function formWords(host){
   ws.forEach(function(el){
     var r=el.getBoundingClientRect();
     var along=((r.left-box.left)/w)*0.72 + ((r.top-box.top)/h)*0.28;
-    el.style.setProperty("--wd",(0.06+along*0.85).toFixed(3)+"s");
+    el.style.setProperty("--wd",(0.02+along*0.58).toFixed(3)+"s");
   });
   $(".reveal").classList.add("forming");
 }
