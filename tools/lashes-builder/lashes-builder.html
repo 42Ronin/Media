@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lashes — block builder</title>
+<style>
+:root{
+  --ink:#181a2a;
+  --ink-2:#5a5c76;
+  --ink-3:#8b8da6;
+  --indigo:#066888;
+  --indigo-dk:#04506a;
+  --indigo-soft:#e2eff4;
+  --lens:#dceaee;
+  --paper:#f4f4fa;
+  --panel:#ffffff;
+  --line:#e2e2ef;
+  --line-2:#eeeef7;
+  --amber:#8a5a00;
+  --amber-bg:#fdf6ec;
+  --red:#b3261e;
+  --red-bg:#fbeae9;
+  --green:#1a7a4a;
+  --green-bg:#e8f5ee;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--paper);color:var(--ink);
+  font:14px/1.55 ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;height:100vh;overflow:hidden;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid #0b6fd4;outline-offset:2px;border-radius:4px}
+
+/* ---------- masthead ---------- */
+.top{
+  flex:none;display:flex;align-items:center;gap:13px;
+  padding:13px 20px;background:var(--panel);border-bottom:1px solid var(--line);
+}
+.top .mark{width:34px;height:34px;flex:none}
+.top h1{margin:0;font-size:15.5px;font-weight:600;letter-spacing:-.01em}
+.top h1 span{color:var(--ink-3);font-weight:400}
+.top .spacer{flex:1}
+.ghost{
+  border:1px solid var(--line);border-radius:8px;padding:8px 13px;
+  font-size:13px;font-weight:500;color:var(--ink-2);background:#fff;transition:.15s;
+}
+.ghost:hover{border-color:#c9c9de;color:var(--ink)}
+.solid{
+  background:var(--indigo);color:#fff;border-radius:8px;padding:9px 17px;
+  font-size:13px;font-weight:600;transition:.15s;
+}
+.solid:hover{background:var(--indigo-dk)}
+.solid:disabled{background:#c3c2d6;cursor:not-allowed}
+
+/* ---------- layout ---------- */
+.main{flex:1;display:flex;min-height:0}
+.pane{
+  width:392px;flex:none;background:var(--panel);border-right:1px solid var(--line);
+  overflow-y:auto;padding:20px 22px 40px;
+}
+.stage{flex:1;min-width:0;overflow-y:auto;padding:26px 30px 40px;display:flex;flex-direction:column;gap:18px}
+
+/* ---------- form ---------- */
+.field{margin-bottom:19px}
+.field:last-child{margin-bottom:0}
+label.lb{display:block;font-size:12px;font-weight:600;letter-spacing:.01em;margin-bottom:6px}
+.hint{font-size:11.5px;color:var(--ink-3);margin:5px 0 0;line-height:1.45}
+input[type=text],textarea,select{
+  width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;
+  font-size:13.5px;background:#fff;transition:border-color .15s;
+}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--indigo);outline:0;box-shadow:0 0 0 3px var(--indigo-soft)}
+textarea{resize:vertical;min-height:96px;line-height:1.6}
+
+.seg{display:flex;gap:6px;background:var(--line-2);padding:4px;border-radius:11px}
+.seg button{
+  flex:1;padding:8px 6px;border-radius:8px;font-size:12.5px;font-weight:600;
+  color:var(--ink-2);transition:.15s;
+}
+.seg button[aria-pressed=true]{background:#fff;color:var(--indigo);box-shadow:0 1px 3px rgba(30,25,90,.1)}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  border:1px solid var(--line);border-radius:20px;padding:6px 13px;
+  font-size:12.5px;font-weight:500;color:var(--ink-2);background:#fff;transition:.15s;
+}
+.chip[aria-pressed=true]{border-color:transparent;font-weight:600}
+.chip[data-m=tip][aria-pressed=true]{background:var(--amber-bg);color:var(--amber)}
+.chip[data-m=warn][aria-pressed=true]{background:var(--red-bg);color:var(--red)}
+.chip[data-m=cheer][aria-pressed=true]{background:var(--green-bg);color:var(--green)}
+.chip[data-m=plain][aria-pressed=true]{background:var(--indigo-soft);color:var(--indigo)}
+
+.sec{
+  font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);margin:26px 0 13px;padding-top:19px;border-top:1px solid var(--line-2);
+}
+.sec:first-of-type{margin-top:0;padding-top:0;border-top:0}
+
+/* sliders */
+.slide{display:flex;align-items:center;gap:12px}
+.slide input[type=range]{
+  flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;
+  background:var(--line);outline:0;padding:0;border:0;
+}
+.slide input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:17px;height:17px;border-radius:50%;
+  background:var(--indigo);cursor:pointer;border:2.5px solid #fff;
+  box-shadow:0 1px 4px rgba(30,25,90,.28);
+}
+.slide input[type=range]::-moz-range-thumb{
+  width:17px;height:17px;border-radius:50%;background:var(--indigo);cursor:pointer;
+  border:2.5px solid #fff;box-shadow:0 1px 4px rgba(30,25,90,.28);
+}
+.slide .val{
+  flex:none;min-width:52px;text-align:right;font-size:12px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums;
+}
+
+/* file drop */
+.drop{
+  border:1.5px dashed #c9c9de;border-radius:11px;padding:20px 16px;text-align:center;
+  background:#fcfcfe;transition:.15s;cursor:pointer;
+}
+.drop:hover,.drop.over{border-color:var(--indigo);background:var(--indigo-soft)}
+.drop b{display:block;font-size:13px;font-weight:600;margin-bottom:3px}
+.drop span{font-size:11.5px;color:var(--ink-3)}
+.drop input{display:none}
+.loaded{
+  display:flex;align-items:center;gap:10px;border:1px solid var(--line);
+  border-radius:11px;padding:11px 13px;background:#fff;
+}
+.loaded .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+.loaded .nm{flex:1;min-width:0}
+.loaded .nm b{display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loaded .nm span{font-size:11.5px;color:var(--ink-3)}
+.loaded button{color:var(--ink-3);font-size:12px;text-decoration:underline}
+.loaded button:hover{color:var(--red)}
+
+/* ---------- stage ---------- */
+.stagehead{display:flex;align-items:baseline;gap:10px}
+.stagehead h2{margin:0;font-size:13px;font-weight:600}
+.stagehead p{margin:0;font-size:12px;color:var(--ink-3)}
+.risebox{
+  background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  box-shadow:0 1px 2px rgba(30,25,90,.04),0 10px 30px rgba(30,25,90,.06);
+}
+.risebar{
+  display:flex;align-items:center;gap:7px;padding:9px 14px;
+  border-bottom:1px solid var(--line-2);background:#fbfbfe;
+}
+.risebar i{width:9px;height:9px;border-radius:50%;background:#e0e0ee;display:block}
+.risebar span{font-size:11px;color:var(--ink-3);margin-left:5px}
+.frame{width:100%;border:0;display:block;background:#fff}
+
+.note{
+  display:flex;gap:11px;border:1px solid var(--line);border-left:3px solid var(--indigo);
+  border-radius:0 11px 11px 0;padding:13px 15px;background:#fff;font-size:12.5px;color:var(--ink-2);
+}
+.note b{color:var(--ink);font-weight:600}
+.note p{margin:0 0 7px}
+.note p:last-child{margin:0}
+.note code{
+  font:12px ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:var(--line-2);border-radius:4px;padding:1px 5px;
+}
+
+.err{
+  border:1px solid #e8b7b3;background:var(--red-bg);color:var(--red);
+  border-radius:10px;padding:11px 13px;font-size:12.5px;
+}
+
+@media(max-width:900px){
+  body{overflow:auto;height:auto}
+  .main{flex-direction:column}
+  .pane{width:100%;border-right:0;border-bottom:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+    <circle cx="44" cy="42" r="30" fill="none" stroke="#066888" stroke-width="6"/>
+    <circle cx="44" cy="42" r="25" fill="#dceaee"/>
+    <circle cx="35" cy="39" r="4" fill="#181a2a"/><circle cx="53" cy="39" r="4" fill="#181a2a"/>
+    <g fill="none" stroke="#181a2a" stroke-width="2.2" stroke-linecap="round">
+      <path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>
+      <path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/>
+    </g>
+    <path d="M36 51 q8 7 16 0" fill="none" stroke="#181a2a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M27 30 q7-9 17-10" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+  </svg>
+  <h1>Lashes <span>· block builder for Rise</span></h1>
+  <div class="spacer"></div>
+  <button class="ghost" id="copyBtn">Copy code</button>
+  <button class="solid" id="dlBtn">Download index.html</button>
+</header>
+
+<div class="main">
+
+  <!-- ============ controls ============ -->
+  <aside class="pane">
+    <p class="sec">Block type</p>
+    <div class="seg" id="modeSeg" role="group" aria-label="Block type">
+      <button data-mode="message" aria-pressed="true">Message</button>
+      <button data-mode="launcher" aria-pressed="false">Launcher</button>
+    </div>
+    <p class="hint" id="modeHint">Lashes stands on the page and says something. Set the block
+      background to transparent in Rise so there's no visible card.</p>
+
+    <!-- message fields -->
+    <div id="msgFields">
+      <p class="sec">Tone</p>
+      <div class="field">
+        <div class="chips" id="moodChips" role="group" aria-label="Tone">
+          <button class="chip" data-m="tip"   aria-pressed="true">Tip</button>
+          <button class="chip" data-m="warn"  aria-pressed="false">Heads up</button>
+          <button class="chip" data-m="cheer" aria-pressed="false">Encouraging</button>
+          <button class="chip" data-m="plain" aria-pressed="false">Plain</button>
+        </div>
+        <p class="hint">Changes her expression and the label colour. Plain drops the label.</p>
+      </div>
+
+      <div class="field">
+        <label class="lb" for="fLabel">Label</label>
+        <input type="text" id="fLabel" value="Before you start" maxlength="28">
+        <p class="hint">Short tag above the message. Ignored on Plain.</p>
+      </div>
+
+      <div class="field">
+        <label class="lb" for="fLines">What she says</label>
+        <textarea id="fLines">An empty search result is not proof that someone is new.
+
+Search the surname fragment. Search the year of birth. Confirm on a second identifier — &lt;b&gt;then&lt;/b&gt; decide.</textarea>
+        <p class="hint">One paragraph per blank line. <code>&lt;b&gt;bold&lt;/b&gt;</code> works.</p>
+      </div>
+    </div>
+
+    <!-- launcher fields -->
+    <div id="lauFields" hidden>
+      <p class="sec">Card</p>
+      <div class="field">
+        <label class="lb" for="fTitle">Title</label>
+        <input type="text" id="fTitle" value="Lesson 1 — Finding a Participant">
+      </div>
+      <div class="field">
+        <label class="lb" for="fBtn">Button</label>
+        <input type="text" id="fBtn" value="Begin" maxlength="24">
+      </div>
+
+      <p class="sec">The activity</p>
+      <div class="field" id="dropWrap">
+        <label class="drop" id="drop">
+          <b>Drop your HTML here</b>
+          <span>One self-contained file · it opens full screen</span>
+          <input type="file" id="file" accept=".html,.htm,text/html">
+        </label>
+        <p class="hint">Your file is embedded in the block, so there's nothing to host.
+          Completion messages are passed through to Rise.</p>
+      </div>
+    </div>
+
+    <p class="sec">Size</p>
+    <div class="field">
+      <label class="lb" for="fLashes">Lashes</label>
+      <div class="slide">
+        <input type="range" id="fLashes" min="40" max="150" step="2" value="72">
+        <span class="val" id="vLashes">72 px</span>
+      </div>
+    </div>
+    <div class="field" id="textSizeField">
+      <label class="lb" for="fText">Message text</label>
+      <div class="slide">
+        <input type="range" id="fText" min="12" max="21" step="0.5" value="14.5">
+        <span class="val" id="vText">14.5 px</span>
+      </div>
+      <p class="hint">The bubble, label, and spacing scale with it.</p>
+    </div>
+
+    <div class="field">
+      <label class="lb" for="fWidth">Content width</label>
+      <div class="slide">
+        <input type="range" id="fWidth" min="520" max="1000" step="10" value="760">
+        <span class="val" id="vWidth">760 px</span>
+      </div>
+      <p class="hint">Match your Rise theme so the block lines up with the text
+        and Continue buttons above it, instead of running edge to edge.</p>
+    </div>
+
+    <p class="sec">Position</p>
+    <div class="field">
+      <div class="seg" id="sideSeg" role="group" aria-label="Which side Lashes stands on">
+        <button data-side="left" aria-pressed="true">Lashes left</button>
+        <button data-side="right" aria-pressed="false">Lashes right</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lb" for="fAccent">Accent colour</label>
+      <input type="text" id="fAccent" value="#066888">
+      <p class="hint">Her rim, the button, and the label. Match your Rise theme.</p>
+    </div>
+  </aside>
+
+  <!-- ============ preview ============ -->
+  <main class="stage">
+    <div class="stagehead">
+      <h2>Preview</h2>
+      <p id="stageNote">This is the block exactly as it will render.</p>
+    </div>
+
+    <div class="risebox">
+      <div class="risebar"><i></i><i></i><i></i><span>Rise lesson</span></div>
+      <iframe class="frame" id="preview" title="Block preview" allow="fullscreen"></iframe>
+    </div>
+
+    <div class="err" id="err" hidden></div>
+
+    <div class="note" id="setupNote"></div>
+  </main>
+</div>
+
+<script>
+"use strict";
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+
+var S={
+  mode:"message",
+  mood:"tip",
+  side:"left",
+  label:"Before you start",
+  lines:"",
+  title:"Lesson 1 — Finding a Participant",
+  btn:"Begin",
+  accent:"#066888",
+  lashy:72,
+  text:14.5,
+  width:760,
+  payload:null,      /* base64 of the uploaded html */
+  payloadName:"",
+  payloadSize:0
+};
+S.lines=$("#fLines").value;
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function jstr(s){return JSON.stringify(String(s))}
+function tint(hex,pct){
+  var m=/^#?([a-f\d]{6})$/i.exec(String(hex).trim());
+  if(!m) return "#dceaee";
+  var n=parseInt(m[1],16), p=pct==null?0.86:pct;
+  var r=Math.round((n>>16)+(255-(n>>16))*p);
+  var g=Math.round(((n>>8)&255)+(255-((n>>8)&255))*p);
+  var b=Math.round((n&255)+(255-(n&255))*p);
+  return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function shade(hex,amt){
+  var m=/^#?([a-f\d]{6})$/i.exec(String(hex).trim());
+  if(!m) return "#3d3593";
+  var n=parseInt(m[1],16);
+  var r=Math.max(0,Math.min(255,(n>>16)+amt));
+  var g=Math.max(0,Math.min(255,((n>>8)&255)+amt));
+  var b=Math.max(0,Math.min(255,(n&255)+amt));
+  return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function validHex(h){return /^#?[a-f\d]{6}$/i.test(String(h).trim())}
+function normHex(h){h=String(h).trim();return h[0]==="#"?h:"#"+h}
+function kb(n){return n<1024?n+" B":n<1048576?(n/1024).toFixed(0)+" KB":(n/1048576).toFixed(1)+" MB"}
+
+/* ---------- the Lashes SVG, shared by both outputs ----------
+   No brows: the lashes already sit where brows would go, and a
+   stroke above them reads as a stray mark rather than a face.
+   Each mood changes the EYES and the mouth instead. */
+var FACES={
+  tip:{
+    eyes :'circles',
+    mouth:"M36 51 q8 7 16 0"
+  },
+  warn:{
+    /* narrowed eyes with the lashes dropped, plus a short mouth
+       pushed off to one side and curving UP — wry, not worried.
+       Any downward curve reads as a frown however small it is. */
+    eyes :'narrow',
+    mouth:"M41.5 51.2 q4.2 2.8 8.4 .7"
+  },
+  cheer:{
+    eyes :'arcs',
+    mouth:"M33 49 q11 10 22 0"
+  },
+  plain:{
+    eyes :'glance',
+    mouth:"M37 51 q7 4.5 14 0"
+  }
+};
+
+function eyesMarkup(kind){
+  if(kind==="narrow"){
+    /* lids lowered and the lashes drop with them — concern without
+       the anger a downward brow would add */
+    return '            <g class="m-eyes">\n'+
+'              <ellipse class="m-eye" cx="36.4" cy="40" rx="4" ry="2.7"/>\n'+
+'              <ellipse class="m-eye" cx="54.4" cy="40" rx="4" ry="2.7"/>\n'+
+'              <g class="m-lash">\n'+
+'                <path d="M30.6 37 l-3.2 -1.6"/>\n'+
+'                <path d="M34.8 35.6 l-.8 -2.6"/>\n'+
+'                <path d="M39 36.6 l1.6 -2.2"/>\n'+
+'                <path d="M49 36.6 l-1.6 -2.2"/>\n'+
+'                <path d="M52.8 35.6 l.8 -2.6"/>\n'+
+'                <path d="M57 37 l3.2 -1.6"/>\n'+
+'              </g>\n'+
+'            </g>';
+  }
+  if(kind==="glance"){
+    /* pupils shifted toward the bubble — listening, not talking */
+    return '            <g class="m-eyes">\n'+
+'              <circle class="m-eye" cx="36.6" cy="39" r="4"/>\n'+
+'              <circle class="m-eye" cx="54.6" cy="39" r="4"/>\n'+
+'              <g class="m-lash">\n'+
+'                <path d="M30.5 34.5 l-3 -2.5"/>\n'+
+'                <path d="M34.5 33.2 l-1 -3"/>\n'+
+'                <path d="M38.5 34 l1.5 -2.8"/>\n'+
+'                <path d="M48.5 34 l-1.5 -2.8"/>\n'+
+'                <path d="M52.5 33.2 l1 -3"/>\n'+
+'                <path d="M56.5 34.5 l3 -2.5"/>\n'+
+'              </g>\n'+
+'            </g>';
+  }
+  if(kind==="arcs"){
+    /* closed, upturned — the smiling-eyes shape */
+    return '            <g class="m-eyes">\n'+
+'              <path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/>\n'+
+'              <path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>\n'+
+'              <g class="m-lash">\n'+
+'                <path d="M29.5 36.5 l-3 -2"/>\n'+
+'                <path d="M34.5 34.8 l-1 -2.6"/>\n'+
+'                <path d="M39.5 36.2 l1.8 -2.4"/>\n'+
+'                <path d="M47.5 36.2 l-1.8 -2.4"/>\n'+
+'                <path d="M52.5 34.8 l1 -2.6"/>\n'+
+'                <path d="M57.5 36.5 l3 -2"/>\n'+
+'              </g>\n'+
+'            </g>';
+  }
+  return '            <g class="m-eyes">\n'+
+'              <circle class="m-eye" cx="35" cy="39" r="4"/>\n'+
+'              <circle class="m-eye" cx="53" cy="39" r="4"/>\n'+
+'              <g class="m-lash">\n'+
+'                <path d="M30.5 34.5 l-3 -2.5"/>\n'+
+'                <path d="M34.5 33.2 l-1 -3"/>\n'+
+'                <path d="M38.5 34 l1.5 -2.8"/>\n'+
+'                <path d="M48.5 34 l-1.5 -2.8"/>\n'+
+'                <path d="M52.5 33.2 l1 -3"/>\n'+
+'                <path d="M56.5 34.5 l3 -2.5"/>\n'+
+'              </g>\n'+
+'            </g>';
+}
+
+function lashySVG(mood){
+  var f=FACES[mood]||FACES.plain;
+  return ''+
+'      <svg viewBox="0 0 100 100" width="100%" height="100%">\n'+
+'        <g class="m-body">\n'+
+'          <circle class="m-rim" cx="44" cy="42" r="30"/>\n'+
+'          <circle class="m-glass" cx="44" cy="42" r="25"/>\n'+
+'          <g class="m-face">\n'+
+eyesMarkup(f.eyes)+'\n'+
+'            <path class="m-mouth" d="'+f.mouth+'"/>\n'+
+'          </g>\n'+
+'          <path class="m-shine" d="M27 30 q7-9 17-10"/>\n'+
+'        </g>\n'+
+'      </svg>';
+}
+function lashyCSS(accent){
+  return ''+
+'.m-rim{fill:none;stroke:'+accent+';stroke-width:6}\n'+
+'.m-glass{fill:'+tint(accent)+';opacity:.85}\n'+
+'.m-eye{fill:#1b2430}\n'+
+'.m-arc{fill:none;stroke:#1b2430;stroke-width:3.4;stroke-linecap:round}\n'+
+'.m-lash path{fill:none;stroke:#1b2430;stroke-width:2.2;stroke-linecap:round}\n'+
+'.m-mouth{fill:none;stroke:#1b2430;stroke-width:3;stroke-linecap:round}\n'+
+'.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}\n'+
+'.m-body{animation:mbob 3.2s ease-in-out infinite;transform-origin:44px 42px}\n'+
+'@keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-4deg)}}\n'+
+'.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}\n'+
+'@keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}\n'+
+'.m-face{animation:mscan 6.5s ease-in-out infinite}\n'+
+'@keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}\n'+
+'.lashy:hover .m-body{animation:mperk .5s ease-in-out}\n'+
+'@keyframes mperk{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-8px) rotate(9deg)}65%{transform:translateY(-2px) rotate(-6deg)}}\n';
+}
+
+/* ============================================================
+   OUTPUT 1 — message block
+   ============================================================ */
+function buildMessage(){
+  var a=S.accent, mood=S.mood;
+  var moodInk={tip:"#8a5a00",warn:"#b3261e",cheer:"#1a7a4a",plain:a}[mood];
+  var moodBg ={tip:"#fdf6ec",warn:"#fbeae9",cheer:"#e8f5ee",plain:tint(a,0.9)}[mood];
+  var paras=String(S.lines).split(/\n\s*\n/).map(function(p){
+    return p.trim();
+  }).filter(Boolean);
+
+  /* everything in the bubble is derived from the text size, so the
+     block stays in proportion at any setting */
+  var t=S.text, L=S.lashy;
+  var r2=function(n){return Math.round(n*10)/10};
+  var padY=r2(t*0.9), padX=r2(t*1.1), radius=r2(t*0.95);
+  var labelSize=r2(Math.max(9.5,t*0.72)), gap=r2(Math.max(9,L*0.19));
+  var tail=r2(Math.max(7,t*0.62)), tailTop=r2(Math.min(L*0.3,t*1.5));
+  var paraGap=r2(t*0.62);
+
+  return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'+
+'<meta name="viewport" content="width=device-width, initial-scale=1">\n'+
+'<title>Lashes</title>\n<style>\n'+
+'*{box-sizing:border-box}\n'+
+'html,body{margin:0;padding:0;background:transparent}\n'+
+'body{font:15px/1.55 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;color:#2a2a3c;-webkit-font-smoothing:antialiased}\n'+
+'.wrap{display:flex;align-items:flex-start;gap:'+gap+'px;padding:6px 2px;width:100%;max-width:'+S.width+'px;margin:0 auto}\n'+
+(S.side==="right"?'.wrap{flex-direction:row-reverse}\n':'')+
+'.lashy{flex:none;width:'+L+'px;height:'+L+'px;cursor:pointer}\n'+
+lashyCSS(a)+
+(mood==="plain"||mood==="warn"?'.m-face{animation:none}\n':'')+
+'.bubble{position:relative;flex:1;min-width:0;background:#fff;border:1px solid #e4e3f2;border-radius:'+radius+'px;padding:'+padY+'px '+padX+'px;box-shadow:0 1px 2px rgba(60,50,140,.05),0 6px 18px rgba(60,50,140,.06);opacity:0;transform:translateY(6px);transition:opacity .45s ease,transform .45s ease}\n'+
+'.bubble.in{opacity:1;transform:translateY(0)}\n'+
+'.bubble::before,.bubble::after{content:"";position:absolute;top:'+tailTop+'px;width:0;height:0;border-top:'+tail+'px solid transparent;border-bottom:'+tail+'px solid transparent}\n'+
+(S.side==="right"
+  ? '.bubble::before{right:-'+r2(tail+1)+'px;border-left:'+r2(tail+1)+'px solid #e4e3f2}\n.bubble::after{right:-'+tail+'px;border-left:'+r2(tail+1)+'px solid #fff}\n'
+  : '.bubble::before{left:-'+r2(tail+1)+'px;border-right:'+r2(tail+1)+'px solid #e4e3f2}\n.bubble::after{left:-'+tail+'px;border-right:'+r2(tail+1)+'px solid #fff}\n')+
+'.blabel{display:inline-block;font-size:'+labelSize+'px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border-radius:20px;padding:3px 9px;margin-bottom:'+r2(t*0.48)+'px;color:'+moodInk+';background:'+moodBg+'}\n'+
+(mood==="plain"||!S.label?'.blabel{display:none}\n':'')+
+'.btext{margin:0;font-size:'+t+'px}\n.btext + .btext{margin-top:'+paraGap+'px}\n.btext b{font-weight:600}\n'+
+'@media(max-width:520px){.lashy{width:'+r2(L*0.78)+'px;height:'+r2(L*0.78)+'px}.btext{font-size:'+r2(t*0.95)+'px}}\n'+
+'@media(prefers-reduced-motion:reduce){.m-body,.m-eyes,.m-face,.lashy:hover .m-body{animation:none}.bubble{transition:none;opacity:1;transform:none}}\n'+
+'</style>\n</head>\n<body>\n\n'+
+'<div class="wrap">\n'+
+'  <div class="lashy" id="lashy" aria-hidden="true">\n'+lashySVG(mood)+'\n  </div>\n'+
+'  <div class="bubble" id="bubble" role="note">\n'+
+'    <span class="blabel">'+esc(S.label)+'</span>\n'+
+    paras.map(function(p){return '    <p class="btext">'+p+'</p>'}).join("\n")+'\n'+
+'  </div>\n</div>\n\n'+
+'<script>\n'+
+'var bubble=document.getElementById("bubble");\n'+
+'function show(){bubble.classList.add("in")}\n'+
+'if("IntersectionObserver" in window){\n'+
+'  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){show();io.disconnect()}})},{threshold:.35});\n'+
+'  io.observe(bubble);\n'+
+'}else{show()}\n'+
+'document.getElementById("lashy").addEventListener("click",function(){\n'+
+'  bubble.classList.remove("in");void bubble.offsetWidth;bubble.classList.add("in");\n'+
+'});\n'+
+'<\/script>\n</body>\n</html>\n';
+}
+
+/* ============================================================
+   OUTPUT 2 — launcher block
+   Wraps the uploaded activity, opens it full screen, and relays
+   completion messages up to Rise.
+   ============================================================ */
+function buildLauncher(){
+  var a=S.accent, ad=shade(a,-18);
+  var payload=S.payload||"";
+  var L=S.lashy;
+  var r2=function(n){return Math.round(n*10)/10};
+  var titleSize=r2(Math.max(15,Math.min(26,L*0.29)));
+  var puff=r2(L*0.85);
+
+  return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'+
+'<meta name="viewport" content="width=device-width, initial-scale=1">\n'+
+'<title>'+esc(S.title)+'</title>\n<style>\n'+
+'*{box-sizing:border-box}\n'+
+'html,body{margin:0;padding:0;height:100%;background:transparent;overflow:hidden}\n'+
+'body{font:15px/1.55 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;color:#2a2a3c;-webkit-font-smoothing:antialiased}\n'+
+'button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}\n'+
+':focus-visible{outline:3px solid #0b6fd4;outline-offset:2px;border-radius:4px}\n'+
+'#launch{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:14px 18px;overflow:auto}\n'+
+'#launch[hidden]{display:none!important}\n'+
+'.lcard{width:100%;max-width:'+S.width+'px;background:transparent;border-radius:0;position:relative;padding:6px 0;display:flex;align-items:center;gap:18px}\n'+
+(S.side==="right"?'.lcard{flex-direction:row-reverse}\n':'')+
+'.lashy{flex:none;width:'+L+'px;height:'+L+'px;cursor:pointer;position:relative}\n'+
+lashyCSS(a)+
+'.ltext{flex:1;min-width:0}\n'+
+'.lcard h2{margin:0;font-size:'+titleSize+'px;font-weight:600;color:'+a+';line-height:1.25}\n'+
+'.lgo{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px}\n'+
+'.lbtn{background:'+a+';color:#fff;border-radius:24px;white-space:nowrap;padding:11px 30px;font-size:14.5px;font-weight:600;transition:background .15s}\n'+
+'.lbtn:hover{background:'+ad+'}\n'+
+'.lnote{text-align:center;font-size:11px;color:#6b6b85}\n'+
+'.lnote kbd{font:inherit;font-size:10px;border:1px solid #e4e3f2;border-bottom-width:2px;border-radius:4px;padding:0 4px;background:#fafaff}\n'+
+'.lcard .lashy{opacity:0;animation:lashyIn .55s cubic-bezier(.34,1.56,.64,1) .1s forwards}\n'+
+'.lcard .ltext{opacity:0;animation:wordsIn .45s ease .45s forwards}\n'+
+'.lcard .lgo{opacity:0;animation:wordsIn .45s ease .65s forwards}\n'+
+'@keyframes lashyIn{0%{opacity:0;transform:scale(.3) rotate(-25deg)}100%{opacity:1;transform:scale(1) rotate(0)}}\n'+
+'@keyframes wordsIn{0%{opacity:0;transform:translateX(-8px)}100%{opacity:1;transform:translateX(0)}}\n'+
+'.lashy.hop{animation:poof 1.05s ease-in-out forwards;z-index:2;opacity:1}\n'+
+'@keyframes poof{0%{transform:translateX(0) scale(1) rotate(0);opacity:1}32%{transform:translateX(0) scale(.15) rotate(150deg);opacity:0}48%{transform:translateX(var(--hop)) scale(.15) rotate(210deg);opacity:0}76%{transform:translateX(var(--hop)) scale(1.18) rotate(370deg);opacity:1}100%{transform:translateX(var(--hop)) scale(1) rotate(360deg);opacity:1}}\n'+
+'.puff{position:absolute;top:50%;left:0;width:'+puff+'px;height:'+puff+'px;margin:-'+r2(puff/2)+'px 0 0 5px;border-radius:50%;border:2px solid '+a+';opacity:0;pointer-events:none;z-index:1}\n'+
+'.puff.go{animation:puffOut .45s ease-out forwards}\n'+
+'.puff.arrive{animation:puffOut .45s ease-out .48s forwards}\n'+
+'@keyframes puffOut{0%{transform:scale(.3);opacity:.55}100%{transform:scale(1.5);opacity:0}}\n'+
+'.lbtn.pulse{animation:btnPulse 1.4s ease-in-out 2}\n'+
+'@keyframes btnPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}40%{box-shadow:0 0 0 7px '+a+'29}}\n'+
+'#stage{position:fixed;inset:0;z-index:100;background:#fff;display:none}\n'+
+'#stage.on{display:block}\n'+
+'#stage iframe{width:100%;height:100%;border:0;display:block}\n'+
+'@media(max-width:640px){.lcard{flex-wrap:wrap;gap:14px}.ltext{flex:1 1 auto}.lgo{flex:1 1 100%}.lbtn{width:100%}}\n'+
+'@media(prefers-reduced-motion:reduce){.lcard .lashy,.lcard .ltext,.lcard .lgo{animation:none;opacity:1}.lashy.hop,.lbtn.pulse,.puff{animation:none;opacity:0}}\n'+
+'</style>\n</head>\n<body>\n\n'+
+'<div id="launch">\n'+
+'  <div class="lcard">\n'+
+'    <span class="puff" id="puffArrive"></span>\n'+
+'    <div class="lashy" id="lashy" aria-hidden="true">\n'+
+'      <span class="puff" id="puffGo"></span>\n'+lashySVG("tip")+'\n    </div>\n'+
+'    <div class="ltext"><h2 id="lTitle">'+esc(S.title)+'</h2></div>\n'+
+'    <div class="lgo">\n'+
+'      <button id="lBtn" class="lbtn">'+esc(S.btn)+'</button>\n'+
+'      <span class="lnote" id="lNote">Opens full screen · <kbd>Esc</kbd> to exit</span>\n'+
+'    </div>\n  </div>\n</div>\n\n'+
+'<div id="stage"></div>\n\n'+
+'<script id="payload" type="text/plain">'+payload+'<\/script>\n'+
+'<script>\n'+
+'var $=function(s){return document.querySelector(s)};\n'+
+'var TITLE='+jstr(S.title)+', BTN='+jstr(S.btn)+';\n'+
+'var LAUNCHED=false, nudgeTimer=null, NUDGE_AFTER=7000;\n\n'+
+'var FS=(function(){\n'+
+'  var el=document.documentElement;\n'+
+'  return {\n'+
+'    supported:function(){return !!(document.fullscreenEnabled||document.webkitFullscreenEnabled)},\n'+
+'    active:function(){return !!(document.fullscreenElement||document.webkitFullscreenElement)},\n'+
+'    request:function(){var f=el.requestFullscreen||el.webkitRequestFullscreen;\n'+
+'      if(!f)return Promise.reject();try{return Promise.resolve(f.call(el))}catch(e){return Promise.reject(e)}},\n'+
+'    exit:function(){var f=document.exitFullscreen||document.webkitExitFullscreen;\n'+
+'      if(f){try{f.call(document)}catch(e){}}}\n'+
+'  };\n'+
+'})();\n\n'+
+'/* the activity is embedded, not hosted */\n'+
+'function decodePayload(){\n'+
+'  var b=document.getElementById("payload").textContent.trim();\n'+
+'  if(!b) return "";\n'+
+'  var bin=atob(b), bytes=new Uint8Array(bin.length);\n'+
+'  for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);\n'+
+'  return new TextDecoder("utf-8").decode(bytes);\n'+
+'}\n\n'+
+'/* the activity posts to ITS parent, which is this shell — not Rise.\n'+
+'   Pass anything it sends on up, so completion still lands. */\n'+
+'window.addEventListener("message",function(e){\n'+
+'  var d=e.data;\n'+
+'  if(!d||typeof d!=="object") return;\n'+
+'  try{ window.parent.postMessage(d,"*"); }catch(err){}\n'+
+'});\n\n'+
+'function mountStage(){\n'+
+'  var st=$("#stage");\n'+
+'  if(st.firstChild) return;\n'+
+'  var f=document.createElement("iframe");\n'+
+'  f.setAttribute("title",TITLE);\n'+
+'  f.setAttribute("allow","fullscreen");\n'+
+'  f.srcdoc=decodePayload();\n'+
+'  st.appendChild(f);\n'+
+'}\n\n'+
+'function showLauncher(resuming){\n'+
+'  $("#lTitle").textContent = resuming ? "Paused — your progress is saved" : TITLE;\n'+
+'  $("#lBtn").textContent   = resuming ? "Resume" : BTN;\n'+
+'  $("#lNote").hidden = !FS.supported();\n'+
+'  $("#stage").classList.remove("on");\n'+
+'  $("#launch").hidden=false;\n'+
+'  ["#lashy","#launch .ltext","#launch .lgo"].forEach(function(sel){\n'+
+'    var el=$(sel); if(!el) return;\n'+
+'    el.style.animation="none"; void el.offsetWidth; el.style.animation="";\n'+
+'  });\n'+
+'  var m=$("#lashy"); if(m){m.classList.remove("hop");m.style.removeProperty("--hop")}\n'+
+'  armNudge();\n'+
+'}\n\n'+
+'function startSim(){\n'+
+'  clearNudge();\n'+
+'  mountStage();\n'+
+'  $("#launch").hidden=true;\n'+
+'  $("#stage").classList.add("on");\n'+
+'  LAUNCHED=true;\n'+
+'  if(!FS.supported()) return;\n'+
+'  FS.request().catch(function(){});\n'+
+'}\n\n'+
+'function clearNudge(){\n'+
+'  if(nudgeTimer){clearTimeout(nudgeTimer);nudgeTimer=null}\n'+
+'  var m=$("#lashy"), b=$("#lBtn");\n'+
+'  if(m) m.classList.remove("hop");\n'+
+'  if(b) b.classList.remove("pulse");\n'+
+'  ["#puffGo","#puffArrive"].forEach(function(s){var p=$(s);if(p)p.classList.remove("go","arrive")});\n'+
+'}\n\n'+
+'function armNudge(){\n'+
+'  clearNudge();\n'+
+'  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches) return;\n'+
+'  nudgeTimer=setTimeout(function(){\n'+
+'    var m=$("#lashy"), b=$("#lBtn"), l=$("#launch"), c=document.querySelector(".lcard");\n'+
+'    if(!m||!b||l.hidden||LAUNCHED) return;\n'+
+'    var mr=m.getBoundingClientRect(), br=b.getBoundingClientRect();\n'+
+'    var dist=Math.round('+(S.side==="right"?'mr.left - br.right - 14':'br.left - mr.right - 14')+');\n'+
+'    if(dist<20) return;\n'+
+'    m.style.setProperty("--hop",'+(S.side==="right"?'(-dist)':'dist')+'+"px");\n'+
+'    var pa=$("#puffArrive"), pg=$("#puffGo");\n'+
+'    if(pa&&c){\n'+
+'      var cr=c.getBoundingClientRect();\n'+
+'      pa.style.left=Math.round(mr.left-cr.left+('+(S.side==="right"?'-dist':'dist')+')+5)+"px";\n'+
+'      pa.classList.remove("arrive");void pa.offsetWidth;pa.classList.add("arrive");\n'+
+'    }\n'+
+'    if(pg){pg.classList.remove("go");void pg.offsetWidth;pg.classList.add("go")}\n'+
+'    m.classList.add("hop");\n'+
+'    setTimeout(function(){b.classList.add("pulse")},1050);\n'+
+'  },NUDGE_AFTER);\n'+
+'}\n\n'+
+'["fullscreenchange","webkitfullscreenchange"].forEach(function(ev){\n'+
+'  document.addEventListener(ev,function(){\n'+
+'    if(!FS.active()&&LAUNCHED&&FS.supported()) showLauncher(true);\n'+
+'  });\n'+
+'});\n\n'+
+'$("#lBtn").addEventListener("click",startSim);\n'+
+'$("#lashy").addEventListener("click",function(){\n'+
+'  var m=$("#lashy");m.classList.remove("hop");void m.offsetWidth;\n'+
+'});\n'+
+'showLauncher(false);\n'+
+'<\/script>\n</body>\n</html>\n';
+}
+
+function build(){
+  return S.mode==="message" ? buildMessage() : buildLauncher();
+}
+
+/* ---------- preview + notes ---------- */
+function refresh(){
+  var err=$("#err");
+  if(S.mode==="launcher" && !S.payload){
+    err.hidden=false;
+    err.textContent="Add your HTML file to preview the launcher. Everything else is ready.";
+  }else{
+    err.hidden=true;
+  }
+
+  var html=build();
+  var f=$("#preview");
+  f.srcdoc=html;
+  /* let the block report its own height, so bigger settings
+     don't get clipped in the preview */
+  f.onload=function(){
+    if(S.mode==="launcher"){
+      /* the launcher is a fixed overlay — measure the card itself */
+      try{
+        var c=f.contentDocument.querySelector(".lcard");
+        f.style.height=(c?Math.round(c.getBoundingClientRect().height)+40:160)+"px";
+      }catch(e){ f.style.height="160px"; }
+      return;
+    }
+    try{
+      var d=f.contentDocument;
+      var h=Math.max(d.body.scrollHeight,
+                     d.documentElement?d.documentElement.scrollHeight:0);
+      f.style.height=Math.max(120,Math.min(700,h+24))+"px";
+    }catch(e){ f.style.height="210px"; }
+  };
+
+  var lines=String(S.lines).split(/\n\s*\n/).filter(function(p){return p.trim()}).length||1;
+  var suggest = S.mode==="message"
+    ? Math.max(S.lashy+30, Math.round(lines*S.text*2.6)+(S.label&&S.mood!=="plain"?26:0)+34)
+    : Math.round(S.lashy+64);
+
+  $("#setupNote").innerHTML = S.mode==="message"
+    ? '<div><p><b>In Rise:</b> Code block → Upload project. Zip this file as <code>index.html</code>, '+
+      'or paste the code into Add code.</p>'+
+      '<p><b>Format:</b> padding S, height around <code>'+suggest+'</code>. Leave the block background '+
+      'transparent — a background colour puts a visible card behind her.</p></div>'
+    : '<div><p><b>In Rise:</b> Code block → Upload project. Zip this file as <code>index.html</code>. '+
+      'Your activity is embedded inside it, so nothing needs hosting.</p>'+
+      '<p><b>Format:</b> padding S, full width, height around <code>'+suggest+'</code>. Turn on '+
+      '<b>Set completion requirements</b> — messages from your activity are passed through, '+
+      'so a <code>complete</code> call still reaches Rise.</p></div>';
+
+  $("#stageNote").textContent = S.mode==="message"
+    ? "Shown on white. In Rise she sits on the lesson background."
+    : "Click the button to test full screen.";
+}
+
+/* ---------- wiring ---------- */
+$$("#modeSeg button").forEach(function(b){
+  b.addEventListener("click",function(){
+    S.mode=b.dataset.mode;
+    $$("#modeSeg button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+    $("#msgFields").hidden = S.mode!=="message";
+    $("#lauFields").hidden = S.mode!=="launcher";
+    $("#textSizeField").hidden = S.mode!=="message";
+    $("#modeHint").textContent = S.mode==="message"
+      ? "Lashes stands on the page and says something. Set the block background to transparent in Rise so there's no visible card."
+      : "A slim card that opens your activity full screen, so learners never scroll a big app inside a small block.";
+    refresh();
+  });
+});
+
+$$("#moodChips button").forEach(function(b){
+  b.addEventListener("click",function(){
+    S.mood=b.dataset.m;
+    $$("#moodChips button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+    refresh();
+  });
+});
+
+$$("#sideSeg button").forEach(function(b){
+  b.addEventListener("click",function(){
+    S.side=b.dataset.side;
+    $$("#sideSeg button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+    refresh();
+  });
+});
+
+function bindRange(sel,valSel,key,unit){
+  var el=$(sel), out=$(valSel);
+  function sync(){ out.textContent=el.value+" "+unit; }
+  el.addEventListener("input",function(){ S[key]=parseFloat(this.value); sync(); refresh(); });
+  sync();
+}
+bindRange("#fLashes","#vLashes","lashy","px");
+bindRange("#fText","#vText","text","px");
+bindRange("#fWidth","#vWidth","width","px");
+
+function bind(sel,key){
+  $(sel).addEventListener("input",function(){ S[key]=this.value; refresh(); });
+}
+bind("#fLabel","label"); bind("#fLines","lines");
+bind("#fTitle","title"); bind("#fBtn","btn");
+
+$("#fAccent").addEventListener("input",function(){
+  if(validHex(this.value)){ S.accent=normHex(this.value); refresh(); }
+});
+
+/* ---------- file ---------- */
+function loadFile(file){
+  if(!file) return;
+  if(!/\.html?$/i.test(file.name)){
+    $("#err").hidden=false;
+    $("#err").textContent="That needs to be an .html file.";
+    return;
+  }
+  var r=new FileReader();
+  r.onload=function(){
+    S.payload=String(r.result).split(",")[1]||"";
+    S.payloadName=file.name;
+    S.payloadSize=file.size;
+    $("#dropWrap").innerHTML=
+      '<div class="loaded"><span class="dot"></span>'+
+      '<span class="nm"><b>'+esc(file.name)+'</b><span>'+kb(file.size)+' · embedded</span></span>'+
+      '<button id="clearFile">Replace</button></div>'+
+      '<p class="hint">Your file is embedded in the block, so there\'s nothing to host. '+
+      'Completion messages are passed through to Rise.</p>';
+    $("#clearFile").addEventListener("click",resetDrop);
+    refresh();
+  };
+  r.readAsDataURL(file);
+}
+function resetDrop(){
+  S.payload=null;S.payloadName="";S.payloadSize=0;
+  $("#dropWrap").innerHTML=
+    '<label class="drop" id="drop"><b>Drop your HTML here</b>'+
+    '<span>One self-contained file · it opens full screen</span>'+
+    '<input type="file" id="file" accept=".html,.htm,text/html"></label>'+
+    '<p class="hint">Your file is embedded in the block, so there\'s nothing to host. '+
+    'Completion messages are passed through to Rise.</p>';
+  wireDrop();
+  refresh();
+}
+function wireDrop(){
+  var d=$("#drop"), i=$("#file");
+  if(!d) return;
+  i.addEventListener("change",function(){ loadFile(this.files[0]); });
+  ["dragenter","dragover"].forEach(function(ev){
+    d.addEventListener(ev,function(e){e.preventDefault();d.classList.add("over")});
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    d.addEventListener(ev,function(e){e.preventDefault();d.classList.remove("over")});
+  });
+  d.addEventListener("drop",function(e){
+    if(e.dataTransfer.files&&e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+}
+wireDrop();
+
+/* ---------- output ---------- */
+$("#dlBtn").addEventListener("click",function(){
+  var blob=new Blob([build()],{type:"text/html"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url; a.download="index.html"; a.click();
+  setTimeout(function(){URL.revokeObjectURL(url)},1000);
+});
+
+$("#copyBtn").addEventListener("click",function(){
+  var b=this, t=b.textContent;
+  navigator.clipboard.writeText(build()).then(function(){
+    b.textContent="Copied"; setTimeout(function(){b.textContent=t},1400);
+  }).catch(function(){
+    b.textContent="Press ⌘C"; setTimeout(function(){b.textContent=t},1400);
+  });
+});
+
+refresh();
+</script>
+</body>
+</html>
