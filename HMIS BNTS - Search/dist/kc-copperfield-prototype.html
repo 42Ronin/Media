@@ -141,22 +141,46 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   12%{opacity:var(--peak)}
   100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.25)}
 }
+/* The same mote, run backwards: it arrives from where a leaving one would have
+   gone and settles onto the spot it belongs to. The writing does not fade in, it
+   comes together out of the dust the answers left. */
+.mote.in{animation-name:moteIn;animation-timing-function:cubic-bezier(.2,.7,.3,1)}
+@keyframes moteIn{
+  0%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.25)}
+  22%{opacity:var(--peak)}
+  100%{opacity:0;transform:translate(0,0) scale(1)}
+}
 @keyframes poofIn{0%{transform:scale(.12) rotate(-165deg);opacity:0}
   55%{transform:scale(1.16) rotate(14deg);opacity:1}
   100%{transform:scale(1) rotate(0);opacity:1}}
 @keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
 
-/* ---------- what was under them ---------- */
-.reveal{display:flex;gap:16px;align-items:flex-start;
-  background:var(--panel);border-left:4px solid var(--teal);border-radius:14px;
-  padding:20px 22px;box-shadow:0 6px 22px rgba(6,104,136,.13)}
-.reveal .say{flex:1;font-size:16px;line-height:1.62;margin:0}
+/* ---------- what was under them ----------
+   No panel. The writing sits on whatever Rise puts behind the block, the way the
+   question's answers sat on it — a tinted card here would make the reveal read as
+   a thing that arrived rather than as what was under the answers all along. */
+.reveal{display:flex;gap:16px;align-items:flex-start}
+.reveal .say{flex:1;font-size:16px;line-height:1.62;margin:0;position:relative}
 .reveal .say p{margin:0 0 10px}
 .reveal .say p:last-child{margin-bottom:0}
+/* ...and it assembles the way the cards came apart, by the same sweep run the
+   other way: masked out to begin with, and the opaque side grows across it. */
+@property --form{syntax:"<percentage>";inherits:false;initial-value:-30%}
+.reveal .say{--form:-30%;
+  -webkit-mask-image:linear-gradient(100deg,#000 var(--form),transparent calc(var(--form) + 26%));
+  mask-image:linear-gradient(100deg,#000 var(--form),transparent calc(var(--form) + 26%))}
+.state[data-on="1"] .say{--form:118%;transition:--form .9s cubic-bezier(.3,.7,.4,1) .12s}
 
 /* She turns up with the box, the way she turns up for the feedback next door —
    her arrival is the reveal landing rather than a face that was sitting there. */
 .lashy{flex:none;width:84px;height:84px;margin:-4px 0 0 -4px;position:relative}
+/* Her drawing is not hit-testable, so `#lashy` itself is always the target. The
+   hover reaction redraws her face, and redrawing the node the pointer is over
+   destroys what the browser is tracking: it then re-enters from nothing, fires
+   pointerenter again, redraws again — fourteen times in a fifth of a second —
+   and pointerleave never resolves, so she stayed reacting after the pointer had
+   gone. Nothing in here is interactive anyway; the svg is aria-hidden. */
+.lashy svg,.lashy .mface{pointer-events:none}
 .lashy svg{width:100%;height:100%;display:block;overflow:visible}
 .lashy .mface{display:block;width:100%;height:100%;
   /* her face sits at (44,42) in a 100-box, so spin and shrink about that */
@@ -165,6 +189,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   border:2.5px solid var(--teal);opacity:0;pointer-events:none}
 .lashy.in .mface{animation:poofIn .46s cubic-bezier(.3,1.45,.5,1)}
 .lashy.in .puff{animation:puffRing .44s ease-out}
+/* She answers a hover. The `.in` class is taken off once her arrival has played,
+   so this is the only animation on her by the time anyone can reach her — left on,
+   the two rules sit at equal specificity and unhovering re-ran her entrance. */
+.lashy.react .mface{animation:lznod .66s ease-in-out}
+@keyframes lznod{
+  0%{transform:none}
+  22%{transform:translateY(-7px) rotate(-9deg)}
+  52%{transform:translateY(0) rotate(7deg)}
+  78%{transform:translateY(-3px) rotate(-3deg)}
+  100%{transform:none}
+}
 
 .m-rim{fill:none;stroke:var(--teal);stroke-width:5}
 .m-glass{fill:var(--lens)}
@@ -179,8 +214,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 @media(prefers-reduced-motion:reduce){
   .card,.state{transition:none}
-  .slot.gone .card,.mote,.lashy.in .mface,.lashy.in .puff{animation:none}
+  .slot.gone .card,.mote,.lashy.in .mface,.lashy.in .puff,.lashy.react .mface{animation:none}
   .mote{display:none}
+  /* No sweep either — the writing is simply there. */
+  .state[data-on="1"] .say{transition:none}
+  .reveal .say{--form:118%}
 }
 </style>
 </head>
@@ -363,14 +401,16 @@ function arm(i){
 
    Each mote removes itself when it has finished, so hovering on and off a card
    repeatedly does not leave a drift of dead spans in the slot. */
-function spawn(slot,btn,n,xLo,xHi,spread){
+function spawn(slot,btn,n,xLo,xHi,spread,inward){
   var r=btn.getBoundingClientRect();
   if(!r.width) return;
   var frag=document.createDocumentFragment();
   for(var k=0;k<n;k++){
     var x=xLo+Math.random()*(xHi-xLo), y=Math.random();
     var d=document.createElement("span");
-    d.className="mote";
+    /* `inward` runs the same mote backwards: it arrives from where a leaving one
+       would have gone, and settles. */
+    d.className=inward ? "mote in" : "mote";
     /* Fine and many rather than few and blobby — at three or four pixels they
        read as specks thrown off something, not as dust. */
     var sz=1.2+Math.random()*2.4;
@@ -391,6 +431,33 @@ function spawn(slot,btn,n,xLo,xHi,spread){
     frag.appendChild(d);
   }
   slot.appendChild(frag);
+}
+
+/* She answers a hover: a look up and a nod, and her face changes while the
+   pointer is on her. Only her drawing changes — `.mface` is replaced rather than
+   the whole of `#lashy`, so the puff and her classes survive it. */
+function setFace(el,eyes,mouth){
+  var f=el.querySelector(".mface");
+  if(f) f.innerHTML=svg(eyes,mouth);
+}
+function armLashes(){
+  var el=$("#lashy"), over=false;
+  el.addEventListener("pointerenter",function(){
+    /* Guarded as well as made un-hit-testable: one reaction per arrival, so a
+       stray second enter cannot restart her mid-nod. */
+    if(over) return;
+    over=true;
+    setFace(el,"arcs","cheer");
+    if(reduced) return;
+    el.classList.remove("react");
+    void el.offsetWidth;                 /* restart it rather than queue it */
+    el.classList.add("react");
+  });
+  el.addEventListener("pointerleave",function(){
+    over=false;
+    setFace(el,"sparkle","cheer");
+    el.classList.remove("react");
+  });
 }
 
 function take(i){
@@ -415,9 +482,20 @@ function take(i){
 function finish(){
   $("#live-state").dataset.on="0";
   $("#reveal").dataset.on="1";          /* already written — see `deal` */
+  /* The writing comes together out of dust, on the same sweep the cards came
+     apart on — the mask does the text and these are the motes settling onto it.
+     Spread across the sweep so a mote lands about when the sweep reaches it. */
+  if(!reduced) spawn($("#say"),$("#say"),150,0,1,0.78,true);
   var el=$("#lashy");
   el.innerHTML='<span class="puff"></span><span class="mface">'+svg("sparkle","cheer")+'</span>';
-  if(!reduced){ void el.offsetWidth; el.classList.add("in"); }
+  if(!reduced){
+    void el.offsetWidth; el.classList.add("in");
+    /* Taken off once her entrance has played, so the hover reaction is the only
+       animation left on her — otherwise the two sit at equal specificity and
+       unhovering re-runs the entrance. */
+    setTimeout(function(){ el.classList.remove("in"); }, 520);
+  }
+  armLashes();
   $("#live").textContent=$("#say").textContent;
   EMBED.complete();
 }
