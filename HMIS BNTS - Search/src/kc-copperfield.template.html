@@ -514,7 +514,11 @@ function take(i){
   /* Hold the vanished card's space but stop it being read: the sweep ends with
      the card empty, and after it we take it out of the tree as well. */
   setTimeout(function(){ btn.style.visibility="hidden"; }, reduced?0:GONE);
-  if(!left) setTimeout(finish, reduced?0:GONE+260);
+  /* The question starts going while the last answer is still going — about
+     halfway through its sweep, so the two overlap instead of queueing. Waited
+     until the card had finished and settled, the pause between them read as the
+     box stalling before it got to the point. */
+  if(!left) setTimeout(finish, reduced?0:Math.round(GONE/2));
 }
 
 function finish(){
@@ -524,9 +528,13 @@ function finish(){
      on the table, since the cards have already gone. */
   var ask=$("#ask");
   if(!reduced){
+    /* The class goes on FIRST and the motes are built after it. Built first, the
+       two hundred elements landed in the same frame as the class and the sweep
+       did not start moving for about 200ms — the transition was waiting behind
+       the work. */
+    ask.classList.add("gone");
     spawn(ask,ask,Math.min(200,Math.round(
       ask.getBoundingClientRect().width*ask.getBoundingClientRect().height/130)),0,1,0.42);
-    ask.classList.add("gone");
   }
   setTimeout(reveal, reduced?0:GONE+90);
   EMBED.complete();
