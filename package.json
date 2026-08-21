@@ -1,0 +1,8 @@
+{
+  "name": "lahsa-training-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build_site.mjs"
+  }
+}
