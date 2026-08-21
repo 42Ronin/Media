@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Copperfield</title>
+<!--
+  The Copperfield: an interactive box that happens to look like a multiple
+  choice question, and is not one.
+
+  There is no right answer and nothing is scored. Every answer is something
+  worth reading; taking one makes it vanish, and when the last one has gone the
+  question goes with it and the box underneath is the point of the whole thing.
+  It exists to keep the content fresh as a learner works through it, not to
+  test them.
+
+  ONE question. This is a single interactive block, not a deck — a series is
+  several of these, each embedded on its own slide. So there are no pips, no
+  tally, no pass mark, and the completion it reports is exhaustion: the learner
+  has cleared every answer. Still no score, as everywhere else in these lessons.
+
+  The vanishing is the same poof the card check moves Lashes with — same
+  keyframes, same timings — so the two pages read as one family rather than as
+  two different disappearing tricks.
+
+  The token below is written out exactly once, beside `var KC`. Do not name it
+  in prose: build.sh replaces every occurrence and the maker replaces the first,
+  so a second mention silently swallows the content in one of them.
+-->
+<style>
+:root{
+  --teal:#066888; --teal-dk:#044e66; --teal-lt:#3fa0c0; --lens:#e0eff5;
+  --ink:#14222b; --mut:#5f7f8f; --line:#d9e8ef;
+  /* The container is transparent and the bluish is on what sits on it, so this
+     reads as part of the Rise page rather than a panel bolted onto it. */
+  --panel:#e9f3f8; --panel-2:#f2f8fb;
+  --focus:#0b6fd4;
+}
+*{box-sizing:border-box}
+/* any display: value beats the [hidden] default — one rule, as in the lesson */
+[hidden]{display:none !important}
+html,body{margin:0;padding:0}
+body{
+  font:15px/1.6 "Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink); background:transparent; -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.wrap{max-width:880px;margin:0 auto;padding:14px 16px 22px}
+.head{margin:0 0 14px;font-size:17px;font-weight:700;color:var(--teal);letter-spacing:.01em}
+
+/* ============================================================
+   The stage
+
+   Both states live in ONE grid cell: the question with its answers, and the
+   box that replaces them. The cell is as tall as the taller of the two, so
+   swapping which one is visible moves nothing — this block is embedded in a
+   Rise page and anything that changes height shunts everything below it.
+
+   The hidden state uses visibility as well as opacity. It has to keep its box,
+   but a merely transparent element is still in the accessibility tree, and the
+   reveal must not be readable before the last answer has gone.
+   ============================================================ */
+.stage{display:grid}
+.stage > *{grid-area:1/1}
+.state{transition:opacity .42s ease}
+.state[data-on="0"]{opacity:0;visibility:hidden;pointer-events:none}
+/* The cell is as tall as the question and its answers, which is the taller of
+   the two. The box that replaces them is centred in that room rather than hung
+   from the top of it, so the space it does not need reads as margin instead of
+   as a hole under the box. */
+#reveal{display:flex;flex-direction:column;justify-content:center}
+
+/* ---------- the question ---------- */
+.ask{background:var(--panel);border-left:4px solid var(--teal);border-radius:12px;
+  padding:15px 18px;font-size:16.5px;line-height:1.55;margin:0 0 18px}
+
+/* ---------- the answers ---------- */
+.hand{display:flex;gap:14px;align-items:stretch;justify-content:center;flex-wrap:wrap}
+/* The slot keeps its box for good. A card that vanished used to take its space
+   with it, and the answers still on the table slid under the cursor — the next
+   click landing on something that had moved. */
+.slot{flex:1 1 0;min-width:190px;max-width:280px;position:relative}
+.card{width:100%;height:100%;min-height:118px;display:flex;align-items:center;
+  text-align:left;padding:16px 18px;border-radius:14px;
+  background:var(--panel-2);border:1.5px solid var(--line);
+  box-shadow:0 2px 8px rgba(20,34,43,.06);
+  font-size:15.5px;line-height:1.5;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(6,104,136,.16);
+  border-color:var(--teal-lt)}
+.card:active{transform:translateY(-1px)}
+/* The puff ring is drawn on the slot rather than the card, so it is still there
+   to expand after the card itself has gone. */
+.slot .puff{position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px;
+  border-radius:50%;border:2.5px solid var(--teal);opacity:0;pointer-events:none}
+.slot.gone .card{animation:poofOut .29s ease-in forwards;pointer-events:none}
+.slot.gone .puff{animation:puffRing .44s ease-out}
+/* Same keyframes and the same timings as the card check moves her with. */
+@keyframes poofOut{0%{transform:scale(1) rotate(0);opacity:1}
+  100%{transform:scale(.12) rotate(165deg);opacity:0}}
+@keyframes poofIn{0%{transform:scale(.12) rotate(-165deg);opacity:0}
+  55%{transform:scale(1.16) rotate(14deg);opacity:1}
+  100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
+
+/* ---------- what was under them ---------- */
+.reveal{display:flex;gap:16px;align-items:flex-start;
+  background:var(--panel);border-left:4px solid var(--teal);border-radius:14px;
+  padding:20px 22px;box-shadow:0 6px 22px rgba(6,104,136,.13)}
+.reveal .say{flex:1;font-size:16px;line-height:1.62;margin:0}
+.reveal .say p{margin:0 0 10px}
+.reveal .say p:last-child{margin-bottom:0}
+
+/* She turns up with the box, the way she turns up for the feedback next door —
+   her arrival is the reveal landing rather than a face that was sitting there. */
+.lashy{flex:none;width:84px;height:84px;margin:-4px 0 0 -4px;position:relative}
+.lashy svg{width:100%;height:100%;display:block;overflow:visible}
+.lashy .mface{display:block;width:100%;height:100%;
+  /* her face sits at (44,42) in a 100-box, so spin and shrink about that */
+  transform-origin:44% 42%}
+.lashy .puff{position:absolute;left:5%;top:3%;width:88%;height:88%;border-radius:50%;
+  border:2.5px solid var(--teal);opacity:0;pointer-events:none}
+.lashy.in .mface{animation:poofIn .46s cubic-bezier(.3,1.45,.5,1)}
+.lashy.in .puff{animation:puffRing .44s ease-out}
+
+.m-rim{fill:none;stroke:var(--teal);stroke-width:5}
+.m-glass{fill:var(--lens)}
+.m-eye{fill:var(--teal-dk)}
+.m-lash{fill:none;stroke:var(--teal-dk);stroke-width:2.6;stroke-linecap:round}
+.m-mouth{fill:none;stroke:var(--teal-dk);stroke-width:3.2;stroke-linecap:round}
+.m-arc{fill:none;stroke:var(--teal-dk);stroke-width:3;stroke-linecap:round}
+.m-spark{fill:var(--teal-dk)}
+.m-lidfill{fill:var(--lens)}
+.m-lidline{fill:none;stroke:var(--teal-dk);stroke-width:2.6;stroke-linecap:round}
+.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+
+@media(prefers-reduced-motion:reduce){
+  .card,.state{transition:none}
+  .slot.gone .card,.slot.gone .puff,.lashy.in .mface,.lashy.in .puff{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1 class="head" id="heading"></h1>
+
+  <div class="stage" id="stage">
+    <div class="state" id="live-state" data-on="1">
+      <p class="ask" id="ask"></p>
+      <div class="hand" id="hand"></div>
+    </div>
+    <div class="state" id="reveal" data-on="0">
+      <div class="reveal">
+        <div class="lashy" id="lashy"></div>
+        <div class="say" id="say"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="sr-only" role="status" aria-live="polite" id="live"></p>
+</div>
+
+<script>
+/* The content, stamped in at build time — one question, its answers and the box
+   underneath them. Same token convention as the lesson's roster: the unbuilt
+   template is not runnable JS, by design. */
+var KC = /*__KC__*/;
+/* Unused here — this staging has no card back to put artwork on — but every
+   page the maker can export carries the token, because that is what makes it a
+   page the maker recognises. The artwork is never redrawn. See CLAUDE.md. */
+var LOGO = /*__LOGO__*/;
+
+var $=function(s){return document.querySelector(s)};
+
+/* ============================================================
+   The character — the same geometry and the same expression
+   library as the lesson and the card check, so this is
+   recognisably her and not a third drawing that drifts.
+   ============================================================ */
+var LASH={
+  open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
+       '<path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/></g>',
+  high:'<g class="m-lash"><path d="M30 33.5 l-3.4 -3"/><path d="M34.3 32 l-1.2 -3.4"/><path d="M38.4 32.8 l1.7 -3.2"/>'+
+       '<path d="M48.6 32.8 l-1.7 -3.2"/><path d="M52.7 32 l1.2 -3.4"/><path d="M57 33.5 l3.4 -3"/></g>',
+  low: '<g class="m-lash"><path d="M30.8 38 l-3 -1"/><path d="M34.9 36.8 l-.7 -2.2"/><path d="M38.9 37.6 l1.4 -1.9"/>'+
+       '<path d="M49.1 37.6 l-1.4 -1.9"/><path d="M53.1 36.8 l.7 -2.2"/><path d="M57.2 38 l3 -1"/></g>'
+};
+function spark(cx,cy){
+  return '<path class="m-spark" d="M'+cx+' '+(cy-4.6)+' q1 3.4 4.6 4.6 q-3.6 1.2 -4.6 4.6 '+
+         'q-1 -3.4 -4.6 -4.6 q3.6 -1.2 4.6 -4.6 z"/>';
+}
+var EYES={
+  open:   {e:'<circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>', l:"open"},
+  sparkle:{e:spark(35,39)+spark(53,39), l:"high"},
+  wide:   {e:'<circle class="m-eye" cx="35" cy="39" r="5.2"/><circle class="m-eye" cx="53" cy="39" r="5.2"/>', l:"high"},
+  arcs:   {e:'<path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/><path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>', l:"open"}
+};
+var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0"};
+function svg(eyes,mouth){
+  var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
+  return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
+    '<g class="m-body">'+
+      '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
+      '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
+      '<g class="m-face"><g class="m-eyes">'+ex.e+'</g>'+LASH[ex.l]+
+        '<path class="m-mouth" d="'+m+'"/></g>'+
+      '<path class="m-shine" d="M27 30 q7-9 17-10"/>'+
+    '</g></svg>';
+}
+
+/* ============================================================
+   EMBED — the only things this page ever says are that it is
+   ready and that it is finished. No score: there is none in
+   these simulations, and Rise has no scripting to receive one.
+   ============================================================ */
+var EMBED=(function(){
+  var framed=false, sent=false;
+  try{ framed=(window.parent && window.parent!==window); }catch(e){ framed=true; }
+  function send(type,data){
+    if(!framed) return;
+    var msg={source:"hmis-sim",lesson:"hmis-bnts-search",section:"kc",type:type};
+    for(var k in data) if(Object.prototype.hasOwnProperty.call(data,k)) msg[k]=data[k];
+    try{ window.parent.postMessage(msg,"*"); }catch(e){}
+  }
+  return {
+    framed:function(){ return framed; },
+    ready:function(n){ send("ready",{answers:n}); },
+    complete:function(){ if(sent) return; sent=true; send("complete",{}); },
+    sent:function(){ return sent; }
+  };
+})();
+
+/* ============================================================
+   State — one question, and how many of its answers are left
+   ============================================================ */
+var Q=(KC.questions||[])[0]||{q:"",a:[],fb:""};
+var ANSWERS=(Q.a||[]).map(function(a){ return typeof a==="string" ? a : (a.t||""); })
+                     .filter(function(t){ return t!==""; });
+var left=ANSWERS.length;
+var reduced=!!(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches);
+var POOF_OUT=290;
+
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+/* The writing is authored as plain text in the maker; blank lines are paragraphs. */
+function paras(s){
+  return String(s||"").split(/\n{2,}/).map(function(p){
+    return "<p>"+esc(p.trim()).replace(/\n/g,"<br>")+"</p>";
+  }).join("");
+}
+
+function deal(){
+  var head=KC.heading||KC.title||"";
+  $("#heading").textContent=head;
+  /* An empty h1 still takes its margin, which puts a band of nothing above the
+     question. There is no placeholder to put there — the maker's Name is what
+     fills it, and a box authored without one simply has no title. */
+  $("#heading").hidden=!head;
+  $("#ask").textContent=Q.q||"";
+  $("#hand").innerHTML=ANSWERS.map(function(t,i){
+    return '<div class="slot" id="slot'+i+'"><span class="puff"></span>'+
+           '<button class="card" data-i="'+i+'">'+esc(t)+'</button></div>';
+  }).join("");
+  $("#hand").addEventListener("click",function(e){
+    var btn=e.target.closest(".card");
+    if(btn) take(Number(btn.dataset.i));
+  });
+  EMBED.ready(ANSWERS.length);
+}
+
+function take(i){
+  var slot=$("#slot"+i);
+  if(!slot || slot.classList.contains("gone")) return;
+  slot.classList.add("gone");
+  /* Out of the tab order the moment it is taken, so a keyboard learner cannot
+     land on a card that is no longer on the table. The slot keeps its box. */
+  var btn=slot.querySelector(".card");
+  btn.disabled=true;
+  btn.setAttribute("aria-hidden","true");
+  left--;
+  $("#live").textContent = left ? (left+" left") : "";
+  /* Hold the vanished card's space but stop it being read: the animation ends
+     at opacity 0, and after it we take it out of the tree as well. */
+  setTimeout(function(){ btn.style.visibility="hidden"; }, reduced?0:POOF_OUT);
+  if(!left) setTimeout(finish, reduced?0:POOF_OUT+120);
+}
+
+function finish(){
+  $("#live-state").dataset.on="0";
+  $("#reveal").dataset.on="1";
+  $("#say").innerHTML=paras(Q.fb);
+  var el=$("#lashy");
+  el.innerHTML='<span class="puff"></span><span class="mface">'+svg("sparkle","cheer")+'</span>';
+  if(!reduced){ void el.offsetWidth; el.classList.add("in"); }
+  $("#live").textContent=$("#say").textContent;
+  EMBED.complete();
+}
+
+deal();
+</script>
+</body>
+</html>

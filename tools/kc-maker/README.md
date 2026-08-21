@@ -27,16 +27,40 @@ Work is kept in `localStorage` as you type, so a stray reload does not cost you 
 morning — but that is a safety net, not a backup. Use **Save project** if the work needs
 to survive a cleared browser or move to another machine.
 
+## Two kinds
+
+**Type** is the first thing in the bar, and it is the only control that changes the
+editor rather than just the export.
+
+| Type | What it is |
+|---|---|
+| **Knowledge check** | The scored card check: a deck of questions, one correct answer each, a pass mark to clear |
+| **Copperfield** | One interactive box that only looks like a question. Two or three answers, none of them right or wrong; taking one makes it vanish, and when the last has gone the question goes with it and what you wrote underneath is what is left |
+
+A Copperfield has no mark, no right answer and no deck, so the pass mark, the correct-answer
+marks and the question list are not shown for it — they are not hidden work, there is
+nothing there to set. It reports itself complete when the learner has taken every answer,
+and like everything else here it never sends a score.
+
+**It is one box, not a series.** A run of them is several exports, each embedded on its own
+slide. That is deliberate: a deck implies a mark, and there is no mark here.
+
+Switching type keeps your writing. It trims to fit the new kind's rules — a Copperfield
+takes at most three answers and one question — so switching to it and back can leave a
+fourth answer behind. Save first if that would cost you something.
+
 ## What it lets you set
 
-- **Total questions**, as a number, or one at a time with *Add question*
-- **The question**, and **three to five answers** with one marked correct
+- **Total questions**, as a number, or one at a time with *Add question* — knowledge check only
+- **The question**, and its **answers**: three to five with one marked correct for a
+  knowledge check, two or three with none correct for a Copperfield
 - **Feedback**, written for the question as a whole — it is what the learner reads once
   they have answered, whichever way they answered — **switchable per question**. Off, the
   cards are still marked right and wrong and the learner goes straight on; what is written
-  is kept, so switching it back does not cost you the paragraph
-- **The pass mark**, as a percentage
-- **The theme** — which staging the exported page uses
+  is kept, so switching it back does not cost you the paragraph. On a Copperfield it is
+  what is under the answers, so it cannot be switched off
+- **The pass mark**, as a percentage — knowledge check only
+- **The theme** — which staging the exported page uses, where the type has more than one
 
 ## Themes
 
@@ -57,11 +81,17 @@ Every theme keeps the three rules below without exception: no picking a face-dow
 no score ever leaving the page, completion withheld until the pass mark. `test.mjs` plays
 *every* theme's export through to completion rather than only the first one.
 
-Adding one is a row in `THEMES` in `make_maker.py` — a key, a label, and the page template
-it ships. The editor does not know their names: it reads them off the pages the build put
-in it. A page qualifies if it carries exactly one `/*__KC__*/` token and one
-`/*__LOGO__*/` token; the build refuses it otherwise rather than shipping a page with the
-questions missing.
+Adding one is a row in `PAGES` in `make_maker.py` — the kind it belongs to, a key, a label,
+and the page template it ships. The editor does not know any of their names: it reads both
+the kinds and the themes off the pages the build put in it, and a type with only one
+staging shows no theme selector at all, because a list of one invites somebody to go
+looking for the others. A page qualifies if it carries exactly one `/*__KC__*/` token and
+one `/*__LOGO__*/` token; the build refuses it otherwise rather than shipping a page with
+the questions missing.
+
+The Copperfield is deliberately Standard-only. A disappearing-answer trick has no obvious
+form inside the teller's crystal ball or on the dealer's felt, and three stagings times two
+kinds is six renderings to keep true.
 
 Answer order is shuffled on every deal, so it does not matter which one you write first.
 

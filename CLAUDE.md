@@ -759,9 +759,36 @@ correct, write the feedback, set the pass mark, press Export.
   Fortune Teller and Card Dealer — and the selector changes **only what is
   previewed and what is exported**. The questions, answers, feedback and pass mark are the
   same work whichever staging ships them, so nothing else in the editor knows a theme exists.
-  Adding one is a row in `THEMES` in `make_maker.py`: a key, a label, a template. The editor
-  reads the list off the pages the build embedded rather than naming any of them, and a page
-  qualifies only if it carries exactly one KC token and one LOGO token.
+  The editor reads the list off the pages the build embedded rather than naming any of them,
+  and a page qualifies only if it carries exactly one KC token and one LOGO token.
+- **Kind is the other axis, and unlike theme it DOES change the editor.** `PAGES` in
+  `make_maker.py` is one row per kind-and-theme pair; `RULES` in the editor is the whole of
+  the difference between kinds in one place, and everything else asks it rather than naming
+  a kind. Two exist:
+  - **`kc`** — the scored card check. A deck, one correct answer per question, a pass mark.
+  - **`copperfield`** — an interactive box that only *looks* like a question. Two or three
+    answers, **none of them right or wrong**; taking one poofs it away, and when the last
+    has gone the question goes with it and what was written underneath is what is left.
+    Named by the owner. It exists to keep content fresh as a learner works through it, not
+    to test — and making them clear every answer before the box opens is elimination, which
+    is the habit the lesson is arguing for.
+    **It is ONE box, not a deck** — a series is several exports, each embedded on its own
+    slide — so there is no mark, no question list, and the gate is *exhaustion*. It reports
+    `complete` when every answer has been taken, and still no score.
+    **Standard only, deliberately**: a disappearing-answer trick has no obvious form in the
+    teller's orb or on the dealer's felt, and three stagings × two kinds is six renderings
+    to keep true. A kind with one staging shows **no theme selector at all** — a list of one
+    invites somebody to go looking for the others.
+    **The vanished answer's slot keeps its box.** A card that took its space with it slid
+    the answers still on the table under the cursor, so the next click landed on something
+    that had moved — the same class of defect as the feedback panel growing the block.
+    **Both states live in one grid cell** (`.stage > *{grid-area:1/1}`), so the block is the
+    same height throughout and Rise never shunts the slide under it; the hidden one uses
+    `visibility` as well as opacity, because a merely transparent element is still in the
+    accessibility tree and the reveal must not be readable early. Asserted in the maker's
+    `test.mjs`, which plays the export in a frame like every other.
+    **The poof is the card check's**, same keyframes and same timings, so the two pages read
+    as one family rather than as two different disappearing tricks.
 - **Feedback is per question.** A question can ship with none: the cards are still marked
   right and wrong and the learner goes straight on. Switching it off **disables the box
   rather than clearing it**, and the writing round-trips through save/open and
