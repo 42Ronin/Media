@@ -797,9 +797,14 @@ correct, write the feedback, set the pass mark, press Export.
     Motes trickle from the fraying edge during the dwell and the full burst goes on commit;
     **each mote removes itself on `animationend`**, or hovering on and off leaves a drift of
     dead spans in the slot.
-    **The question goes the way the answers went.** It is the last thing on the table once
-    the cards have gone, and flipping it off with the rest of the live state read as a flash;
-    it now dusts on the same sweep, and the reveal waits for it. **Click and the keyboard
+    **The question goes the way the answers went, and it OVERLAPS the last one.** It is the
+    last thing on the table once the cards have gone, and flipping it off with the rest of
+    the live state read as a flash; it dusts on the same sweep, starting about halfway
+    through the final answer's rather than waiting for it to settle — queued, the pause
+    between them read as the box stalling before it got to the point.
+    **Its class goes on before its motes are built.** Two hundred elements created in the
+    same frame as the class left the transition waiting behind that work and the sweep did
+    not start moving for about 200ms. **Click and the keyboard
     still take a card** — hover is the interaction, those are the floor, because a pointer is
     not something every learner has and a box that cannot be finished is worse than one
     finished the ordinary way. All three routes are asserted, as are the crossing mouse
