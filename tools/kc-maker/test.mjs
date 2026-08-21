@@ -21,6 +21,18 @@ const ok = (n, c, extra = '') => {
     : (fail++, console.log('  FAIL  ' + n + (extra ? '  -> ' + extra : '')));
 };
 
+/* The question, answer and feedback fields are contenteditable now, not
+   textareas — they take bold, italic, underline, strikethrough and links. These
+   two put writing in and read it back out the way a person would. */
+const put = async (sel, text) => {
+  await p.click(sel);
+  await p.evaluate(s => { document.execCommand('selectAll', false, null);
+                          document.execCommand('delete', false, null); }, null);
+  if (text) await p.keyboard.type(text);
+  await p.waitForTimeout(60);
+};
+const readField = sel => p.$eval(sel, e => e.textContent);
+
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/opt/pw-browsers/chromium' });
 const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
 const errs = [];
@@ -80,10 +92,10 @@ const fillQuestion = async (i, spec) => {
   while (await p.$$eval('.ans', e => e.length) > spec.a.length)
     await p.click(`.ans[data-i="${await p.$$eval('.ans', e => e.length) - 1}"] .kill`);
   while (await p.$$eval('.ans', e => e.length) < spec.a.length) await p.click('#addA');
-  await p.fill('#qtext', spec.q);
-  for (let j = 0; j < spec.a.length; j++) await p.fill(`.ans[data-i="${j}"] textarea`, spec.a[j]);
+  await put('#qtext', spec.q);
+  for (let j = 0; j < spec.a.length; j++) await put(`.ans[data-i="${j}"] .rich`, spec.a[j]);
   await p.click(`.ans[data-i="${spec.ok}"] input[type=radio]`);
-  await p.fill('#fbtext', spec.fb);
+  await put('#fbtext', spec.fb);
 };
 for (let i = 0; i < QS.length; i++) await fillQuestion(i, QS[i]);
 await p.fill('#name', 'Lesson 4 Knowledge Check');
@@ -103,14 +115,14 @@ console.log('\n— feedback, per question —');
 await p.click('.qitem[data-i="0"]');
 await p.uncheck('#fbon');
 ok('switching feedback off disables the box rather than clearing it',
-   await p.$eval('#fbtext', e => e.disabled) &&
-   (await p.inputValue('#fbtext')) === QS[0].fb);
+   await p.$eval('#fbtext', e => e.getAttribute('contenteditable') === 'false') &&
+   (await readField('#fbtext')) === QS[0].fb);
 ok('...and it is no longer required to export',
    await p.$eval('#okline', e => !e.hidden));
 await p.reload();
 await p.click('.qitem[data-i="0"]');
 ok('...and the switch survives a reload with the writing intact',
-   !(await p.$eval('#fbon', e => e.checked)) && (await p.inputValue('#fbtext')) === QS[0].fb);
+   !(await p.$eval('#fbon', e => e.checked)) && (await readField('#fbtext')) === QS[0].fb);
 const offExport = await (async () => {
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#expHTML')]);
   const dir = join(work, 'off'); mkdirSync(dir);
@@ -332,7 +344,7 @@ ok('the answers are capped at three', await p.evaluate(() => rules().maxA) === 3
 
 /* Validation asks for what this kind needs, and stops asking for what it has
    no concept of. */
-await p.fill('#fbtext', '');
+await put('#fbtext', '');
 await p.waitForTimeout(250);
 {
   const probs = await p.$$eval('#probs li', l => l.map(x => x.textContent));
@@ -346,7 +358,7 @@ await p.waitForTimeout(250);
    height assertion below prove nothing — it was short, and it hid the box being
    written at the pick rather than at the deal, which grew the block by 40px the
    moment the last answer went. */
-await p.fill('#fbtext',
+await put('#fbtext',
   'An empty result is the single most misread signal in HMIS. It usually means the ' +
   'record is under a name, a spelling or an identifier you have not tried yet, and ' +
   'not that the person in front of you is new to the system.\n\n' +
@@ -493,8 +505,10 @@ ok('the export is the Copperfield page, not a check in disguise',
      (await fr.textContent('#say')).includes('most misread signal'));
   ok('...written as the paragraphs it was typed as',
      await fr.$$eval('#say p', e => e.length) === 3);
-  ok('...with one of her, arriving with it',
-     await fr.$$eval('.lashy svg', e => e.length) === 1);
+  /* She is not in this one. The reveal has the full width instead — it is the
+     payoff, and a face beside it was taking room the writing wanted. */
+  ok('...and she is not in this one at all',
+     await fr.$$eval('.lashy', e => e.length) === 0);
   /* Embedded in a Rise page: anything that changes height shunts the whole
      slide under it. */
   ok('the block is the same height throughout', (await height()) === h0,

@@ -45,7 +45,12 @@ def stamp(tpl: pathlib.Path, data: pathlib.Path, out: pathlib.Path, theme: str =
     if theme:
         payload["theme"] = theme
 
-    for name, value in (("KC", json.dumps(payload)), ("LOGO", logo_uri(tpl.parent))):
+    # `</` is escaped because this JSON is stamped INSIDE a <script>: a literal
+    # </script> anywhere in an author's writing would close the block early and
+    # break the page. `<\/` is an ordinary JS string escape and reads back the
+    # same. Reachable now that the fields accept pasted markup.
+    for name, value in (("KC", json.dumps(payload).replace("</", "<\\/")),
+                        ("LOGO", logo_uri(tpl.parent))):
         t = token(name)
         hits = html.count(t)
         if hits != 1:

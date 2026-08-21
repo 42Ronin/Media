@@ -248,6 +248,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   .hand.live .card:hover{transform:none}
   .hand.live .card.up:hover{transform:rotateY(180deg)}
 }
+
+/* A link is the one thing in this copy meant to be clicked, so it is the one
+   thing that carries the accent. */
+.ask a,.tq a,#qt a,#fb a,.txt a{color:var(--teal,#066888);text-underline-offset:3px;font-weight:600}
 </style>
 </head>
 <body>
@@ -520,6 +524,57 @@ function lashesArrive(id,eyes,mouth){
 }
 
 /* ============================================================
+   Rich text — a whitelist, rebuilt rather than filtered
+
+   The maker writes bold, italic, underline, strikethrough and links into these
+   strings. The page does NOT trust them: whatever arrives is parsed inertly and
+   a NEW tree is built carrying only the tags below, everything else reduced to
+   its own text. The editor sanitising on the way out is a convenience; this is
+   the guarantee, and it is what makes a hand-edited project file safe to open.
+
+   DOMParser, NOT innerHTML on a detached div: a detached div still LOADS what it
+   parses, so `<img src=x onerror=...>` fires before a filter ever looks at it.
+   ============================================================ */
+var KEEP={B:"b",STRONG:"b",I:"i",EM:"i",U:"u",S:"s",STRIKE:"s",DEL:"s"};
+var DROP={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,NOSCRIPT:1,TEMPLATE:1,LINK:1,META:1};
+var SAFE_HREF=/^(https?:|mailto:)/i;
+function rich(html){
+  var doc=new DOMParser().parseFromString(String(html==null?"":html),"text/html");
+  var src=doc.body||doc.createElement("div");
+  var out=document.createElement("div");
+  (function walk(from,to){
+    for(var n=from.firstChild;n;n=n.nextSibling){
+      if(n.nodeType===3){ to.appendChild(document.createTextNode(n.nodeValue)); continue; }
+      if(n.nodeType!==1) continue;
+      var tag=n.tagName.toUpperCase();
+      if(DROP[tag]) continue;
+      if(tag==="BR"){ to.appendChild(document.createElement("br")); continue; }
+      if(tag==="A"){
+        var href=n.getAttribute("href")||"";
+        if(SAFE_HREF.test(href)){
+          var a=document.createElement("a");
+          a.setAttribute("href",href);
+          a.setAttribute("target","_blank");
+          a.setAttribute("rel","noopener noreferrer");
+          walk(n,a); to.appendChild(a); continue;
+        }
+        walk(n,to); continue;
+      }
+      if(KEEP[tag]){ var e=document.createElement(KEEP[tag]); walk(n,e); to.appendChild(e); continue; }
+      walk(n,to);
+    }
+  })(src,out);
+  return out;
+}
+function setRich(el,s){
+  if(!el) return;
+  var built=rich(String(s||"").replace(/\n/g,"<br>"));
+  el.innerHTML="";
+  while(built.firstChild) el.appendChild(built.firstChild);
+}
+function richHTML(s){ return rich(String(s||"").replace(/\n/g,"<br>")).innerHTML; }
+
+/* ============================================================
    EMBED — the only thing this page ever reports is that it is
    finished, and only once the pass mark is cleared. No score:
    there is none in these simulations, and Rise has no scripting
@@ -606,7 +661,7 @@ function deal(){
   $(".dealer").hidden=false;
   $("#stage").hidden=false;
   $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
-  $("#qt").textContent=q.q;
+  setRich($("#qt"), q.q);
   paintHead();
   /* she is not here for the question — see lashesArrive */
 
@@ -618,7 +673,7 @@ function deal(){
              '<span class="face back" aria-hidden="true">'+BACKMARK+'</span>'+
              '<span class="face front">'+
                '<span class="idx" aria-hidden="true">'+LETTER[i]+'</span>'+
-               '<span class="txt">'+esc(a.t)+'</span>'+
+               '<span class="txt">'+richHTML(a.t)+'</span>'+
                '<span class="mark" aria-hidden="true"></span>'+
              '</span>'+
            '</button>';

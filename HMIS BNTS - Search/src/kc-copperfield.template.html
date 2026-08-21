@@ -150,71 +150,47 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   22%{opacity:var(--peak)}
   100%{opacity:0;transform:translate(0,0) scale(1)}
 }
-@keyframes poofIn{0%{transform:scale(.12) rotate(-165deg);opacity:0}
-  55%{transform:scale(1.16) rotate(14deg);opacity:1}
-  100%{transform:scale(1) rotate(0);opacity:1}}
-@keyframes puffRing{0%{transform:scale(.35);opacity:.6}100%{transform:scale(1.6);opacity:0}}
 
 /* ---------- what was under them ----------
    No panel. The writing sits on whatever Rise puts behind the block, the way the
    question's answers sat on it — a tinted card here would make the reveal read as
-   a thing that arrived rather than as what was under the answers all along. */
-.reveal{display:flex;gap:16px;align-items:flex-start}
-.reveal .say{flex:1;font-size:16px;line-height:1.62;margin:0;position:relative}
+   a thing that arrived rather than as what was under the answers all along.
+
+   It has the full width now: there is no character beside it. That room went
+   into the type, because this is the payoff and it was set smaller than the
+   answers it replaces. */
+.reveal{display:block}
+.reveal .say{font-size:19px;line-height:1.6;margin:0;position:relative;
+  max-width:44em;letter-spacing:-.003em}
 .reveal .say p{margin:0 0 10px}
-.reveal .say p:last-child{margin-bottom:0}
-/* ...and it assembles the way the cards came apart, by the same sweep run the
-   other way: masked out to begin with, and the opaque side grows across it. */
-@property --form{syntax:"<percentage>";inherits:false;initial-value:-30%}
-.reveal .say{--form:-30%;
-  -webkit-mask-image:linear-gradient(100deg,#000 var(--form),transparent calc(var(--form) + 26%));
-  mask-image:linear-gradient(100deg,#000 var(--form),transparent calc(var(--form) + 26%))}
-.state[data-on="1"] .say{--form:118%;transition:--form .9s cubic-bezier(.3,.7,.4,1) .12s}
+/* last-of-TYPE, not last-child: the settling motes are appended into #say, so
+   the closing paragraph stops being the last child the moment they arrive and
+   silently gets its bottom margin back — ten pixels of growth at exactly the
+   moment the block must not move. */
+.reveal .say p:last-of-type{margin-bottom:0}
+/* ...and it assembles the way the cards came apart, only in reverse and word by
+   word. A flat mask sweeping over finished text reads as a wipe; a word arriving
+   out of focus, lifting into place and sharpening reads as it condensing out of
+   the dust. Each word's delay comes from where it sits, so the assembly runs
+   across and slightly down — the same direction the sweep ran. */
+.reveal .w{display:inline-block;white-space:pre-wrap}
+.reveal.armed .w{opacity:0;filter:blur(9px);transform:translate(10px,-5px) scale(.94)}
+.reveal.armed.forming .w{opacity:1;filter:blur(0);transform:none;
+  transition:opacity .5s ease-out var(--wd,0s),
+             filter .55s cubic-bezier(.2,.7,.3,1) var(--wd,0s),
+             transform .55s cubic-bezier(.2,.8,.3,1) var(--wd,0s)}
 
-/* She turns up with the box, the way she turns up for the feedback next door —
-   her arrival is the reveal landing rather than a face that was sitting there. */
-.lashy{flex:none;width:84px;height:84px;margin:-4px 0 0 -4px;position:relative}
-/* Her drawing is not hit-testable, so `#lashy` itself is always the target. The
-   hover reaction redraws her face, and redrawing the node the pointer is over
-   destroys what the browser is tracking: it then re-enters from nothing, fires
-   pointerenter again, redraws again — fourteen times in a fifth of a second —
-   and pointerleave never resolves, so she stayed reacting after the pointer had
-   gone. Nothing in here is interactive anyway; the svg is aria-hidden. */
-.lashy svg,.lashy .mface{pointer-events:none}
-.lashy svg{width:100%;height:100%;display:block;overflow:visible}
-.lashy .mface{display:block;width:100%;height:100%;
-  /* her face sits at (44,42) in a 100-box, so spin and shrink about that */
-  transform-origin:44% 42%}
-.lashy .puff{position:absolute;left:5%;top:3%;width:88%;height:88%;border-radius:50%;
-  border:2.5px solid var(--teal);opacity:0;pointer-events:none}
-.lashy.in .mface{animation:poofIn .46s cubic-bezier(.3,1.45,.5,1)}
-.lashy.in .puff{animation:puffRing .44s ease-out}
-/* She answers a hover. The `.in` class is taken off once her arrival has played,
-   so this is the only animation on her by the time anyone can reach her — left on,
-   the two rules sit at equal specificity and unhovering re-ran her entrance. */
-.lashy.react .mface{animation:lznod .66s ease-in-out}
-@keyframes lznod{
-  0%{transform:none}
-  22%{transform:translateY(-7px) rotate(-9deg)}
-  52%{transform:translateY(0) rotate(7deg)}
-  78%{transform:translateY(-3px) rotate(-3deg)}
-  100%{transform:none}
-}
-
-.m-rim{fill:none;stroke:var(--teal);stroke-width:5}
-.m-glass{fill:var(--lens)}
-.m-eye{fill:var(--teal-dk)}
-.m-lash{fill:none;stroke:var(--teal-dk);stroke-width:2.6;stroke-linecap:round}
-.m-mouth{fill:none;stroke:var(--teal-dk);stroke-width:3.2;stroke-linecap:round}
-.m-arc{fill:none;stroke:var(--teal-dk);stroke-width:3;stroke-linecap:round}
-.m-spark{fill:var(--teal-dk)}
-.m-lidfill{fill:var(--lens)}
-.m-lidline{fill:none;stroke:var(--teal-dk);stroke-width:2.6;stroke-linecap:round}
-.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+/* A link is the one thing in here that is meant to be clicked, so it is the one
+   thing that carries the accent. */
+.reveal a{color:var(--teal);text-decoration-color:rgba(6,104,136,.42);
+  text-underline-offset:3px;font-weight:600}
+.reveal a:hover{text-decoration-color:var(--teal)}
+.card a{color:inherit;text-decoration:underline}
 
 @media(prefers-reduced-motion:reduce){
   .card,.state{transition:none}
-  .slot.gone .card,.mote,.lashy.in .mface,.lashy.in .puff,.lashy.react .mface{animation:none}
+  .slot.gone .card,.mote{animation:none}
+  .reveal .w{opacity:1;filter:none;transform:none;animation:none}
   .mote{display:none}
   /* No sweep either — the writing is simply there. */
   .state[data-on="1"] .say{transition:none}
@@ -234,7 +210,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     </div>
     <div class="state" id="reveal" data-on="0">
       <div class="reveal">
-        <div class="lashy" id="lashy"></div>
         <div class="say" id="say"></div>
       </div>
     </div>
@@ -253,43 +228,8 @@ var KC = /*__KC__*/;
    page the maker recognises. The artwork is never redrawn. See CLAUDE.md. */
 var LOGO = /*__LOGO__*/;
 
-var $=function(s){return document.querySelector(s)};
-
-/* ============================================================
-   The character — the same geometry and the same expression
-   library as the lesson and the card check, so this is
-   recognisably her and not a third drawing that drifts.
-   ============================================================ */
-var LASH={
-  open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
-       '<path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/></g>',
-  high:'<g class="m-lash"><path d="M30 33.5 l-3.4 -3"/><path d="M34.3 32 l-1.2 -3.4"/><path d="M38.4 32.8 l1.7 -3.2"/>'+
-       '<path d="M48.6 32.8 l-1.7 -3.2"/><path d="M52.7 32 l1.2 -3.4"/><path d="M57 33.5 l3.4 -3"/></g>',
-  low: '<g class="m-lash"><path d="M30.8 38 l-3 -1"/><path d="M34.9 36.8 l-.7 -2.2"/><path d="M38.9 37.6 l1.4 -1.9"/>'+
-       '<path d="M49.1 37.6 l-1.4 -1.9"/><path d="M53.1 36.8 l.7 -2.2"/><path d="M57.2 38 l3 -1"/></g>'
-};
-function spark(cx,cy){
-  return '<path class="m-spark" d="M'+cx+' '+(cy-4.6)+' q1 3.4 4.6 4.6 q-3.6 1.2 -4.6 4.6 '+
-         'q-1 -3.4 -4.6 -4.6 q3.6 -1.2 4.6 -4.6 z"/>';
-}
-var EYES={
-  open:   {e:'<circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>', l:"open"},
-  sparkle:{e:spark(35,39)+spark(53,39), l:"high"},
-  wide:   {e:'<circle class="m-eye" cx="35" cy="39" r="5.2"/><circle class="m-eye" cx="53" cy="39" r="5.2"/>', l:"high"},
-  arcs:   {e:'<path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/><path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>', l:"open"}
-};
-var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0"};
-function svg(eyes,mouth){
-  var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
-  return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
-    '<g class="m-body">'+
-      '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
-      '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
-      '<g class="m-face"><g class="m-eyes">'+ex.e+'</g>'+LASH[ex.l]+
-        '<path class="m-mouth" d="'+m+'"/></g>'+
-      '<path class="m-shine" d="M27 30 q7-9 17-10"/>'+
-    '</g></svg>';
-}
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
 
 /* ============================================================
    EMBED — the only things this page ever says are that it is
@@ -327,11 +267,111 @@ var DWELL=420;
 var GONE=560;                                /* the commit, matching `.slot.gone` */
 
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-/* The writing is authored as plain text in the maker; blank lines are paragraphs. */
+
+/* ============================================================
+   Rich text — a whitelist, rebuilt rather than filtered
+
+   The maker writes bold, italic, underline, strikethrough and links into these
+   strings. The page does NOT trust them: whatever arrives is parsed into a
+   detached element and a NEW tree is built from it carrying only the tags below,
+   with everything else reduced to its own text. That is what makes it safe to
+   hand-edit a project file, or to open an export somebody else produced — the
+   editor sanitising on the way out is a convenience, this is the guarantee.
+
+   A link is kept only if it goes somewhere a link may go. Anything else keeps
+   its words and loses the link, rather than silently vanishing.
+   ============================================================ */
+var KEEP={B:"b",STRONG:"b",I:"i",EM:"i",U:"u",S:"s",STRIKE:"s",DEL:"s"};
+/* Dropped whole, contents and all: their text is not writing anybody meant to
+   read, and showing the inside of a script tag as prose is its own kind of leak. */
+var DROP={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,NOSCRIPT:1,TEMPLATE:1,LINK:1,META:1};
+var SAFE_HREF=/^(https?:|mailto:)/i;
+function rich(html){
+  /* DOMParser, NOT a detached div with innerHTML. A detached div still *loads*
+     what it parses: `<img src=x onerror=...>` fires its handler the moment the
+     element is created, before anything looks at it, so a sanitiser that filters
+     afterwards has already lost. A parsed document is inert — nothing fetches
+     and nothing runs — which is what makes filtering it meaningful. */
+  var doc=new DOMParser().parseFromString(String(html==null?"":html),"text/html");
+  var src=doc.body||doc.createElement("div");
+  var out=document.createElement("div");
+  (function walk(from,to){
+    for(var n=from.firstChild;n;n=n.nextSibling){
+      if(n.nodeType===3){ to.appendChild(document.createTextNode(n.nodeValue)); continue; }
+      if(n.nodeType!==1) continue;
+      var tag=n.tagName.toUpperCase();
+      if(DROP[tag]) continue;
+      if(tag==="BR"){ to.appendChild(document.createElement("br")); continue; }
+      if(tag==="A"){
+        var href=n.getAttribute("href")||"";
+        if(SAFE_HREF.test(href)){
+          var a=document.createElement("a");
+          a.setAttribute("href",href);
+          a.setAttribute("target","_blank");
+          a.setAttribute("rel","noopener noreferrer");
+          walk(n,a); to.appendChild(a); continue;
+        }
+        walk(n,to); continue;
+      }
+      if(KEEP[tag]){
+        var e=document.createElement(KEEP[tag]);
+        walk(n,e); to.appendChild(e); continue;
+      }
+      walk(n,to);                               /* unknown tag: keep the words */
+    }
+  })(src,out);
+  return out;
+}
+
+/* Paragraphs are blank-line separated; a single newline is a line break. */
 function paras(s){
-  return String(s||"").split(/\n{2,}/).map(function(p){
-    return "<p>"+esc(p.trim()).replace(/\n/g,"<br>")+"</p>";
-  }).join("");
+  var host=document.createElement("div");
+  String(s||"").split(/\n{2,}/).forEach(function(chunk){
+    if(!chunk.trim()) return;
+    var p=document.createElement("p");
+    var built=rich(chunk.trim().replace(/\n/g,"<br>"));
+    while(built.firstChild) p.appendChild(built.firstChild);
+    host.appendChild(p);
+  });
+  return host;
+}
+
+/* Every word gets its own span so the reveal can time them individually. Done on
+   the built tree, so a word inside bold or inside a link is wrapped in place and
+   the markup around it survives. Links are left whole: breaking one into words
+   would give a single link several underlines with gaps in them. */
+function wrapWords(root){
+  (function walk(node){
+    for(var n=node.firstChild,next;n;n=next){
+      next=n.nextSibling;
+      if(n.nodeType===1){ if(n.tagName!=="A") walk(n); else wrapOne(n); continue; }
+      if(n.nodeType!==3) continue;
+      var frag=document.createDocumentFragment();
+      n.nodeValue.split(/(\s+)/).forEach(function(bit){
+        if(!bit) return;
+        if(!bit.trim()){ frag.appendChild(document.createTextNode(bit)); return; }
+        var w=document.createElement("span");
+        w.className="w"; w.textContent=bit;
+        frag.appendChild(w);
+      });
+      node.replaceChild(frag,n);
+    }
+  })(root);
+  return root;
+}
+function wrapOne(el){
+  var w=document.createElement("span");
+  w.className="w";
+  el.parentNode.insertBefore(w,el);
+  w.appendChild(el);
+}
+/* One line of writing, sanitised, into an element. Newlines become breaks; this
+   is for the single-line fields, where paragraphs would be wrong. */
+function setRich(el,s){
+  if(!el) return;
+  var built=rich(String(s||"").replace(/\n/g,"<br>"));
+  el.innerHTML="";
+  while(built.firstChild) el.appendChild(built.firstChild);
 }
 
 function deal(){
@@ -345,11 +385,15 @@ function deal(){
   /* An empty h1 still takes its margin, which puts a band of nothing above the
      question. */
   $("#heading").hidden=!head;
-  $("#ask").textContent=Q.q||"";
+  setRich($("#ask"), Q.q||"");
   $("#hand").innerHTML=ANSWERS.map(function(t,i){
     return '<div class="slot" id="slot'+i+'">'+
-           '<button class="card" data-i="'+i+'">'+esc(t)+'</button></div>';
+           '<button class="card" data-i="'+i+'"></button></div>';
   }).join("");
+  /* An answer is taken by resting on it, so a link inside one could never be
+     clicked — the maker does not offer links on an answer, and rich() would keep
+     the words anyway if a hand-edited file carried one. */
+  ANSWERS.forEach(function(t,i){ setRich($("#slot"+i+" .card"), t); });
   ANSWERS.forEach(function(t,i){ arm(i); });
   /* Written NOW, while it is still hidden, and not when the last answer goes.
      Both states share one grid cell and the cell is as tall as the taller of
@@ -358,7 +402,13 @@ function deal(){
      the box arrived, which in Rise shunts the whole slide below it.
      `visibility:hidden` keeps the box and keeps it out of the accessibility
      tree, so filling it early does not make it readable early. */
-  $("#say").innerHTML=paras(Q.fb);
+  var built=paras(Q.fb);
+  $("#say").innerHTML="";
+  while(built.firstChild) $("#say").appendChild(built.firstChild);
+  /* Armed = the words are held back. Done at the deal so the box still has its
+     full height reserved in the shared grid cell — an unarmed reveal measured
+     the same, which is the whole reason it is written this early. */
+  if(!reduced){ wrapWords($("#say")); $(".reveal").classList.add("armed"); }
   EMBED.ready(ANSWERS.length);
 }
 
@@ -433,33 +483,6 @@ function spawn(slot,btn,n,xLo,xHi,spread,inward){
   slot.appendChild(frag);
 }
 
-/* She answers a hover: a look up and a nod, and her face changes while the
-   pointer is on her. Only her drawing changes — `.mface` is replaced rather than
-   the whole of `#lashy`, so the puff and her classes survive it. */
-function setFace(el,eyes,mouth){
-  var f=el.querySelector(".mface");
-  if(f) f.innerHTML=svg(eyes,mouth);
-}
-function armLashes(){
-  var el=$("#lashy"), over=false;
-  el.addEventListener("pointerenter",function(){
-    /* Guarded as well as made un-hit-testable: one reaction per arrival, so a
-       stray second enter cannot restart her mid-nod. */
-    if(over) return;
-    over=true;
-    setFace(el,"arcs","cheer");
-    if(reduced) return;
-    el.classList.remove("react");
-    void el.offsetWidth;                 /* restart it rather than queue it */
-    el.classList.add("react");
-  });
-  el.addEventListener("pointerleave",function(){
-    over=false;
-    setFace(el,"sparkle","cheer");
-    el.classList.remove("react");
-  });
-}
-
 function take(i){
   var slot=$("#slot"+i);
   if(!slot || slot.classList.contains("gone")) return;
@@ -483,21 +506,32 @@ function finish(){
   $("#live-state").dataset.on="0";
   $("#reveal").dataset.on="1";          /* already written — see `deal` */
   /* The writing comes together out of dust, on the same sweep the cards came
-     apart on — the mask does the text and these are the motes settling onto it.
-     Spread across the sweep so a mote lands about when the sweep reaches it. */
-  if(!reduced) spawn($("#say"),$("#say"),150,0,1,0.78,true);
-  var el=$("#lashy");
-  el.innerHTML='<span class="puff"></span><span class="mface">'+svg("sparkle","cheer")+'</span>';
+     apart on. Word by word rather than one flat wipe: each one arrives out of
+     focus and settles, in the order the sweep reaches it, so the reveal reads as
+     the reverse of the disintegration rather than as a mask sliding over text.
+     The motes settle onto it at the same rate. */
   if(!reduced){
-    void el.offsetWidth; el.classList.add("in");
-    /* Taken off once her entrance has played, so the hover reaction is the only
-       animation left on her — otherwise the two sit at equal specificity and
-       unhovering re-runs the entrance. */
-    setTimeout(function(){ el.classList.remove("in"); }, 520);
+    spawn($("#say"),$("#say"),190,0,1,0.9,true);
+    formWords($("#say"));
   }
-  armLashes();
   $("#live").textContent=$("#say").textContent;
   EMBED.complete();
+}
+
+/* Time each word by where it sits, so the assembly runs the way the sweep does —
+   across and slightly down — rather than in DOM order, which would jump back to
+   the left margin on every new line. */
+function formWords(host){
+  var ws=$$(".w",host);
+  if(!ws.length) return;
+  var box=host.getBoundingClientRect();
+  var w=box.width||1, h=box.height||1;
+  ws.forEach(function(el){
+    var r=el.getBoundingClientRect();
+    var along=((r.left-box.left)/w)*0.72 + ((r.top-box.top)/h)*0.28;
+    el.style.setProperty("--wd",(0.06+along*0.85).toFixed(3)+"s");
+  });
+  $(".reveal").classList.add("forming");
 }
 
 deal();
