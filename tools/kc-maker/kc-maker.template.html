@@ -161,16 +161,22 @@ textarea[disabled]{background:var(--line-2);color:var(--mut);cursor:not-allowed}
   </span>
 
   <span class="field">
+    <label for="kind">Type</label>
+    <select id="kind"><!--KINDS--></select>
+  </span>
+  <span class="field">
     <label for="name">Name</label>
     <input type="text" id="name" placeholder="lesson-1-knowledge-check">
   </span>
-  <span class="field">
+  <!-- Both of these belong to the scored check and are hidden for a type that has
+       no mark to clear and only one staging to ship. -->
+  <span class="field" id="passField">
     <label for="pass">Pass mark</label>
     <input type="number" id="pass" min="0" max="100" step="5" value="80">%
   </span>
-  <span class="field">
+  <span class="field" id="themeField">
     <label for="theme">Theme</label>
-    <select id="theme"><!--THEMES--></select>
+    <select id="theme"></select>
   </span>
 
   <span class="grow"></span>
@@ -184,7 +190,10 @@ textarea[disabled]{background:var(--line-2);color:var(--mut);cursor:not-allowed}
 </div>
 
 <div class="body">
-  <div class="side">
+  <!-- A Copperfield is one box, not a deck, so there is no list to move around
+       in and no count to set. A series of them is several exports, each embedded
+       on its own slide. -->
+  <div class="side" id="side">
     <h2>Questions</h2>
     <div class="qlist" id="qlist" role="tablist" aria-label="Questions"></div>
     <div class="sidefoot">
@@ -222,18 +231,62 @@ var LETTER=["A","B","C","D","E"];
 /* Assembled rather than written out, so this file never contains the literal the
    build scripts search for. */
 var TOKEN="/*"+"__KC__"+"*/";
-var MIN_ANS=3, MAX_ANS=5;
 var STORE="kc-maker/v1";
+
+/* ============================================================
+   The kinds
+
+   `kc` is the scored card check: a deck, a pass mark, one correct answer per
+   question. `copperfield` is a single interactive box that only looks like a
+   question — every answer is taken in turn and vanishes, and what is under
+   them is the point. Nothing about it is scored, so it has no correct answer
+   and no mark, and it is one question rather than a deck.
+
+   RULES is the difference in one place. Everything else in the editor asks it
+   rather than naming a kind.
+   ============================================================ */
+var RULES={
+  kc:{ minA:3, maxA:5, deck:true, correct:true, mark:true, needFb:false,
+       pane:"The learner sees the question, then three to five cards dealt face "+
+            "down. They turn over together and the learner picks one.",
+       answers:"Answers &mdash; mark the one that is correct",
+       hint:"The order is shuffled on every deal, so it does not matter which one "+
+            "you write first.",
+       fbLab:"Feedback",
+       fbPlace:"Written for the question as a whole — it is what they read once they "+
+               "have answered, whichever way they answered.",
+       fbHint:"Off, the cards are still marked right and wrong and the learner goes "+
+              "straight on. What is written here is kept either way." },
+  copperfield:{ minA:2, maxA:3, deck:false, correct:false, mark:false, needFb:true,
+       pane:"The learner sees the question and two or three answers. Taking one makes "+
+            "it vanish; when the last has gone, the question goes with it and what is "+
+            "written below is what is left. Nothing here is right or wrong.",
+       answers:"Answers &mdash; each one is taken and vanishes",
+       hint:"Every one of these is read and then cleared, so write things worth "+
+            "reading rather than wrong options.",
+       fbLab:"What is under them",
+       fbPlace:"What the learner is left with once every answer has gone. This is the "+
+               "point of the box, so it cannot be switched off.",
+       fbHint:"Blank lines start a new paragraph." }
+};
+function rules(){ return RULES[proj.kind]||RULES.kc; }
 
 /* ============================================================
    The project
    ============================================================ */
 function blankQ(){ return {q:"", a:[{t:"",ok:true},{t:"",ok:false},{t:"",ok:false}], fb:"", nofb:false}; }
-/* The themes are whatever the build put in the page, in the order it put them.
-   Nothing in the editor names one — a new staging is a row in make_maker.py. */
-var THEMES=[].slice.call(document.querySelectorAll("script.page"))
-  .map(function(el){ return el.dataset.theme; });
-var proj={ name:"", pass:80, theme:THEMES[0], questions:[blankQ()] };
+/* The pages are whatever the build put here, in the order it put them. Nothing
+   in the editor names a kind or a theme — both are rows in make_maker.py. */
+var PAGES=[].slice.call(document.querySelectorAll("script.page")).map(function(el){
+  return {kind:el.dataset.kind, theme:el.dataset.theme, label:el.dataset.label, el:el};
+});
+function themesFor(kind){
+  return PAGES.filter(function(p){ return p.kind===kind; });
+}
+var KINDS=PAGES.map(function(p){ return p.kind; })
+  .filter(function(k,i,all){ return all.indexOf(k)===i; });
+var proj={ kind:KINDS[0], name:"", pass:80, theme:themesFor(KINDS[0])[0].theme,
+           questions:[blankQ()] };
 var at=0;
 
 function load(){
@@ -251,20 +304,38 @@ function save(){
 function adopt(o){
   if(!o||typeof o!=="object") return;
   var qs=Array.isArray(o.questions)?o.questions:[];
+  /* An unknown kind or theme — an older project, written before either existed,
+     or one edited by hand — falls back rather than exporting nothing. A project
+     saved before there were kinds has none, and is the scored check. */
+  proj.kind = KINDS.indexOf(o.kind)>=0 ? o.kind : KINDS[0];
+  var themes=themesFor(proj.kind).map(function(p){ return p.theme; });
+  proj.theme = themes.indexOf(o.theme)>=0 ? o.theme : themes[0];
   proj.name = typeof o.name==="string" ? o.name : "";
   proj.pass = Math.max(0,Math.min(100, Number(o.pass)||80));
-  /* An unknown theme — an older project, or one written by hand — falls back to
-     the first rather than exporting nothing. */
-  proj.theme = THEMES.indexOf(o.theme)>=0 ? o.theme : THEMES[0];
   proj.questions = qs.length ? qs.map(function(q){
-    var a=(Array.isArray(q.a)?q.a:[]).slice(0,MAX_ANS).map(function(x){
+    var a=(Array.isArray(q.a)?q.a:[]).map(function(x){
       return {t:String(x&&x.t||""), ok:!!(x&&x.ok)};
     });
-    while(a.length<MIN_ANS) a.push({t:"",ok:false});
-    if(!a.some(function(x){return x.ok})) a[0].ok=true;
     return {q:String(q.q||""), a:a, fb:String(q.fb||""), nofb:!!q.nofb};
   }) : [blankQ()];
-  at=Math.min(at, proj.questions.length-1);
+  fit();
+}
+/* Bring the questions inside the current kind's rules. Called after adopting a
+   project and after a change of kind, because the two kinds do not agree on how
+   many answers there are, whether one of them is correct, or whether there is
+   more than one question. Trimming is by truncation, never by rewriting what
+   somebody typed: a fourth answer dropped by switching to Copperfield comes
+   back by switching to a kind that allows one only if it was not saved over. */
+function fit(){
+  var r=rules();
+  if(!r.deck) proj.questions=proj.questions.slice(0,1);
+  proj.questions.forEach(function(q){
+    if(q.a.length>r.maxA) q.a=q.a.slice(0,r.maxA);
+    while(q.a.length<r.minA) q.a.push({t:"",ok:false});
+    if(r.correct && !q.a.some(function(x){return x.ok})) q.a[0].ok=true;
+    if(r.needFb) q.nofb=false;
+  });
+  at=Math.max(0, Math.min(at, proj.questions.length-1));
 }
 
 /* ============================================================
@@ -286,31 +357,31 @@ function renderList(){
 }
 
 function renderPane(){
-  var q=proj.questions[at];
+  var q=proj.questions[at], r=rules();
   if(!q){ $("#pane").innerHTML=""; return; }
   $("#pane").innerHTML=
-    '<h3>Question '+(at+1)+' of '+proj.questions.length+'</h3>'+
-    '<p class="sub">The learner sees the question, then three to five cards dealt face '+
-      'down. They turn over together and the learner picks one.</p>'+
+    '<h3>'+(r.deck ? 'Question '+(at+1)+' of '+proj.questions.length : 'The box')+'</h3>'+
+    '<p class="sub">'+r.pane+'</p>'+
     '<div class="blk"><label class="lab" for="qtext">Question</label>'+
       '<textarea id="qtext" class="q" placeholder="What does an empty result actually tell you?"></textarea></div>'+
-    '<div class="blk"><label class="lab">Answers &mdash; mark the one that is correct</label>'+
+    '<div class="blk"><label class="lab">'+r.answers+'</label>'+
       '<div id="answers"></div>'+
-      '<p class="hint">Between '+MIN_ANS+' and '+MAX_ANS+'. The order is shuffled on every deal, '+
-        'so it does not matter which one you write first.</p>'+
+      '<p class="hint">Between '+r.minA+' and '+r.maxA+'. '+r.hint+'</p>'+
       '<button class="btn quiet small" id="addA" style="margin-top:8px">Add answer</button></div>'+
-    '<div class="blk"><label class="lab" for="fbtext">Feedback</label>'+
-      '<label class="switch"><input type="checkbox" id="fbon"'+(q.nofb?"":" checked")+'>'+
-        '<span>Show feedback for this question</span></label>'+
-      '<textarea id="fbtext" class="fb" placeholder="Written for the question as a whole — it is what they read once they have answered, whichever way they answered."'+
+    '<div class="blk"><label class="lab" for="fbtext">'+r.fbLab+'</label>'+
+      (r.needFb ? '' :
+        '<label class="switch"><input type="checkbox" id="fbon"'+(q.nofb?"":" checked")+'>'+
+          '<span>Show feedback for this question</span></label>')+
+      '<textarea id="fbtext" class="fb" placeholder="'+esc(r.fbPlace)+'"'+
         (q.nofb?" disabled":"")+'></textarea>'+
-      '<p class="hint">Off, the cards are still marked right and wrong and the learner '+
-        'goes straight on. What is written here is kept either way.</p></div>';
+      '<p class="hint">'+r.fbHint+'</p></div>';
   $("#qtext").value=q.q;
   $("#fbtext").value=q.fb;
   /* Turning it off keeps the writing. Someone who switches it off, exports, and
      switches it back should not find their paragraph gone. */
-  $("#fbon").addEventListener("change",function(){
+  /* Turning it off keeps the writing. A kind whose whole point is what is under
+     the answers has no switch at all. */
+  if($("#fbon")) $("#fbon").addEventListener("change",function(){
     q.nofb=!this.checked;
     $("#fbtext").disabled=q.nofb;
     touch(true);
@@ -318,30 +389,32 @@ function renderPane(){
   $("#qtext").addEventListener("input",function(){ q.q=this.value; touch(true); });
   $("#fbtext").addEventListener("input",function(){ q.fb=this.value; touch(false); });
   $("#addA").addEventListener("click",function(){
-    if(q.a.length>=MAX_ANS) return;
+    if(q.a.length>=rules().maxA) return;
     q.a.push({t:"",ok:false}); touch(true); renderPane();
   });
   renderAnswers();
 }
 
 function renderAnswers(){
-  var q=proj.questions[at], host=$("#answers");
+  var q=proj.questions[at], host=$("#answers"), r=rules();
   host.innerHTML=q.a.map(function(a,i){
-    return '<div class="ans'+(a.ok?" correct":"")+'" data-i="'+i+'">'+
+    return '<div class="ans'+(r.correct&&a.ok?" correct":"")+'" data-i="'+i+'">'+
       '<span class="letter">'+LETTER[i]+'</span>'+
-      '<span class="pick"><input type="radio" name="correct" id="ok'+i+'" '+(a.ok?"checked":"")+'>'+
-        '<label for="ok'+i+'" class="sr-only">Answer '+LETTER[i]+' is correct</label></span>'+
+      (r.correct
+        ? '<span class="pick"><input type="radio" name="correct" id="ok'+i+'" '+(a.ok?"checked":"")+'>'+
+            '<label for="ok'+i+'" class="sr-only">Answer '+LETTER[i]+' is correct</label></span>'
+        : '')+
       '<textarea data-a="'+i+'" placeholder="Answer '+LETTER[i]+'"></textarea>'+
       '<button class="kill" data-kill="'+i+'" type="button" title="Remove this answer" '+
-        (q.a.length<=MIN_ANS?"disabled":"")+' aria-label="Remove answer '+LETTER[i]+'">&times;</button>'+
+        (q.a.length<=r.minA?"disabled":"")+' aria-label="Remove answer '+LETTER[i]+'">&times;</button>'+
     '</div>';
   }).join("");
   [].forEach.call(host.querySelectorAll("textarea"),function(t){
     t.value=q.a[+t.dataset.a].t;
     t.addEventListener("input",function(){ q.a[+this.dataset.a].t=this.value; touch(false); });
   });
-  [].forEach.call(host.querySelectorAll("input[type=radio]"),function(r,i){
-    r.addEventListener("change",function(){
+  [].forEach.call(host.querySelectorAll("input[type=radio]"),function(rd,i){
+    rd.addEventListener("change",function(){
       q.a.forEach(function(x,j){ x.ok=(j===i); });
       touch(false); renderAnswers();
     });
@@ -349,10 +422,10 @@ function renderAnswers(){
   [].forEach.call(host.querySelectorAll(".kill"),function(b){
     b.addEventListener("click",function(){
       var i=+this.dataset.kill;
-      if(q.a.length<=MIN_ANS) return;
+      if(q.a.length<=rules().minA) return;
       var wasOk=q.a[i].ok;
       q.a.splice(i,1);
-      if(wasOk) q.a[0].ok=true;
+      if(rules().correct && wasOk) q.a[0].ok=true;
       touch(true); renderPane();
     });
   });
@@ -366,24 +439,28 @@ function touch(relist){ save(); validate(); if(relist) renderList(); }
    Validation — say what is missing rather than exporting something broken
    ============================================================ */
 function problemsByQuestion(){
-  var bad={};
+  var bad={}, r=rules();
   proj.questions.forEach(function(q,i){
     var filled=q.a.filter(function(a){ return a.t.trim(); });
-    if(!q.q.trim() || (!q.nofb && !q.fb.trim()) || filled.length<MIN_ANS ||
-       filled.length!==q.a.length || q.a.filter(function(a){return a.ok}).length!==1) bad[i]=true;
+    if(!q.q.trim() || ((r.needFb||!q.nofb) && !q.fb.trim()) || filled.length<r.minA ||
+       filled.length!==q.a.length ||
+       (r.correct && q.a.filter(function(a){return a.ok}).length!==1)) bad[i]=true;
   });
   return bad;
 }
 function problems(){
-  var out=[];
+  var out=[], r=rules();
   proj.questions.forEach(function(q,i){
-    var n="Question "+(i+1)+": ";
+    var n=r.deck ? "Question "+(i+1)+": " : "";
     if(!q.q.trim()) out.push(n+"no question written.");
     var blank=q.a.filter(function(a){ return !a.t.trim(); }).length;
     if(blank) out.push(n+blank+" answer"+(blank>1?"s are":" is")+" blank.");
-    var ok=q.a.filter(function(a){ return a.ok; }).length;
-    if(ok!==1) out.push(n+"mark exactly one answer correct.");
-    if(!q.nofb && !q.fb.trim()) out.push(n+"no feedback written.");
+    /* Only a kind that has a right answer is asked for one. */
+    if(r.correct && q.a.filter(function(a){ return a.ok; }).length!==1)
+      out.push(n+"mark exactly one answer correct.");
+    if((r.needFb||!q.nofb) && !q.fb.trim())
+      out.push(n+(r.needFb ? "nothing written for what is under the answers."
+                           : "no feedback written."));
   });
   if(!name()) out.push("Give it a name — that is what the exported files are called.");
   return out;
@@ -395,12 +472,19 @@ function validate(){
   if(!fine){
     $("#probs").innerHTML="<b>Not ready to export yet.</b><ul>"+
       p.map(function(s){ return "<li>"+esc(s)+"</li>"; }).join("")+"</ul>";
-  }else{
+  }else if(rules().mark){
     var need=Math.ceil((proj.pass/100)*proj.questions.length);
     $("#okline").textContent=
       "Ready. "+proj.questions.length+" question"+(proj.questions.length===1?"":"s")+
       ", pass mark "+proj.pass+"% — the learner needs "+need+" of "+proj.questions.length+
       " right before the block reports itself complete.";
+  }else{
+    /* Nothing to clear: the gate is exhaustion. Say what actually finishes it,
+       rather than borrowing the mark's sentence and leaving out the number. */
+    var n=proj.questions[0].a.length;
+    $("#okline").textContent=
+      "Ready. One box, "+n+" answers — the block reports itself complete once the "+
+      "learner has taken all "+n+". Nothing is scored.";
   }
   $("#expHTML").disabled=!fine;
   $("#expZIP").disabled=!fine;
@@ -417,24 +501,35 @@ function slug(){
   var s=name().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
   return s || "knowledge-check";
 }
-function theme(){
-  return THEMES.indexOf(proj.theme)>=0 ? proj.theme : THEMES[0];
+/* The page for the kind and theme now set. A kind with one staging still goes
+   through here, so nothing has to know which kinds have a choice. */
+function page(){
+  var ts=themesFor(proj.kind);
+  var hit=ts.filter(function(p){ return p.theme===proj.theme; })[0];
+  return hit || ts[0];
 }
 function pageHTML(){
-  var el=document.querySelector('script.page[data-theme="'+theme()+'"]');
-  if(!el) throw new Error("no page for the "+theme()+" theme");
-  var b=el.textContent.trim();
+  var p=page();
+  if(!p) throw new Error("no page for "+proj.kind+"/"+proj.theme);
+  var b=p.el.textContent.trim();
   var bin=atob(b), bytes=new Uint8Array(bin.length);
   for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
   var tpl=new TextDecoder("utf-8").decode(bytes);
-  var data=JSON.stringify({
+  var r=rules();
+  var payload={
     title:name(), heading:name(),
-    pass:proj.pass/100,
     questions:proj.questions.map(function(q){
-      return {q:q.q.trim(), a:q.a.map(function(a){ return {t:a.t.trim(), ok:!!a.ok}; }),
-              fb:q.nofb ? "" : q.fb.trim()};
+      return {q:q.q.trim(),
+              /* No `ok` where nothing is correct: a page that never reads it
+                 should not be handed a field that says one answer beats another. */
+              a:q.a.map(function(a){
+                return r.correct ? {t:a.t.trim(), ok:!!a.ok} : {t:a.t.trim()};
+              }),
+              fb:(!r.needFb && q.nofb) ? "" : q.fb.trim()};
     })
-  });
+  };
+  if(r.mark) payload.pass=proj.pass/100;
+  var data=JSON.stringify(payload);
   /* Exactly one, checked rather than assumed: the token used to be named in the
      page's own header comment as well, and replacing the first occurrence put the
      questions in a comment and left the real one empty. */
@@ -525,8 +620,7 @@ $("#fileIn").addEventListener("change",function(){
   var r=new FileReader();
   r.onload=function(){
     try{ adopt(JSON.parse(r.result)); }catch(e){ alert("That file is not a project this tool wrote."); return; }
-    $("#name").value=proj.name; $("#pass").value=proj.pass; $("#theme").value=proj.theme;
-    at=0; save(); renderList(); renderPane(); validate();
+    at=0; save(); syncChrome(); renderList(); renderPane(); validate();
   };
   r.readAsText(f);
   this.value="";
@@ -573,6 +667,35 @@ $("#theme").addEventListener("change",function(){
   proj.theme=this.value; touch(false);
   if(!$("#prevwrap").hidden) openPreview();     // keep an open preview honest
 });
+/* The KIND does change the editor, which is the whole difference between it and
+   the theme: what a Copperfield is has no mark, no deck and no right answer, so
+   the controls for those go rather than sit there doing nothing. */
+$("#kind").addEventListener("change",function(){
+  proj.kind=this.value;
+  fit();
+  syncChrome();
+  touch(true); renderPane();
+  if(!$("#prevwrap").hidden) openPreview();
+});
+
+/* Put the toolbar and the sidebar in the shape this kind needs, and fill the
+   theme selector with the stagings that kind actually has. */
+function syncChrome(){
+  var r=rules(), ts=themesFor(proj.kind);
+  $("#kind").value=proj.kind;
+  $("#name").value=proj.name;
+  $("#pass").value=proj.pass;
+  $("#theme").innerHTML=ts.map(function(p){
+    return '<option value="'+p.theme+'">'+esc(p.label)+'</option>';
+  }).join("");
+  $("#theme").value=(page()||ts[0]).theme;
+  proj.theme=$("#theme").value;
+  $("#passField").hidden=!r.mark;
+  /* One staging is not a choice — showing a selector with a single entry invites
+     somebody to go looking for the others. */
+  $("#themeField").hidden=ts.length<2;
+  $("#side").hidden=!r.deck;
+}
 
 /* ============================================================
    Preview — the exported page, in a frame, over the editor
@@ -582,7 +705,12 @@ function openPreview(){
      the lesson launcher gives these pages in Rise too, so the preview meets the
      same storage and messaging limits the real thing does. */
   $("#prevframe").srcdoc=pageHTML();
-  $("#prevname").textContent=($("#theme").selectedOptions[0]||{}).textContent||"Preview";
+  /* Named by what is being previewed. Where a kind has one staging, its name is
+     the whole of it — "Copperfield — Standard" says nothing the first word did not. */
+  var kindName=($("#kind").selectedOptions[0]||{}).textContent||"Preview";
+  var p=page();
+  $("#prevname").textContent=
+    themesFor(proj.kind).length>1 ? kindName+" — "+p.label : kindName;
   $("#prevwrap").hidden=false;
 }
 function closePreview(){
@@ -597,9 +725,7 @@ document.addEventListener("keydown",function(e){
 });
 
 load();
-$("#name").value=proj.name;
-$("#pass").value=proj.pass;
-$("#theme").value=proj.theme;
+syncChrome();
 renderList(); renderPane(); validate();
 </script>
 </body>

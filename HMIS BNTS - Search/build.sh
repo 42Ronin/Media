@@ -133,6 +133,10 @@ rm -rf "$OUT/_pkg"
 # looked at without going through the maker.
 python3 tools/stamp_kc.py src/kc-teller.template.html src/kc.json "$OUT/kc-teller-prototype.html"
 python3 tools/stamp_kc.py src/kc-dealer.template.html src/kc.json "$OUT/kc-dealer-prototype.html"
+# The Copperfield is a different KIND rather than another staging of the check: one
+# box, no right answer, no mark. It takes the first question here only so there is
+# something to look at — the lesson does not ship one, the maker authors them.
+python3 tools/stamp_kc.py src/kc-copperfield.template.html src/kc.json "$OUT/kc-copperfield-prototype.html"
 
 [ "$WITH_SCORM" = "1" ] || echo "scorm packaging skipped (run with --scorm to produce the zips)"
 

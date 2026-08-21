@@ -137,8 +137,12 @@ console.log('\n— themes —');
 const THEMES = await p.$$eval('#theme option', o => o.map(x => x.value));
 ok('the themes on offer are the ones the build embedded',
    THEMES.join(',') === 'standard,teller,dealer', THEMES.join(','));
-ok('...one page carried per theme, each with its own KC token to fill',
-   await p.$$eval('script.page', e => e.length) === THEMES.length &&
+/* One page per kind-and-theme pair, not per theme: the themes listed here are
+   the current kind's, and the Copperfield carries its own page besides. */
+ok('...one page carried for each of them, and one more for the other kind',
+   await p.$$eval('script.page[data-kind="kc"]', e => e.length) === THEMES.length &&
+   await p.$$eval('script.page', e => e.length) > THEMES.length);
+ok('...each a real page with its own KC token for the maker to fill',
    await p.$$eval('script.page', e => e.every(x => x.textContent.trim().length > 1000)));
 ok('it opens on the standard one', await p.inputValue('#theme') === 'standard');
 
@@ -294,6 +298,145 @@ const dealerHTML = await grab('#expHTML');
 ok('...and again for the third staging',
    readFileSync(dealerHTML.path, 'utf8') !== readFileSync(tellerHTML.path, 'utf8'));
 await playExport('dealer', dealerHTML.path);
+
+/* ------------------------------------------------------------------
+   The Copperfield — a different KIND, not another staging.
+
+   A theme changes the exported page and nothing else. A kind changes the
+   editor: this one has no right answer, no pass mark and no deck, so the
+   controls for all three go rather than sit there doing nothing. It is one
+   interactive box; a series of them is several exports, each on its own slide.
+   ------------------------------------------------------------------ */
+console.log('\n— the Copperfield —');
+
+const KINDS = await p.$$eval('#kind option', o => o.map(x => x.value));
+ok('the kinds on offer are the ones the build embedded',
+   KINDS.join(',') === 'kc,copperfield', KINDS.join(','));
+ok('it opens on the knowledge check', await p.inputValue('#kind') === 'kc');
+
+await p.selectOption('#kind', 'copperfield');
+await p.waitForTimeout(300);
+
+ok('there is no pass mark, because nothing is scored',
+   await p.$eval('#passField', e => e.hidden));
+ok('...no theme selector, because this kind ships one staging',
+   await p.$eval('#themeField', e => e.hidden) &&
+   await p.$$eval('#theme option', o => o.length) === 1);
+ok('...and no question list, because it is one box and not a deck',
+   await p.$eval('#side', e => e.hidden));
+ok('no answer can be marked correct — there is no correct',
+   await p.$$eval('#answers input[type=radio]', e => e.length) === 0);
+ok('...and the feedback cannot be switched off, because it IS the box',
+   await p.$$eval('#fbon', e => e.length) === 0);
+ok('the answers are capped at three', await p.evaluate(() => rules().maxA) === 3);
+
+/* Validation asks for what this kind needs, and stops asking for what it has
+   no concept of. */
+await p.fill('#fbtext', '');
+await p.waitForTimeout(250);
+{
+  const probs = await p.$$eval('#probs li', l => l.map(x => x.textContent));
+  ok('it asks for what is under the answers when that is missing',
+     probs.some(s => /under the answers/.test(s)), probs.join(' ; '));
+  ok('...and never asks for a correct answer',
+     !probs.some(s => /correct/.test(s)), probs.join(' ; '));
+}
+await p.fill('#fbtext', 'An empty result is the most misread signal in HMIS.\n\n' +
+                        'It usually means the record is under something you have not tried.');
+await p.waitForTimeout(250);
+ok('...and once it is written, the gate it states is exhaustion, not a mark',
+   /complete once the learner has taken all/.test(await p.textContent('#okline')) &&
+   !/pass mark/.test(await p.textContent('#okline')), await p.textContent('#okline'));
+
+const copperHTML = await grab('#expHTML');
+ok('the export is the Copperfield page, not a check in disguise',
+   readFileSync(copperHTML.path, 'utf8').includes('id="reveal"'));
+{
+  const payload = JSON.parse(
+    readFileSync(copperHTML.path, 'utf8').match(/var KC = (\{[\s\S]*?\});/)[1]);
+  ok('...carrying no pass mark, because there is nothing to clear',
+     !('pass' in payload));
+  ok('...and no answer flagged as the right one',
+     payload.questions[0].a.every(a => !('ok' in a)));
+  ok('...and exactly one question, whatever the deck held before the switch',
+     payload.questions.length === 1);
+}
+
+/* Played in a frame, for the same reason every other export is: completion
+   leaves the page entirely, as a postMessage. */
+{
+  const host = join(copperHTML.path.replace(/[^/]+$/, ''), 'host.html');
+  writeFileSync(host,
+    '<!doctype html><meta charset="utf-8"><title>host</title>' +
+    '<script>window.SEEN=[];addEventListener("message",function(e){' +
+    'try{SEEN.push(JSON.stringify(e.data))}catch(x){}});<\/script>' +
+    '<iframe id="f" src="./' + copperHTML.path.replace(/^.*\//, '') + '" ' +
+    'style="width:1000px;height:620px;border:0"></iframe>');
+
+  const out = await b.newPage({ viewport: { width: 1040, height: 660 } });
+  const net = [];
+  out.on('request', r => { if (!r.url().startsWith('file://')) net.push(r.url()); });
+  const outErrs = [];
+  out.on('pageerror', e => outErrs.push(String(e)));
+  out.on('console', m => { if (m.type() === 'error') outErrs.push('console: ' + m.text()); });
+  await out.goto('file://' + host);
+  const fr = out.frames().find(f => f !== out.mainFrame());
+  await out.waitForTimeout(900);
+  const msgs = () => out.evaluate(() => window.SEEN);
+  const height = () => fr.evaluate(() =>
+    Math.round(document.querySelector('.wrap').getBoundingClientRect().height));
+  const slotBoxes = () => fr.$$eval('.slot', s =>
+    s.map(x => Math.round(x.getBoundingClientRect().left) + ',' +
+                Math.round(x.getBoundingClientRect().width)));
+
+  const n = await fr.$$eval('.card', e => e.length);
+  ok('every answer is on the table', n === 3, String(n));
+  ok('...and what is under them cannot be read yet',
+     await fr.$eval('#reveal', e => getComputedStyle(e).visibility === 'hidden'));
+  const h0 = await height(), boxes0 = await slotBoxes();
+
+  /* Take all but the last. */
+  for (let i = 0; i < n - 1; i++) {
+    await fr.evaluate(j => document.querySelector('.card[data-i="' + j + '"]').click(), i);
+    await out.waitForTimeout(520);
+  }
+  ok('a taken answer vanishes', await fr.$$eval('.slot.gone', e => e.length) === n - 1);
+  /* The one defect this mechanic invites: a card that takes its space with it
+     slides the answers still on the table under the cursor, so the next click
+     lands on something that moved. */
+  ok('...but its slot keeps its box, so nothing still on the table moves',
+     (await slotBoxes()).join('|') === boxes0.join('|'));
+  ok('...and it cannot be taken twice',
+     await fr.$eval('.slot.gone .card', e => e.disabled));
+  ok('nothing is claimed complete while one is still on the table',
+     !(await msgs()).some(m => m.includes('"complete"')));
+
+  await fr.evaluate(j => document.querySelector('.card[data-i="' + j + '"]').click(), n - 1);
+  await out.waitForTimeout(900);
+  ok('clearing the last one takes the question with it',
+     await fr.$eval('#live-state', e => e.dataset.on) === '0');
+  ok('...and what was under them is what is left',
+     (await fr.textContent('#say')).includes('most misread signal'));
+  ok('...written as the paragraphs it was typed as',
+     await fr.$$eval('#say p', e => e.length) === 2);
+  ok('...with one of her, arriving with it',
+     await fr.$$eval('.lashy svg', e => e.length) === 1);
+  /* Embedded in a Rise page: anything that changes height shunts the whole
+     slide under it. */
+  ok('the block is the same height throughout', (await height()) === h0,
+     `${h0} -> ${await height()}`);
+
+  const sent = await msgs();
+  ok('completion is reported once every answer has gone',
+     sent.filter(m => m.includes('"complete"')).length === 1, sent.join(' ; '));
+  ok('...carrying no score, as everywhere else',
+     !sent.some(m => /score|percent|correct|points/i.test(m)), sent.join(' ; '));
+  ok('...and it says nothing else besides ready and complete',
+     sent.every(m => /"type":"(ready|complete)"/.test(m)), sent.join(' ; '));
+  ok('the exported page fetches nothing at all', net.length === 0, net.join(', '));
+  ok('...and runs without throwing', outErrs.length === 0, outErrs.join(' | '));
+  await out.close();
+}
 
 ok('the maker itself ran clean too', errs.length === 0, errs.join(' | '));
 
