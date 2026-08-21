@@ -767,11 +767,26 @@ correct, write the feedback, set the pass mark, press Export.
   a kind. Two exist:
   - **`kc`** — the scored card check. A deck, one correct answer per question, a pass mark.
   - **`copperfield`** — an interactive box that only *looks* like a question. Two or three
-    answers, **none of them right or wrong**; taking one poofs it away, and when the last
+    answers, **none of them right or wrong**; taking one disintegrates it, and when the last
     has gone the question goes with it and what was written underneath is what is left.
     Named by the owner. It exists to keep content fresh as a learner works through it, not
     to test — and making them clear every answer before the box opens is elimination, which
     is the habit the lesson is arguing for.
+    **A card DUSTS, it does not poof.** The first cut reused the card check's shrink-and-spin
+    and the owner's note was that it should be the Infinity War disintegration. So: a soft
+    diagonal edge sweeps across the card (a `@property --dust` percentage animating a
+    gradient mask, because a gradient's own stops cannot be animated) and ~170 fine motes
+    carry off up-and-right, each one's delay taken from **where it sits along that sweep**.
+    That last part is the whole effect — released together they read as a cloud let go from
+    behind the card rather than the card coming apart. Motes are kept low and short: drifting
+    far enough up, they cross the question above and read as litter.
+    **It is taken by HOVER, on a ~450ms dwell.** A mouse crossing the row would otherwise
+    clear every answer in one pass and the learner would read none of them; a pass does not
+    linger, and the time it takes to linger is the time it takes to read. `.slot.dwell` shows
+    it happening before it commits. **Click and the keyboard still take a card** — hover is
+    the interaction, those are the floor, because a pointer is not something every learner
+    has and a box that cannot be finished is worse than one finished the ordinary way. All
+    three routes and the crossing-mouse case are asserted.
     **It is ONE box, not a deck** — a series is several exports, each embedded on its own
     slide — so there is no mark, no question list, and the gate is *exhaustion*. It reports
     `complete` when every answer has been taken, and still no score.
@@ -787,8 +802,6 @@ correct, write the feedback, set the pass mark, press Export.
     `visibility` as well as opacity, because a merely transparent element is still in the
     accessibility tree and the reveal must not be readable early. Asserted in the maker's
     `test.mjs`, which plays the export in a frame like every other.
-    **The poof is the card check's**, same keyframes and same timings, so the two pages read
-    as one family rather than as two different disappearing tricks.
 - **Feedback is per question.** A question can ship with none: the cards are still marked
   right and wrong and the learner goes straight on. Switching it off **disables the box
   rather than clearing it**, and the writing round-trips through save/open and

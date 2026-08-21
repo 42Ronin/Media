@@ -395,24 +395,56 @@ ok('the export is the Copperfield page, not a check in disguise',
      await fr.$eval('#reveal', e => getComputedStyle(e).visibility === 'hidden'));
   const h0 = await height(), boxes0 = await slotBoxes();
 
-  /* Take all but the last. */
-  for (let i = 0; i < n - 1; i++) {
-    await fr.evaluate(j => document.querySelector('.card[data-i="' + j + '"]').click(), i);
-    await out.waitForTimeout(520);
+  /* Resting on a card is what takes it. The dwell is the whole reason this is
+     safe to put on hover: a mouse crossing the row on its way somewhere else
+     would otherwise clear every answer in one pass and the learner would read
+     none of them. */
+  {
+    const first = await (await fr.$('.card[data-i="0"]')).boundingBox();
+    const last = await (await fr.$('.card[data-i="' + (n - 1) + '"]')).boundingBox();
+    for (let k = 0; k <= 24; k++) {
+      await out.mouse.move(first.x + (last.x + last.width - first.x) * (k / 24),
+                           first.y + first.height / 2);
+      await out.waitForTimeout(12);
+    }
+    await out.mouse.move(4, 4);
+    await out.waitForTimeout(700);
+    ok('a mouse crossing the row takes nothing with it',
+       await fr.$$eval('.slot.gone', e => e.length) === 0);
+
+    await out.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+    await out.waitForTimeout(200);
+    ok('...but resting on one shows it is being taken before it goes',
+       await fr.$eval('#slot0', e => e.classList.contains('dwell') &&
+                                     !e.classList.contains('gone')));
+    await out.waitForTimeout(500);
+    ok('...and then it disintegrates', await fr.$eval('#slot0', e => e.classList.contains('gone')));
+    ok('...into motes carried off the card, not a puff',
+       await fr.$$eval('#slot0 .mote', e => e.length) > 40);
+    await out.mouse.move(4, 4);
+    await out.waitForTimeout(700);
   }
-  ok('a taken answer vanishes', await fr.$$eval('.slot.gone', e => e.length) === n - 1);
-  /* The one defect this mechanic invites: a card that takes its space with it
-     slides the answers still on the table under the cursor, so the next click
-     lands on something that moved. */
-  ok('...but its slot keeps its box, so nothing still on the table moves',
+
+  /* Click still takes one, and so does the keyboard — hover is the interaction,
+     but a pointer is not something every learner has. */
+  await fr.evaluate(() => document.querySelector('.card[data-i="1"]').click());
+  await out.waitForTimeout(1100);
+  ok('a click takes one too', await fr.$eval('#slot1', e => e.classList.contains('gone')));
+  ok('two of the three are gone', await fr.$$eval('.slot.gone', e => e.length) === n - 1);
+  /* The defect this mechanic invites: a card that takes its space with it slides
+     the answers still on the table under the cursor, so the next one is taken by
+     a rest the learner never meant to make. */
+  ok('...but every slot keeps its box, so nothing still on the table moves',
      (await slotBoxes()).join('|') === boxes0.join('|'));
-  ok('...and it cannot be taken twice',
+  ok('...and a card that has gone cannot be taken again',
      await fr.$eval('.slot.gone .card', e => e.disabled));
   ok('nothing is claimed complete while one is still on the table',
      !(await msgs()).some(m => m.includes('"complete"')));
 
-  await fr.evaluate(j => document.querySelector('.card[data-i="' + j + '"]').click(), n - 1);
-  await out.waitForTimeout(900);
+  /* And the keyboard takes the last, which a disabled button could not. */
+  await fr.evaluate(j => document.querySelector('.card[data-i="' + j + '"]').focus(), n - 1);
+  await out.keyboard.press('Enter');
+  await out.waitForTimeout(1200);
   ok('clearing the last one takes the question with it',
      await fr.$eval('#live-state', e => e.dataset.on) === '0');
   ok('...and what was under them is what is left',

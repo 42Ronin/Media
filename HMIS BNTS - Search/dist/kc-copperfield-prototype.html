@@ -9,7 +9,7 @@
   choice question, and is not one.
 
   There is no right answer and nothing is scored. Every answer is something
-  worth reading; taking one makes it vanish, and when the last one has gone the
+  worth reading; resting on one takes it, and when the last one has gone the
   question goes with it and the box underneath is the point of the whole thing.
   It exists to keep the content fresh as a learner works through it, not to
   test them.
@@ -19,9 +19,12 @@
   tally, no pass mark, and the completion it reports is exhaustion: the learner
   has cleared every answer. Still no score, as everywhere else in these lessons.
 
-  The vanishing is the same poof the card check moves Lashes with — same
-  keyframes, same timings — so the two pages read as one family rather than as
-  two different disappearing tricks.
+  A taken card DISINTEGRATES: a soft diagonal edge sweeps across it and the
+  motes carry off the way the edge travels, so it comes apart from one corner
+  rather than shrinking away whole. It is taken by HOVER, on a dwell — a mouse
+  crossing the row would otherwise clear every answer in one pass and the
+  learner would read none of them. Click and the keyboard still work, because a
+  pointer is not something every learner has.
 
   The token below is written out exactly once, beside `var KC`. Do not name it
   in prose: build.sh replaces every occurrence and the maker replaces the first,
@@ -88,19 +91,49 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--panel-2);border:1.5px solid var(--line);
   box-shadow:0 2px 8px rgba(20,34,43,.06);
   font-size:15.5px;line-height:1.5;
-  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
-.card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(6,104,136,.16);
-  border-color:var(--teal-lt)}
-.card:active{transform:translateY(-1px)}
-/* The puff ring is drawn on the slot rather than the card, so it is still there
-   to expand after the card itself has gone. */
-.slot .puff{position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px;
-  border-radius:50%;border:2.5px solid var(--teal);opacity:0;pointer-events:none}
-.slot.gone .card{animation:poofOut .29s ease-in forwards;pointer-events:none}
-.slot.gone .puff{animation:puffRing .44s ease-out}
-/* Same keyframes and the same timings as the card check moves her with. */
-@keyframes poofOut{0%{transform:scale(1) rotate(0);opacity:1}
-  100%{transform:scale(.12) rotate(165deg);opacity:0}}
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+
+/* ---------- resting on one takes it ----------
+   The card is taken by DWELLING on it, not by clicking. A mouse crossing the row
+   on its way somewhere else would otherwise clear every answer in one sweep and
+   the learner would read none of them, so it has to be rested on: a pass does not
+   linger, and the time it takes to linger is the time it takes to read.
+
+   Click and the keyboard still take a card. Hover is the interaction; those are
+   the floor, because a pointer is not something every learner has and a box that
+   cannot be finished is worse than one finished the ordinary way. */
+.slot.dwell .card{transform:translateY(-4px);border-color:var(--teal-lt);
+  box-shadow:0 10px 24px rgba(6,104,136,.18)}
+
+/* ---------- and then it dusts ----------
+   Not a puff — it disintegrates. The card is masked by a soft diagonal edge that
+   sweeps across it, so it comes apart from one corner rather than shrinking away
+   as a whole, and the motes carry off in the same direction the edge travels.
+
+   The sweep is a custom property because a gradient's own stops cannot be
+   animated. Where @property is not understood the mask never moves and the card
+   simply fades, which is the same place the reduced-motion path lands. */
+@property --dust{syntax:"<percentage>";inherits:false;initial-value:-30%}
+.slot .card{--dust:-30%;
+  -webkit-mask-image:linear-gradient(100deg,transparent var(--dust),#000 calc(var(--dust) + 26%));
+  mask-image:linear-gradient(100deg,transparent var(--dust),#000 calc(var(--dust) + 26%))}
+.slot.gone .card{animation:dust .82s cubic-bezier(.4,.05,.75,.6) forwards;pointer-events:none}
+@keyframes dust{
+  0%{--dust:-30%;transform:none;opacity:1}
+  100%{--dust:118%;transform:translate(14px,-10px);opacity:.9}
+}
+/* The motes. One element each, laid over the card's own box and let go in a
+   stagger that follows the sweep — the ones at the leading corner leave first,
+   which is what makes it read as the card coming apart rather than as a cloud
+   released all at once. */
+.mote{position:absolute;border-radius:50%;pointer-events:none;opacity:0;
+  background:var(--teal-dk);
+  animation:mote var(--dur) cubic-bezier(.22,.6,.3,1) var(--delay) forwards}
+@keyframes mote{
+  0%{opacity:0;transform:translate(0,0) scale(1)}
+  12%{opacity:var(--peak)}
+  100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.25)}
+}
 @keyframes poofIn{0%{transform:scale(.12) rotate(-165deg);opacity:0}
   55%{transform:scale(1.16) rotate(14deg);opacity:1}
   100%{transform:scale(1) rotate(0);opacity:1}}
@@ -139,7 +172,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 @media(prefers-reduced-motion:reduce){
   .card,.state{transition:none}
-  .slot.gone .card,.slot.gone .puff,.lashy.in .mface,.lashy.in .puff{animation:none}
+  .slot.gone .card,.mote,.lashy.in .mface,.lashy.in .puff{animation:none}
+  .mote{display:none}
 }
 </style>
 </head>
@@ -242,7 +276,10 @@ var ANSWERS=(Q.a||[]).map(function(a){ return typeof a==="string" ? a : (a.t||""
                      .filter(function(t){ return t!==""; });
 var left=ANSWERS.length;
 var reduced=!!(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches);
-var POOF_OUT=290;
+/* Long enough that a mouse crossing the row does not take everything on its way
+   past, short enough that resting on a card does not feel like waiting. */
+var DWELL=450;
+var GONE=820;                                /* the sweep, matching `dust` */
 
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 /* The writing is authored as plain text in the maker; blank lines are paragraphs. */
@@ -261,31 +298,78 @@ function deal(){
   $("#heading").hidden=!head;
   $("#ask").textContent=Q.q||"";
   $("#hand").innerHTML=ANSWERS.map(function(t,i){
-    return '<div class="slot" id="slot'+i+'"><span class="puff"></span>'+
+    return '<div class="slot" id="slot'+i+'">'+
            '<button class="card" data-i="'+i+'">'+esc(t)+'</button></div>';
   }).join("");
-  $("#hand").addEventListener("click",function(e){
-    var btn=e.target.closest(".card");
-    if(btn) take(Number(btn.dataset.i));
-  });
+  ANSWERS.forEach(function(t,i){ arm(i); });
   EMBED.ready(ANSWERS.length);
+}
+
+/* Resting on a card takes it. A click or the keyboard takes it outright — see
+   the note beside `.slot.dwell`: hover is the interaction, those are the floor. */
+function arm(i){
+  var slot=$("#slot"+i), btn=slot.querySelector(".card"), timer=null;
+  function stop(){ slot.classList.remove("dwell"); clearTimeout(timer); timer=null; }
+  btn.addEventListener("pointerenter",function(){
+    if(slot.classList.contains("gone")) return;
+    slot.classList.add("dwell");
+    timer=setTimeout(function(){ stop(); take(i); }, DWELL);
+  });
+  btn.addEventListener("pointerleave",stop);
+  /* A button fires this for Enter and Space too, so the keyboard is covered. */
+  btn.addEventListener("click",function(){ stop(); take(i); });
+}
+
+/* The card's own box, broken into motes that carry off the way the sweep runs.
+   Each one's delay comes from where it sits along that sweep, so the leading
+   corner goes first and the far edge last — released all at once it reads as a
+   cloud let go from behind the card rather than the card coming apart. */
+function dust(slot,btn){
+  var r=btn.getBoundingClientRect();
+  if(!r.width) return;
+  var n=Math.min(170, Math.round(r.width*r.height/130));
+  var frag=document.createDocumentFragment();
+  for(var k=0;k<n;k++){
+    var x=Math.random(), y=Math.random();
+    var d=document.createElement("span");
+    d.className="mote";
+    /* Fine and many rather than few and blobby — at three or four pixels they
+       read as specks thrown off something, not as dust. */
+    var sz=1.2+Math.random()*2.4;
+    d.style.left=(x*r.width)+"px";
+    d.style.top=(y*r.height)+"px";
+    d.style.width=sz+"px"; d.style.height=sz+"px";
+    /* The sweep is a 100deg edge, so how far along it a mote sits is mostly its
+       x with a little of its y — the same mix the mask uses. */
+    var along=x*0.86 + (1-y)*0.14;
+    d.style.setProperty("--delay",(along*0.5+Math.random()*0.09).toFixed(3)+"s");
+    d.style.setProperty("--dur",(0.62+Math.random()*0.5).toFixed(3)+"s");
+    /* Kept low: carried far enough to be blown away, not so far that the dust
+       from one answer drifts up over the question and reads as litter. */
+    d.style.setProperty("--dx",(14+Math.random()*38).toFixed(1)+"px");
+    d.style.setProperty("--dy",(-16-Math.random()*40).toFixed(1)+"px");
+    d.style.setProperty("--peak",(0.3+Math.random()*0.45).toFixed(2));
+    frag.appendChild(d);
+  }
+  slot.appendChild(frag);
 }
 
 function take(i){
   var slot=$("#slot"+i);
   if(!slot || slot.classList.contains("gone")) return;
+  var btn=slot.querySelector(".card");
+  if(!reduced) dust(slot,btn);
   slot.classList.add("gone");
   /* Out of the tab order the moment it is taken, so a keyboard learner cannot
      land on a card that is no longer on the table. The slot keeps its box. */
-  var btn=slot.querySelector(".card");
   btn.disabled=true;
   btn.setAttribute("aria-hidden","true");
   left--;
   $("#live").textContent = left ? (left+" left") : "";
-  /* Hold the vanished card's space but stop it being read: the animation ends
-     at opacity 0, and after it we take it out of the tree as well. */
-  setTimeout(function(){ btn.style.visibility="hidden"; }, reduced?0:POOF_OUT);
-  if(!left) setTimeout(finish, reduced?0:POOF_OUT+120);
+  /* Hold the vanished card's space but stop it being read: the sweep ends with
+     the card empty, and after it we take it out of the tree as well. */
+  setTimeout(function(){ btn.style.visibility="hidden"; }, reduced?0:GONE);
+  if(!left) setTimeout(finish, reduced?0:GONE+260);
 }
 
 function finish(){
