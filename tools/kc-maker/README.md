@@ -37,10 +37,12 @@ editor rather than just the export.
 | **Knowledge check** | The scored card check: a deck of questions, one correct answer each, a pass mark to clear |
 | **Copperfield** | One interactive box that only looks like a question. Two or three answers, none of them right or wrong; **resting on one disintegrates it**, and when the last has gone the question goes with it and what you wrote underneath is what is left |
 
-Answers are taken by **hover**, on a short dwell — a mouse crossing the row does not take
-anything with it, and the moment it takes to rest on a card is the moment it takes to read
-it. A click and the keyboard take one outright, because a pointer is not something every
-learner has and a box that cannot be finished is worse than one finished the ordinary way.
+Answers are taken by **hover**. A card starts coming apart the moment the pointer rests on
+it and finishes if the pointer stays; move away and it knits back together. That short dwell
+is what makes hover safe — a mouse crossing the row does not take anything with it, and the
+moment it takes to rest on a card is the moment it takes to read it. A click and the keyboard
+take one outright, because a pointer is not something every learner has and a box that cannot
+be finished is worse than one finished the ordinary way.
 
 A Copperfield has no mark, no right answer and no deck, so the pass mark, the correct-answer
 marks and the question list are not shown for it — they are not hidden work, there is
