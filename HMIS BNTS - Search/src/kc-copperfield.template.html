@@ -290,11 +290,15 @@ function paras(s){
 }
 
 function deal(){
-  var head=KC.heading||KC.title||"";
+  if(KC.title) document.title=KC.title;
+  /* The heading and the title are NOT the same thing. The title names the tab;
+     the heading is an h1 above the question, which a box sitting under a Rise
+     slide does not want because the slide is already titled. Falling back to the
+     title put the name back on the page that had deliberately not asked for it. */
+  var head=KC.heading||"";
   $("#heading").textContent=head;
   /* An empty h1 still takes its margin, which puts a band of nothing above the
-     question. There is no placeholder to put there — the maker's Name is what
-     fills it, and a box authored without one simply has no title. */
+     question. */
   $("#heading").hidden=!head;
   $("#ask").textContent=Q.q||"";
   $("#hand").innerHTML=ANSWERS.map(function(t,i){
@@ -302,6 +306,14 @@ function deal(){
            '<button class="card" data-i="'+i+'">'+esc(t)+'</button></div>';
   }).join("");
   ANSWERS.forEach(function(t,i){ arm(i); });
+  /* Written NOW, while it is still hidden, and not when the last answer goes.
+     Both states share one grid cell and the cell is as tall as the taller of
+     them — but only if the taller one has its content in it. Written at the end
+     instead, the block was 269px with the answers on the table and 309px once
+     the box arrived, which in Rise shunts the whole slide below it.
+     `visibility:hidden` keeps the box and keeps it out of the accessibility
+     tree, so filling it early does not make it readable early. */
+  $("#say").innerHTML=paras(Q.fb);
   EMBED.ready(ANSWERS.length);
 }
 
@@ -374,8 +386,7 @@ function take(i){
 
 function finish(){
   $("#live-state").dataset.on="0";
-  $("#reveal").dataset.on="1";
-  $("#say").innerHTML=paras(Q.fb);
+  $("#reveal").dataset.on="1";          /* already written — see `deal` */
   var el=$("#lashy");
   el.innerHTML='<span class="puff"></span><span class="mface">'+svg("sparkle","cheer")+'</span>';
   if(!reduced){ void el.offsetWidth; el.classList.add("in"); }

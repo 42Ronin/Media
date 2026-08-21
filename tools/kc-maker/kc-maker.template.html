@@ -517,7 +517,14 @@ function pageHTML(){
   var tpl=new TextDecoder("utf-8").decode(bytes);
   var r=rules();
   var payload={
-    title:name(), heading:name(),
+    title:name(),
+    /* The Name is the filename. It is also the heading on a check, where a deck
+       of questions is worth titling — but a Copperfield is ONE box sitting under
+       a Rise slide that already has a title, and repeating it inside the block
+       says the same thing twice. Same call as the task embeds. The page still
+       supports a heading and still hides an empty one; this kind just never
+       sends it. */
+    heading:r.deck ? name() : "",
     questions:proj.questions.map(function(q){
       return {q:q.q.trim(),
               /* No `ok` where nothing is correct: a page that never reads it
