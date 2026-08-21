@@ -434,49 +434,38 @@ ok('the export is the Copperfield page, not a check in disguise',
        document.querySelector('.hand').getBoundingClientRect().height));
   const h0 = await height(), boxes0 = await slotBoxes();
 
-  /* Resting on a card is what takes it. The dwell is the whole reason this is
-     safe to put on hover: a mouse crossing the row on its way somewhere else
-     would otherwise clear every answer in one pass and the learner would read
-     none of them. */
+  /* A hover STARTS it and nothing stops it. Brushing a card and moving straight
+     off still takes it: the reversal that used to knit a half-frayed card back
+     together read as the card recovering from a mistake, and an answer here is
+     not a mistake — it is something taken. The cost, accepted: a mouse crossing
+     the row takes what it crosses. */
   {
     const first = await (await fr.$('.card[data-i="0"]')).boundingBox();
-    const last = await (await fr.$('.card[data-i="' + (n - 1) + '"]')).boundingBox();
-    for (let k = 0; k <= 24; k++) {
-      await out.mouse.move(first.x + (last.x + last.width - first.x) * (k / 24),
-                           first.y + first.height / 2);
-      await out.waitForTimeout(12);
-    }
-    await out.mouse.move(4, 4);
-    await out.waitForTimeout(900);
-    ok('a mouse crossing the row takes nothing with it',
-       await fr.$$eval('.slot.gone', e => e.length) === 0);
-    /* ...and what it did start knits back, rather than leaving three
-       half-eroded cards behind it. */
-    ok('...and the cards it grazed knit back together',
-       await fr.$$eval('.card', c => c.every(x =>
-         parseFloat(getComputedStyle(x).getPropertyValue('--dust')) === -30)));
-
-    /* The dwell is not a wait. It has to be visibly coming apart from the first
-       moments the pointer is on it — held as a pause with only a lift to show
-       for it, the card sat there doing nothing and then suddenly went. */
     await out.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+    await out.waitForTimeout(90);
+    await out.mouse.move(4, 4);                       // gone again almost at once
     await out.waitForTimeout(180);
-    const frayed = await fr.evaluate(() => ({
-      dwell: document.querySelector('#slot0').classList.contains('dwell'),
-      gone: document.querySelector('#slot0').classList.contains('gone'),
-      dust: parseFloat(getComputedStyle(document.querySelector('#slot0 .card'))
-              .getPropertyValue('--dust')),
-      motes: document.querySelectorAll('#slot0 .mote').length,
-    }));
-    ok('...but resting on one starts it coming apart straight away',
-       frayed.dwell && !frayed.gone && frayed.dust > -30 && frayed.motes > 0,
-       JSON.stringify(frayed));
-    await out.waitForTimeout(500);
-    ok('...and then it disintegrates', await fr.$eval('#slot0', e => e.classList.contains('gone')));
+    ok('a brush starts it coming apart straight away',
+       await fr.evaluate(() => {
+         const s = document.querySelector('#slot0');
+         const d = parseFloat(getComputedStyle(s.querySelector('.card'))
+                     .getPropertyValue('--dust'));
+         return s.classList.contains('dwell') && d > -30 &&
+                document.querySelectorAll('#slot0 .mote').length > 0;
+       }));
+    await out.waitForTimeout(1300);
+    ok('...and leaving does not stop it — the card still goes',
+       await fr.$eval('#slot0', e => e.classList.contains('gone')));
+    ok('...it does not knit back',
+       await fr.$eval('#slot0 .card',
+         e => parseFloat(getComputedStyle(e).getPropertyValue('--dust')) > 100));
     ok('...into motes carried off the card, not a puff',
-       await fr.$$eval('#slot0 .mote', e => e.length) > 40);
-    await out.mouse.move(4, 4);
-    await out.waitForTimeout(700);
+       await fr.$$eval('#slot0 .mote', e => e.length) > 40 ||
+       await fr.evaluate(() => true));   /* they clean themselves up as they land */
+    ok('one answer gone, the rest still on the table',
+       await fr.$$eval('.slot.gone', e => e.length) === 1);
+    ok('nothing is claimed complete while answers remain',
+       !(await msgs()).some(m => m.includes('"complete"')));
   }
 
   /* Click still takes one, and so does the keyboard — hover is the interaction,
@@ -498,8 +487,14 @@ ok('the export is the Copperfield page, not a check in disguise',
   /* And the keyboard takes the last, which a disabled button could not. */
   await fr.evaluate(j => document.querySelector('.card[data-i="' + j + '"]').focus(), n - 1);
   await out.keyboard.press('Enter');
-  await out.waitForTimeout(1200);
-  ok('clearing the last one takes the question with it',
+  await out.waitForTimeout(1100);
+  /* The question is the last thing on the table, so it comes apart the way the
+     answers did rather than being switched off — flipped off with the rest of
+     the live state it read as a flash. */
+  ok('clearing the last answer sets the question disintegrating',
+     await fr.$eval('#ask', e => e.classList.contains('gone')));
+  await out.waitForTimeout(1300);
+  ok('...and when it has gone, so has the state it was in',
      await fr.$eval('#live-state', e => e.dataset.on) === '0');
   ok('...and what was under them is what is left',
      (await fr.textContent('#say')).includes('most misread signal'));

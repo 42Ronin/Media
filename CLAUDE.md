@@ -780,9 +780,13 @@ correct, write the feedback, set the pass mark, press Export.
     That last part is the whole effect — released together they read as a cloud let go from
     behind the card rather than the card coming apart. Motes are kept low and short: drifting
     far enough up, they cross the question above and read as litter.
-    **It is taken by HOVER, on a ~420ms dwell — and the dwell is NOT a wait.** The card
-    starts coming apart on the first frame the pointer is on it and finishes if the pointer
-    stays; leaving knits it back. Held as a pause with only a lift and a border highlight to
+    **It is taken by HOVER, and a hover COMMITS.** The card starts coming apart on the first
+    frame the pointer is on it and goes whether the pointer stays or not — there is no
+    pointerleave handler and no way back. It used to knit back if you left mid-fray, to stop
+    a mouse crossing the row clearing the table; the owner's call was that the reversal read
+    as the card recovering from a mistake, and an answer here is not a mistake but something
+    taken. The ~420ms dwell is now only the length of the first phase, not a gate, and the
+    accepted cost is that crossing the row does take what it crosses. Held as a pause with only a lift and a border highlight to
     show for it, the effect started late and the card seemed to sit there doing nothing
     before suddenly going — the owner's note was "start the disappearing act sooner", then
     "we don't need the lift and highlight, it can go right to it". There is now no hover
@@ -793,9 +797,9 @@ correct, write the feedback, set the pass mark, press Export.
     Motes trickle from the fraying edge during the dwell and the full burst goes on commit;
     **each mote removes itself on `animationend`**, or hovering on and off leaves a drift of
     dead spans in the slot.
-    **The dwell is what makes hover safe.** A mouse crossing the row would otherwise clear
-    every answer in one pass and the learner would read none of them; a pass does not linger,
-    and the time it takes to linger is the time it takes to read. **Click and the keyboard
+    **The question goes the way the answers went.** It is the last thing on the table once
+    the cards have gone, and flipping it off with the rest of the live state read as a flash;
+    it now dusts on the same sweep, and the reveal waits for it. **Click and the keyboard
     still take a card** — hover is the interaction, those are the floor, because a pointer is
     not something every learner has and a box that cannot be finished is worse than one
     finished the ordinary way. All three routes are asserted, as are the crossing mouse

@@ -78,7 +78,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ---------- the question ---------- */
 .ask{background:var(--panel);border-left:4px solid var(--teal);border-radius:12px;
-  padding:15px 18px;font-size:16.5px;line-height:1.55;margin:0 0 18px}
+  padding:15px 18px;font-size:16.5px;line-height:1.55;margin:0 0 18px;
+  position:relative;--dust:-30%;
+  -webkit-mask-image:linear-gradient(100deg,transparent var(--dust),#000 calc(var(--dust) + 26%));
+  mask-image:linear-gradient(100deg,transparent var(--dust),#000 calc(var(--dust) + 26%))}
+/* Same sweep as a card, so the last thing on the table leaves the way the rest
+   of it did. */
+.ask.gone{--dust:118%;transform:translate(14px,-10px);opacity:.9;
+  transition:--dust .52s cubic-bezier(.4,.05,.75,.6),transform .52s ease-in,opacity .52s ease-in}
 
 /* ---------- the answers ---------- */
 .hand{display:flex;gap:14px;align-items:stretch;justify-content:center;flex-wrap:wrap}
@@ -420,13 +427,22 @@ function deal(){
    what finishes it. Leaving stops the trickle and lets the mask knit back. */
 function arm(i){
   var slot=$("#slot"+i), btn=slot.querySelector(".card"), timer=null, trickle=null;
-  function stop(){
+  function ending(){
     slot.classList.remove("dwell");
     clearTimeout(timer); timer=null;
     clearInterval(trickle); trickle=null;
   }
+  /* A hover STARTS it and nothing stops it. There is no pointerleave handler and
+     no way back: the card begins coming apart the moment the pointer arrives and
+     goes whether the pointer stays or not.
+
+     It used to knit back together if you left mid-fray, on the reasoning that a
+     mouse crossing the row should not clear the table. That reversal read as the
+     card recovering from a mistake — and an answer here is not a mistake, it is
+     something taken. So the dwell is now only the length of the first phase, not
+     a gate: crossing the row does take everything in it. */
   btn.addEventListener("pointerenter",function(){
-    if(slot.classList.contains("gone")) return;
+    if(slot.classList.contains("gone") || timer) return;
     slot.classList.add("dwell");
     if(!reduced){
       /* A few at a time along the fraying edge. Not the whole burst: that is what
@@ -434,11 +450,10 @@ function arm(i){
       spawn(slot,btn,5,0,0.26,0.12);
       trickle=setInterval(function(){ spawn(slot,btn,4,0,0.3,0.12); },110);
     }
-    timer=setTimeout(function(){ stop(); take(i); }, DWELL);
+    timer=setTimeout(function(){ ending(); take(i); }, DWELL);
   });
-  btn.addEventListener("pointerleave",stop);
   /* A button fires this for Enter and Space too, so the keyboard is covered. */
-  btn.addEventListener("click",function(){ stop(); take(i); });
+  btn.addEventListener("click",function(){ ending(); take(i); });
 }
 
 /* Motes off the card's own box, carried off the way the sweep runs. `xLo`–`xHi`
@@ -503,6 +518,21 @@ function take(i){
 }
 
 function finish(){
+  /* The question goes the way the answers went. It used to be flipped off with
+     the rest of the live state, which at 0.42s of opacity read as a flash rather
+     than as the last thing on the table coming apart — and it is the last thing
+     on the table, since the cards have already gone. */
+  var ask=$("#ask");
+  if(!reduced){
+    spawn(ask,ask,Math.min(200,Math.round(
+      ask.getBoundingClientRect().width*ask.getBoundingClientRect().height/130)),0,1,0.42);
+    ask.classList.add("gone");
+  }
+  setTimeout(reveal, reduced?0:GONE+90);
+  EMBED.complete();
+}
+
+function reveal(){
   $("#live-state").dataset.on="0";
   $("#reveal").dataset.on="1";          /* already written — see `deal` */
   /* The writing comes together out of dust, on the same sweep the cards came
@@ -515,7 +545,6 @@ function finish(){
     formWords($("#say"));
   }
   $("#live").textContent=$("#say").textContent;
-  EMBED.complete();
 }
 
 /* Time each word by where it sits, so the assembly runs the way the sweep does —
