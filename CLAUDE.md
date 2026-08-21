@@ -780,13 +780,26 @@ correct, write the feedback, set the pass mark, press Export.
     That last part is the whole effect — released together they read as a cloud let go from
     behind the card rather than the card coming apart. Motes are kept low and short: drifting
     far enough up, they cross the question above and read as litter.
-    **It is taken by HOVER, on a ~450ms dwell.** A mouse crossing the row would otherwise
-    clear every answer in one pass and the learner would read none of them; a pass does not
-    linger, and the time it takes to linger is the time it takes to read. `.slot.dwell` shows
-    it happening before it commits. **Click and the keyboard still take a card** — hover is
-    the interaction, those are the floor, because a pointer is not something every learner
-    has and a box that cannot be finished is worse than one finished the ordinary way. All
-    three routes and the crossing-mouse case are asserted.
+    **It is taken by HOVER, on a ~420ms dwell — and the dwell is NOT a wait.** The card
+    starts coming apart on the first frame the pointer is on it and finishes if the pointer
+    stays; leaving knits it back. Held as a pause with only a lift and a border highlight to
+    show for it, the effect started late and the card seemed to sit there doing nothing
+    before suddenly going — the owner's note was "start the disappearing act sooner", then
+    "we don't need the lift and highlight, it can go right to it". There is now no hover
+    styling at all: the card eroding under the pointer is the cue.
+    **This is why `--dust` is driven by TRANSITIONS, not keyframes** — a transition runs from
+    wherever the value currently is, which is what lets the fray reverse on leave and lets
+    the commit carry on from however far it got instead of snapping back to the start.
+    Motes trickle from the fraying edge during the dwell and the full burst goes on commit;
+    **each mote removes itself on `animationend`**, or hovering on and off leaves a drift of
+    dead spans in the slot.
+    **The dwell is what makes hover safe.** A mouse crossing the row would otherwise clear
+    every answer in one pass and the learner would read none of them; a pass does not linger,
+    and the time it takes to linger is the time it takes to read. **Click and the keyboard
+    still take a card** — hover is the interaction, those are the floor, because a pointer is
+    not something every learner has and a box that cannot be finished is worse than one
+    finished the ordinary way. All three routes are asserted, as are the crossing mouse
+    taking nothing and the cards it grazed knitting back.
     **It is ONE box, not a deck** — a series is several exports, each embedded on its own
     slide — so there is no mark, no question list, and the gate is *exhaustion*. It reports
     `complete` when every answer has been taken, and still no score.

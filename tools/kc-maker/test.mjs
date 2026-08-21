@@ -433,15 +433,30 @@ ok('the export is the Copperfield page, not a check in disguise',
       await out.waitForTimeout(12);
     }
     await out.mouse.move(4, 4);
-    await out.waitForTimeout(700);
+    await out.waitForTimeout(900);
     ok('a mouse crossing the row takes nothing with it',
        await fr.$$eval('.slot.gone', e => e.length) === 0);
+    /* ...and what it did start knits back, rather than leaving three
+       half-eroded cards behind it. */
+    ok('...and the cards it grazed knit back together',
+       await fr.$$eval('.card', c => c.every(x =>
+         parseFloat(getComputedStyle(x).getPropertyValue('--dust')) === -30)));
 
+    /* The dwell is not a wait. It has to be visibly coming apart from the first
+       moments the pointer is on it — held as a pause with only a lift to show
+       for it, the card sat there doing nothing and then suddenly went. */
     await out.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
-    await out.waitForTimeout(200);
-    ok('...but resting on one shows it is being taken before it goes',
-       await fr.$eval('#slot0', e => e.classList.contains('dwell') &&
-                                     !e.classList.contains('gone')));
+    await out.waitForTimeout(180);
+    const frayed = await fr.evaluate(() => ({
+      dwell: document.querySelector('#slot0').classList.contains('dwell'),
+      gone: document.querySelector('#slot0').classList.contains('gone'),
+      dust: parseFloat(getComputedStyle(document.querySelector('#slot0 .card'))
+              .getPropertyValue('--dust')),
+      motes: document.querySelectorAll('#slot0 .mote').length,
+    }));
+    ok('...but resting on one starts it coming apart straight away',
+       frayed.dwell && !frayed.gone && frayed.dust > -30 && frayed.motes > 0,
+       JSON.stringify(frayed));
     await out.waitForTimeout(500);
     ok('...and then it disintegrates', await fr.$eval('#slot0', e => e.classList.contains('gone')));
     ok('...into motes carried off the card, not a puff',

@@ -90,8 +90,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   text-align:left;padding:16px 18px;border-radius:14px;
   background:var(--panel-2);border:1.5px solid var(--line);
   box-shadow:0 2px 8px rgba(20,34,43,.06);
-  font-size:15.5px;line-height:1.5;
-  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+  font-size:15.5px;line-height:1.5}
 
 /* ---------- resting on one takes it ----------
    The card is taken by DWELLING on it, not by clicking. A mouse crossing the row
@@ -99,29 +98,37 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    the learner would read none of them, so it has to be rested on: a pass does not
    linger, and the time it takes to linger is the time it takes to read.
 
+   The dwell is not a WAIT. It begins to come apart the moment the pointer rests
+   on it and finishes if the pointer stays — leave and it knits back together.
+   Held as a pause with only a lift to show for it, the effect started late and
+   the card seemed to sit there doing nothing before suddenly going.
+
    Click and the keyboard still take a card. Hover is the interaction; those are
    the floor, because a pointer is not something every learner has and a box that
    cannot be finished is worse than one finished the ordinary way. */
-.slot.dwell .card{transform:translateY(-4px);border-color:var(--teal-lt);
-  box-shadow:0 10px 24px rgba(6,104,136,.18)}
 
-/* ---------- and then it dusts ----------
+/* ---------- the dust ----------
    Not a puff — it disintegrates. The card is masked by a soft diagonal edge that
    sweeps across it, so it comes apart from one corner rather than shrinking away
    as a whole, and the motes carry off in the same direction the edge travels.
 
    The sweep is a custom property because a gradient's own stops cannot be
-   animated. Where @property is not understood the mask never moves and the card
-   simply fades, which is the same place the reduced-motion path lands. */
+   animated, and it is driven by TRANSITIONS rather than keyframes: a transition
+   runs from wherever the value currently is, which is what lets the fray reverse
+   when the pointer leaves and lets the commit carry on from however far it got
+   rather than snapping back to the start. Where @property is not understood the
+   mask never moves and the card simply fades, which is where reduced motion
+   lands too. */
 @property --dust{syntax:"<percentage>";inherits:false;initial-value:-30%}
 .slot .card{--dust:-30%;
   -webkit-mask-image:linear-gradient(100deg,transparent var(--dust),#000 calc(var(--dust) + 26%));
-  mask-image:linear-gradient(100deg,transparent var(--dust),#000 calc(var(--dust) + 26%))}
-.slot.gone .card{animation:dust .82s cubic-bezier(.4,.05,.75,.6) forwards;pointer-events:none}
-@keyframes dust{
-  0%{--dust:-30%;transform:none;opacity:1}
-  100%{--dust:118%;transform:translate(14px,-10px);opacity:.9}
-}
+  mask-image:linear-gradient(100deg,transparent var(--dust),#000 calc(var(--dust) + 26%));
+  transition:--dust .40s linear}
+/* No lift and no highlight: the card coming apart under the pointer IS the cue,
+   and a border colour arriving first only delays it. Straight to it. */
+.slot.dwell .card{--dust:15%}
+.slot.gone .card{--dust:118%;transform:translate(14px,-10px);opacity:.9;pointer-events:none;
+  transition:--dust .52s cubic-bezier(.4,.05,.75,.6),transform .52s ease-in,opacity .52s ease-in}
 /* The motes. One element each, laid over the card's own box and let go in a
    stagger that follows the sweep — the ones at the leading corner leave first,
    which is what makes it read as the card coming apart rather than as a cloud
@@ -277,9 +284,9 @@ var ANSWERS=(Q.a||[]).map(function(a){ return typeof a==="string" ? a : (a.t||""
 var left=ANSWERS.length;
 var reduced=!!(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches);
 /* Long enough that a mouse crossing the row does not take everything on its way
-   past, short enough that resting on a card does not feel like waiting. */
-var DWELL=450;
-var GONE=820;                                /* the sweep, matching `dust` */
+   past. It is not a wait — the card is coming apart for all of it. */
+var DWELL=420;
+var GONE=560;                                /* the commit, matching `.slot.gone` */
 
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 /* The writing is authored as plain text in the maker; blank lines are paragraphs. */
@@ -318,13 +325,27 @@ function deal(){
 }
 
 /* Resting on a card takes it. A click or the keyboard takes it outright — see
-   the note beside `.slot.dwell`: hover is the interaction, those are the floor. */
+   the note beside `.slot.dwell`: hover is the interaction, those are the floor.
+
+   Coming apart starts on the FIRST frame the pointer is over it: the mask begins
+   to fray and motes trickle off the leading edge straight away, and staying is
+   what finishes it. Leaving stops the trickle and lets the mask knit back. */
 function arm(i){
-  var slot=$("#slot"+i), btn=slot.querySelector(".card"), timer=null;
-  function stop(){ slot.classList.remove("dwell"); clearTimeout(timer); timer=null; }
+  var slot=$("#slot"+i), btn=slot.querySelector(".card"), timer=null, trickle=null;
+  function stop(){
+    slot.classList.remove("dwell");
+    clearTimeout(timer); timer=null;
+    clearInterval(trickle); trickle=null;
+  }
   btn.addEventListener("pointerenter",function(){
     if(slot.classList.contains("gone")) return;
     slot.classList.add("dwell");
+    if(!reduced){
+      /* A few at a time along the fraying edge. Not the whole burst: that is what
+         the card has left to spend when it actually goes. */
+      spawn(slot,btn,5,0,0.26,0.12);
+      trickle=setInterval(function(){ spawn(slot,btn,4,0,0.3,0.12); },110);
+    }
     timer=setTimeout(function(){ stop(); take(i); }, DWELL);
   });
   btn.addEventListener("pointerleave",stop);
@@ -332,17 +353,22 @@ function arm(i){
   btn.addEventListener("click",function(){ stop(); take(i); });
 }
 
-/* The card's own box, broken into motes that carry off the way the sweep runs.
-   Each one's delay comes from where it sits along that sweep, so the leading
-   corner goes first and the far edge last — released all at once it reads as a
-   cloud let go from behind the card rather than the card coming apart. */
-function dust(slot,btn){
+/* Motes off the card's own box, carried off the way the sweep runs. `xLo`–`xHi`
+   is the band of the card they come from and `spread` is how far their starts are
+   scattered in time — the trickle takes a narrow band at the fraying edge and a
+   short spread, the burst takes the whole card and spreads across the sweep so
+   the leading corner goes first and the far edge last. Released all at once the
+   burst reads as a cloud let go from behind the card rather than as the card
+   coming apart.
+
+   Each mote removes itself when it has finished, so hovering on and off a card
+   repeatedly does not leave a drift of dead spans in the slot. */
+function spawn(slot,btn,n,xLo,xHi,spread){
   var r=btn.getBoundingClientRect();
   if(!r.width) return;
-  var n=Math.min(170, Math.round(r.width*r.height/130));
   var frag=document.createDocumentFragment();
   for(var k=0;k<n;k++){
-    var x=Math.random(), y=Math.random();
+    var x=xLo+Math.random()*(xHi-xLo), y=Math.random();
     var d=document.createElement("span");
     d.className="mote";
     /* Fine and many rather than few and blobby — at three or four pixels they
@@ -354,13 +380,14 @@ function dust(slot,btn){
     /* The sweep is a 100deg edge, so how far along it a mote sits is mostly its
        x with a little of its y — the same mix the mask uses. */
     var along=x*0.86 + (1-y)*0.14;
-    d.style.setProperty("--delay",(along*0.5+Math.random()*0.09).toFixed(3)+"s");
+    d.style.setProperty("--delay",(along*spread+Math.random()*0.09).toFixed(3)+"s");
     d.style.setProperty("--dur",(0.62+Math.random()*0.5).toFixed(3)+"s");
     /* Kept low: carried far enough to be blown away, not so far that the dust
        from one answer drifts up over the question and reads as litter. */
     d.style.setProperty("--dx",(14+Math.random()*38).toFixed(1)+"px");
     d.style.setProperty("--dy",(-16-Math.random()*40).toFixed(1)+"px");
     d.style.setProperty("--peak",(0.3+Math.random()*0.45).toFixed(2));
+    d.addEventListener("animationend",function(){ this.remove(); });
     frag.appendChild(d);
   }
   slot.appendChild(frag);
@@ -370,7 +397,8 @@ function take(i){
   var slot=$("#slot"+i);
   if(!slot || slot.classList.contains("gone")) return;
   var btn=slot.querySelector(".card");
-  if(!reduced) dust(slot,btn);
+  if(!reduced) spawn(slot,btn,Math.min(170,Math.round(
+    btn.getBoundingClientRect().width*btn.getBoundingClientRect().height/130)),0,1,0.42);
   slot.classList.add("gone");
   /* Out of the tab order the moment it is taken, so a keyboard learner cannot
      land on a card that is no longer on the table. The slot keeps its box. */
