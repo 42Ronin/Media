@@ -352,7 +352,9 @@ await p.fill('#fbtext',
   'not that the person in front of you is new to the system.\n\n' +
   'Creating a second record for somebody who already has one is the error that ' +
   'corrupts the count everything else is planned from, and it is far harder to undo ' +
-  'than it is to avoid.');
+  'than it is to avoid.\n\n' +
+  'So an empty list is a reason to try the search another way before it is a reason ' +
+  'to conclude anything at all about the person standing in front of you.');
 await p.waitForTimeout(250);
 ok('...and once it is written, the gate it states is exhaustion, not a mark',
    /complete once the learner has taken all/.test(await p.textContent('#okline')) &&
@@ -490,7 +492,7 @@ ok('the export is the Copperfield page, not a check in disguise',
   ok('...and what was under them is what is left',
      (await fr.textContent('#say')).includes('most misread signal'));
   ok('...written as the paragraphs it was typed as',
-     await fr.$$eval('#say p', e => e.length) === 2);
+     await fr.$$eval('#say p', e => e.length) === 3);
   ok('...with one of her, arriving with it',
      await fr.$$eval('.lashy svg', e => e.length) === 1);
   /* Embedded in a Rise page: anything that changes height shunts the whole
