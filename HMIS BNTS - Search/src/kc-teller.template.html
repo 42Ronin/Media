@@ -278,6 +278,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tcard.spent{transform:rotate(var(--tilt)) translateY(calc(var(--lift,0px) + 14px)) rotateY(180deg) scale(.93)}
 .spread.done .tcard,.spread.done .tcard:hover{cursor:default}
 
+
 /* ============================================================
    Lashes. The lesson's drawing is untouched; the costume lives only here.
    ============================================================ */
@@ -315,6 +316,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   .tcard,.tcard.dealt{animation:none;transition:none}
   .spread.live .tcard:hover{transform:rotate(var(--tilt)) translateY(var(--lift,0))}
 }
+
+/* A link is the one thing in this copy meant to be clicked, so it is the one
+   thing that carries the accent. */
+.ask a,.tq a,#qt a,#fb a,.txt a{color:var(--teal,#066888);text-underline-offset:3px;font-weight:600}
 </style>
 </head>
 <body>
@@ -463,6 +468,57 @@ function orbOut(then){
 }
 
 /* --- the only two things it ever says to a host --- */
+/* ============================================================
+   Rich text — a whitelist, rebuilt rather than filtered
+
+   The maker writes bold, italic, underline, strikethrough and links into these
+   strings. The page does NOT trust them: whatever arrives is parsed inertly and
+   a NEW tree is built carrying only the tags below, everything else reduced to
+   its own text. The editor sanitising on the way out is a convenience; this is
+   the guarantee, and it is what makes a hand-edited project file safe to open.
+
+   DOMParser, NOT innerHTML on a detached div: a detached div still LOADS what it
+   parses, so `<img src=x onerror=...>` fires before a filter ever looks at it.
+   ============================================================ */
+var KEEP={B:"b",STRONG:"b",I:"i",EM:"i",U:"u",S:"s",STRIKE:"s",DEL:"s"};
+var DROP={SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,NOSCRIPT:1,TEMPLATE:1,LINK:1,META:1};
+var SAFE_HREF=/^(https?:|mailto:)/i;
+function rich(html){
+  var doc=new DOMParser().parseFromString(String(html==null?"":html),"text/html");
+  var src=doc.body||doc.createElement("div");
+  var out=document.createElement("div");
+  (function walk(from,to){
+    for(var n=from.firstChild;n;n=n.nextSibling){
+      if(n.nodeType===3){ to.appendChild(document.createTextNode(n.nodeValue)); continue; }
+      if(n.nodeType!==1) continue;
+      var tag=n.tagName.toUpperCase();
+      if(DROP[tag]) continue;
+      if(tag==="BR"){ to.appendChild(document.createElement("br")); continue; }
+      if(tag==="A"){
+        var href=n.getAttribute("href")||"";
+        if(SAFE_HREF.test(href)){
+          var a=document.createElement("a");
+          a.setAttribute("href",href);
+          a.setAttribute("target","_blank");
+          a.setAttribute("rel","noopener noreferrer");
+          walk(n,a); to.appendChild(a); continue;
+        }
+        walk(n,to); continue;
+      }
+      if(KEEP[tag]){ var e=document.createElement(KEEP[tag]); walk(n,e); to.appendChild(e); continue; }
+      walk(n,to);
+    }
+  })(src,out);
+  return out;
+}
+function setRich(el,s){
+  if(!el) return;
+  var built=rich(String(s||"").replace(/\n/g,"<br>"));
+  el.innerHTML="";
+  while(built.firstChild) el.appendChild(built.firstChild);
+}
+function richHTML(s){ return rich(String(s||"").replace(/\n/g,"<br>")).innerHTML; }
+
 var EMBED=(function(){
   var framed=false, sent=false;
   try{ framed=(window.parent && window.parent!==window); }catch(e){ framed=true; }
@@ -501,7 +557,7 @@ function deal(){
   clearLater();
   var qi=order[at], q=QS[qi], deck=shuffle(q.a);
 
-  $("#qt").textContent=q.q;
+  setRich($("#qt"), q.q);
   $("#qn").textContent="Question "+(qi+1)+" of "+QS.length;
   paintStones();
 
@@ -514,7 +570,7 @@ function deal(){
         (LOGO?'<img src="'+LOGO+'" alt="">':'<span class="crest"></span>')+'</span>'+
       '<span class="tface tfront">'+
         '<span class="idx sans" aria-hidden="true">'+LETTER[i]+'</span>'+
-        '<span class="txt">'+esc(a.t)+'</span>'+
+        '<span class="txt">'+richHTML(a.t)+'</span>'+
         '<span class="mark sans" aria-hidden="true"></span>'+
       '</span></button>';
   }).join("");
@@ -569,7 +625,7 @@ function take(card,cards,q){
        it again in red or green over the top is the same news twice. The table
        screen keeps its line, because the gate has to state itself. */
     $("#verdict").hidden=true; $("#verdict").textContent="";
-    $("#fb").textContent=q.fb;
+    setRich($("#fb"), q.fb);
     $("#tablebtns").innerHTML=""; $("#next").hidden=false;
     $("#next").textContent=(at>=order.length-1)?"See the table":"Next card";
     face(right?"sparkle":"droll", right?"cheer":"wry");

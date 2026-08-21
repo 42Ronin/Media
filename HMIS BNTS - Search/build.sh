@@ -121,7 +121,10 @@ token = "/*" + "__KC__" + "*/"
 hits = html.count(token)
 if hits != 1:
     raise SystemExit(f"knowledge-check template has {hits} KC tokens, expected exactly 1")
-open(out, "w").write(html.replace(token, open(data).read().strip()))
+# `</` escaped: this goes inside a <script>, and a literal </script> in an
+# author's writing would close the block early. See tools/stamp_kc.py.
+kc = open(data).read().strip().replace("</", "<\\/")
+open(out, "w").write(html.replace(token, kc))
 PY
 mkdir -p "$OUT/_pkg"
 cp "$OUT/knowledge-check.html" "$OUT/_pkg/index.html"

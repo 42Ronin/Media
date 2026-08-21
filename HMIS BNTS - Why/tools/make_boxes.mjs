@@ -61,10 +61,24 @@ for (const box of BOXES) {
   await p.waitForTimeout(200);
 
   await p.fill('#name', box.name);
-  await p.fill('#qtext', box.q);
-  const tas = await p.$$('#answers textarea');
-  for (let i = 0; i < box.a.length; i++) await tas[i].fill(box.a[i]);
-  await p.fill('#fbtext', box.fb);
+  /* The writing fields are contenteditable now — they take bold, italic,
+     underline, strikethrough and links — so the copy is typed rather than
+     `fill`ed. These three boxes are plain text; formatting is applied in the
+     editor by hand when a box wants it. */
+  const put = async (sel, text) => {
+    await p.click(sel);
+    await p.evaluate(() => { document.execCommand('selectAll', false, null);
+                             document.execCommand('delete', false, null); });
+    for (const para of String(text).split('\n\n')) {
+      if (para !== String(text).split('\n\n')[0]) await p.keyboard.press('Enter');
+      await p.keyboard.type(para);
+    }
+    await p.waitForTimeout(80);
+  };
+  await put('#qtext', box.q);
+  const ans = await p.$$('#answers .rich');
+  for (let i = 0; i < box.a.length; i++) await put(`#answers .rich[data-a="${i}"]`, box.a[i]);
+  await put('#fbtext', box.fb);
   await p.waitForTimeout(350);
 
   /* `validate()` HIDES the problem list rather than emptying it, so the list items

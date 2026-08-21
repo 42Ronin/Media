@@ -84,6 +84,28 @@ input,textarea,select{font:inherit;color:inherit}
 .pane .sub{margin:0 0 18px;color:var(--mut);font-size:13.5px}
 label.lab{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
   color:var(--mut);font-weight:700;margin:0 0 6px}
+/* A rich field is a contenteditable dressed as the textarea it replaces, so the
+   editor looks the same whether a field takes markup or not. */
+.rich{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;font:inherit;color:inherit;line-height:1.55;overflow-wrap:anywhere;
+  white-space:pre-wrap;outline:0}
+.rich:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(6,104,136,.13)}
+.rich:empty::before{content:attr(data-ph);color:#93a9b4}
+.rich.q{min-height:74px;font-size:15.5px}
+.rich.fb{min-height:96px}
+.rich[contenteditable="false"]{background:#f4f7f9;color:#8ea3ae}
+.rich a{color:var(--teal);font-weight:600}
+.ans .rich{min-height:46px;flex:1}
+.ans.correct .rich{border-color:var(--ok);background:var(--ok-soft)}
+/* the toolbar */
+.tools{display:flex;gap:4px;align-items:center;margin:0 0 7px}
+.tools button{width:28px;height:26px;border-radius:6px;border:1px solid var(--line);
+  background:#fff;font-size:13px;line-height:1;color:var(--ink);display:grid;place-items:center}
+.tools button:hover:not(:disabled){border-color:var(--teal);color:var(--teal)}
+.tools button:disabled{opacity:.35;cursor:not-allowed}
+.tools .b{font-weight:800}.tools .i{font-style:italic}
+.tools .u{text-decoration:underline}.tools .s{text-decoration:line-through}
+.tools .sep{width:1px;height:18px;background:var(--line);margin:0 4px}
 textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
   background:#fff;resize:vertical;line-height:1.5}
 textarea.q{min-height:74px;font-size:15.5px}
@@ -267,7 +289,7 @@ var RULES={
        fbLab:"What is under them",
        fbPlace:"What the learner is left with once every answer has gone. This is the "+
                "point of the box, so it cannot be switched off.",
-       fbHint:"Blank lines start a new paragraph." }
+       fbHint:"Enter starts a new paragraph; Shift+Enter breaks a line." }
 };
 function rules(){ return RULES[proj.kind]||RULES.kc; }
 
@@ -346,7 +368,7 @@ function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 function renderList(){
   var bad=problemsByQuestion();
   $("#qlist").innerHTML=proj.questions.map(function(q,i){
-    var t=q.q.trim();
+    var t=plain(q.q);
     return '<button class="qitem'+(i===at?" on":"")+(bad[i]?" bad":"")+'" role="tab" '+
              'aria-selected="'+(i===at)+'" data-i="'+i+'" type="button">'+
              '<span class="n">'+(i+1)+'</span>'+
@@ -356,6 +378,138 @@ function renderList(){
   $("#total").value=proj.questions.length;
 }
 
+/* ============================================================
+   Rich text in the editor
+
+   Bold, italic, underline, strikethrough and links. Deliberately NOT a general
+   HTML field: what is stored is a plain string carrying only those five things,
+   which keeps the project file readable, keeps it a string in JSON, and means a
+   paste from Word cannot bring a mountain of markup in with it.
+
+   The pages sanitise again on the way in. That is the actual guarantee — this
+   is the convenience, and a hand-edited project has to be safe too.
+   ============================================================ */
+var TAGS={B:"b",STRONG:"b",I:"i",EM:"i",U:"u",S:"s",STRIKE:"s",DEL:"s"};
+var LINKOK=/^(https?:|mailto:)/i;
+
+function TOOLBAR(id,links){
+  return '<div class="tools" data-for="'+id+'">'+
+    '<button type="button" class="b" data-cmd="bold" title="Bold">B</button>'+
+    '<button type="button" class="i" data-cmd="italic" title="Italic">I</button>'+
+    '<button type="button" class="u" data-cmd="underline" title="Underline">U</button>'+
+    '<button type="button" class="s" data-cmd="strikeThrough" title="Strikethrough">S</button>'+
+    (links ? '<span class="sep"></span>'+
+      '<button type="button" data-cmd="link" title="Link">&#128279;</button>'+
+      '<button type="button" data-cmd="unlink" title="Remove link">&#9003;</button>' : '')+
+  '</div>';
+}
+
+/* contenteditable -> the stored string. One top-level block per paragraph,
+   joined by a blank line, which is the format the pages already read. */
+function readRich(el){
+  var out=[];
+  function inline(node){
+    var s="";
+    for(var n=node.firstChild;n;n=n.nextSibling){
+      if(n.nodeType===3){ s+=escText(n.nodeValue); continue; }
+      if(n.nodeType!==1) continue;
+      var tag=n.tagName.toUpperCase();
+      if(tag==="BR"){ s+="\n"; continue; }
+      if(tag==="A"){
+        var href=n.getAttribute("href")||"";
+        s += LINKOK.test(href)
+          ? '<a href="'+escText(href)+'">'+inline(n)+'</a>'
+          : inline(n);
+        continue;
+      }
+      if(TAGS[tag]){ s+="<"+TAGS[tag]+">"+inline(n)+"</"+TAGS[tag]+">"; continue; }
+      s+=inline(n);
+    }
+    return s;
+  }
+  var loose=null;
+  function flush(){ if(loose!==null){ out.push(loose); loose=null; } }
+  for(var n=el.firstChild;n;n=n.nextSibling){
+    if(n.nodeType===1 && /^(DIV|P)$/.test(n.tagName)){ flush(); out.push(inline(n)); continue; }
+    if(n.nodeType===1 && n.tagName==="BR"){ if(loose===null) loose=""; loose+="\n"; continue; }
+    var frag=document.createElement("span"); frag.appendChild(n.cloneNode(true));
+    if(loose===null) loose="";
+    loose+=inline(frag);
+  }
+  flush();
+  return out.join("\n\n").replace(/\n{3,}/g,"\n\n").replace(/^\s+|\s+$/g,"");
+}
+function escText(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ...and back the other way, for opening a project. Sanitised on the way in so a
+   hand-edited file cannot put anything into the editor either. */
+function writeRich(el,s){
+  el.innerHTML="";
+  var chunks=String(s||"").split(/\n{2,}/);
+  chunks.forEach(function(chunk){
+    var d=document.createElement("div");
+    var doc=new DOMParser().parseFromString(chunk.replace(/\n/g,"<br>"),"text/html");
+    (function walk(from,to){
+      for(var n=from.firstChild;n;n=n.nextSibling){
+        if(n.nodeType===3){ to.appendChild(document.createTextNode(n.nodeValue)); continue; }
+        if(n.nodeType!==1) continue;
+        var tag=n.tagName.toUpperCase();
+        if(tag==="BR"){ to.appendChild(document.createElement("br")); continue; }
+        if(tag==="A"){
+          var href=n.getAttribute("href")||"";
+          if(LINKOK.test(href)){ var a=document.createElement("a"); a.setAttribute("href",href);
+            walk(n,a); to.appendChild(a); continue; }
+          walk(n,to); continue;
+        }
+        if(TAGS[tag]){ var e=document.createElement(TAGS[tag]); walk(n,e); to.appendChild(e); continue; }
+        walk(n,to);
+      }
+    })(doc.body,d);
+    el.appendChild(d);
+  });
+  if(!el.firstChild) el.appendChild(document.createElement("div"));
+}
+
+/* One handler for every toolbar. execCommand is deprecated and is still the only
+   thing that edits a selection inside contenteditable without writing a whole
+   editor, so it stays — and whatever it produces is normalised by readRich on
+   the way out anyway. */
+document.addEventListener("mousedown",function(e){
+  var btn=e.target.closest(".tools button");
+  if(!btn) return;
+  e.preventDefault();                       /* keep the selection in the field */
+  /* Whichever field has focus, so one toolbar can serve a row of answers. The
+     mousedown default is prevented above, which is what keeps the focus (and the
+     selection) in the field while the button is pressed. */
+  var live=document.activeElement;
+  var host=(live && live.classList && live.classList.contains("rich")) ? live
+         : $("#"+btn.closest(".tools").dataset.for);
+  if(!host || host.getAttribute("contenteditable")==="false") return;
+  host.focus();
+  var cmd=btn.dataset.cmd;
+  if(cmd==="link"){
+    var url=(prompt("Link address")||"").trim();
+    if(!url) return;
+    if(!LINKOK.test(url)) url="https://"+url.replace(/^\/+/,"");
+    if(!LINKOK.test(url)) return;
+    document.execCommand("createLink",false,url);
+  } else if(cmd==="unlink"){
+    document.execCommand("unlink",false,null);
+  } else {
+    document.execCommand(cmd,false,null);
+  }
+  host.dispatchEvent(new Event("input",{bubbles:true}));
+});
+/* Paste as plain text. Whatever came off the clipboard is somebody else's
+   markup, and the five things this field keeps are applied here, not imported. */
+document.addEventListener("paste",function(e){
+  var host=e.target.closest && e.target.closest(".rich");
+  if(!host) return;
+  e.preventDefault();
+  var t=(e.clipboardData||window.clipboardData).getData("text/plain");
+  document.execCommand("insertText",false,t);
+});
+
 function renderPane(){
   var q=proj.questions[at], r=rules();
   if(!q){ $("#pane").innerHTML=""; return; }
@@ -363,8 +517,14 @@ function renderPane(){
     '<h3>'+(r.deck ? 'Question '+(at+1)+' of '+proj.questions.length : 'The box')+'</h3>'+
     '<p class="sub">'+r.pane+'</p>'+
     '<div class="blk"><label class="lab" for="qtext">Question</label>'+
-      '<textarea id="qtext" class="q" placeholder="What does an empty result actually tell you?"></textarea></div>'+
+      TOOLBAR("qtext",true)+
+      '<div id="qtext" class="rich q" contenteditable="true" '+
+        'data-ph="What does an empty result actually tell you?"></div></div>'+
     '<div class="blk"><label class="lab">'+r.answers+'</label>'+
+      /* One toolbar for the row: it works on whichever answer has focus. No link
+         button — an answer is taken by resting on it, so a link inside one could
+         never be clicked. */
+      TOOLBAR("answers",false)+
       '<div id="answers"></div>'+
       '<p class="hint">Between '+r.minA+' and '+r.maxA+'. '+r.hint+'</p>'+
       '<button class="btn quiet small" id="addA" style="margin-top:8px">Add answer</button></div>'+
@@ -372,22 +532,23 @@ function renderPane(){
       (r.needFb ? '' :
         '<label class="switch"><input type="checkbox" id="fbon"'+(q.nofb?"":" checked")+'>'+
           '<span>Show feedback for this question</span></label>')+
-      '<textarea id="fbtext" class="fb" placeholder="'+esc(r.fbPlace)+'"'+
-        (q.nofb?" disabled":"")+'></textarea>'+
+      TOOLBAR("fbtext",true)+
+      '<div id="fbtext" class="rich fb" contenteditable="'+(q.nofb?"false":"true")+'" '+
+        'data-ph="'+esc(r.fbPlace)+'"></div>'+
       '<p class="hint">'+r.fbHint+'</p></div>';
-  $("#qtext").value=q.q;
-  $("#fbtext").value=q.fb;
+  writeRich($("#qtext"), q.q);
+  writeRich($("#fbtext"), q.fb);
   /* Turning it off keeps the writing. Someone who switches it off, exports, and
      switches it back should not find their paragraph gone. */
   /* Turning it off keeps the writing. A kind whose whole point is what is under
      the answers has no switch at all. */
   if($("#fbon")) $("#fbon").addEventListener("change",function(){
     q.nofb=!this.checked;
-    $("#fbtext").disabled=q.nofb;
+    $("#fbtext").setAttribute("contenteditable", q.nofb?"false":"true");
     touch(true);
   });
-  $("#qtext").addEventListener("input",function(){ q.q=this.value; touch(true); });
-  $("#fbtext").addEventListener("input",function(){ q.fb=this.value; touch(false); });
+  $("#qtext").addEventListener("input",function(){ q.q=readRich(this); touch(true); });
+  $("#fbtext").addEventListener("input",function(){ q.fb=readRich(this); touch(false); });
   $("#addA").addEventListener("click",function(){
     if(q.a.length>=rules().maxA) return;
     q.a.push({t:"",ok:false}); touch(true); renderPane();
@@ -404,14 +565,15 @@ function renderAnswers(){
         ? '<span class="pick"><input type="radio" name="correct" id="ok'+i+'" '+(a.ok?"checked":"")+'>'+
             '<label for="ok'+i+'" class="sr-only">Answer '+LETTER[i]+' is correct</label></span>'
         : '')+
-      '<textarea data-a="'+i+'" placeholder="Answer '+LETTER[i]+'"></textarea>'+
+      '<div class="rich" contenteditable="true" data-a="'+i+'" '+
+        'data-ph="Answer '+LETTER[i]+'"></div>'+
       '<button class="kill" data-kill="'+i+'" type="button" title="Remove this answer" '+
         (q.a.length<=r.minA?"disabled":"")+' aria-label="Remove answer '+LETTER[i]+'">&times;</button>'+
     '</div>';
   }).join("");
-  [].forEach.call(host.querySelectorAll("textarea"),function(t){
-    t.value=q.a[+t.dataset.a].t;
-    t.addEventListener("input",function(){ q.a[+this.dataset.a].t=this.value; touch(false); });
+  [].forEach.call(host.querySelectorAll(".rich"),function(t){
+    writeRich(t, q.a[+t.dataset.a].t);
+    t.addEventListener("input",function(){ q.a[+this.dataset.a].t=readRich(this); touch(false); });
   });
   [].forEach.call(host.querySelectorAll("input[type=radio]"),function(rd,i){
     rd.addEventListener("change",function(){
@@ -438,11 +600,17 @@ function touch(relist){ save(); validate(); if(relist) renderList(); }
 /* ============================================================
    Validation — say what is missing rather than exporting something broken
    ============================================================ */
+/* Emptiness is about WORDS, not markup: a field holding only an empty bold tag
+   has nothing in it, however long the string is. */
+function plain(s){
+  return String(s||"").replace(/<[^>]*>/g," ").replace(/&nbsp;/g," ")
+                      .replace(/&amp;/g,"&").replace(/\s+/g," ").trim();
+}
 function problemsByQuestion(){
   var bad={}, r=rules();
   proj.questions.forEach(function(q,i){
-    var filled=q.a.filter(function(a){ return a.t.trim(); });
-    if(!q.q.trim() || ((r.needFb||!q.nofb) && !q.fb.trim()) || filled.length<r.minA ||
+    var filled=q.a.filter(function(a){ return plain(a.t); });
+    if(!plain(q.q) || ((r.needFb||!q.nofb) && !plain(q.fb)) || filled.length<r.minA ||
        filled.length!==q.a.length ||
        (r.correct && q.a.filter(function(a){return a.ok}).length!==1)) bad[i]=true;
   });
@@ -452,13 +620,13 @@ function problems(){
   var out=[], r=rules();
   proj.questions.forEach(function(q,i){
     var n=r.deck ? "Question "+(i+1)+": " : "";
-    if(!q.q.trim()) out.push(n+"no question written.");
-    var blank=q.a.filter(function(a){ return !a.t.trim(); }).length;
+    if(!plain(q.q)) out.push(n+"no question written.");
+    var blank=q.a.filter(function(a){ return !plain(a.t); }).length;
     if(blank) out.push(n+blank+" answer"+(blank>1?"s are":" is")+" blank.");
     /* Only a kind that has a right answer is asked for one. */
     if(r.correct && q.a.filter(function(a){ return a.ok; }).length!==1)
       out.push(n+"mark exactly one answer correct.");
-    if((r.needFb||!q.nofb) && !q.fb.trim())
+    if((r.needFb||!q.nofb) && !plain(q.fb))
       out.push(n+(r.needFb ? "nothing written for what is under the answers."
                            : "no feedback written."));
   });
@@ -536,7 +704,12 @@ function pageHTML(){
     })
   };
   if(r.mark) payload.pass=proj.pass/100;
-  var data=JSON.stringify(payload);
+  /* `</` escaped: this is stamped inside a script block, so a closing script
+     tag in what somebody wrote or pasted would end that block early and break
+     the export. `<\/` is an ordinary JS string escape and reads back the same.
+     Note this comment does not spell the tag out — writing it here is what broke
+     the maker once already. */
+  var data=JSON.stringify(payload).replace(/<\//g,"<\\/");
   /* Exactly one, checked rather than assumed: the token used to be named in the
      page's own header comment as well, and replacing the first occurrence put the
      questions in a comment and left the real one empty. */
