@@ -29,6 +29,7 @@ const OUT = join(ROOT, 'public');
 
 const S = 'HMIS BNTS - Search';
 const W = 'HMIS BNTS - Why';
+const C = 'HMIS BNTS - Create';
 
 /* src   where it is in the repo
    slug  where it goes on the site. A page becomes <slug>/index.html so the URL
@@ -117,6 +118,24 @@ const MANIFEST = [
         zipOnly: true, name: 'Did any of this work',
         what: '&ldquo;Did any of this actually work?&rdquo;',
         how: `cd '${W}/tools' && node make_boxes.mjs` },
+    ],
+  },
+  {
+    title: 'Lesson 3 — Creating a Profile',
+    blurb: 'In build. The Add Client replica and the guided walkthrough, on the real Lashes. ' +
+           'The v2 script is bigger than these two — see the lesson README for what is left.',
+    items: [
+      { src: `${C}/dist/sim-bobbi.html`, slug: 'lesson-3-create/meeting-bobbi',
+        name: 'Guided walkthrough — Meeting Bobbi',
+        what: 'The conversation on the left, the form filling in on the right, then Save and ' +
+              'the Unique Identifier. Watch-only for now; the script wants it interactive.',
+        zip: `${C}/dist/sim-bobbi.zip`, how: `cd '${C}' && ./build.sh` },
+      { src: `${C}/dist/sim-add-client.html`, slug: 'lesson-3-create/add-client-practice',
+        name: 'Add Client practice',
+        what: 'A working Add Client replica with the task set: the two-stage conversation, the ' +
+              '&ldquo;Ask them&rdquo; gate, the Consent Refused auto-fill, and the consent ' +
+              'section rendering by Documentation type.',
+        zip: `${C}/dist/sim-add-client.zip`, how: `cd '${C}' && ./build.sh` },
     ],
   },
   {

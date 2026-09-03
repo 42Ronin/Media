@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add Client Practice</title>
+<style>
+  :root{
+    --ink:#1b1b1f; --ink2:#46464f; --ink3:#6b6b75;
+    --indigo:#5055ad; --indigo-d:#383c94; --lav:#f1efff; --lav2:#e1e0ff; --surface:#fcf8fd; --line:#c9c6d6;
+    --err:#ba1a1a; --teal:#066888; --teal-l:#e6f1f4; --teal-d:#044a61; --ok:#1f7a4d; --ok-l:#e7f5ec; --warn:#8a5a00; --warn-l:#fff4dd;
+    --font:"Open Sans","Noto Sans",Roboto,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#fff;color:var(--ink);font:14px/1.5 var(--font)}
+  .stage{display:grid;grid-template-columns:minmax(300px,400px) 1fr;height:100vh;min-height:640px}
+  @media (max-width:860px){.stage{grid-template-columns:1fr;height:auto}.coach,.clarity{height:auto!important}}
+
+  /* ---------- coach panel ---------- */
+  .coach{background:var(--teal-l);border-right:1px solid #cfe1e7;display:flex;flex-direction:column;height:100vh;min-height:640px}
+  .coach header{padding:14px 18px 10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #cfe1e7}
+  .coach header h1{font-size:15px;margin:0;color:var(--teal-d)}
+  .coach header p{margin:0;font-size:12px;color:var(--ink3)}
+  .lashes-av{width:40px;height:40px;flex:0 0 40px}
+  .body{flex:1;overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+  .tasknum{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal-d);font-weight:700}
+  .scen{background:#fff;border:1px solid #cfe1e7;border-radius:12px;padding:12px 14px;line-height:1.5}
+  .scen p{margin:0 0 8px}.scen p:last-child{margin:0}
+  .instr{background:var(--teal);color:#fff;border-radius:10px;padding:10px 14px;font-weight:600}
+  .stage2{display:none;background:#fff;border:1px dashed #9cc0cb;border-radius:12px;padding:12px 14px;animation:pop .25s}
+  .stage2.show{display:block}
+  .hint{display:none;background:var(--warn-l);border-left:3px solid #d9a441;border-radius:8px;padding:10px 12px;font-size:13px;color:#5a3d00;animation:pop .25s}
+  .hint.show{display:block}
+  .fb{display:none;border-radius:12px;padding:12px 14px;animation:pop .25s;line-height:1.5}
+  .fb.show{display:block}
+  .fb.ok{background:var(--ok-l);border:1px solid #b9dcc6;color:#123d26}
+  .fb.no{background:#fbe9e7;border:1px solid #f0c5c0;color:#5c1a14}
+  .fb .tag{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:4px}
+  .fb p{margin:0 0 8px}.fb p:last-child{margin:0}
+  .done{display:none;background:#fff;border:1px solid #cfe1e7;border-radius:12px;padding:14px;line-height:1.55}
+  .done.show{display:block}
+  .done p{margin:0 0 8px}.done p:last-child{margin:0}
+  .ctl{padding:12px 18px 16px;border-top:1px solid #cfe1e7;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .btn{appearance:none;border:0;border-radius:999px;padding:9px 18px;font:600 13.5px var(--font);cursor:pointer}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--teal);color:#fff;box-shadow:0 2px 0 var(--teal-d)}
+  .btn.ghost{background:transparent;color:var(--teal-d);border:1.5px solid var(--teal)}
+  .btn.link{background:transparent;color:var(--ink2);text-decoration:underline;padding:6px 8px;font-weight:500}
+  .btn[hidden]{display:none}
+  .prog{margin-left:auto;font-size:12px;color:var(--ink3)}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ---------- Clarity replica ---------- */
+  .clarity{background:#f3f2f7;display:flex;flex-direction:column;height:100vh;min-height:640px;overflow:hidden}
+  .topbar{height:48px;background:#e9e7fb;display:flex;align-items:center;padding:0 16px;gap:14px;border-bottom:1px solid #d9d7ee;flex:0 0 48px}
+  .topbar .logo{width:14px;height:20px;background:linear-gradient(135deg,#e53935,#b71c1c);clip-path:polygon(30% 0,100% 0,60% 100%,0 100%);border-radius:2px}
+  .topbar .sp{flex:1}
+  .topbar .user{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
+  .topbar .user b{display:block;color:var(--ink);font-size:12.5px}
+  .topbar .av{width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+  .panel{flex:1;display:flex;flex-direction:column;min-height:0;background:#f7f5fb}
+  .panel-hd{background:#e9e7fb;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;font-size:16px}
+  .panel-hd .x{width:26px;height:26px;border-radius:50%;background:#d9d7ee;display:grid;place-items:center;font-size:14px;color:var(--ink2)}
+  .form{flex:1;overflow:auto;padding:16px}
+  .card{background:var(--surface);border-radius:14px;padding:18px 18px 10px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .card h2{font-size:17px;font-weight:600;color:var(--indigo);margin:0}
+  .card .sub{font-size:12px;color:var(--ink2);margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+  .full{grid-column:1/-1}
+  .f{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .f label{font-size:11.5px;font-weight:600;color:var(--ink2)}
+  .f input,.f select{height:40px;border:1px solid var(--line);border-radius:6px;background:#fffbff;padding:0 12px;font:13.5px var(--font);color:var(--ink);width:100%;outline:none}
+  .f input:focus,.f select:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(80,85,173,.2)}
+  .f select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 17px) 17px,calc(100% - 12px) 17px;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+  .f .hint{font-size:10.5px;color:var(--ink3)}
+  .f.ro input{background:#f1f0f5;color:var(--ink3)}
+  .sec{grid-column:1/-1;font-size:13px;font-weight:600;color:var(--indigo);margin:8px 0 -4px}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);grid-column:1/-1;margin:4px 0;cursor:pointer;user-select:none}
+  .toggle .sw{width:38px;height:22px;border-radius:999px;background:#c9c6d6;position:relative;transition:background .2s}
+  .toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+  .toggle.on .sw{background:var(--indigo)}.toggle.on .sw::after{left:19px}
+  .poc{grid-column:1/-1;border:1px dashed #d9d7ee;border-radius:8px;padding:10px 12px;color:var(--ink3);font-size:12px}
+  .poc b{color:var(--indigo);display:block;font-size:12.5px;margin-bottom:2px}
+  .consent{grid-column:1/-1;background:#fff;border:1px solid #e0ddef;border-radius:8px;padding:12px 14px;font-size:12px;color:var(--ink2);display:none;max-height:190px;overflow:auto}
+  .consent.show{display:block}
+  .consent h5{margin:0 0 6px;font-size:12px;color:var(--ink)}
+  .consent .sig{display:flex;gap:12px;margin-top:10px}
+  .consent .pad{flex:1;border:1px solid #c9c6d6;border-radius:6px;height:56px;background:#fffbff;position:relative;cursor:pointer;font-size:11px;color:var(--ink3);display:grid;place-items:center}
+  .consent .pad.signed{color:var(--indigo);font-family:"Segoe Script","Brush Script MT",cursive;font-size:16px}
+  .file{grid-column:1/-1;border:1.5px dashed #b9b7c9;border-radius:8px;padding:16px;text-align:center;color:var(--ink3);font-size:12px;display:none}
+  .file.show{display:block}
+  .footer{background:var(--surface);border-top:1px solid #e0ddef;padding:10px;display:flex;justify-content:center;gap:16px;align-items:center;flex:0 0 auto}
+  .footer .cancel{color:var(--indigo);font-weight:600;font-size:13px;cursor:pointer;background:none;border:0;font-family:inherit}
+  .footer .save{border:1.5px solid var(--indigo);border-radius:999px;padding:7px 22px;color:var(--indigo);font:600 13px var(--font);background:#fff;cursor:pointer}
+  .footer .save:hover{background:var(--lav)}
+  .toast{position:absolute;left:50%;top:60px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:opacity .3s;pointer-events:none}
+  .toast.show{opacity:1}
+  .clarity{position:relative}
+/* Lashes' drawing. Inlined with face.js — see the note there. */
+.m-rim{fill:none;stroke:#066888;stroke-width:6}
+.m-glass{fill:#e0eff5;opacity:1}
+.m-eye{fill:#14222b}
+.m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
+.m-lidfill{fill:#e0eff5}
+.m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
+.m-spark{fill:#14222b}
+.m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
+.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+.m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
+.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
+.m-face{animation:mscan 6.5s ease-in-out infinite}
+@keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
+  25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
+@keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
+@keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+
+/* The host a page puts her in. It sizes her; the drawing fills it. */
+.lashes-av{display:inline-block;width:40px;height:40px;flex:0 0 40px}
+.lashes-av svg{width:100%;height:100%;display:block;overflow:visible}
+
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ================= COACH ================= -->
+  <section class="coach" aria-label="Task panel">
+    <header>
+      <span class="lashes-av" data-face></span>
+      <div><h1>Creating a Profile</h1><p>Nine people, nine records. Nothing is scored.</p></div>
+    </header>
+    <div class="body">
+      <div class="tasknum" id="tnum"></div>
+      <div class="scen" id="scen"></div>
+      <div class="instr" id="instr"></div>
+      <div class="stage2" id="stage2"></div>
+      <div class="hint" id="hint"></div>
+      <div class="fb" id="fb"></div>
+      <div class="done" id="done"></div>
+    </div>
+    <div class="ctl">
+      <button class="btn primary" id="start">Start</button>
+      <button class="btn ghost" id="hintbtn" hidden>Hint</button>
+      <button class="btn ghost" id="askbtn" hidden>Ask them</button>
+      <button class="btn ghost" id="contbtn" hidden>Continue the conversation</button>
+      <button class="btn link" id="skipbtn" hidden>Don’t create a profile</button>
+      <button class="btn primary" id="nextbtn" hidden>Next task</button>
+      <button class="btn ghost" id="replay" hidden>Replay</button>
+      <span class="prog" id="prog"></span>
+    </div>
+  </section>
+
+  <!-- ================= CLARITY ================= -->
+  <section class="clarity" aria-label="Practice Clarity">
+    <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
+    <div class="toast" id="toast">Saved</div>
+    <div class="panel">
+      <div class="panel-hd"><span>Add Client</span><span class="x">×</span></div>
+      <div class="form" id="form">
+        <div class="card">
+          <h2>Add Client</h2><p class="sub">Complete this form to create a new client</p>
+          <div class="grid">
+            <div class="f"><label>Social Security Number *</label><input id="ssn" placeholder="XXX-XX-XXXX" maxlength="11"></div>
+            <div class="f"><label>Quality of SSN *</label><select id="qssn"></select></div>
+            <div class="f"><label>First name *</label><input id="first"></div>
+            <div class="f"><label>Last name *</label><input id="last"></div>
+            <div class="f"><label>Middle name</label><input id="middle"></div>
+            <div class="f"><label>Suffix</label><select id="suffix"><option>None</option><option>Jr.</option><option>Sr.</option><option>II</option><option>III</option><option>Client prefers not to answer</option></select></div>
+            <div class="f"><label>Quality of Name *</label><select id="qname"></select></div>
+            <div class="f"><label>Quality of DOB *</label><select id="qdob"></select></div>
+            <div class="f"><label>Date of Birth *</label><input id="dob" placeholder="__/__/____" maxlength="10"><div class="hint">MM/DD/YYYY</div></div>
+            <div class="f"></div>
+            <div class="toggle" id="cr"><div class="sw"></div>Consent Refused</div>
+            <div class="f"><label>Maiden Name</label><input id="maiden"></div>
+            <div class="f"><label>Alias</label><input id="alias"></div>
+
+            <div class="sec">Demographics</div>
+            <div class="f full"><label>Gender *</label><select id="gender"></select></div>
+            <div class="f full"><label>Pronoun(s)</label><input id="pronouns"></div>
+            <div class="f full"><label>Race and Ethnicity *</label><select id="race"></select></div>
+            <div class="f full"><label>Primary Language</label><select id="lang"><option>Select</option><option>English</option><option>Spanish</option><option>Armenian</option><option>Korean</option><option>Tagalog</option><option>Chinese</option><option>Other</option><option>Client doesn't know</option><option>Client prefers not to answer</option></select></div>
+
+            <div class="poc"><b>First Point of Contact</b>Not used by providers. Skip this section. (Collapsed in practice.)</div>
+
+            <div class="sec">Enter the release of information details</div>
+            <div class="f full"><label>Permission *</label><select id="perm"><option>Yes</option><option>No</option></select></div>
+            <div class="f ro"><label>Start Date *</label><input id="roiStart" readonly></div>
+            <div class="f ro"><label>End Date *</label><input id="end" readonly></div>
+            <div class="f full"><label>Documentation *</label><select id="doc"></select></div>
+            <div class="consent" id="consent">
+              <h5>Greater Los Angeles Homeless Management Information System (LA HMIS)</h5>
+              <h5>CONSENT TO SHARE PROTECTED PERSONAL INFORMATION</h5>
+              <p>The LA HMIS is a local electronic database that securely records information about clients accessing housing and homeless services within Greater Los Angeles. This organization participates in the HMIS database and shares information with other organizations that use this database…</p>
+              <p><b>By signing below, you understand and agree that:</b> you have the right to receive services even if you do not sign; this consent is valid for seven (7) years; you may revoke your consent at any time…</p>
+              <p><label><input type="checkbox" id="photo"> I consent to sharing my photograph. (Check here)</label></p>
+              <div class="sig"><div class="pad" id="sig1" data-name="">Client Signature</div><div class="pad" id="sig2">Organization Staff Signature</div></div>
+            </div>
+            <div class="file" id="file">⬆ Drag and drop a file here, or Choose A File<br><small>Accepted: JPEG, JPG, GIF, PNG, TIFF, TXT, DOC, DOCX, PDF, XLSX · Max 25 MB</small></div>
+            <div class="f full" id="locwrap" style="display:none"><label>Location *</label><input id="loc" placeholder="Where the paper copy is kept"></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer"><button class="cancel" id="cancel">Cancel</button><button class="save" id="save">Save</button></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   LASHES — the drawing, and the only copy of it
+
+   Her geometry and her expression library. Inlined into every page that shows
+   her, at the LASHES tokens, because each page has to stand alone with no
+   network — but inlined FROM HERE, so there is one face to change.
+
+   Before this file she was copied by hand into the lesson, three
+   knowledge-check stagings and the block builder, and "if her face changes,
+   change it in both" was a note in CLAUDE.md rather than something the build
+   enforced.
+
+   svg(eyes, mouth) returns a 100x100 viewBox. The caller sizes it.
+   Expressions are fixed and are not a setting: open, droll, sparkle, wide,
+   arcs for the eyes; tip, plain, cheer, wry, hm for the mouth.
+   ============================================================ */
+var LASH={
+  open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
+       '<path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/></g>',
+  high:'<g class="m-lash"><path d="M30 33.5 l-3.4 -3"/><path d="M34.3 32 l-1.2 -3.4"/><path d="M38.4 32.8 l1.7 -3.2"/>'+
+       '<path d="M48.6 32.8 l-1.7 -3.2"/><path d="M52.7 32 l1.2 -3.4"/><path d="M57 33.5 l3.4 -3"/></g>',
+  low: '<g class="m-lash"><path d="M30.8 38 l-3 -1"/><path d="M34.9 36.8 l-.7 -2.2"/><path d="M38.9 37.6 l1.4 -1.9"/>'+
+       '<path d="M49.1 37.6 l-1.4 -1.9"/><path d="M53.1 36.8 l.7 -2.2"/><path d="M57.2 38 l3 -1"/></g>'
+};
+function spark(cx,cy){
+  return '<path class="m-spark" d="M'+cx+' '+(cy-4.6)+' q1 3.4 4.6 4.6 q-3.6 1.2 -4.6 4.6 '+
+         'q-1 -3.4 -4.6 -4.6 q3.6 -1.2 4.6 -4.6 z"/>';
+}
+function droll(cx){
+  return '<circle class="m-eye" cx="'+cx+'" cy="39.5" r="4"/>'+
+         '<rect class="m-lidfill" x="'+(cx-4.6)+'" y="34" width="9.2" height="3.9" rx="1.6"/>'+
+         '<path class="m-lidline" d="M'+(cx-4)+' 37.7 h8"/>';
+}
+var EYES={
+  open:   {e:'<circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>', l:"open"},
+  droll:  {e:droll(35)+droll(53), l:"low"},
+  sparkle:{e:spark(35,39)+spark(53,39), l:"high"},
+  wide:   {e:'<circle class="m-eye" cx="35" cy="39" r="5.2"/><circle class="m-eye" cx="53" cy="39" r="5.2"/>', l:"high"},
+  arcs:   {e:'<path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/><path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>', l:"open"}
+};
+var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
+           wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
+function svg(eyes,mouth){
+  var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
+  return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
+    '<g class="m-body">'+
+      '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
+      '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
+      '<g class="m-face"><g class="m-eyes">'+ex.e+'</g>'+LASH[ex.l]+
+        '<path class="m-mouth" d="'+m+'"/></g>'+
+      '<path class="m-shine" d="M27 30 q7-9 17-10"/>'+
+    '</g></svg>';
+}
+
+/* Every [data-face] host gets her drawing. `data-face` may name an expression
+   pair, "eyes mouth"; empty means open/tip. Call it again after adding hosts,
+   which is what a page building her into a message has to do. */
+function paintFaces(root){
+  var hosts=(root||document).querySelectorAll("[data-face]");
+  for(var i=0;i<hosts.length;i++){
+    var h=hosts[i];
+    if(h.getAttribute("data-painted")) continue;
+    var pair=(h.getAttribute("data-face")||"").split(/\s+/);
+    h.innerHTML=svg(pair[0]||"open", pair[1]||"tip");
+    h.setAttribute("data-painted","1");
+  }
+}
+
+(() => {
+  // ---------- option lists (production Clarity, LA HMIS) ----------
+  const Q = {
+    qssn: ['Select','Full SSN Reported','Approximate or partial SSN reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    qname:['Select','Full name reported','Partial, street name, or code name reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    qdob: ['Select','Full DOB Reported','Approximate or partial DOB reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    gender:['Select','Woman (Girl, if child)','Man (Boy, if child)','Culturally Specific Identity (e.g., Two-Spirit)','Transgender','Non-Binary','Questioning','Different Identity',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    race:['Select','American Indian, Alaska Native, or Indigenous','Asian or Asian American','Black, African American, or African','Hispanic/Latina/e/o','Middle Eastern or North African','Native Hawaiian or Pacific Islander','White',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    doc:['Select','Electronic Signature','Attached PDF','Signed Paper Document','Verbal Consent','Household'],
+  };
+  const $ = id => document.getElementById(id);
+  for (const k in Q){ const s=$(k); Q[k].forEach(o=>{const op=document.createElement('option');op.textContent=o;s.appendChild(op);}); }
+  /* Deliberately NOT 'roiStart' or 'end': the consent dates are computed once and
+     are read-only, so a reset must not blank them. */
+  const F = ['ssn','qssn','first','last','middle','suffix','qname','qdob','dob','maiden','alias','gender','pronouns','race','lang','perm','doc','loc'];
+  const val = id => $(id).value.trim();
+  const fmt = d => `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+  const today=new Date(), end=new Date(today); end.setFullYear(end.getFullYear()+7);
+  $('roiStart').value=fmt(today); $('end').value=fmt(end);
+
+  // ---------- form behaviors ----------
+  let crOn=false;
+  $('cr').addEventListener('click', () => {
+    crOn=!crOn; $('cr').classList.toggle('on',crOn);
+    if (crOn){ $('ssn').value='000-00-0000'; $('qssn').value='Client prefers not to answer'; $('first').value='Generated'; $('last').value='Refused';
+      $('qname').value='Client prefers not to answer'; $('suffix').value='Client prefers not to answer'; $('dob').value='01/01/____'; $('qdob').value='Approximate or partial DOB reported'; }
+  });
+  $('doc').addEventListener('change', () => {
+    const v=val('doc'); $('consent').classList.toggle('show', v==='Electronic Signature'); $('file').classList.toggle('show', v==='Attached PDF'); $('locwrap').style.display = v==='Signed Paper Document' ? '' : 'none';
+  });
+  const sign = (id,txt) => { const p=$(id); p.addEventListener('click',()=>{ p.classList.toggle('signed'); p.textContent = p.classList.contains('signed') ? txt : (id==='sig1'?'Client Signature':'Organization Staff Signature'); }); };
+  sign('sig1','~ signed ~'); sign('sig2','O. Worker');
+  const signed = () => $('sig1').classList.contains('signed');
+  function resetForm(){
+    F.forEach(id => { const e=$(id); if (e.tagName==='SELECT'){ e.selectedIndex=0; if(id==='perm')e.value='Yes'; } else e.value=''; });
+    crOn=false; $('cr').classList.remove('on'); $('consent').classList.remove('show'); $('file').classList.remove('show'); $('locwrap').style.display='none';
+    ['sig1','sig2'].forEach(id=>{$(id).classList.remove('signed'); $(id).textContent = id==='sig1'?'Client Signature':'Organization Staff Signature';});
+    $('photo').checked=false; $('form').scrollTop=0;
+  }
+
+  // ---------- tasks (copy from the Lesson 3 script) ----------
+  const T = [
+    { scen:'A man at a drop-in center gives you his full name and spells it for you. Anthony Reyes-Marchetti. He gives his date of birth as 03/09/1979 and reads his Social Security Number off a card in his wallet. He signs the consent on your tablet.',
+      instr:'Create his profile.', hint:'Everything he gave you is complete. Set each code to say so, and record how he consented.',
+      eval(){ const ok = val('qssn')==='Full SSN Reported' && val('qname')==='Full name reported' && val('qdob')==='Full DOB Reported' && val('doc')==='Electronic Signature';
+        return ok ? {ok:true, fb:'Three full answers, three full codes, electronic signature. This is the easy version, and it is rarer than you would like. Notice you still had to set all three codes by hand. The form does not infer them from what you typed, and it will happily save a full name marked as partial.'}
+                  : {ok:false, fb:'He gave you everything in full and signed on the tablet. Every code should say full, and Documentation should say Electronic Signature. The form does not set the codes for you, no matter how complete the answers were.'}; } },
+
+    { scen:'A woman gives her name as Dee. That is all she says. You start the record.', instr:'Set Quality of Name for what you have right now, then continue the conversation.',
+      hint:'Set the code for what you have when you have it. Then change it when she gives you more.',
+      stage2:'A minute later she adds that her last name is Okonkwo, and spells it for you. O-K-O-N-K-W-O. Update the record and save.',
+      onCont(){ this.snap = val('qname'); },
+      eval(){ const a=this.snap, b=val('qname');
+        if (a==='Full name reported') return {ok:false, tag:'Incorrect — left as Full name reported', fb:'When she had given you Dee and nothing else, that was a partial name. The code describes the answer you actually had. If she had walked away at that point, this record would claim to hold a full name that nobody ever gave you.'};
+        if (a==='Partial, street name, or code name reported' && b==='Full name reported') return {ok:true, fb:'Partial until it is not. Codes are not set once at the end. They track the conversation, and the conversation moves.'};
+        return {ok:false, fb:'Two moments, two codes. With only Dee, the honest code is Partial, street name, or code name reported. Once she gave you Okonkwo, it becomes Full name reported. The record should have moved with the conversation.'}; } },
+
+    { scen:'A man tells you he was born in 1974. He does not know the day or the month. He is clear that he is not guessing and would rather not make something up.',
+      instr:'Record his date of birth and set Quality of DOB.', hint:'A year alone is a partial date of birth, not a missing one. There is a convention for what goes in the month and day.',
+      eval(){ const q=val('qdob'), d=val('dob');
+        if (q==="Client doesn't know") return {ok:false, tag:'Incorrect — chose Client doesn’t know', fb:'He does know part of it. He gave you the year, and he was careful to be honest about the rest. "Client doesn’t know" throws away the year you have. Partial keeps it, and a year is searchable.'};
+        if (q==='Approximate or partial DOB reported' && /1974/.test(d)) return {ok:true, fb:'01/01/1974, and Approximate or partial DOB reported. January 1 is the placeholder everyone in the system recognizes as a placeholder, and the year is real. Last lesson you found Katherine Morrison from a year and nothing else. This is that record, from the other side. If he had not known the year either, you would have asked his age and worked the year out from that. Same entry, same code.'};
+        return {ok:false, fb:'The year is real, so it belongs in the record: 01/01/1974, with Quality of DOB set to Approximate or partial DOB reported. January 1 is the convention for the part he does not know.'}; } },
+
+    { scen:'A woman gives you her name and date of birth without hesitating. When you ask about a Social Security Number she says, "I’d rather not. Not today."',
+      instr:'Complete her profile and set Quality of SSN.', hint:'She answered you. Record the answer she gave.',
+      eval(){ const q=val('qssn');
+        if (q==='Data not collected') return {ok:false, tag:'Incorrect — chose Data not collected', fb:'You did ask, and she told you no. "Data not collected" says the question never came up, which means the next worker will ask her again. She has already answered once.'};
+        if (q==='Client prefers not to answer') return {ok:true, fb:'XXX-XX-XXXX in the field, and Client prefers not to answer. Declining is a legitimate answer and it gets recorded as one. Plenty of records hold no Social Security Number at all and they are still findable, which you proved to yourself last lesson.'};
+        return {ok:false, fb:'She was asked, and she declined. That is Client prefers not to answer, with X’s in the number field. Any other code puts a different conversation on her record than the one you had.'}; } },
+
+    { scen:'End of shift. A young man gives you his first and last name and then sees someone he knows across the lot and goes. You never got to the rest of it.',
+      instr:'Create his profile with what you have.', hint:'Nothing was refused here, and nothing was forgotten. The questions were never asked.',
+      eval(){ const a=val('qssn'), b=val('qdob');
+        if (a==="Client doesn't know" || b==="Client doesn't know") return {ok:false, tag:'Incorrect — chose Client doesn’t know', fb:'He never said he did not know, because you never asked him. Recording him as unable to answer puts a fact on his record that is not true, and it is a fact the next worker will believe.'};
+        if (a==='Data not collected' && b==='Data not collected') return {ok:true, fb:'Data not collected. It is the honest answer and it is not a mistake. It tells the next person exactly what to do, which is ask. Be clear about what happens next, though. Data not collected shows on the Data Quality Dashboard as an error, not a warning, because a required question was never asked. It stays an error until somebody asks him. That is not the dashboard telling you that you did something wrong. It is the dashboard making sure the question does not stay unasked forever. The alternative, picking Client doesn’t know to make the error go away, would clear the dashboard and put a lie on his record. The honest error is the right call.'};
+        return {ok:false, fb:'You have his name and nothing else, because he left before you asked. The only honest code for the date of birth and the Social Security Number is Data not collected. It flags on the dashboard until somebody asks, and that is the point.'}; } },
+
+    { scen:'A man gives his name as Roland Pike and spells it. Then he laughs and says nobody has called him that since the nineties. Out here he is Cadillac. If you ask anyone about Roland Pike, he says, they will look at you blankly.',
+      instr:'Create his profile so that the next worker can find him under either name.', hint:'Both names belong on this record. They go in different places.',
+      eval(){ const al=val('alias');
+        if (!al) return {ok:false, tag:'Incorrect — Alias left blank', fb:'You have created a perfectly accurate record for a name that nobody will ever search. Roland Pike is on his ID and Cadillac is the name he goes by, and the next outreach worker is going to hear the second one. This is exactly how Lefty Torres happened. Somebody typed Michael Torres correctly, left this field empty, and a search years later came back with nothing.'};
+        return {ok:true, fb:'Roland Pike in the name fields, Cadillac in the alias. Both are now searchable, and neither one being empty is an accident anyone has to recover from later. Ask everyone this. Not just the people who volunteer it. A middle name, a second last name, a nickname, a shortened name, a name they used to go by. Confirm the spelling of each one, and then address them by whichever name they gave you first.'}; } },
+
+    { scen:'You are completing the demographics section for a participant who is standing in front of you, waiting.',
+      instr:'Complete Gender and Race and Ethnicity.', hint:'There is only one way to find out.', ask:true,
+      askText:'You ask. "What would you say is your gender identity?" She says woman, and adds that she uses she and her. "And what would you say is your race or ethnicity?" She says Hispanic.',
+      eval(){ if (this.touchedBeforeAsk) return {ok:false, tag:'Incorrect — selected without asking', fb:'You cannot see any of this. Not one field in this section is something you can determine by looking at somebody, and a confident wrong answer is worse than an honest gap, because nobody downstream knows to question it.'};
+        if (!this.asked) return {ok:false, tag:'Incorrect — selected without asking', fb:'You cannot see any of this. Not one field in this section is something you can determine by looking at somebody, and a confident wrong answer is worse than an honest gap, because nobody downstream knows to question it.'};
+        return {ok:true, fb:'You asked. That is the whole skill. It is also the rule. LAHSA’s data quality standards say it plainly: collect data directly from participants, and do not enter data about participants based on your observations. Pronouns are not required by the form. Fill them in anyway. It is the field most likely to change how the next worker speaks to this person, and it costs one question.'}; } },
+
+    { scen:'You are on the street with a participant who has given you everything you asked for. You explain that other agencies using HMIS would be able to see her record, and she says that is fine. You have your phone and nothing else. No tablet, no paper form.',
+      instr:'Record her consent.', hint:'She said yes. You have no way for her to sign. There is an option for exactly this.',
+      eval(){ const p=val('perm'), d=val('doc');
+        if (d==='Electronic Signature') return {ok:false, tag:'Incorrect — chose Electronic Signature', fb:'Electronic Signature needs a screen she can sign on, and you do not have one. Picking it here means either she signs nothing, or you sign for her. Neither of those is her consent.'};
+        if (p==='No') return {ok:false, tag:'Incorrect — set Permission to No', fb:'She said yes. Recording a no because you could not get a signature today puts an answer on her record that she did not give, and it stops the next agency from seeing her until somebody fixes it.'};
+        if (p==='Yes' && d==='Verbal Consent') return {ok:true, fb:'Permission Yes, Documentation Verbal Consent. Her yes is real and it counts today. What you owe her now is the follow-up. Verbal Consent is consent with a plan attached, and the plan is that you come back with something she can sign.'};
+        return {ok:false, fb:'She said yes out loud, with nothing to sign on. That is Permission Yes and Documentation Verbal Consent, and a plan to come back for a written signature.'}; } },
+
+    { scen:'A man has given you his name, date of birth, and the last four of his Social Security Number. Then he stops. He says he has thought about it, and he does not want any of his personal information in the system. Not his name, not his birthday, none of it. He still wants help.',
+      instr:'Record his decision and create the profile.', hint:'He is not asking who can see his information. He is asking that it not be there.', skip:true,
+      eval(){ if (crOn) return {ok:true, fb:'Consent Refused. The form replaced his name with Generated Refused, his Social Security Number with zeros, and his date of birth with January 1, and it set the quality codes to match. The record exists. He can be enrolled and served. What is not in there is anything that identifies him, which is exactly what he asked for. This is the only situation that toggle is for. Everything else is a Permission answer.'};
+        if (val('perm')==='No') return {ok:false, tag:'Incorrect — set Permission to No and left his details in place', fb:'Permission No controls which agencies can see his information. His name and date of birth are still sitting on the record. He asked for none of it to be there. That is a different request, and there is a different control for it.'};
+        return {ok:false, fb:'He asked that none of his identifying information be in the system at all. That is the Consent Refused toggle, in the identity section. It replaces his details with placeholders and still lets you create the record and serve him.'}; },
+      skipFb:{tag:'Incorrect — did not create a profile', fb:'He still wants help, and anyone who receives services needs a profile. Refusing to have his identifying information in HMIS does not mean he cannot be served. It means the record has to be built differently.'} },
+  ];
+
+  // ---------- flow ----------
+  let i=-1, cur=null, answered=false;
+  const B = {start:$('start'),hint:$('hintbtn'),ask:$('askbtn'),cont:$('contbtn'),skip:$('skipbtn'),next:$('nextbtn'),replay:$('replay')};
+  const show=(el,on)=>el.hidden=!on;
+  function load(n){
+    i=n; cur=T[n]; answered=false; cur.asked=false; cur.touchedBeforeAsk=false; cur.snap=null;
+    resetForm();
+    $('tnum').textContent=`Task ${n+1} of ${T.length}`;
+    $('scen').innerHTML=`<p>${cur.scen}</p>`; $('instr').textContent=cur.instr;
+    $('stage2').textContent=cur.stage2||''; $('stage2').classList.remove('show');
+    $('hint').textContent=cur.hint; $('hint').classList.remove('show');
+    $('fb').className='fb'; $('fb').innerHTML='';
+    $('prog').textContent=`${n+1} / ${T.length}`;
+    show(B.start,false); show(B.hint,true); show(B.ask,!!cur.ask); show(B.cont,!!cur.stage2); show(B.skip,!!cur.skip); show(B.next,false);
+    $('save').disabled=false;
+  }
+  function feedback(r){
+    answered=true;
+    const box=$('fb'); box.className='fb show '+(r.ok?'ok':'no');
+    box.innerHTML=`<span class="tag">${r.ok?'Feedback: Correct':(r.tag||'Feedback: Incorrect')}</span>${r.fb.split(/\n+/).map(p=>`<p>${p}</p>`).join('')}`;
+    box.scrollIntoView({behavior:'smooth',block:'nearest'});
+    show(B.hint,false); show(B.ask,false); show(B.cont,false); show(B.skip,false); show(B.next,true);
+    B.next.textContent = i>=T.length-1 ? 'Finish' : 'Next task';
+    $('save').disabled=true;
+  }
+  B.start.onclick=()=>load(0);
+  B.hint.onclick=()=>$('hint').classList.add('show');
+  B.cont.onclick=()=>{ cur.onCont && cur.onCont(); $('stage2').classList.add('show'); show(B.cont,false); };
+  B.ask.onclick=()=>{ cur.asked=true; $('stage2').textContent=cur.askText; $('stage2').classList.add('show'); show(B.ask,false); };
+  ['gender','race','pronouns'].forEach(id=>$(id).addEventListener('change',()=>{ if(cur&&cur.ask&&!cur.asked) cur.touchedBeforeAsk=true; }));
+  B.skip.onclick=()=>feedback({ok:false, ...cur.skipFb});
+  $('save').onclick=()=>{ if(!cur||answered) return; const t=$('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1200); feedback(cur.eval()); };
+  $('cancel').onclick=()=>{ if(cur&&!answered) resetForm(); };
+  B.next.onclick=()=>{ if (i<T.length-1) load(i+1); else finish(); };
+  function finish(){
+    $('tnum').textContent='Simulator complete'; $('scen').innerHTML=''; $('instr').textContent=''; $('stage2').classList.remove('show'); $('hint').classList.remove('show'); $('fb').className='fb';
+    $('done').innerHTML=`<p><b>Nine records that did not exist twenty minutes ago.</b></p><p>You told apart the three different reasons a field can be empty, which is the part most people never get right. You kept a year of birth that a careless code would have thrown away. You recorded a name nobody would have thought to search for, and one that everybody will.</p><p>You recorded consent the way it actually happened, including once when it happened out loud on a sidewalk. And you told the difference between someone who wants to control who sees their information and someone who does not want it there at all.</p><p>None of it took information the participant could not give you standing on a sidewalk.</p>`;
+    $('done').classList.add('show'); show(B.next,false); show(B.replay,true); $('prog').textContent='';
+    try{ window.parent.postMessage({type:'complete'},'*'); }catch(e){}
+  }
+  B.replay.onclick=()=>location.reload();
+
+  paintFaces();                       // her drawing, from tools/lashes
+
+  // First screen
+  $('tnum').textContent='Welcome back';
+  $('scen').innerHTML='<p>The plus is lit up now. Last lesson it was dimmed, along with most of this screen. Each lesson clears the part it teaches, and this is yours.</p><p>Nothing here is scored. If you pick something I would not have picked, I will tell you why, and then we carry on to the next one. Nobody is keeping count and there is nothing to fail.</p><p>And I am never going to check your spelling. Type it however it comes out. What I would ask is that you check it with the person in front of you, which is a completely different thing, and it is the one that matters.</p>';
+  $('instr').textContent='Nine people, nine records.';
+})();
+</script>
+</body>
+</html>
