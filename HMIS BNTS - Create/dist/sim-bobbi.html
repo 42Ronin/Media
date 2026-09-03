@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meeting Bobbi</title>
+<style>
+  :root{
+    --ink:#1b1b1f; --ink2:#46464f; --ink3:#6b6b75;
+    --indigo:#5055ad; --indigo-d:#383c94; --lav:#f1efff; --lav2:#e1e0ff; --surface:#fcf8fd; --line:#e5e7eb;
+    --err:#ba1a1a; --teal:#066888; --teal-l:#e6f1f4; --teal-d:#044a61; --ok:#1f7a4d; --ok-l:#e7f5ec;
+    --font: "Open Sans","Noto Sans",Roboto,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#fff;color:var(--ink);font:14px/1.5 var(--font)}
+  .stage{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:0;height:100vh;min-height:620px}
+  @media (max-width:820px){.stage{grid-template-columns:1fr;height:auto}.convo{height:auto;max-height:none}}
+
+  /* ---------- conversation panel ---------- */
+  .convo{background:var(--teal-l);border-right:1px solid #cfe1e7;display:flex;flex-direction:column;height:100vh;min-height:620px}
+  .convo header{padding:16px 20px 10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #cfe1e7}
+  .convo header h1{font-size:16px;margin:0;color:var(--teal-d);font-weight:700}
+  .convo header p{margin:0;font-size:12px;color:var(--ink3)}
+  .log{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+  .msg{max-width:92%;padding:10px 14px;border-radius:14px;line-height:1.45;animation:pop .25s ease-out}
+  .msg .who{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px;font-weight:600}
+  .msg.you{align-self:flex-end;background:#fff;border:1px solid #cfe1e7;border-bottom-right-radius:4px}
+  .msg.bobbi{align-self:flex-start;background:#fff;border:1px solid #cfe1e7;border-bottom-left-radius:4px}
+  /* Light, not teal. Her rim IS teal, so on a teal bubble the drawing vanished into
+     its own background. This also matches how she is presented everywhere else. */
+  .msg.lashes{align-self:stretch;max-width:100%;background:#fff;color:var(--ink);
+    border:1px solid #cfe1e7;border-left:4px solid var(--teal);border-radius:10px;
+    display:flex;gap:12px;align-items:flex-start;padding:12px 14px}
+  .msg.lashes .who{color:var(--teal-d)}
+  .msg.lashes .body{flex:1}
+  .msg.lashes .body p{margin:0 0 6px}
+  .msg.lashes .body p:last-child{margin:0}
+  .msg.note{align-self:stretch;max-width:100%;background:transparent;color:var(--ink2);font-style:italic;font-size:13px;padding:2px 6px}
+  .msg.alt{align-self:flex-end;background:transparent;border:1px dashed #9cc0cb;color:var(--ink2);font-size:12.5px}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .controls{padding:12px 20px 16px;border-top:1px solid #cfe1e7;display:flex;gap:10px;align-items:center;background:var(--teal-l)}
+  .btn{appearance:none;border:0;border-radius:999px;padding:10px 20px;font:600 14px var(--font);cursor:pointer;transition:transform .08s ease,box-shadow .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--teal);color:#fff;box-shadow:0 2px 0 var(--teal-d)}
+  .btn.primary:hover{background:#07789c}
+  .btn.ghost{background:transparent;color:var(--teal-d);border:1.5px solid var(--teal)}
+  .btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
+  .progress{margin-left:auto;font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
+
+  /* Lashes avatar: her own lens/lashes design, teal */
+  .lashes-av{width:40px;height:40px;flex:0 0 40px}
+
+  /* ---------- Clarity replica ---------- */
+  .clarity{background:#f3f2f7;display:flex;flex-direction:column;height:100vh;min-height:620px;overflow:hidden}
+  @media (max-width:820px){.clarity{height:auto}}
+  .topbar{height:48px;background:#e9e7fb;display:flex;align-items:center;padding:0 16px;gap:14px;border-bottom:1px solid #d9d7ee}
+  .topbar .logo{width:14px;height:20px;background:linear-gradient(135deg,#e53935,#b71c1c);clip-path:polygon(30% 0,100% 0,60% 100%,0 100%);border-radius:2px}
+  .topbar .sp{flex:1}
+  .topbar .ic{width:18px;height:18px;border-radius:50%;border:2px solid var(--indigo);opacity:.55}
+  .topbar .user{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
+  .topbar .user b{display:block;color:var(--ink);font-size:12.5px}
+  .topbar .av{width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+  .panelwrap{flex:1;position:relative;overflow:hidden}
+  .panel{position:absolute;inset:0;background:#f7f5fb;display:flex;flex-direction:column}
+  .panel-hd{background:#e9e7fb;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;font-size:16px;color:var(--ink)}
+  .panel-hd .x{width:26px;height:26px;border-radius:50%;background:#d9d7ee;display:grid;place-items:center;font-size:14px;color:var(--ink2)}
+  .form{flex:1;overflow:auto;padding:16px}
+  .card{background:var(--surface);border-radius:14px;padding:18px 18px 8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .card h2{font-size:17px;font-weight:600;color:var(--indigo);margin:0}
+  .card .sub{font-size:12px;color:var(--ink2);margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+  .grid .full{grid-column:1 / -1}
+  .f{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .f label{font-size:11.5px;font-weight:600;color:var(--ink2)}
+  .f .in{height:40px;border:1px solid #c9c6d6;border-radius:6px;background:#fffbff;padding:0 12px;display:flex;align-items:center;gap:8px;color:var(--ink);font-size:13.5px;position:relative;transition:border-color .2s,box-shadow .2s,background .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .f .in.ph{color:#8a8894}
+  .f .in.sel::after{content:"";position:absolute;right:12px;top:50%;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--ink2);transform:translateY(-50%)}
+  .f .in.sel{padding-right:30px}
+  .f .hint{font-size:10.5px;color:var(--ink3);margin-top:-2px}
+  .f.flash .in{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(80,85,173,.25);background:#fff}
+  .f.changed .in{animation:glow 1.2s ease-out}
+  @keyframes glow{0%{background:#e1e0ff;border-color:var(--indigo)}100%{background:#fffbff}}
+  .f .req{color:var(--err);font-size:10.5px;display:none}
+  .sec{grid-column:1/-1;font-size:13px;font-weight:600;color:var(--indigo);margin:8px 0 -4px}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);grid-column:1/-1;margin:4px 0}
+  .toggle .sw{width:38px;height:22px;border-radius:999px;background:#c9c6d6;position:relative}
+  .toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+  .consent{grid-column:1/-1;background:#fff;border:1px solid #e0ddef;border-radius:8px;padding:12px 14px;font-size:12px;color:var(--ink2);display:none}
+  .consent.show{display:block}
+  .footer{background:var(--surface);border-top:1px solid #e0ddef;padding:10px;display:flex;justify-content:center;gap:16px;align-items:center}
+  .footer .cancel{color:var(--indigo);font-weight:600;font-size:13px}
+  .footer .save{border:1.5px solid #b9b7c9;border-radius:999px;padding:7px 22px;color:#9a98a8;font-size:13px;background:#fff;transition:all .2s}
+  .footer .save.on{border-color:var(--indigo);color:var(--indigo);background:#fff;box-shadow:0 0 0 3px rgba(80,85,173,.2);cursor:pointer}
+
+  /* profile result */
+  .profile{position:absolute;inset:0;background:#f3f2f7;display:none;flex-direction:column}
+  .profile.show{display:flex}
+  .crumbs{padding:10px 16px;font-size:12px;color:var(--indigo);background:#e9e7fb;border-bottom:1px solid #d9d7ee}
+  .phead{display:flex;align-items:center;gap:12px;padding:12px 18px;background:#faf8fe;border-bottom:1px solid #e0ddef}
+  .phead .big{width:40px;height:40px;border-radius:8px;background:var(--indigo);color:#fff;display:grid;place-items:center;font-weight:700}
+  .phead h3{margin:0;font-size:18px;font-weight:600}
+  .phead p{margin:0;font-size:11px;color:var(--ink3)}
+  .phead p b{color:var(--indigo);background:var(--lav2);padding:1px 6px;border-radius:4px;animation:glow2 1.6s ease-out 3}
+  @keyframes glow2{0%{box-shadow:0 0 0 0 rgba(80,85,173,.5)}100%{box-shadow:0 0 0 10px rgba(80,85,173,0)}}
+  .pbody{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:14px;flex:1;overflow:auto}
+  .rail{background:#f7f5fb;border-radius:12px;padding:8px}
+  .rail div{padding:7px 10px;font-size:12.5px;color:var(--ink2);border-radius:8px}
+  .rail div.on{background:var(--lav2);color:var(--ink);font-weight:600}
+  .pcard{background:var(--surface);border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05);align-self:start}
+  .pcard h4{margin:0;font-size:16px;color:var(--indigo);font-weight:600}
+  .pcard .sub{font-size:11.5px;color:var(--ink2);margin:0 0 12px}
+  .pcard dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin:0}
+  .pcard dt{font-size:11px;font-weight:600;color:var(--ink2)}
+  .pcard dd{margin:0;font-size:13px}
+  .pcard .demo{grid-column:1/-1;color:var(--indigo);font-size:12.5px;font-weight:600;margin-top:6px}
+/* Lashes' drawing. Inlined with face.js — see the note there. */
+.m-rim{fill:none;stroke:#066888;stroke-width:6}
+.m-glass{fill:#e0eff5;opacity:1}
+.m-eye{fill:#14222b}
+.m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
+.m-lidfill{fill:#e0eff5}
+.m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
+.m-spark{fill:#14222b}
+.m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
+.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+.m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
+.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
+.m-face{animation:mscan 6.5s ease-in-out infinite}
+@keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
+  25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
+@keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
+@keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+
+/* The host a page puts her in. It sizes her; the drawing fills it. */
+.lashes-av{display:inline-block;width:40px;height:40px;flex:0 0 40px}
+.lashes-av svg{width:100%;height:100%;display:block;overflow:visible}
+
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ================= CONVERSATION ================= -->
+  <section class="convo" aria-label="Conversation">
+    <header>
+      <span class="lashes-av" data-face></span>
+      <div><h1>Meeting Bobbi</h1><p>Watch one, then it's your turn.</p></div>
+    </header>
+    <div class="log" id="log" aria-live="polite"></div>
+    <div class="controls">
+      <button class="btn primary" id="next">Start</button>
+      <button class="btn ghost" id="replay" hidden>Replay</button>
+      <span class="progress" id="prog"></span>
+    </div>
+  </section>
+
+  <!-- ================= CLARITY REPLICA ================= -->
+  <section class="clarity" aria-label="Practice Clarity">
+    <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="ic"></div><div class="ic"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
+    <div class="panelwrap">
+      <div class="panel" id="panel">
+        <div class="panel-hd"><span>Add Client</span><span class="x">×</span></div>
+        <div class="form" id="form">
+          <div class="card">
+            <h2>Add Client</h2><p class="sub">Complete this form to create a new client</p>
+            <div class="grid">
+              <div class="f" data-k="ssn"><label>Social Security Number *</label><div class="in ph">XXX-XX-XXXX</div></div>
+              <div class="f" data-k="qssn"><label>Quality of SSN *</label><div class="in sel ph">Select</div></div>
+              <div class="f" data-k="first"><label>First name *</label><div class="in ph">&nbsp;</div></div>
+              <div class="f" data-k="last"><label>Last name *</label><div class="in ph">&nbsp;</div></div>
+              <div class="f" data-k="middle"><label>Middle name</label><div class="in ph">&nbsp;</div></div>
+              <div class="f" data-k="suffix"><label>Suffix</label><div class="in sel">None</div></div>
+              <div class="f" data-k="qname"><label>Quality of Name *</label><div class="in sel ph">Select</div></div>
+              <div class="f" data-k="qdob"><label>Quality of DOB *</label><div class="in sel ph">Select</div></div>
+              <div class="f" data-k="dob"><label>Date of Birth *</label><div class="in ph">__/__/____</div><div class="hint">MM/DD/YYYY</div></div>
+              <div class="f"></div>
+              <div class="toggle"><div class="sw"></div>Consent Refused</div>
+              <div class="f full" data-k="alias"><label>Alias</label><div class="in ph">&nbsp;</div></div>
+              <div class="sec">Demographics</div>
+              <div class="f full" data-k="gender"><label>Gender *</label><div class="in sel ph">Select</div></div>
+              <div class="f full" data-k="pronouns"><label>Pronoun(s)</label><div class="in ph">&nbsp;</div></div>
+              <div class="f full" data-k="race"><label>Race and Ethnicity *</label><div class="in sel ph">Select</div></div>
+              <div class="sec">Enter the release of information details</div>
+              <div class="f full" data-k="perm"><label>Permission *</label><div class="in sel">Yes</div></div>
+              <div class="f" data-k="start"><label>Start Date *</label><div class="in ph">__/__/____</div></div>
+              <div class="f" data-k="end"><label>End Date *</label><div class="in ph">__/__/____</div></div>
+              <div class="f full" data-k="doc"><label>Documentation *</label><div class="in sel ph">Select</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="footer"><span class="cancel">Cancel</span><span class="save" id="save">Save</span></div>
+      </div>
+
+      <div class="profile" id="profile">
+        <div class="crumbs">Client Search &nbsp;›&nbsp; Bobbi Barrone &nbsp;›&nbsp; Profile</div>
+        <div class="phead"><div class="big">BB</div><div><h3>Bobbi Barrone</h3><p>You are currently viewing the Client Record pages for Bobbi Barrone (<b id="uid">3F8A2C1D9</b>).</p></div></div>
+        <div class="pbody">
+          <div class="rail"><div class="on">Profile</div><div>Privacy</div><div>Household</div><div>History</div><div>Programs</div><div>Services</div><div>Assessments</div><div>Care Team</div><div>Notes</div><div>Alerts</div><div>Files</div><div>Forms</div><div>Contacts</div><div>Location</div><div>Referrals</div></div>
+          <div class="pcard">
+            <h4>Bobbi Barrone</h4><p class="sub">Client profile information</p>
+            <dl>
+              <dt>Social Security Number</dt><dd>XXX-XX-XXXX</dd>
+              <dt>Quality of SSN</dt><dd>Client doesn't know</dd>
+              <dt>First name</dt><dd>Bobbi</dd>
+              <dt>Last name</dt><dd>Barrone</dd>
+              <dt>Quality of Name</dt><dd>Full name reported</dd>
+              <dt>Quality of DOB</dt><dd>Full DOB Reported</dd>
+              <dt>Date of Birth</dt><dd>08/22/1993</dd>
+              <dt>Age</dt><dd>33</dd>
+              <dt>Consent Refused</dt><dd>No</dd>
+              <dt>Alias</dt><dd>No value</dd>
+              <div class="demo">Demographics</div>
+              <dt>Gender</dt><dd>Woman (Girl, if child)</dd>
+              <dt>Pronoun(s)</dt><dd>she/her</dd>
+              <dt>Race and Ethnicity</dt><dd>Black, African American, or African</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   LASHES — the drawing, and the only copy of it
+
+   Her geometry and her expression library. Inlined into every page that shows
+   her, at the LASHES tokens, because each page has to stand alone with no
+   network — but inlined FROM HERE, so there is one face to change.
+
+   Before this file she was copied by hand into the lesson, three
+   knowledge-check stagings and the block builder, and "if her face changes,
+   change it in both" was a note in CLAUDE.md rather than something the build
+   enforced.
+
+   svg(eyes, mouth) returns a 100x100 viewBox. The caller sizes it.
+   Expressions are fixed and are not a setting: open, droll, sparkle, wide,
+   arcs for the eyes; tip, plain, cheer, wry, hm for the mouth.
+   ============================================================ */
+var LASH={
+  open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
+       '<path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/></g>',
+  high:'<g class="m-lash"><path d="M30 33.5 l-3.4 -3"/><path d="M34.3 32 l-1.2 -3.4"/><path d="M38.4 32.8 l1.7 -3.2"/>'+
+       '<path d="M48.6 32.8 l-1.7 -3.2"/><path d="M52.7 32 l1.2 -3.4"/><path d="M57 33.5 l3.4 -3"/></g>',
+  low: '<g class="m-lash"><path d="M30.8 38 l-3 -1"/><path d="M34.9 36.8 l-.7 -2.2"/><path d="M38.9 37.6 l1.4 -1.9"/>'+
+       '<path d="M49.1 37.6 l-1.4 -1.9"/><path d="M53.1 36.8 l.7 -2.2"/><path d="M57.2 38 l3 -1"/></g>'
+};
+function spark(cx,cy){
+  return '<path class="m-spark" d="M'+cx+' '+(cy-4.6)+' q1 3.4 4.6 4.6 q-3.6 1.2 -4.6 4.6 '+
+         'q-1 -3.4 -4.6 -4.6 q3.6 -1.2 4.6 -4.6 z"/>';
+}
+function droll(cx){
+  return '<circle class="m-eye" cx="'+cx+'" cy="39.5" r="4"/>'+
+         '<rect class="m-lidfill" x="'+(cx-4.6)+'" y="34" width="9.2" height="3.9" rx="1.6"/>'+
+         '<path class="m-lidline" d="M'+(cx-4)+' 37.7 h8"/>';
+}
+var EYES={
+  open:   {e:'<circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>', l:"open"},
+  droll:  {e:droll(35)+droll(53), l:"low"},
+  sparkle:{e:spark(35,39)+spark(53,39), l:"high"},
+  wide:   {e:'<circle class="m-eye" cx="35" cy="39" r="5.2"/><circle class="m-eye" cx="53" cy="39" r="5.2"/>', l:"high"},
+  arcs:   {e:'<path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/><path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>', l:"open"}
+};
+var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
+           wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
+function svg(eyes,mouth){
+  var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
+  return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
+    '<g class="m-body">'+
+      '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
+      '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
+      '<g class="m-face"><g class="m-eyes">'+ex.e+'</g>'+LASH[ex.l]+
+        '<path class="m-mouth" d="'+m+'"/></g>'+
+      '<path class="m-shine" d="M27 30 q7-9 17-10"/>'+
+    '</g></svg>';
+}
+
+/* Every [data-face] host gets her drawing. `data-face` may name an expression
+   pair, "eyes mouth"; empty means open/tip. Call it again after adding hosts,
+   which is what a page building her into a message has to do. */
+function paintFaces(root){
+  var hosts=(root||document).querySelectorAll("[data-face]");
+  for(var i=0;i<hosts.length;i++){
+    var h=hosts[i];
+    if(h.getAttribute("data-painted")) continue;
+    var pair=(h.getAttribute("data-face")||"").split(/\s+/);
+    h.innerHTML=svg(pair[0]||"open", pair[1]||"tip");
+    h.setAttribute("data-painted","1");
+  }
+}
+
+(() => {
+  const log = document.getElementById('log');
+  const next = document.getElementById('next');
+  const replay = document.getElementById('replay');
+  const prog = document.getElementById('prog');
+  const save = document.getElementById('save');
+  const panel = document.getElementById('panel');
+  const profile = document.getElementById('profile');
+  const today = new Date();
+  const fmt = d => `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
+  const end = new Date(today); end.setFullYear(end.getFullYear()+7);
+
+  // Each beat: messages to add, then form changes to apply.
+  const beats = [
+    { msgs:[ {who:'Bobbi', cls:'bobbi', t:'My name is Bobbi.'} ],
+      form:[ ['first','Bobbi'], ['qname','Partial, street name, or code name reported'] ],
+      lashes:['One name is not a full name. Say so on the record.','You can change it in a minute if she gives you more.'] },
+
+    { msgs:[ {who:'You', cls:'you', t:'May I ask for your last name?'},
+             {cls:'alt', t:'Alternate, if they are carrying documents: "Bobbi, would you have an ID that I can use to fill in your information?"'},
+             {who:'Bobbi', cls:'bobbi', t:'Sure, it’s Barrone. B-A-R-R-O-N-E.'} ],
+      form:[ ['last','Barrone'], ['qname','Full name reported'] ],
+      lashes:['One more question. That is the entire difference between a partial name and a full one.','And notice she spelled it out without being asked twice. Ask everybody to spell it, and read it back to them so they can catch you.','Five seconds now. It saves somebody twenty minutes two years from now, and there is a decent chance that somebody is you.'] },
+
+    { msgs:[ {who:'You', cls:'you', t:'Thank you, Bobbi. May I get your birthday?'},
+             {who:'Bobbi', cls:'bobbi', t:'August 22nd. Do you need the year?'} ],
+      form:[ ['qdob','Approximate or partial DOB reported'] ],
+      lashes:['She has given you most of it. Record what you have, and the code that says it is not all of it.'] },
+
+    { msgs:[ {who:'You', cls:'you', t:'If you don’t mind!'},
+             {who:'Bobbi', cls:'bobbi', t:'1993. Anything else?'} ],
+      form:[ ['dob','08/22/1993'], ['qdob','Full DOB Reported'] ],
+      lashes:['Two questions, two upgrades. Notice she was never pushed. She was asked.'] },
+
+    { msgs:[ {who:'You', cls:'you', t:'We don’t have to go through everything today. Let me ask: may I record your Social Security Number?'},
+             {who:'Bobbi', cls:'bobbi', t:'Do you really need that?'},
+             {who:'You', cls:'you', t:'Not today. Anything you share with me is so that we can help you navigate services.'},
+             {who:'Bobbi', cls:'bobbi', t:'Okay. Not today. I have to check if I still have that card.'} ],
+      form:[ ['ssn','XXX-XX-XXXX'], ['qssn','Client doesn’t know'] ],
+      lashes:['Read that again. She did not refuse. She said she is not sure she still has the card.','That is "Client doesn’t know," not "Client prefers not to answer." Different boxes, different meanings, and the difference matters to whoever sees her next.'] },
+
+    { msgs:[ {who:'You', cls:'you', t:'Sure thing, Bobbi. If needed, we can help you get another one.'} ],
+      form:[], lashes:[] },
+
+    { msgs:[ {who:'You', cls:'you', t:'Two more things and I’ll stop asking. What would you say is your gender identity? And what would you say is your race or ethnicity?'},
+             {who:'Bobbi', cls:'bobbi', t:'Woman. She, her. And Black.'} ],
+      form:[ ['gender','Woman (Girl, if child)'], ['pronouns','she/her'], ['race','Black, African American, or African'] ],
+      lashes:['You asked. That is the whole skill for this section. Not one of those fields is something you can see.'] },
+
+    { msgs:[ {who:'You', cls:'you', t:'Last thing. The information I write down, other agencies that use this system can see it too. A shelter, an outreach team on another block. That is what lets them pick up where we left off instead of you starting over. Is that okay with you?'},
+             {who:'Bobbi', cls:'bobbi', t:'Yeah, that’s fine. I don’t want to keep doing this.'},
+             {who:'You', cls:'you', t:'I don’t have anything for you to sign out here. I’m going to record that you said yes, and next time we’re together with the form, I’ll get your signature.'} ],
+      form:[ ['perm','Yes'], ['start', fmt(today)], ['end', fmt(end)], ['doc','Verbal Consent'] ],
+      lashes:['Verbal consent is real consent. It is also a promise you just made out loud. Follow up.'] },
+
+    { msgs:[ {cls:'note', t:'Nobody pressured her. A partial answer became a full one because you asked one more question. She was asked two different consent questions and got to answer each one. Nothing here was a failure. The record is honest.'} ],
+      form:[], lashes:['Now save it.'], enableSave:true },
+  ];
+
+  paintFaces();                        // the one in the header
+  let i = 0, busy = false;
+  const setProg = () => prog.textContent = i === 0 ? '' : `${Math.min(i,beats.length)} / ${beats.length}`;
+
+  function add(m){
+    const el = document.createElement('div');
+    if (m.cls === 'note') { el.className='msg note'; el.textContent = m.t; }
+    else if (m.cls === 'alt') { el.className='msg alt'; el.textContent = m.t; }
+    else { el.className = 'msg ' + m.cls; el.innerHTML = `<span class="who">${m.who}</span>${m.t}`; }
+    log.appendChild(el); log.scrollTop = log.scrollHeight;
+  }
+  function addLashes(lines){
+    if (!lines.length) return;
+    const el = document.createElement('div'); el.className='msg lashes';
+    el.innerHTML = `<span class="lashes-av" data-face></span><div class="body"><span class="who">Lashes</span>${lines.map(l=>`<p>${l}</p>`).join('')}</div>`;
+    log.appendChild(el);
+    paintFaces(el);                    // she is built into the message, so paint it now
+    log.scrollTop = log.scrollHeight;
+  }
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  async function applyForm(changes){
+    for (const [k,v] of changes){
+      const f = document.querySelector(`.f[data-k="${k}"]`);
+      if (!f) continue;
+      const inEl = f.querySelector('.in');
+      f.scrollIntoView({block:'center',behavior:'smooth'});
+      f.classList.add('flash'); await sleep(350);
+      inEl.textContent = v; inEl.classList.remove('ph');
+      f.classList.remove('flash'); f.classList.add('changed');
+      setTimeout(()=>f.classList.remove('changed'),1200);
+      await sleep(420);
+    }
+  }
+  async function step(){
+    if (busy) return; busy = true; next.disabled = true;
+    const b = beats[i];
+    for (const m of b.msgs){ add(m); await sleep(520); }
+    await applyForm(b.form);
+    addLashes(b.lashes);
+    i++; setProg();
+    if (b.enableSave){ save.classList.add('on'); next.hidden = true; }
+    else { next.textContent = i >= beats.length ? 'Finish' : 'Next'; next.disabled = false; }
+    busy = false;
+  }
+  next.addEventListener('click', step);
+  save.addEventListener('click', () => {
+    if (!save.classList.contains('on')) return;
+    panel.style.display='none'; profile.classList.add('show');
+    addLashes(['There it is. She has a record now.','That code at the top is her Unique Identifier. You used those last lesson to tell three Rosalind Vegas apart. This one is hers, and it did not exist four minutes ago.']);
+    replay.hidden = false; next.hidden = true;
+    try { window.parent.postMessage({type:'complete'}, '*'); } catch(e){}
+  });
+  replay.addEventListener('click', () => location.reload());
+})();
+</script>
+</body>
+</html>

@@ -21,7 +21,8 @@ restriction: internal reference only, never redistributed or embedded in a deliv
 ```
 HMIS BNTS - Search/       built    — finding an existing client
 HMIS BNTS - Why/          part     — the Why HMIS prologue; three Copperfield boxes ship
-HMIS BNTS - Create/       planned  — adding a new client record
+HMIS BNTS - Create/       part     — Lesson 3, Creating a Profile; two sims built
+tools/lashes/             built    — her drawing, and the only copy of it
 tools/kc-maker/           built    — knowledge checks and Copperfield boxes
 tools/scene-editor/       built    — the photo+narration openers
 tools/job-aid-builder/    built    — printable step-by-step guides, PDF out
@@ -43,6 +44,12 @@ built and committed*: pushing source alone republishes the old page.
 The front door is generated rather than kept by hand for the same reason the script docx is:
 an index that lies about what exists is worse than none, so nothing is listed unless the file
 is on disk and a missing one is greyed with the command that builds it.
+
+**Lashes' drawing has ONE source now: `tools/lashes/face.{js,css}`.** A build inlines it
+at the `LASHES_JS` / `LASHES_CSS` tokens, asserting each appears exactly once. Only Lesson 3
+uses it so far — the Search lesson, the three knowledge-check stagings and the block builder
+still carry hand-copies, and migrating them is the next tidy-up. Until that is done, "if her
+face changes, change it in all of them" still applies to those five.
 
 **Not everything we built for LAHSA is in this repo.** `42Ronin/LAHSA` carries the brand
 assets and **`Training Tools/Family Feud/`** — a game-shaped board with its own build and

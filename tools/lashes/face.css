@@ -1,0 +1,21 @@
+/* Lashes' drawing. Inlined with face.js — see the note there. */
+.m-rim{fill:none;stroke:#066888;stroke-width:6}
+.m-glass{fill:#e0eff5;opacity:1}
+.m-eye{fill:#14222b}
+.m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
+.m-lidfill{fill:#e0eff5}
+.m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
+.m-spark{fill:#14222b}
+.m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
+.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
+.m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
+.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
+.m-face{animation:mscan 6.5s ease-in-out infinite}
+@keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
+  25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
+@keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
+@keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+
+/* The host a page puts her in. It sizes her; the drawing fills it. */
+.lashes-av{display:inline-block;width:40px;height:40px;flex:0 0 40px}
+.lashes-av svg{width:100%;height:100%;display:block;overflow:visible}
