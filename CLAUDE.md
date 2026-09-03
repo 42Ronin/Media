@@ -46,10 +46,25 @@ an index that lies about what exists is worse than none, so nothing is listed un
 is on disk and a missing one is greyed with the command that builds it.
 
 **Lashes' drawing has ONE source now: `tools/lashes/face.{js,css}`.** A build inlines it
-at the `LASHES_JS` / `LASHES_CSS` tokens, asserting each appears exactly once. Only Lesson 3
-uses it so far — the Search lesson, the three knowledge-check stagings and the block builder
-still carry hand-copies, and migrating them is the next tidy-up. Until that is done, "if her
-face changes, change it in all of them" still applies to those five.
+at the `LASHES_JS` / `LASHES_CSS` tokens, asserting each appears exactly once. Lesson 3 uses
+it; nothing else does yet.
+
+**They are not four identical copies waiting to be deduplicated** — checked, not assumed.
+`kc.template.html` is byte-identical to the extracted source; `kc-teller` (2,845 chars) and
+`kc-dealer` (2,384) have diverged; `lesson1.template.html` is 17,836 because it is her whole
+rig — body, bob/blink/scan, the movement classes, the pointing arrow — with the face library
+as a small part. `lashes-builder` draws her without the library at all, and the Copperfield
+has her removed by request. So a migration is not a find-and-replace, and the honest options
+are to share only the face geometry or to leave them; diff them before choosing.
+
+**Copy her CSS block verbatim; never re-derive it by matching rule shapes.** The first cut of
+`face.css` was assembled with a regex for `^\.m-[a-z]+\{`, which silently dropped
+`.m-lash path{…}` — a descendant selector. Her lash strokes then rendered with a default fill
+and no stroke, which is to say not at all, on a character named after them.
+
+**Her viewBox is cropped to her ink**, `12.4 9.2 63.2 63.2`, measured with `getBBox`. Authored
+in a 100-square she occupied 61×61 of it, so a third of every avatar was empty and a 40px host
+drew a 24px face. Same lesson the teller's orb learned.
 
 **Not everything we built for LAHSA is in this repo.** `42Ronin/LAHSA` carries the brand
 assets and **`Training Tools/Family Feud/`** — a game-shaped board with its own build and

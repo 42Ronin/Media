@@ -113,7 +113,20 @@
   .pcard dt{font-size:11px;font-weight:600;color:var(--ink2)}
   .pcard dd{margin:0;font-size:13px}
   .pcard .demo{grid-column:1/-1;color:var(--indigo);font-size:12.5px;font-weight:600;margin-top:6px}
-/* Lashes' drawing. Inlined with face.js — see the note there. */
+/* ============================================================
+   LASHES — her drawing, and the only copy of it
+
+   Taken VERBATIM from the block it lives in. An earlier version of this file was
+   assembled by matching rule shapes, which quietly dropped `.m-lash path` — a
+   descendant selector, where the pattern expected `{` straight after the class.
+   Her lash strokes then rendered with a default fill and no stroke, which is to
+   say not at all, on a character named after them. Copy the block; do not
+   re-derive it.
+
+   Inlined into every page that shows her, at the LASHES_CSS token, because each
+   page has to stand alone with no network.
+   ============================================================ */
+/* ---------- the character, drawn exactly as the lesson draws her ---------- */
 .m-rim{fill:none;stroke:#066888;stroke-width:6}
 .m-glass{fill:#e0eff5;opacity:1}
 .m-eye{fill:#14222b}
@@ -121,15 +134,20 @@
 .m-lidfill{fill:#e0eff5}
 .m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
 .m-spark{fill:#14222b}
+.m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
 .m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
 .m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
 .m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
-.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
-.m-face{animation:mscan 6.5s ease-in-out infinite}
 @keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
   25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
+.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
 @keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
+.m-face{animation:mscan 6.5s ease-in-out infinite}
 @keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+
+@media(prefers-reduced-motion:reduce){
+  .m-body,.m-face,.m-eyes{animation:none !important}
+}
 
 /* The host a page puts her in. It sizes her; the drawing fills it. */
 .lashes-av{display:inline-block;width:40px;height:40px;flex:0 0 40px}
@@ -266,7 +284,11 @@ var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11
            wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
 function svg(eyes,mouth){
   var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
-  return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
+  /* Cropped to her ink, not the 100-square she was authored in. Measured with
+     getBBox: she occupies 61.2 x 61.2 at (13.4, 10.2), so a third of that box was
+     nothing and every caller sizing a 40px avatar got a 24px face. One unit of
+     margin all round. The teller's orb learned the same thing. */
+  return '<svg viewBox="12.4 9.2 63.2 63.2" aria-hidden="true">'+
     '<g class="m-body">'+
       '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
       '<circle class="m-glass" cx="44" cy="42" r="25"/>'+

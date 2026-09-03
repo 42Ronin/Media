@@ -42,7 +42,11 @@ var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11
            wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
 function svg(eyes,mouth){
   var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
-  return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
+  /* Cropped to her ink, not the 100-square she was authored in. Measured with
+     getBBox: she occupies 61.2 x 61.2 at (13.4, 10.2), so a third of that box was
+     nothing and every caller sizing a 40px avatar got a 24px face. One unit of
+     margin all round. The teller's orb learned the same thing. */
+  return '<svg viewBox="12.4 9.2 63.2 63.2" aria-hidden="true">'+
     '<g class="m-body">'+
       '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
       '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
