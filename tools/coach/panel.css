@@ -2,6 +2,25 @@
    A movable window over the interface, not a drawer beside it. It carries the
    standing brief and the controls; the live reaction is Lashes' job, and hers
    goes wherever the thing she is reacting to happens to be. */
+/* The coach's own palette, so a lesson does not have to know these names to wear
+   it. A lesson that already defines them (Lesson 1 does) redefines them to the
+   same values; a lesson that does not — Lesson 3, which is built in Clarity's
+   indigo — gets them here. Deliberately NOT --ink or --line: those are the host
+   page's, and the tooltip should read in whatever the lesson's own body colour is. */
+:root{
+  --teal:#066888; --teal-dk:#044e66; --teal-glow:rgba(6,104,136,.16); --lens:#e0eff5;
+  --coach:#ffffff; --coach-2:#f1f8fb; --coach-ink:#14222b; --coach-line:#d9e8ef;
+  --ok:#0f6b45; --bad:#a3312a; --tip:#8a5a00;
+}
+
+/* The task window is docked to a reserved column on the right. The interface ends
+   at its edge — including the top bar, so the account chip and the icons line up
+   with the content beneath them rather than running under the dock. Lashes still
+   floats, because she has to be able to reach the thing she is talking about. */
+:root{--dock:428px}
+.app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
+  transition:right .22s ease}
+
 html.step{--dock:0px}
 html.step .coach{display:none}
 /* An embed is a block in a Rise page: it gets the column's full width, the author

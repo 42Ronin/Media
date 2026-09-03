@@ -40,17 +40,37 @@ def main(src, out, body):
     html = src.read_text(encoding="utf-8")
     read = lambda p: p.read_text(encoding="utf-8").rstrip("\n")
 
-    # Outer first: each of these carries a slot the next pass fills.
-    html = stamp(html, "PANEL_HTML", "html", read(HERE / "panel.html"), src.name)
-    html = stamp(html, "PANEL_BODY", "html", read(body), body.name)
-    html = stamp(html, "RIG_HTML", "html", read(HERE / "rig.html"), src.name)
-    html = stamp(html, "PANEL_CSS", "css", read(HERE / "panel.css"), src.name)
-    html = stamp(html, "RIG_CSS", "css", read(HERE / "rig.css"), src.name)
-    html = stamp(html, "PANEL_JS", "js", read(HERE / "panel.js"), src.name)
-    html = stamp(html, "RIG_JS", "js", read(HERE / "rig.js"), src.name)
-    # Her drawing, last, into the slots rig.css and rig.js just brought with them.
-    html = stamp(html, "LASHES_CSS", "css", read(LASHES / "face.css"), "rig.css")
-    html = stamp(html, "LASHES_JS", "js", read(LASHES / "face.js"), "rig.js")
+    # Two groups, and the rig is OPTIONAL. A page can take the window without the
+    # floating character: the Bobbi walkthrough carries her inside its transcript,
+    # where she is one voice in a conversation rather than something standing next
+    # to the interface. All-or-nothing per group, so a typo'd token still fails.
+    panel = [("PANEL_HTML", "html", read(HERE / "panel.html")),
+             ("PANEL_CSS",  "css",  read(HERE / "panel.css")),
+             ("PANEL_JS",   "js",   read(HERE / "panel.js"))]
+    rig   = [("RIG_HTML", "html", read(HERE / "rig.html")),
+             ("RIG_CSS",  "css",  read(HERE / "rig.css")),
+             ("RIG_JS",   "js",   read(HERE / "rig.js"))]
+
+    for name, group in (("panel", panel), ("rig", rig)):
+        present = [n for n, k, _ in group if html.count(token(n, k))]
+        if present and len(present) != len(group):
+            raise SystemExit("%s: %s group is half there — has %s, missing %s" % (
+                src.name, name, ", ".join(present),
+                ", ".join(n for n, _, _ in group if n not in present)))
+
+    # Outer first: each of these carries a slot a later pass fills.
+    for name, kind, text in panel + rig:
+        if html.count(token(name, kind)):
+            html = stamp(html, name, kind, text, src.name)
+    # PANEL_BODY is nested inside panel.html rather than written by the page, so it
+    # is not part of the presence check above — it exists only once the panel is in.
+    if html.count(token("PANEL_BODY", "html")):
+        html = stamp(html, "PANEL_BODY", "html", read(body), body.name)
+
+    # Her drawing, last — into the slots rig.css and rig.js brought with them, or
+    # into the page's own if it took the panel without the rig.
+    html = stamp(html, "LASHES_CSS", "css", read(LASHES / "face.css"), src.name)
+    html = stamp(html, "LASHES_JS", "js", read(LASHES / "face.js"), src.name)
 
     out.write_text(html, encoding="utf-8")
 

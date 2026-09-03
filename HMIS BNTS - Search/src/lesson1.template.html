@@ -34,15 +34,7 @@ body{
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select{font:inherit}
 :focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:4px}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
-/* The task window is docked to a reserved column on the right. The interface ends
-   at its edge — including the top bar, so the account chip and the icons line up
-   with the content beneath them rather than running under the dock. Lashes still
-   floats, because she has to be able to reach the thing she is talking about. */
-:root{--dock:428px}
-.app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
-  transition:right .22s ease}
 
 /* ---------------- left rail ---------------- */
 .rail{width:70px;flex:none;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;gap:4px;overflow:hidden}
@@ -842,6 +834,33 @@ function saveCols(){
   try{ localStorage.setItem(CKEY, JSON.stringify(S.cols.map(function(c){return {k:c.k,vis:c.vis};}))); }catch(e){}
 }
 
+/* What the shared rig in tools/coach needs to know about THIS interface. It used
+   to name these itself, which is fine in one lesson and wrong in the second.
+   Read once, when the rig loads, except keepClear — which is asked per placement,
+   because the row it has to avoid is the one the current task expects. */
+var LZ_HOST={
+  anchors:{
+    search:"#pill", results:"#tbl", zero:"#zero", pager:"#pager",
+    record:".recwrap", tabs:"#recNav", columns:"#colBtn", filter:"#filterBtn", add:"#addBtn",
+    rail:".rail", topbar:".who",
+    magnifier:"#globalSearchBtn", clientsicon:".railbtn[aria-current]",
+    crumbs:"#crumbs",
+    recname:"#recName", profile:"#profilePane .cardhead", loclist:".lochead"
+  },
+  row:'tr[data-row="%"]',
+  /* The record page and the results table are never up at the same time. */
+  fallback:["results","zero","search"],
+  lane:STEP,
+  keepClear:function(){
+    var out=[{sel:"#pill", w:4}];
+    /* A step embed gives her a lane of her own beside the interface. Keeping the
+       results clear is what puts her in it rather than on top of the rows. */
+    if(STEP) out.push({sel:"#tbl", w:6});
+    var t=(typeof task==="function") ? task() : null;
+    if(t && t.expect && t.expect.id) out.push({sel:'tr[data-row="'+t.expect.id+'"]', w:14});
+    return out;
+  }
+};
 /*__RIG_JS__*/
 
 /* ============================================================

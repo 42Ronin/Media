@@ -6,6 +6,10 @@
 
    The placement solver only matters in the popped-out mode. */
 (function(){
+  /* The rig is optional: a page may take the window and carry her inside its own
+     content instead — the Bobbi walkthrough has her as a voice in its transcript.
+     Nothing here needs her, so nothing here may assume she is loaded. */
+  function relayout(){ if(typeof LZ!=="undefined" && LZ && LZ.relayout) LZ.relayout(); }
   var win=$("#coachWin"), bar=$("#cwBar"), root=document.documentElement, drag=null, moved=false;
   function floating(){ return root.classList.contains("dock-out"); }
 
@@ -96,7 +100,7 @@
     var cy=(e.clientY!=null?e.clientY:e.touches[0].clientY);
     win.style.left=(cx-drag.dx)+"px"; win.style.top=(cy-drag.dy)+"px";
   }
-  function end(){ if(!drag) return; drag=null; bar.classList.remove("drag"); clamp(); LZ.relayout(); }
+  function end(){ if(!drag) return; drag=null; bar.classList.remove("drag"); clamp(); relayout(); }
   bar.addEventListener("pointerdown",start);
   window.addEventListener("pointermove",moveIt);
   window.addEventListener("pointerup",end);
@@ -110,10 +114,10 @@
     if(out){
       moved=false;
       win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
-      requestAnimationFrame(function(){ autoPlace(); clamp(); LZ.relayout(); });
+      requestAnimationFrame(function(){ autoPlace(); clamp(); relayout(); });
     }else{
       win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
-      setTimeout(function(){ LZ.relayout(); },240);
+      setTimeout(function(){ relayout(); },240);
     }
   });
   function setMin(min){
@@ -125,7 +129,7 @@
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
       : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
     root.classList.toggle("dock-min", min && !floating());
-    setTimeout(function(){ autoPlace(); clamp(); LZ.relayout(); },240);
+    setTimeout(function(){ autoPlace(); clamp(); relayout(); },240);
   }
   /* The orientation folds the panel away while it works, so the interface it is
      talking about is not sharing the screen with a task nobody has read yet. */
@@ -137,7 +141,7 @@
   $("#cwMin").addEventListener("click",function(){
     setMin(!win.classList.contains("min"));
   });
-  function reflow(){ autoPlace(); clamp(); LZ.relayout(); }
+  function reflow(){ autoPlace(); clamp(); relayout(); }
   window.addEventListener("resize",reflow);
   /* The launcher mounts this frame while it is display:none, so it boots at 0x0
      and everything is placed against rectangles that do not exist yet. resize

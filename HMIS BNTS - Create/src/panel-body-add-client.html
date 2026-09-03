@@ -1,0 +1,24 @@
+  <div class="chead">
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="cmeta"><span id="taskNo"></span><span id="prog"></span></div>
+  </div>
+  <div class="cbody">
+    <h3 class="tasktitle" id="tTitle"></h3>
+    <p class="taskbrief" id="tBrief"></p>
+    <!-- #tAsk is the rig's `task` anchor as well as the instruction: it is the one
+         thing in the panel she ever needs to point at. -->
+    <div class="taskask" id="tAsk"></div>
+    <!-- The second half of a two-stage situation — what they say when you ask.
+         It is theirs, so it stays in the panel with the rest of the situation
+         rather than becoming something Lashes says. -->
+    <div class="stage2" id="stage2" hidden></div>
+  </div>
+  <div class="cfoot">
+    <button class="cbtn go" id="start">Start</button>
+    <button class="cbtn" id="hintbtn" hidden>Show hint</button>
+    <button class="cbtn" id="askbtn" hidden>Ask them</button>
+    <button class="cbtn" id="contbtn" hidden>Continue the conversation</button>
+    <button class="cbtn" id="skipbtn" hidden>Don’t create a profile</button>
+    <button class="cbtn go" id="nextbtn" hidden>Next task →</button>
+    <button class="cbtn" id="replay" hidden>Replay</button>
+  </div>

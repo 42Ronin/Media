@@ -127,8 +127,9 @@ const MANIFEST = [
     items: [
       { src: `${C}/dist/sim-bobbi.html`, slug: 'lesson-3-create/meeting-bobbi',
         name: 'Guided walkthrough — Meeting Bobbi',
-        what: 'The conversation on the left, the form filling in on the right, then Save and ' +
-              'the Unique Identifier. Watch-only for now; the script wants it interactive.',
+        what: 'The conversation in the training panel, the form filling in beside it, then ' +
+              'Save and the Unique Identifier. Watch-only for now; the script wants it ' +
+              'interactive.',
         zip: `${C}/dist/sim-bobbi.zip`, how: `cd '${C}' && ./build.sh` },
       { src: `${C}/dist/sim-add-client.html`, slug: 'lesson-3-create/add-client-practice',
         name: 'Add Client practice',

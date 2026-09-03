@@ -19,7 +19,7 @@
   backdrop-filter:blur(3px)}
 .lzlayer.hero .lzchar{width:230px;height:230px}
 .lzlayer.hero .lzbub{background:none;border:0;box-shadow:none;padding:0;max-width:none}
-.lzlayer.hero .lzbub .fb p{font-size:34px;line-height:1.25;font-weight:600;color:var(--indigo-dk);margin:0}
+.lzlayer.hero .lzbub .fb p{font-size:34px;line-height:1.25;font-weight:600;color:var(--indigo-dk,var(--teal-dk));margin:0}
 .lzlayer.hero .lzbub .fb p+p{font-size:19px;font-weight:400;color:var(--ink);margin-top:14px}
 .lzlayer.hero .lzfoot{border-top:0;padding-top:22px;justify-content:flex-start}
 .lzlayer.hero .lzfoot>*{margin-left:0}
@@ -152,3 +152,6 @@
   .m-body,.m-face,.m-eyes{animation:none !important}
   .lzchar[class*="mv-"] .m-body{animation:none !important}
 }
+
+/* #lzLive announces her lines to a screen reader without drawing them. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}

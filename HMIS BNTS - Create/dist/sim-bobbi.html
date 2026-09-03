@@ -13,46 +13,173 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:#fff;color:var(--ink);font:14px/1.5 var(--font)}
-  .stage{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:0;height:100vh;min-height:620px}
-  @media (max-width:820px){.stage{grid-template-columns:1fr;height:auto}.convo{height:auto;max-height:none}}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  [hidden]{display:none !important}
+  :focus-visible{outline:3px solid #0b6fd4;outline-offset:2px;border-radius:4px}
+  /* No narrow-viewport branch — see add-client. */
 
-  /* ---------- conversation panel ---------- */
-  .convo{background:var(--teal-l);border-right:1px solid #cfe1e7;display:flex;flex-direction:column;height:100vh;min-height:620px}
-  .convo header{padding:16px 20px 10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #cfe1e7}
-  .convo header h1{font-size:16px;margin:0;color:var(--teal-d);font-weight:700}
-  .convo header p{margin:0;font-size:12px;color:var(--ink3)}
-  .log{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
-  .msg{max-width:92%;padding:10px 14px;border-radius:14px;line-height:1.45;animation:pop .25s ease-out}
-  .msg .who{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px;font-weight:600}
-  .msg.you{align-self:flex-end;background:#fff;border:1px solid #cfe1e7;border-bottom-right-radius:4px}
-  .msg.bobbi{align-self:flex-start;background:#fff;border:1px solid #cfe1e7;border-bottom-left-radius:4px}
-  /* Light, not teal. Her rim IS teal, so on a teal bubble the drawing vanished into
-     its own background. This also matches how she is presented everywhere else. */
-  .msg.lashes{align-self:stretch;max-width:100%;background:#fff;color:var(--ink);
-    border:1px solid #cfe1e7;border-left:4px solid var(--teal);border-radius:10px;
+/* ---------------- coach window ----------------
+   A movable window over the interface, not a drawer beside it. It carries the
+   standing brief and the controls; the live reaction is Lashes' job, and hers
+   goes wherever the thing she is reacting to happens to be. */
+/* The coach's own palette, so a lesson does not have to know these names to wear
+   it. A lesson that already defines them (Lesson 1 does) redefines them to the
+   same values; a lesson that does not — Lesson 3, which is built in Clarity's
+   indigo — gets them here. Deliberately NOT --ink or --line: those are the host
+   page's, and the tooltip should read in whatever the lesson's own body colour is. */
+:root{
+  --teal:#066888; --teal-dk:#044e66; --teal-glow:rgba(6,104,136,.16); --lens:#e0eff5;
+  --coach:#ffffff; --coach-2:#f1f8fb; --coach-ink:#14222b; --coach-line:#d9e8ef;
+  --ok:#0f6b45; --bad:#a3312a; --tip:#8a5a00;
+}
+
+/* The task window is docked to a reserved column on the right. The interface ends
+   at its edge — including the top bar, so the account chip and the icons line up
+   with the content beneath them rather than running under the dock. Lashes still
+   floats, because she has to be able to reach the thing she is talking about. */
+:root{--dock:428px}
+.app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
+  transition:right .22s ease}
+
+html.step{--dock:0px}
+html.step .coach{display:none}
+/* An embed is a block in a Rise page: it gets the column's full width, the author
+   sets its height, and it holds the INTERFACE and nothing else. The Rise page above
+   it carries the slide's own instruction; repeating that inside the block says the
+   same thing twice, in a smaller font, in a box the learner has to look past to
+   reach the thing they were told to do. So the interface fills the frame edge to
+   edge — no side rail, no card across the top. */
+html.step .app{top:0;left:0;right:0;bottom:0}
+/* She is not furniture in an embed. She is absent while the learner works, and
+   arrives only where the script attached feedback to that task — says it, and that
+   is the whole of her part.
+
+   And she is PLACED, not solved. The placement solver is built for the lesson's own
+   stage — a tall window with a docked panel and keep-clear regions — and in a 600px
+   Rise block it parked her bubble off the right-hand edge whatever it was anchored
+   to. An embed is one small box of known shape, so she sits in a fixed corner of it
+   and the arrow, which has nothing to point at here, does not draw. */
+html.step .lzlayer{position:fixed !important;left:auto !important;right:14px !important;
+  top:auto !important;bottom:14px !important;transform:none !important;
+  width:auto !important;height:auto !important;
+  display:flex !important;align-items:flex-end;gap:10px;z-index:200;pointer-events:none}
+html.step .lzlayer .lzchar{position:static !important;transform:none !important;
+  flex:none;width:76px;height:76px}
+/* pointer-events only once she is actually speaking: a silent bubble still holds
+   its box in the flex row, and an invisible 560px panel over the bottom-right of
+   the results table would eat clicks on the rows under it */
+html.step .lzbub{position:static !important;transform:none !important;
+  width:min(560px,64vw) !important;max-width:none !important;min-width:0 !important;
+  margin:0 !important;pointer-events:none !important}
+html.step .lzbub.on{pointer-events:auto !important}
+html.step .lzarrow{display:none !important}
+html.step .lzlayer .lzfoot{display:none !important}
+/* Free play: no way into a record, so none of the row's controls either. The
+   expander and the row menu are taught later in the script — showing them here,
+   inert, teaches the wrong thing about what a control does. */
+html.play .cwrap{cursor:default}
+html.play [data-exp],html.play [data-rowmenu],html.play .hhicon{display:none}
+/* Inline in a Rise block there is no room for chrome that is not doing work. */
+html.step .topbar{height:44px}
+html.step .rail{width:56px}
+.coach{position:fixed;right:24px;top:24px;width:380px;background:var(--coach);color:var(--coach-ink);
+  display:flex;flex-direction:column;z-index:170;border-radius:17px;overflow:hidden;
+  max-height:calc(100vh - 48px);
+  box-shadow:0 14px 40px var(--teal-glow),0 2px 6px rgba(20,34,43,.10),0 0 0 1px rgba(6,104,136,.12)}
+html.dock-min .coach{width:auto}
+/* Popped out it is shorter, but it is draggable either way: the column stays
+   reserved whatever the panel does, so moving it costs the interface nothing. */
+html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
+.cwbar{cursor:grab}
+.cwbar.drag{cursor:grabbing}
+.coach.pulse{animation:cwpulse 1.1s ease-out}
+@keyframes cwpulse{0%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 0 rgba(63,160,192,.5)}
+  100%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 16px rgba(63,160,192,0)}}
+.cwbar{display:flex;align-items:center;gap:2px;padding:7px 7px 7px 15px;background:var(--teal);
+  color:#fff;flex:none;user-select:none;touch-action:none}
+.cwbar .lz{font-size:12.5px;letter-spacing:.02em;color:#fff;font-weight:650;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 26px was a small thing to hit, and the icon inside it smaller still. */
+.cwbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:rgba(255,255,255,.86);flex:none}
+.cwbtn:hover{background:rgba(255,255,255,.18);color:#fff}
+/* The help marker and its tooltip. Hover or keyboard focus only — no click, no
+   state, nothing to undo. It hangs below the title bar and to the left, because
+   the panel is against the right edge and there is no room the other way. */
+.cwhelp{position:relative;cursor:default}
+.cwtip{position:absolute;top:calc(100% + 8px);right:-4px;width:250px;background:#fff;color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(40,30,90,.22);
+  padding:11px 13px;font-size:13.5px;line-height:1.5;text-align:left;font-weight:400;
+  opacity:0;visibility:hidden;transition:opacity .13s;z-index:200;pointer-events:none}
+.cwhelp:hover .cwtip,.cwhelp:focus-visible .cwtip{opacity:1;visibility:visible}
+.cwtip b{font-weight:600}
+@media(prefers-reduced-motion:reduce){.cwtip{transition:none}}
+.coach.min .cbody,.coach.min .cfoot,.coach.min .chead{display:none}
+.coach.min{max-height:none}
+.chead{padding:14px 18px 11px;border-bottom:1px solid var(--coach-line);flex:none}
+.chead h2{margin:0;font-size:16px;font-weight:600}
+.bar{height:6px;background:var(--lens);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--teal);width:0;transition:width .4s}
+.cmeta{display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;
+  letter-spacing:.01em;color:var(--teal)}
+.cbody{flex:1;overflow:auto;padding:20px 22px 22px}
+.tasktitle{font-size:20px;font-weight:800;margin:0 0 10px;line-height:1.3;letter-spacing:-.01em}
+.taskbrief{font-size:15.5px;line-height:1.65;color:#41606f;margin:0 0 16px}
+/* The line the participant actually says, picked out rather than just italic —
+   a soft highlight under the text reads faster than a font-style change alone.
+   box-decoration-break keeps the highlight consistent if the phrase wraps. */
+.taskbrief .q{color:var(--coach-ink);font-style:italic;font-weight:600;
+  background:linear-gradient(to bottom, transparent 60%, var(--lens) 60%);
+  padding:0 1px;border-radius:2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.taskbrief code{background:var(--lens);padding:2px 7px;border-radius:5px;font-size:14.5px}
+.taskask{display:flex;gap:11px;align-items:flex-start;background:var(--coach-2);
+  border:1px solid #d3e7ee;padding:14px 16px;border-radius:13px;font-size:15.5px;line-height:1.6;
+  box-shadow:0 3px 10px rgba(6,104,136,.07)}
+.taskask svg{flex:none;margin-top:2px;color:var(--teal)}
+.taskask b{color:var(--teal-dk)}
+.fb{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;border-left:3px solid;background:var(--coach-2)}
+.fb.tour{border-color:var(--teal)}
+.fb.good{border-color:var(--ok)} .fb.bad{border-color:var(--bad)} .fb.tip{border-color:var(--tip)}
+.fb b{display:block;margin-bottom:5px;font-size:13.5px}
+.fb .teach{margin-top:9px;padding-top:9px;border-top:1px solid #35455a;color:#c3d0de}
+.cfoot{padding:12px 18px 16px;border-top:1px solid var(--coach-line);display:flex;gap:8px;flex-wrap:wrap;flex:none}
+.cbtn{border:1px solid #bfd9e4;border-radius:9px;padding:10px 16px;font-size:14.5px;font-weight:600;color:var(--teal)}
+.cbtn:hover{background:var(--coach-2)}
+.cbtn.go{background:var(--teal);border-color:var(--teal);color:#fff}
+.cbtn.go:hover{background:var(--teal-dk)}
+
+  /* ---------- the transcript, inside the window's body ----------
+     The log is what this page IS, so it takes the panel's whole body. The bubbles
+     used to be white on a teal column; the window is white, so the tint moved onto
+     the bubbles — the same inversion the knowledge check made, and the same two-
+     sided treatment the lesson uses for an exchange: the worker solid teal on the
+     right, the participant light on the left. */
+  .log{display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+  .msg{max-width:88%;padding:9px 14px;border-radius:16px;line-height:1.5;font-size:15px;
+    animation:pop .3s cubic-bezier(.25,1.4,.4,1)}
+  .msg .who{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+    opacity:.7;margin-bottom:3px;font-weight:600}
+  .msg.you{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
+  .msg.bobbi{align-self:flex-start;background:#eaf2f6;color:var(--coach-ink);border-bottom-left-radius:5px}
+  /* Hers is not a bubble in the exchange — she is talking about it, so she gets the
+     full width and the teal edge she carries everywhere else in the series. */
+  .msg.lashes{align-self:stretch;max-width:100%;background:var(--coach-2);color:var(--coach-ink);
+    border:1px solid #d3e7ee;border-left:4px solid var(--teal);border-radius:13px;
     display:flex;gap:12px;align-items:flex-start;padding:12px 14px}
-  .msg.lashes .who{color:var(--teal-d)}
+  .msg.lashes .who{color:var(--teal-dk)}
   .msg.lashes .body{flex:1}
   .msg.lashes .body p{margin:0 0 6px}
   .msg.lashes .body p:last-child{margin:0}
-  .msg.note{align-self:stretch;max-width:100%;background:transparent;color:var(--ink2);font-style:italic;font-size:13px;padding:2px 6px}
-  .msg.alt{align-self:flex-end;background:transparent;border:1px dashed #9cc0cb;color:var(--ink2);font-size:12.5px}
+  .msg.note{align-self:stretch;max-width:100%;background:transparent;color:#5f7f8f;
+    font-style:italic;font-size:13.5px;padding:2px 4px}
+  .msg.alt{align-self:flex-end;background:transparent;border:1px dashed #bfd9e4;
+    color:#41606f;font-size:13.5px}
   @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .controls{padding:12px 20px 16px;border-top:1px solid #cfe1e7;display:flex;gap:10px;align-items:center;background:var(--teal-l)}
-  .btn{appearance:none;border:0;border-radius:999px;padding:10px 20px;font:600 14px var(--font);cursor:pointer;transition:transform .08s ease,box-shadow .15s}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{background:var(--teal);color:#fff;box-shadow:0 2px 0 var(--teal-d)}
-  .btn.primary:hover{background:#07789c}
-  .btn.ghost{background:transparent;color:var(--teal-d);border:1.5px solid var(--teal)}
-  .btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
-  .progress{margin-left:auto;font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
-
-  /* Lashes avatar: her own lens/lashes design, teal */
+  @media(prefers-reduced-motion:reduce){.msg{animation:none}}
   .lashes-av{width:40px;height:40px;flex:0 0 40px}
 
   /* ---------- Clarity replica ---------- */
-  .clarity{background:#f3f2f7;display:flex;flex-direction:column;height:100vh;min-height:620px;overflow:hidden}
-  @media (max-width:820px){.clarity{height:auto}}
+  /* .app is the coach's contract: fixed, ending at the reserved --dock column. */
+  .clarity{background:#f3f2f7;flex-direction:column;min-height:0}
   .topbar{height:48px;background:#e9e7fb;display:flex;align-items:center;padding:0 16px;gap:14px;border-bottom:1px solid #d9d7ee}
   .topbar .logo{width:14px;height:20px;background:linear-gradient(135deg,#e53935,#b71c1c);clip-path:polygon(30% 0,100% 0,60% 100%,0 100%);border-radius:2px}
   .topbar .sp{flex:1}
@@ -154,28 +281,43 @@
 /* The host a page puts her in. It sizes her; the drawing fills it. */
 .lashes-av{display:inline-block;width:40px;height:40px;flex:0 0 40px}
 .lashes-av svg{width:100%;height:100%;display:block;overflow:visible}
-
 </style>
 </head>
 <body>
-<div class="stage">
-
-  <!-- ================= CONVERSATION ================= -->
-  <section class="convo" aria-label="Conversation">
-    <header>
-      <span class="lashes-av" data-face></span>
-      <div><h1>Meeting Bobbi</h1><p>Watch one, then it's your turn.</p></div>
-    </header>
-    <div class="log" id="log" aria-live="polite"></div>
-    <div class="controls">
-      <button class="btn primary" id="next">Start</button>
-      <button class="btn ghost" id="replay" hidden>Replay</button>
-      <span class="progress" id="prog"></span>
-    </div>
-  </section>
+<aside class="coach" id="coachWin" aria-label="Training panel">
+  <div class="cwbar" id="cwBar">
+    <span class="lz" id="secTitle"></span>
+    <!-- A reminder, not a button. It used to replay the whole orientation, which is
+         a lot to sit through when all you wanted was to remember what the two icons
+         beside it do. Hovering or focusing says that, and nothing else happens. -->
+    <span class="cwbtn cwhelp" id="cwHelp" tabindex="0" role="note" aria-describedby="cwTip">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 015 .9c0 1.7-2.5 2.1-2.5 3.6M12 17.2h.01"/></svg>
+      <span class="cwtip" id="cwTip" role="tooltip">
+        This panel is mine, not Clarity's. Drag it by the title bar to move it anywhere.
+        <b>Pop out</b> lifts it off the edge; <b>collapse</b> rolls it up to the title bar.
+        Neither moves the interface, and neither loses your place.
+      </span>
+    </span>
+    <button class="cwbtn" id="cwPop" title="Pop out" aria-pressed="false" aria-label="Pop the training panel out of its column">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
+    <button class="cwbtn" id="cwMin" title="Collapse" aria-label="Collapse training panel" aria-expanded="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg></button>
+  </div>
+    <div class="chead">
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="cmeta"><span id="taskNo">Watch one, then it’s your turn</span><span id="prog"></span></div>
+  </div>
+  <!-- The transcript is what this page is, so it takes the window's whole body
+       rather than sitting in a box inside it. -->
+  <div class="cbody log" id="log" aria-live="polite"></div>
+  <div class="cfoot">
+    <button class="cbtn go" id="next">Start</button>
+    <button class="cbtn" id="replay" hidden>Replay</button>
+  </div>
+</aside>
 
   <!-- ================= CLARITY REPLICA ================= -->
-  <section class="clarity" aria-label="Practice Clarity">
+<section class="app clarity" aria-label="Practice Clarity">
     <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="ic"></div><div class="ic"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
     <div class="panelwrap">
       <div class="panel" id="panel">
@@ -213,7 +355,7 @@
 
       <div class="profile" id="profile">
         <div class="crumbs">Client Search &nbsp;›&nbsp; Bobbi Barrone &nbsp;›&nbsp; Profile</div>
-        <div class="phead"><div class="big">BB</div><div><h3>Bobbi Barrone</h3><p>You are currently viewing the Client Record pages for Bobbi Barrone (<b id="uid">3F8A2C1D9</b>).</p></div></div>
+        <div class="phead"><div class="big">BB</div><div><h3>Bobbi Barrone</h3><p>You are currently viewing the Client Record pages for Bobbi Barrone (<b id="uid">UID#7632JEWHR</b>).</p></div></div>
         <div class="pbody">
           <div class="rail"><div class="on">Profile</div><div>Privacy</div><div>Household</div><div>History</div><div>Programs</div><div>Services</div><div>Assessments</div><div>Care Team</div><div>Notes</div><div>Alerts</div><div>Files</div><div>Forms</div><div>Contacts</div><div>Location</div><div>Referrals</div></div>
           <div class="pcard">
@@ -238,10 +380,12 @@
         </div>
       </div>
     </div>
-  </section>
-</div>
+</section>
 
 <script>
+"use strict";
+/* The panel's own mechanics want a selector helper. */
+function $(sel){ return document.querySelector(sel); }
 /* ============================================================
    LASHES — the drawing, and the only copy of it
 
@@ -333,7 +477,6 @@ function paintFaces(root){
     h.setAttribute("data-painted","1");
   }
 }
-
 (() => {
   const log = document.getElementById('log');
   const next = document.getElementById('next');
@@ -393,9 +536,16 @@ function paintFaces(root){
       form:[], lashes:['Now save it.'], enableSave:true },
   ];
 
-  paintFaces();                        // the one in the header
+  /* The window's own title. The shared shell ships #secTitle empty on purpose —
+     one lesson's section name baked into it is a string waiting to be wrong in the
+     lesson that forgets to set it. */
+  document.querySelector('#secTitle').textContent = 'Meeting Bobbi';
   let i = 0, busy = false;
-  const setProg = () => prog.textContent = i === 0 ? '' : `${Math.min(i,beats.length)} / ${beats.length}`;
+  const bar = document.getElementById('barFill');
+  const setProg = () => {
+    prog.textContent = i === 0 ? '' : `${Math.min(i,beats.length)} / ${beats.length}`;
+    bar.style.width = (Math.min(i,beats.length)/beats.length*100) + '%';
+  };
 
   function add(m){
     const el = document.createElement('div');
@@ -443,9 +593,167 @@ function paintFaces(root){
     panel.style.display='none'; profile.classList.add('show');
     addLashes(['There it is. She has a record now.','That code at the top is her Unique Identifier. You used those last lesson to tell three Rosalind Vegas apart. This one is hers, and it did not exist four minutes ago.']);
     replay.hidden = false; next.hidden = true;
-    try { window.parent.postMessage({type:'complete'}, '*'); } catch(e){}
+    /* The house contract: source-tagged, and never a score. */
+    try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
+      section:'bobbi',type:'complete'}, '*'); } catch(e){}
   });
   replay.addEventListener('click', () => location.reload());
+  try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
+    section:'bobbi',type:'ready'}, '*'); } catch(e){}
+})();
+
+/* ---------------- the coach window ----------------
+   Two modes. Docked is the default: it owns a reserved column, the interface is
+   laid out against --dock, and the two can never overlap. Popped out, it floats
+   over the interface and the column is given back — which is worth having when
+   the learner wants the results at full width, and is the same window either way.
+
+   The placement solver only matters in the popped-out mode. */
+(function(){
+  /* The rig is optional: a page may take the window and carry her inside its own
+     content instead — the Bobbi walkthrough has her as a voice in its transcript.
+     Nothing here needs her, so nothing here may assume she is loaded. */
+  function relayout(){ if(typeof LZ!=="undefined" && LZ && LZ.relayout) LZ.relayout(); }
+  var win=$("#coachWin"), bar=$("#cwBar"), root=document.documentElement, drag=null, moved=false;
+  function floating(){ return root.classList.contains("dock-out"); }
+
+  /* Controls the window must not sit on. Scored as the fraction of each control
+     covered, not by area — covering half of a 34px icon button has to outweigh
+     clipping the corner of a table that fills the screen. */
+  var AVOID=[".rail","#pill","#colBtn","#filterBtn","#addBtn","#prevBtn","#nextBtn2",
+             "#recNav",".recacts"];
+  function overlapArea(a,b){
+    var w=Math.min(a.right,b.right)-Math.max(a.left,b.left);
+    var h=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top);
+    return (w>0&&h>0)?w*h:0;
+  }
+  function liveRect(sel){
+    var n=document.querySelector(sel);
+    return (n && n.getClientRects().length) ? n.getBoundingClientRect() : null;
+  }
+  /* Not the whole table — most of a results table is harmless to overlap, and
+     scoring it by area let a huge, mostly-empty rectangle outvote a 34px button.
+     What matters is the left part of each row: the chevron, the name, and the
+     identifiers under it. That is where a learner reads and clicks. */
+  function rowLane(){
+    var t=liveRect("#tbl");
+    if(!t) return null;
+    return {left:t.left, right:t.left+t.width*0.62, top:t.top, bottom:t.bottom};
+  }
+  /* Auto-placed until the learner drags it. After that the position is theirs and
+     nothing moves it again — a window that keeps relocating itself is worse than
+     one that is occasionally in the way. */
+  function autoPlace(){
+    if(moved || !floating()) return;
+    var r=win.getBoundingClientRect(), w=r.width, h=r.height, pad=18, top=36;
+    var W=window.innerWidth, H=window.innerHeight;
+    var xs=[], ys=[], i, j;
+    for(i=0;i<=4;i++){
+      xs.push(Math.round(pad+(W-w-2*pad)*i/4));
+      ys.push(Math.round(top+(H-h-pad-top)*i/4));
+    }
+    var rects=AVOID.map(liveRect).filter(Boolean);
+    var lane=rowLane();
+    var best=null, bestScore=Infinity;
+    for(i=0;i<xs.length;i++) for(j=0;j<ys.length;j++){
+      var box={left:xs[i], top:ys[j], right:xs[i]+w, bottom:ys[j]+h};
+      if(box.top<top||box.bottom>H-8||box.left<0||box.right>W) continue;
+      var s=0, k, a;
+      for(k=0;k<rects.length;k++){
+        a=rects[k].width*rects[k].height;
+        if(a>0) s+=overlapArea(box,rects[k])/a;
+      }
+      if(lane){
+        a=(lane.right-lane.left)*(lane.bottom-lane.top);
+        if(a>0) s+=overlapArea(box,lane)/a;
+      }
+      s+=(4-i)*0.004+(4-j)*0.002;                       /* ties break toward bottom right */
+      if(s<bestScore){ bestScore=s; best=box; }
+    }
+    if(!best) return;
+    win.style.left=best.left+"px"; win.style.top=best.top+"px";
+    win.style.right="auto"; win.style.bottom="auto";
+  }
+  window.placeCoachWin=autoPlace;
+  function clamp(){
+    if(!floating() && !moved) return;
+    var r=win.getBoundingClientRect(), pad=8;
+    /* A window the learner dragged may hang off the edge — that is their choice,
+       and 90px of it stays reachable. One nobody has touched must be wholly on
+       screen: inside the launcher the frame is briefly a different height while
+       the stage is revealed, and an auto-placed window kept the stale position. */
+    var keep=moved?90:r.height;
+    var x=Math.max(pad,Math.min(r.left, window.innerWidth-r.width-pad));
+    var y=Math.max(32, Math.min(r.top,  window.innerHeight-Math.min(r.height,keep)-pad));
+    win.style.left=x+"px"; win.style.top=y+"px"; win.style.bottom="auto"; win.style.right="auto";
+  }
+  function start(e){
+    if(e.target.closest("button")||e.target.closest("#cwHelp")) return;
+    moved=true;
+    var r=win.getBoundingClientRect();
+    drag={dx:(e.clientX!=null?e.clientX:e.touches[0].clientX)-r.left,
+          dy:(e.clientY!=null?e.clientY:e.touches[0].clientY)-r.top};
+    win.style.left=r.left+"px"; win.style.top=r.top+"px"; win.style.bottom="auto";
+    bar.classList.add("drag");
+    if(e.pointerId!=null && bar.setPointerCapture) bar.setPointerCapture(e.pointerId);
+  }
+  function moveIt(e){
+    if(!drag) return;
+    e.preventDefault();
+    var cx=(e.clientX!=null?e.clientX:e.touches[0].clientX);
+    var cy=(e.clientY!=null?e.clientY:e.touches[0].clientY);
+    win.style.left=(cx-drag.dx)+"px"; win.style.top=(cy-drag.dy)+"px";
+  }
+  function end(){ if(!drag) return; drag=null; bar.classList.remove("drag"); clamp(); relayout(); }
+  bar.addEventListener("pointerdown",start);
+  window.addEventListener("pointermove",moveIt);
+  window.addEventListener("pointerup",end);
+  window.addEventListener("pointercancel",end);
+  /* Pop out / dock. Popping out surrenders the reserved column, so the interface
+     reflows to full width and the window has to find somewhere to be. */
+  $("#cwPop").addEventListener("click",function(){
+    var out=root.classList.toggle("dock-out");
+    this.setAttribute("aria-pressed",String(out));
+    this.title=out?"Dock to the right":"Pop out";
+    if(out){
+      moved=false;
+      win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
+      requestAnimationFrame(function(){ autoPlace(); clamp(); relayout(); });
+    }else{
+      win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
+      setTimeout(function(){ relayout(); },240);
+    }
+  });
+  function setMin(min){
+    win.classList.toggle("min",min);
+    var btn=$("#cwMin");
+    btn.setAttribute("aria-expanded",String(!min));
+    btn.title=min?"Expand":"Collapse";
+    btn.innerHTML=min
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
+    root.classList.toggle("dock-min", min && !floating());
+    setTimeout(function(){ autoPlace(); clamp(); relayout(); },240);
+  }
+  /* The orientation folds the panel away while it works, so the interface it is
+     talking about is not sharing the screen with a task nobody has read yet. */
+  window.setPanelMin=setMin;
+  /* One code path. The handler used to repeat setMin's body, and the two drifted:
+     the tour restored the window while the html class that reserves the dock column
+     stayed set, so the results table kept the full width and its last rows sat under
+     the panel where nothing could click them. */
+  $("#cwMin").addEventListener("click",function(){
+    setMin(!win.classList.contains("min"));
+  });
+  function reflow(){ autoPlace(); clamp(); relayout(); }
+  window.addEventListener("resize",reflow);
+  /* The launcher mounts this frame while it is display:none, so it boots at 0x0
+     and everything is placed against rectangles that do not exist yet. resize
+     covers the reveal, but not reliably enough to be the only thing watching. */
+  if(window.ResizeObserver){
+    try{ new ResizeObserver(reflow).observe(document.documentElement); }catch(e){}
+  }
+  autoPlace();
 })();
 </script>
 </body>

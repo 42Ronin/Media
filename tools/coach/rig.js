@@ -11,6 +11,28 @@
    the corner of the box. */
 var LZ=(function(){
   /*__LASHES_JS__*/
+  /* What the host lesson tells the rig about ITS interface.
+
+     The rig knows how to place her. It does not know what a lesson's search box
+     is called, and it should not: this file used to name `#pill`, `#tbl`,
+     `.recwrap` and `tr[data-row=…]` outright, which is fine in one lesson and
+     wrong in the second. A lesson defines LZ_HOST before this file runs:
+
+       anchors    {name: selector} — what `LZ.say(name, …)` can stand beside
+       keepClear  function -> [{sel, w}] — rects she must not sit on, weighted by
+                  how bad covering one is. Called per placement, so it can name
+                  whatever the current task needs kept clear.
+       row        selector template for the `row:id` anchor form, `%` for the id
+       fallback   anchor names to try, in order, when the named one is off screen
+       lane       truthy in an embed: she gets a lane beside the interface rather
+                  than being placed against anything
+
+     The universals below are hers and the panel's, so every lesson gets them
+     without asking. Anything a lesson leaves out simply is not there — the rig
+     never falls back to another lesson's selectors. */
+  var HOST=(typeof LZ_HOST!=="undefined" && LZ_HOST) ? LZ_HOST : {};
+  var UNIVERSAL={panel:"#coachWin", popout:"#cwPop", minimise:"#cwMin", task:"#tAsk"};
+
   /* Where the face sits inside its own box, as a fraction. Used for every
      placement calculation so she is centred on her face, not on empty margin. */
   var FX=0.44, FY=0.42, FR=0.30;
@@ -76,19 +98,12 @@ var LZ=(function(){
   function anchorEl(name){
     if(!name||name==="home") return null;
     if(name.indexOf("row:")===0){
-      return document.querySelector('tr[data-row="'+name.slice(4).replace(/"/g,"")+'"]');
+      if(!HOST.row) return null;
+      return document.querySelector(HOST.row.replace("%", name.slice(4).replace(/"/g,"")));
     }
-    var map={
-      search:"#pill", results:"#tbl", zero:"#zero", pager:"#pager",
-      record:".recwrap", tabs:"#recNav", columns:"#colBtn", filter:"#filterBtn", add:"#addBtn",
-      panel:"#coachWin", rail:".rail", topbar:".who",
-      magnifier:"#globalSearchBtn", clientsicon:".railbtn[aria-current]",
-      crumbs:"#crumbs", popout:"#cwPop", minimise:"#cwMin", task:"#tAsk",
-      recname:"#recName", profile:"#profilePane .cardhead", loclist:".lochead"
-    };
     /* the card is laid out even when closed, so only anchor to it while it is up */
     if(name==="card") return card.classList.contains("on") ? card : null;
-    var sel=map[name];
+    var sel=(HOST.anchors && HOST.anchors[name]) || UNIVERSAL[name];
     if(!sel) return null;
     return onScreen(document.querySelector(sel)) ? document.querySelector(sel) : null;
   }
@@ -114,7 +129,6 @@ var LZ=(function(){
        impossible only makes the solver pick the least-bad corner, which was worse
        than simply letting her overlap the thing she is talking about. */
     if(spec!=="popout" && spec!=="minimise" && spec!=="task") add("#coachWin",10);
-    add("#pill",4);
     /* The top bar is a row of small buttons packed together. Pointing at one of
        them used to put her cluster alongside it, which meant sitting on its
        neighbours — she covered the dark-mode and new-window buttons to say a
@@ -122,11 +136,13 @@ var LZ=(function(){
        drops her underneath it, pointing up, which is the only placement where
        every icon in the row stays visible. */
     add(".topbar",8);
-    /* A step embed gives her a lane of her own beside the interface. Keeping the
-       results clear is what puts her in it rather than on top of the rows. */
-    if(STEP) add("#tbl",6);
-    var t=(typeof task==="function") ? task() : null;
-    if(t && t.expect && t.expect.id) add('tr[data-row="'+t.expect.id+'"]',14);
+    /* Everything else is the lesson's — its search box, its results, and whatever
+       the current task expects the learner to click. Called per placement rather
+       than read once, so a lesson can name what THIS task needs kept clear. */
+    if(typeof HOST.keepClear==="function"){
+      var extra=HOST.keepClear(spec)||[];
+      for(var i=0;i<extra.length;i++) if(extra[i]) add(extra[i].sel, extra[i].w);
+    }
     return out;
   }
   function overlap(a,b){
@@ -167,14 +183,19 @@ var LZ=(function(){
   }
   function layout(spec){
     if(layer.classList.contains("hero")) return heroLayout();
-    if(STEP) return laneLayout();
+    if(HOST.lane) return laneLayout();
     var b=bounds(), s=size(), gap=6, pad=8;
     var bw=bub.offsetWidth, bh=bub.offsetHeight, showBub=bub.classList.contains("on");
     if(!showBub){ bw=0; bh=0; gap=0; }
     var cw=s+gap+bw, ch=Math.max(s,bh);
     /* A named anchor can be off screen — the record page and the results table are
        never both up. Fall back down the chain rather than dropping her in a corner. */
-    var node=anchorEl(spec) || (spec!=="home" && (anchorEl("results")||anchorEl("zero")||anchorEl("search")));
+    /* Fall back down the lesson's own chain rather than dropping her in a corner. */
+    var node=anchorEl(spec);
+    if(!node && spec!=="home"){
+      var chain=HOST.fallback||[];
+      for(var fi=0; fi<chain.length && !node; fi++) node=anchorEl(chain[fi]);
+    }
     var a;
     if(node) a=rectOf(node);
     else a={l:b.w-260, t:b.h-230, r:b.w-40, b:b.h-60, w:220, h:170};
@@ -396,7 +417,7 @@ var BEAT=(function(){
        reached that state two steps ago. Stamping the tick means a beat waits for
        something new to happen rather than firing the moment it appears — without
        it, typing "Dez 1974" early made three beats flash past in one go. */
-    startedAt=S.tick;
+    startedAt=(typeof S!=="undefined" && S) ? S.tick : 0;
     if(typeof renderCoach==="function" && typeof SCENARIO_META!=="undefined" && SCENARIO_META[SECTION]) renderCoach();
     LZ.say(b.anchor||"search",
       '<div class="fb '+(b.kind||"tour")+'">'+(b.title?"<b>"+esc(b.title)+"</b>":"")+

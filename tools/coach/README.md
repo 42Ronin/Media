@@ -40,6 +40,44 @@ token named a second time stamped the payload into a comment.
 Order is fixed and nesting is why: `panel.html` carries the body slot, and
 `rig.css`/`rig.js` each carry a face token, so the outer stamp has to land first.
 
+**The rig is optional.** A page can take the window without the floating character
+and carry her inside its own content instead — the Bobbi walkthrough has her as a
+voice in its transcript, so it writes the four panel tokens and the two face tokens
+and no rig tokens at all. The check is **all-or-nothing per group**: a group half
+present is a typo, not a choice, and fails the build.
+
+## `LZ_HOST` — what a lesson tells the rig about its own interface
+
+Define it before `RIG_JS`. The rig knows how to place her; it does not know what
+your search box is called, and it should not — this used to name `#pill`, `#tbl`,
+`.recwrap` and `tr[data-row=…]` outright, which is fine in one lesson and wrong in
+the second.
+
+```js
+var LZ_HOST={
+  anchors:{ search:"#pill", results:"#tbl", record:".recwrap" },  // LZ.say(name,…)
+  keepClear:function(spec){ return [{sel:"#pill", w:4}]; },       // asked per placement
+  row:'tr[data-row="%"]',        // the `row:id` anchor form
+  fallback:["results","zero","search"],   // tried in order when the named one is off screen
+  lane:STEP                      // an embed: she gets a lane rather than a placement
+};
+```
+
+`panel:#coachWin`, `popout:#cwPop`, `minimise:#cwMin`, `task:#tAsk` and the
+title-card `card` come free — they are hers and the panel's. `#coachWin` and
+`.topbar` are kept clear for every lesson. **Anything a lesson leaves out is simply
+not there**; the rig never falls back to another lesson's selectors.
+
+`keepClear` is a function rather than a list because the rect that matters is
+usually the one the *current task* needs clicked.
+
+## Anchor at something small
+
+`#profGrid` and `#locBody` are whole panels; an arrow cannot point at a 600×800
+block and the solver has nowhere to stand beside one. Card heads work because they
+are small and sit at the top of the thing being described. In Lesson 3 the anchors
+are form fields, and the default is Save — the control the learner just pressed.
+
 ## What the lesson still owns
 
 The panel body — progress, the task copy, the buttons — and everything it says.

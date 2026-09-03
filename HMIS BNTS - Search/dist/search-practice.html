@@ -34,15 +34,7 @@ body{
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select{font:inherit}
 :focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:4px}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
-/* The task window is docked to a reserved column on the right. The interface ends
-   at its edge — including the top bar, so the account chip and the icons line up
-   with the content beneath them rather than running under the dock. Lashes still
-   floats, because she has to be able to reach the thing she is talking about. */
-:root{--dock:428px}
-.app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
-  transition:right .22s ease}
 
 /* ---------------- left rail ---------------- */
 .rail{width:70px;flex:none;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;gap:4px;overflow:hidden}
@@ -368,6 +360,25 @@ tbody tr.open{background:var(--indigo-soft)}
    A movable window over the interface, not a drawer beside it. It carries the
    standing brief and the controls; the live reaction is Lashes' job, and hers
    goes wherever the thing she is reacting to happens to be. */
+/* The coach's own palette, so a lesson does not have to know these names to wear
+   it. A lesson that already defines them (Lesson 1 does) redefines them to the
+   same values; a lesson that does not — Lesson 3, which is built in Clarity's
+   indigo — gets them here. Deliberately NOT --ink or --line: those are the host
+   page's, and the tooltip should read in whatever the lesson's own body colour is. */
+:root{
+  --teal:#066888; --teal-dk:#044e66; --teal-glow:rgba(6,104,136,.16); --lens:#e0eff5;
+  --coach:#ffffff; --coach-2:#f1f8fb; --coach-ink:#14222b; --coach-line:#d9e8ef;
+  --ok:#0f6b45; --bad:#a3312a; --tip:#8a5a00;
+}
+
+/* The task window is docked to a reserved column on the right. The interface ends
+   at its edge — including the top bar, so the account chip and the icons line up
+   with the content beneath them rather than running under the dock. Lashes still
+   floats, because she has to be able to reach the thing she is talking about. */
+:root{--dock:428px}
+.app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
+  transition:right .22s ease}
+
 html.step{--dock:0px}
 html.step .coach{display:none}
 /* An embed is a block in a Rise page: it gets the column's full width, the author
@@ -495,7 +506,7 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
   backdrop-filter:blur(3px)}
 .lzlayer.hero .lzchar{width:230px;height:230px}
 .lzlayer.hero .lzbub{background:none;border:0;box-shadow:none;padding:0;max-width:none}
-.lzlayer.hero .lzbub .fb p{font-size:34px;line-height:1.25;font-weight:600;color:var(--indigo-dk);margin:0}
+.lzlayer.hero .lzbub .fb p{font-size:34px;line-height:1.25;font-weight:600;color:var(--indigo-dk,var(--teal-dk));margin:0}
 .lzlayer.hero .lzbub .fb p+p{font-size:19px;font-weight:400;color:var(--ink);margin-top:14px}
 .lzlayer.hero .lzfoot{border-top:0;padding-top:22px;justify-content:flex-start}
 .lzlayer.hero .lzfoot>*{margin-left:0}
@@ -668,6 +679,9 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
   .m-body,.m-face,.m-eyes{animation:none !important}
   .lzchar[class*="mv-"] .m-body{animation:none !important}
 }
+
+/* #lzLive announces her lines to a screen reader without drawing them. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 </style>
 </head>
 <body>
@@ -1202,6 +1216,33 @@ function saveCols(){
   try{ localStorage.setItem(CKEY, JSON.stringify(S.cols.map(function(c){return {k:c.k,vis:c.vis};}))); }catch(e){}
 }
 
+/* What the shared rig in tools/coach needs to know about THIS interface. It used
+   to name these itself, which is fine in one lesson and wrong in the second.
+   Read once, when the rig loads, except keepClear — which is asked per placement,
+   because the row it has to avoid is the one the current task expects. */
+var LZ_HOST={
+  anchors:{
+    search:"#pill", results:"#tbl", zero:"#zero", pager:"#pager",
+    record:".recwrap", tabs:"#recNav", columns:"#colBtn", filter:"#filterBtn", add:"#addBtn",
+    rail:".rail", topbar:".who",
+    magnifier:"#globalSearchBtn", clientsicon:".railbtn[aria-current]",
+    crumbs:"#crumbs",
+    recname:"#recName", profile:"#profilePane .cardhead", loclist:".lochead"
+  },
+  row:'tr[data-row="%"]',
+  /* The record page and the results table are never up at the same time. */
+  fallback:["results","zero","search"],
+  lane:STEP,
+  keepClear:function(){
+    var out=[{sel:"#pill", w:4}];
+    /* A step embed gives her a lane of her own beside the interface. Keeping the
+       results clear is what puts her in it rather than on top of the rows. */
+    if(STEP) out.push({sel:"#tbl", w:6});
+    var t=(typeof task==="function") ? task() : null;
+    if(t && t.expect && t.expect.id) out.push({sel:'tr[data-row="'+t.expect.id+'"]', w:14});
+    return out;
+  }
+};
 /* ============================================================
    LASHES
    ============================================================
@@ -1305,6 +1346,28 @@ function paintFaces(root){
     h.setAttribute("data-painted","1");
   }
 }
+  /* What the host lesson tells the rig about ITS interface.
+
+     The rig knows how to place her. It does not know what a lesson's search box
+     is called, and it should not: this file used to name `#pill`, `#tbl`,
+     `.recwrap` and `tr[data-row=…]` outright, which is fine in one lesson and
+     wrong in the second. A lesson defines LZ_HOST before this file runs:
+
+       anchors    {name: selector} — what `LZ.say(name, …)` can stand beside
+       keepClear  function -> [{sel, w}] — rects she must not sit on, weighted by
+                  how bad covering one is. Called per placement, so it can name
+                  whatever the current task needs kept clear.
+       row        selector template for the `row:id` anchor form, `%` for the id
+       fallback   anchor names to try, in order, when the named one is off screen
+       lane       truthy in an embed: she gets a lane beside the interface rather
+                  than being placed against anything
+
+     The universals below are hers and the panel's, so every lesson gets them
+     without asking. Anything a lesson leaves out simply is not there — the rig
+     never falls back to another lesson's selectors. */
+  var HOST=(typeof LZ_HOST!=="undefined" && LZ_HOST) ? LZ_HOST : {};
+  var UNIVERSAL={panel:"#coachWin", popout:"#cwPop", minimise:"#cwMin", task:"#tAsk"};
+
   /* Where the face sits inside its own box, as a fraction. Used for every
      placement calculation so she is centred on her face, not on empty margin. */
   var FX=0.44, FY=0.42, FR=0.30;
@@ -1370,19 +1433,12 @@ function paintFaces(root){
   function anchorEl(name){
     if(!name||name==="home") return null;
     if(name.indexOf("row:")===0){
-      return document.querySelector('tr[data-row="'+name.slice(4).replace(/"/g,"")+'"]');
+      if(!HOST.row) return null;
+      return document.querySelector(HOST.row.replace("%", name.slice(4).replace(/"/g,"")));
     }
-    var map={
-      search:"#pill", results:"#tbl", zero:"#zero", pager:"#pager",
-      record:".recwrap", tabs:"#recNav", columns:"#colBtn", filter:"#filterBtn", add:"#addBtn",
-      panel:"#coachWin", rail:".rail", topbar:".who",
-      magnifier:"#globalSearchBtn", clientsicon:".railbtn[aria-current]",
-      crumbs:"#crumbs", popout:"#cwPop", minimise:"#cwMin", task:"#tAsk",
-      recname:"#recName", profile:"#profilePane .cardhead", loclist:".lochead"
-    };
     /* the card is laid out even when closed, so only anchor to it while it is up */
     if(name==="card") return card.classList.contains("on") ? card : null;
-    var sel=map[name];
+    var sel=(HOST.anchors && HOST.anchors[name]) || UNIVERSAL[name];
     if(!sel) return null;
     return onScreen(document.querySelector(sel)) ? document.querySelector(sel) : null;
   }
@@ -1408,7 +1464,6 @@ function paintFaces(root){
        impossible only makes the solver pick the least-bad corner, which was worse
        than simply letting her overlap the thing she is talking about. */
     if(spec!=="popout" && spec!=="minimise" && spec!=="task") add("#coachWin",10);
-    add("#pill",4);
     /* The top bar is a row of small buttons packed together. Pointing at one of
        them used to put her cluster alongside it, which meant sitting on its
        neighbours — she covered the dark-mode and new-window buttons to say a
@@ -1416,11 +1471,13 @@ function paintFaces(root){
        drops her underneath it, pointing up, which is the only placement where
        every icon in the row stays visible. */
     add(".topbar",8);
-    /* A step embed gives her a lane of her own beside the interface. Keeping the
-       results clear is what puts her in it rather than on top of the rows. */
-    if(STEP) add("#tbl",6);
-    var t=(typeof task==="function") ? task() : null;
-    if(t && t.expect && t.expect.id) add('tr[data-row="'+t.expect.id+'"]',14);
+    /* Everything else is the lesson's — its search box, its results, and whatever
+       the current task expects the learner to click. Called per placement rather
+       than read once, so a lesson can name what THIS task needs kept clear. */
+    if(typeof HOST.keepClear==="function"){
+      var extra=HOST.keepClear(spec)||[];
+      for(var i=0;i<extra.length;i++) if(extra[i]) add(extra[i].sel, extra[i].w);
+    }
     return out;
   }
   function overlap(a,b){
@@ -1461,14 +1518,19 @@ function paintFaces(root){
   }
   function layout(spec){
     if(layer.classList.contains("hero")) return heroLayout();
-    if(STEP) return laneLayout();
+    if(HOST.lane) return laneLayout();
     var b=bounds(), s=size(), gap=6, pad=8;
     var bw=bub.offsetWidth, bh=bub.offsetHeight, showBub=bub.classList.contains("on");
     if(!showBub){ bw=0; bh=0; gap=0; }
     var cw=s+gap+bw, ch=Math.max(s,bh);
     /* A named anchor can be off screen — the record page and the results table are
        never both up. Fall back down the chain rather than dropping her in a corner. */
-    var node=anchorEl(spec) || (spec!=="home" && (anchorEl("results")||anchorEl("zero")||anchorEl("search")));
+    /* Fall back down the lesson's own chain rather than dropping her in a corner. */
+    var node=anchorEl(spec);
+    if(!node && spec!=="home"){
+      var chain=HOST.fallback||[];
+      for(var fi=0; fi<chain.length && !node; fi++) node=anchorEl(chain[fi]);
+    }
     var a;
     if(node) a=rectOf(node);
     else a={l:b.w-260, t:b.h-230, r:b.w-40, b:b.h-60, w:220, h:170};
@@ -1690,7 +1752,7 @@ var BEAT=(function(){
        reached that state two steps ago. Stamping the tick means a beat waits for
        something new to happen rather than firing the moment it appears — without
        it, typing "Dez 1974" early made three beats flash past in one go. */
-    startedAt=S.tick;
+    startedAt=(typeof S!=="undefined" && S) ? S.tick : 0;
     if(typeof renderCoach==="function" && typeof SCENARIO_META!=="undefined" && SCENARIO_META[SECTION]) renderCoach();
     LZ.say(b.anchor||"search",
       '<div class="fb '+(b.kind||"tour")+'">'+(b.title?"<b>"+esc(b.title)+"</b>":"")+
@@ -3549,6 +3611,10 @@ $("#restartBtn").addEventListener("click",function(){
 
    The placement solver only matters in the popped-out mode. */
 (function(){
+  /* The rig is optional: a page may take the window and carry her inside its own
+     content instead — the Bobbi walkthrough has her as a voice in its transcript.
+     Nothing here needs her, so nothing here may assume she is loaded. */
+  function relayout(){ if(typeof LZ!=="undefined" && LZ && LZ.relayout) LZ.relayout(); }
   var win=$("#coachWin"), bar=$("#cwBar"), root=document.documentElement, drag=null, moved=false;
   function floating(){ return root.classList.contains("dock-out"); }
 
@@ -3639,7 +3705,7 @@ $("#restartBtn").addEventListener("click",function(){
     var cy=(e.clientY!=null?e.clientY:e.touches[0].clientY);
     win.style.left=(cx-drag.dx)+"px"; win.style.top=(cy-drag.dy)+"px";
   }
-  function end(){ if(!drag) return; drag=null; bar.classList.remove("drag"); clamp(); LZ.relayout(); }
+  function end(){ if(!drag) return; drag=null; bar.classList.remove("drag"); clamp(); relayout(); }
   bar.addEventListener("pointerdown",start);
   window.addEventListener("pointermove",moveIt);
   window.addEventListener("pointerup",end);
@@ -3653,10 +3719,10 @@ $("#restartBtn").addEventListener("click",function(){
     if(out){
       moved=false;
       win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
-      requestAnimationFrame(function(){ autoPlace(); clamp(); LZ.relayout(); });
+      requestAnimationFrame(function(){ autoPlace(); clamp(); relayout(); });
     }else{
       win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
-      setTimeout(function(){ LZ.relayout(); },240);
+      setTimeout(function(){ relayout(); },240);
     }
   });
   function setMin(min){
@@ -3668,7 +3734,7 @@ $("#restartBtn").addEventListener("click",function(){
       ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
       : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
     root.classList.toggle("dock-min", min && !floating());
-    setTimeout(function(){ autoPlace(); clamp(); LZ.relayout(); },240);
+    setTimeout(function(){ autoPlace(); clamp(); relayout(); },240);
   }
   /* The orientation folds the panel away while it works, so the interface it is
      talking about is not sharing the screen with a task nobody has read yet. */
@@ -3680,7 +3746,7 @@ $("#restartBtn").addEventListener("click",function(){
   $("#cwMin").addEventListener("click",function(){
     setMin(!win.classList.contains("min"));
   });
-  function reflow(){ autoPlace(); clamp(); LZ.relayout(); }
+  function reflow(){ autoPlace(); clamp(); relayout(); }
   window.addEventListener("resize",reflow);
   /* The launcher mounts this frame while it is display:none, so it boots at 0x0
      and everything is placed against rectangles that do not exist yet. resize

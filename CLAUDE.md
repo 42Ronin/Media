@@ -21,8 +21,9 @@ restriction: internal reference only, never redistributed or embedded in a deliv
 ```
 HMIS BNTS - Search/       built    — finding an existing client
 HMIS BNTS - Why/          part     — the Why HMIS prologue; three Copperfield boxes ship
-HMIS BNTS - Create/       part     — Lesson 3, Creating a Profile; two sims built
+HMIS BNTS - Create/       part     — Lesson 3, Creating a Profile; two sims built, on the shared panel
 tools/lashes/             built    — her drawing, and the only copy of it
+tools/coach/              built    — the training window and her rig; Lessons 1 and 3 wear it
 tools/kc-maker/           built    — knowledge checks and Copperfield boxes
 tools/scene-editor/       built    — the photo+narration openers
 tools/job-aid-builder/    built    — printable step-by-step guides, PDF out
@@ -45,26 +46,54 @@ The front door is generated rather than kept by hand for the same reason the scr
 an index that lies about what exists is worse than none, so nothing is listed unless the file
 is on disk and a missing one is greyed with the command that builds it.
 
-**Lashes' drawing has ONE source now: `tools/lashes/face.{js,css}`.** A build inlines it
-at the `LASHES_JS` / `LASHES_CSS` tokens, asserting each appears exactly once. Lesson 3 uses
-it; nothing else does yet.
+**The look of a lesson is a build step now, not a convention.** `tools/coach` holds the
+training window and Lashes' rig; `tools/lashes` holds her drawing. `tools/coach/assemble.py`
+stamps them into a lesson template at six tokens plus the two face tokens, each asserted to
+appear exactly once. **Lessons 1 and 3 both wear it.** Its own README is the reference.
 
-**They are not four identical copies waiting to be deduplicated** — checked, not assumed.
-`kc.template.html` is byte-identical to the extracted source; `kc-teller` (2,845 chars) and
-`kc-dealer` (2,384) have diverged; `lesson1.template.html` is 17,836 because it is her whole
-rig — body, bob/blink/scan, the movement classes, the pointing arrow — with the face library
-as a small part. `lashes-builder` draws her without the library at all, and the Copperfield
-has her removed by request. So a migration is not a find-and-replace, and the honest options
-are to share only the face geometry or to leave them; diff them before choosing.
+The split, and it matters when you go to change something:
 
-**Copy her CSS block verbatim; never re-derive it by matching rule shapes.** The first cut of
-`face.css` was assembled with a regex for `^\.m-[a-z]+\{`, which silently dropped
-`.m-lash path{…}` — a descendant selector. Her lash strokes then rendered with a default fill
-and no stroke, which is to say not at all, on a character named after them.
+- **`tools/lashes/face.{js,css}`** — her drawing and her expression library, and nothing
+  else. What a page wants when it needs a 40px avatar: the knowledge checks, the block
+  builder, Bobbi's transcript.
+- **`tools/coach/rig.{js,css,html}`** — her *rig*: the floating layer, the placement solver,
+  the bubble, the pointing arrow, the movement classes, and `BEAT`. Carries the face tokens,
+  so a page taking the rig gets the drawing with it.
+- **`tools/coach/panel.{js,css,html}`** — the movable window: dock, drag, pop out, collapse,
+  and `--dock`. **The rig is optional** — a page can take the window and carry her inside its
+  own content instead, which is what the Bobbi walkthrough does.
+
+**A lesson tells the rig about its own interface through `LZ_HOST`** — anchors, keep-clear
+rects, the row-selector template, the fallback chain. The rig used to name `#pill`, `#tbl`,
+`.recwrap` and `tr[data-row=…]` outright, which is fine in one lesson and wrong in the
+second. It never falls back to another lesson's selectors: what a lesson leaves out is
+simply not there.
+
+**Copy her CSS and her expression list verbatim; never re-derive them by matching shapes.**
+This has now cost twice. The first cut of `face.css` was assembled with a regex for
+`^\.m-[a-z]+\{`, which silently dropped `.m-lash path{…}` — a descendant selector — so her
+lash strokes rendered with a default fill and no stroke, which is to say not at all, on a
+character named after them. The first cut of `face.js` was assembled by hand and lost the
+`glance` and `smug` eyes. Both are copied out of the rig now.
 
 **Her viewBox is cropped to her ink**, `12.4 9.2 63.2 63.2`, measured with `getBBox`. Authored
 in a 100-square she occupied 61×61 of it, so a third of every avatar was empty and a 40px host
-drew a 24px face. Same lesson the teller's orb learned.
+drew a 24px face. Same lesson the teller's orb learned. **The rig is the one caller that wants
+the uncropped box back** and asks for it with `BOX_FULL`: its `FX/FY/FR` are fractions *of the
+100-square*, so cropping under it moves her face out from under its own placement maths.
+
+**Her drop-in entrance had never played.** `rig.css` carried a bare `.lzchar.still ` — a
+selector with no block, left by an old edit. CSS is not an error there: the parser reads on to
+the next `{` and builds `.lzchar.still .lzchar.mv-dropin .m-body`, which matches nothing, so
+`animation-name` computed to `none` and every checkpoint card in every shipped build arrived
+without its entrance. A selector list that loses its comma fails silently *and takes the
+following rule with it*.
+
+**Still not deduplicated, and checked rather than assumed:** `kc.template.html` is
+byte-identical to the extracted source; `kc-teller` (2,845 chars) and `kc-dealer` (2,384) have
+diverged; `lashes-builder` draws her without the library at all, and the Copperfield has her
+removed by request. Those four are a separate job from the coach extraction; diff them before
+choosing.
 
 **Not everything we built for LAHSA is in this repo.** `42Ronin/LAHSA` carries the brand
 assets and **`Training Tools/Family Feud/`** — a game-shaped board with its own build and
@@ -923,6 +952,31 @@ Reuse the chrome, roster, and search engine from Search rather than rebuilding.
 Still needed from the user: a screenshot of the **Add Client form**. Households are a
 natural place for duplicates to propagate and are now modelled, so that's available as
 teaching material.
+
+## Lesson 3 — Create, and the shared panel
+
+`HMIS BNTS - Create/` holds two working sims, built from a Fable 5.1 prototype against the
+owner's own screenshots of the live Add Client form. `README.md` there is the reference and
+`test.mjs` is 52 checks.
+
+**The Clarity replica is the part that stays faithful to the product; the panel is the part
+that stays faithful to us.** The prototypes dressed themselves — a fixed *left* column in a
+solid teal wash, immovable, pill buttons, her parked in a corner, and a narrow-viewport
+branch we had removed from Lesson 1 on purpose. The owner's note was that everything except
+the replica and the conversation bubbles was out of line with what we had built. Both pages
+take `tools/coach` now. **Do not "correct" the replica's palette to match Lesson 1** — where
+the two disagree about a colour, the captures win and Lesson 1 is the one out of date.
+
+**Bobbi's conversation log is new and worth keeping.** Lessons 1–2 have Lashes saying one
+thing at a time beside an anchor and no transcript at all; a scrollable exchange is the right
+shape for a lesson about an interview. It is the panel's whole body there, and she is a voice
+in it rather than something standing next to the interface — which is why that page takes the
+window without the rig.
+
+**Feedback is hers and arrives beside what caused it**, as in Lesson 1. There is no feedback
+box in the panel: a paragraph on the far side of the screen from the field it is about makes
+the learner look away from the thing they got wrong. Anchor it at something small — a task
+may name its field, and the default is Save, the control they just pressed.
 
 ## The opening animation, and `tools/scene-editor`
 

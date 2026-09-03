@@ -15,48 +15,92 @@ same rule the Search lesson runs on: change the script first, then the build.
 
 | | |
 |---|---|
-| `src/bobbi.template.html` | The guided walkthrough. Conversation on the left, a Clarity Add Client replica on the right that fills in as each exchange lands, then Save reveals the profile and the Unique Identifier |
-| `src/add-client.template.html` | A working Add Client replica with the v1 task set. Task panel on the left; the two-stage conversation, the "Ask them" gate, the Consent Refused auto-fill and the Documentation-dependent consent section all work |
+| `src/bobbi.template.html` | The guided walkthrough. The conversation runs in the training panel, a Clarity Add Client replica fills in as each exchange lands, then Save reveals the profile and the Unique Identifier |
+| `src/add-client.template.html` | A working Add Client replica with the v1 task set. The two-stage conversation, the "Ask them" gate, the Consent Refused auto-fill and the Documentation-dependent consent section all work |
 
-Both came from a Fable 5.1 prototype built against real Clarity screenshots, and
-the replica is the part worth keeping: Clarity's own palette (indigo `#5055AD`,
-surface `#FCF8FD`, Open Sans) for the form, Lashes' teal for the coaching panel,
-so the two worlds read as different things on one screen.
+```bash
+npm i playwright && node test.mjs      # 52 checks, ~3 minutes
+```
 
-## Lashes comes from one place now
+It is slow because it plays both sims **at their real beat timings** rather than
+skipping ahead — the Bobbi walkthrough alone is about ninety seconds of animation.
+Both are played **in a frame**: these pages only speak when embedded, so a
+top-level play asserts the gate and silently skips the `complete` contract that
+marks the Rise block done, which is exactly how a broken one passes a green run.
+Don't run two copies at once — they share port 8123.
 
-`tools/lashes/face.js` and `face.css` are the only copy of her drawing.
-`build.sh` inlines them at the `LASHES_JS` and `LASHES_CSS` tokens, checking each
-appears **exactly once** — the rule the knowledge check learned the hard way,
-where a token named twice stamped the payload into a comment.
+## They wear the series' look now
 
-Before this she was copied by hand into the lesson, three knowledge-check
-stagings and the block builder, and "if her face changes, change it in both" was
-a note in `CLAUDE.md` rather than something a build enforced. The prototype's
-stand-in avatar is gone; a page now asks for her with `<span class="lashes-av"
-data-face></span>` and `paintFaces()` fills it.
+The prototypes came from elsewhere and dressed themselves: a fixed **left** column
+in a solid teal wash, immovable, Lashes parked in a corner, pill buttons, and a
+narrow-viewport branch that Lesson 1 had removed on purpose. The owner's note was
+that everything except the Clarity replica and the conversation bubbles was out of
+line with what we had built, and it was right.
 
-**Nothing else uses it yet, and migration is not mechanical.** Checked rather than
-assumed: `kc.template.html` is byte-identical to the extracted source, but
-`kc-teller` and `kc-dealer` have diverged, and `lesson1.template.html` is eight
-times the size because it carries her whole rig — body, bob/blink/scan, movement
-classes, the pointing arrow — with the face library as a small part of it. The
-block builder draws her without the library at all. Sharing only the face
-geometry is the sensible version if it is worth doing.
+Both pages now take the training panel from **`tools/coach`** — the same movable
+window Lesson 1 uses. Docked to a reserved 428px column on the **right**, white
+with a teal `#066888` title bar, draggable by that bar, poppable and collapsible,
+and **nothing it does reflows the interface**. `build.sh` stamps it in;
+`tools/coach/README.md` is the reference.
 
-## Two defects found in the prototype, both fixed
+What each page kept is the part that was working:
+
+- **The Clarity replica is untouched.** It was built from the owner's own
+  screenshots of the live product and it is the one thing here that has to be
+  faithful to Clarity rather than to us. Where Lesson 1 and these captures
+  disagree about a colour, the captures win.
+- **Bobbi's conversation log is the panel's whole body.** It is what that page is,
+  and it is genuinely new — Lessons 1–2 have Lashes saying one thing at a time
+  beside an anchor and no transcript at all. A scrollable exchange is the right
+  shape for a lesson about an interview. The bubbles inverted to suit a white
+  panel: the worker solid teal on the right, the participant light on the left,
+  which is the treatment the Search lesson already uses for an exchange.
+
+What changed beyond the paint:
+
+- **Feedback is hers, and it arrives beside what caused it** rather than in a box
+  in the panel. A paragraph that appears on the far side of the screen from the
+  field it is about makes the learner look away from the thing they got wrong.
+  A task may name the field its feedback is about; otherwise she goes to Save,
+  which is the control they just pressed.
+- **The panel body is the lesson's, the shell is shared.** `src/panel-body-*.html`
+  is what each page puts inside the window.
+- **The `postMessage` contract is the house one** — `{source:"hmis-sim",
+  lesson:"hmis-bnts-create", section, type}`, `ready` and `complete`, never a
+  score.
+- **A nine-hex Unique Identifier shipped in the Bobbi profile** (`3F8A2C1D9`),
+  which is the shape the real product uses and the one thing the house rule
+  forbids. It is `UID#7632JEWHR` now — four digits, five letters, no `I` or `O` —
+  and `test.mjs` asserts the shape and asserts no nine-hex string survives.
+
+## Lashes comes from one place
+
+`tools/lashes/face.js` and `face.css` are the only copy of her drawing, and
+`tools/coach/rig.js` and `rig.css` are the only copy of her rig — the floating
+layer, the placement solver, the bubble and the pointing arrow. `assemble.py`
+stamps both, checking every token appears **exactly once**.
+
+Lesson 1's own template used to hold all of it. It does not any more, and the move
+turned up two defects: her drop-in entrance had never played (a bare
+`.lzchar.still ` selector swallowed the rule that drives it), and `face.js` was a
+subset that had lost the `glance` and `smug` eyes. Both fixed, both in
+`tools/coach/README.md`.
+
+## Defects the prototype shipped with
 
 **Two elements shared `id="start"`** — the Start button in the task panel and the
 Release of Information Start Date input. `getElementById` returns the first in
-document order, so the button won, and **the consent Start Date never filled**
-while End Date did. The field is `#roiStart` now. The reset list deliberately
-excludes both dates: they are computed once, they are read-only, and a reset must
-not blank them.
+document order, so the button won and **the consent Start Date never filled**
+while End Date did. The field is `#roiStart`. The reset list deliberately excludes
+both dates: they are computed once, they are read-only, and a reset must not blank
+them.
+
+**A nine-hex Unique Identifier**, covered above.
 
 **Her bubble was teal on teal.** The stand-in avatar was drawn in pale ink for a
-teal background; her real drawing has a teal rim, which vanished into it. The
-bubble is light with a teal left border now, which is also how she is presented
-everywhere else in the series.
+teal background; her real drawing has a teal rim, which vanished into it. Moot now
+— she is in the shared rig and the panel is white — but it is the reason the
+transcript's Lashes block carries a teal *edge* rather than a teal fill.
 
 ## What the v2 script still needs
 

@@ -26,3 +26,6 @@ __pycache__/
 
 # the kc-maker's node_modules symlink into the lesson's copy
 tools/kc-maker/node_modules
+
+# Lesson 3's node_modules symlink into the Search lesson's copy, same as kc-maker
+HMIS BNTS - Create/node_modules
