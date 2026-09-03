@@ -36,9 +36,13 @@ a note in `CLAUDE.md` rather than something a build enforced. The prototype's
 stand-in avatar is gone; a page now asks for her with `<span class="lashes-av"
 data-face></span>` and `paintFaces()` fills it.
 
-**The other pages have not been migrated yet.** The Search lesson and the three
-knowledge-check stagings still carry their own copies. That is the next tidy-up,
-and it is mechanical.
+**Nothing else uses it yet, and migration is not mechanical.** Checked rather than
+assumed: `kc.template.html` is byte-identical to the extracted source, but
+`kc-teller` and `kc-dealer` have diverged, and `lesson1.template.html` is eight
+times the size because it carries her whole rig — body, bob/blink/scan, movement
+classes, the pointing arrow — with the face library as a small part of it. The
+block builder draws her without the library at all. Sharing only the face
+geometry is the sensible version if it is worth doing.
 
 ## Two defects found in the prototype, both fixed
 
