@@ -1,0 +1,28 @@
+<div class="lzlayer" id="lzLayer">
+  <div class="lzchar" id="lzChar" aria-hidden="true"></div>
+  <!-- She has no hands and can never point, so the pointing is a prop, drawn in her
+       own palette: teal rim, lens fill, one white shine. -->
+  <div class="lzarrow" id="lzArrow" aria-hidden="true"><div class="spin"><div class="bob">
+    <svg width="46" height="52" viewBox="0 0 58 66">
+      <path d="M21 6 h16 q4 0 4 4 v20 h9 q5 0 2.5 4.5 L32.5 57 q-3.5 5 -7 0 L5.5 34.5 Q3 30 8 30 h9 V10 q0 -4 4 -4 z"
+            fill="#e0eff5" stroke="#066888" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M23 12 q0 -2.5 2.5 -2.5 l4 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+    </svg>
+  </div></div></div>
+  <div class="lzbub" id="lzBub">
+    <div id="fb"></div>
+    <div class="lzfoot" id="lzFoot" hidden>
+      <span class="lzcount" id="lzCount"></span>
+      <span class="lzacts" id="lzActs"></span>
+      <button class="lzstep" id="lzStep">Next</button>
+    </div>
+  </div>
+</div>
+<!-- outside the layer: the card is a moment, and it has to sit above the movable
+     window rather than under wherever the learner happened to park it -->
+<div class="lzcard" id="lzCard">
+  <h3 id="lzCardTitle"></h3>
+  <div id="lzCardBody"></div>
+  <div class="lzcardfoot"><button class="lzgo" id="lzCardGo">Continue →</button></div>
+</div>
+<div class="sr-only" id="lzLive" role="status" aria-live="polite"></div>

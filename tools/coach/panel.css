@@ -1,0 +1,109 @@
+/* ---------------- coach window ----------------
+   A movable window over the interface, not a drawer beside it. It carries the
+   standing brief and the controls; the live reaction is Lashes' job, and hers
+   goes wherever the thing she is reacting to happens to be. */
+html.step{--dock:0px}
+html.step .coach{display:none}
+/* An embed is a block in a Rise page: it gets the column's full width, the author
+   sets its height, and it holds the INTERFACE and nothing else. The Rise page above
+   it carries the slide's own instruction; repeating that inside the block says the
+   same thing twice, in a smaller font, in a box the learner has to look past to
+   reach the thing they were told to do. So the interface fills the frame edge to
+   edge — no side rail, no card across the top. */
+html.step .app{top:0;left:0;right:0;bottom:0}
+/* She is not furniture in an embed. She is absent while the learner works, and
+   arrives only where the script attached feedback to that task — says it, and that
+   is the whole of her part.
+
+   And she is PLACED, not solved. The placement solver is built for the lesson's own
+   stage — a tall window with a docked panel and keep-clear regions — and in a 600px
+   Rise block it parked her bubble off the right-hand edge whatever it was anchored
+   to. An embed is one small box of known shape, so she sits in a fixed corner of it
+   and the arrow, which has nothing to point at here, does not draw. */
+html.step .lzlayer{position:fixed !important;left:auto !important;right:14px !important;
+  top:auto !important;bottom:14px !important;transform:none !important;
+  width:auto !important;height:auto !important;
+  display:flex !important;align-items:flex-end;gap:10px;z-index:200;pointer-events:none}
+html.step .lzlayer .lzchar{position:static !important;transform:none !important;
+  flex:none;width:76px;height:76px}
+/* pointer-events only once she is actually speaking: a silent bubble still holds
+   its box in the flex row, and an invisible 560px panel over the bottom-right of
+   the results table would eat clicks on the rows under it */
+html.step .lzbub{position:static !important;transform:none !important;
+  width:min(560px,64vw) !important;max-width:none !important;min-width:0 !important;
+  margin:0 !important;pointer-events:none !important}
+html.step .lzbub.on{pointer-events:auto !important}
+html.step .lzarrow{display:none !important}
+html.step .lzlayer .lzfoot{display:none !important}
+/* Free play: no way into a record, so none of the row's controls either. The
+   expander and the row menu are taught later in the script — showing them here,
+   inert, teaches the wrong thing about what a control does. */
+html.play .cwrap{cursor:default}
+html.play [data-exp],html.play [data-rowmenu],html.play .hhicon{display:none}
+/* Inline in a Rise block there is no room for chrome that is not doing work. */
+html.step .topbar{height:44px}
+html.step .rail{width:56px}
+.coach{position:fixed;right:24px;top:24px;width:380px;background:var(--coach);color:var(--coach-ink);
+  display:flex;flex-direction:column;z-index:170;border-radius:17px;overflow:hidden;
+  max-height:calc(100vh - 48px);
+  box-shadow:0 14px 40px var(--teal-glow),0 2px 6px rgba(20,34,43,.10),0 0 0 1px rgba(6,104,136,.12)}
+html.dock-min .coach{width:auto}
+/* Popped out it is shorter, but it is draggable either way: the column stays
+   reserved whatever the panel does, so moving it costs the interface nothing. */
+html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
+.cwbar{cursor:grab}
+.cwbar.drag{cursor:grabbing}
+.coach.pulse{animation:cwpulse 1.1s ease-out}
+@keyframes cwpulse{0%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 0 rgba(63,160,192,.5)}
+  100%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 16px rgba(63,160,192,0)}}
+.cwbar{display:flex;align-items:center;gap:2px;padding:7px 7px 7px 15px;background:var(--teal);
+  color:#fff;flex:none;user-select:none;touch-action:none}
+.cwbar .lz{font-size:12.5px;letter-spacing:.02em;color:#fff;font-weight:650;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 26px was a small thing to hit, and the icon inside it smaller still. */
+.cwbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:rgba(255,255,255,.86);flex:none}
+.cwbtn:hover{background:rgba(255,255,255,.18);color:#fff}
+/* The help marker and its tooltip. Hover or keyboard focus only — no click, no
+   state, nothing to undo. It hangs below the title bar and to the left, because
+   the panel is against the right edge and there is no room the other way. */
+.cwhelp{position:relative;cursor:default}
+.cwtip{position:absolute;top:calc(100% + 8px);right:-4px;width:250px;background:#fff;color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(40,30,90,.22);
+  padding:11px 13px;font-size:13.5px;line-height:1.5;text-align:left;font-weight:400;
+  opacity:0;visibility:hidden;transition:opacity .13s;z-index:200;pointer-events:none}
+.cwhelp:hover .cwtip,.cwhelp:focus-visible .cwtip{opacity:1;visibility:visible}
+.cwtip b{font-weight:600}
+@media(prefers-reduced-motion:reduce){.cwtip{transition:none}}
+.coach.min .cbody,.coach.min .cfoot,.coach.min .chead{display:none}
+.coach.min{max-height:none}
+.chead{padding:14px 18px 11px;border-bottom:1px solid var(--coach-line);flex:none}
+.chead h2{margin:0;font-size:16px;font-weight:600}
+.bar{height:6px;background:var(--lens);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--teal);width:0;transition:width .4s}
+.cmeta{display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;
+  letter-spacing:.01em;color:var(--teal)}
+.cbody{flex:1;overflow:auto;padding:20px 22px 22px}
+.tasktitle{font-size:20px;font-weight:800;margin:0 0 10px;line-height:1.3;letter-spacing:-.01em}
+.taskbrief{font-size:15.5px;line-height:1.65;color:#41606f;margin:0 0 16px}
+/* The line the participant actually says, picked out rather than just italic —
+   a soft highlight under the text reads faster than a font-style change alone.
+   box-decoration-break keeps the highlight consistent if the phrase wraps. */
+.taskbrief .q{color:var(--coach-ink);font-style:italic;font-weight:600;
+  background:linear-gradient(to bottom, transparent 60%, var(--lens) 60%);
+  padding:0 1px;border-radius:2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.taskbrief code{background:var(--lens);padding:2px 7px;border-radius:5px;font-size:14.5px}
+.taskask{display:flex;gap:11px;align-items:flex-start;background:var(--coach-2);
+  border:1px solid #d3e7ee;padding:14px 16px;border-radius:13px;font-size:15.5px;line-height:1.6;
+  box-shadow:0 3px 10px rgba(6,104,136,.07)}
+.taskask svg{flex:none;margin-top:2px;color:var(--teal)}
+.taskask b{color:var(--teal-dk)}
+.fb{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;border-left:3px solid;background:var(--coach-2)}
+.fb.tour{border-color:var(--teal)}
+.fb.good{border-color:var(--ok)} .fb.bad{border-color:var(--bad)} .fb.tip{border-color:var(--tip)}
+.fb b{display:block;margin-bottom:5px;font-size:13.5px}
+.fb .teach{margin-top:9px;padding-top:9px;border-top:1px solid #35455a;color:#c3d0de}
+.cfoot{padding:12px 18px 16px;border-top:1px solid var(--coach-line);display:flex;gap:8px;flex-wrap:wrap;flex:none}
+.cbtn{border:1px solid #bfd9e4;border-radius:9px;padding:10px 16px;font-size:14.5px;font-weight:600;color:var(--teal)}
+.cbtn:hover{background:var(--coach-2)}
+.cbtn.go{background:var(--teal);border-color:var(--teal);color:#fff}
+.cbtn.go:hover{background:var(--teal-dk)}

@@ -1,0 +1,154 @@
+/* ============================ LASHES ============================
+   She has no hands, so she cannot point. Proximity is her only deictic: she
+   travels to the thing she is talking about, and that IS the pointing. Which
+   is why she floats over the interface rather than living in a panel. */
+/* Below the movable window, deliberately. The solver treats the window as a hard
+   keep-clear rect, but the learner can park it anywhere, and when no placement is
+   clean the two have to overlap. Her being partly hidden is recoverable — drag the
+   window. Her covering Next and Show hint is not. */
+.lzlayer{position:fixed;top:0;left:0;right:0;bottom:0;z-index:168;pointer-events:none;overflow:hidden}
+/* She normally sits BELOW the training panel, so a bubble that strays over it goes
+   behind rather than burying the task. The exception is when she is pointing at one
+   of the panel's own controls: there is nowhere to stand that is not over the panel,
+   and underneath it her own Next button cannot be clicked. */
+.lzlayer.over-panel{z-index:176}
+/* The opening card: she arrives big, the words sit beside her at title size, and
+   nothing is drawn round them. A title, not a speech. */
+.lzlayer.hero{z-index:176}
+.lzlayer.hero::before{content:"";position:absolute;inset:0;background:rgba(240,240,251,.86);
+  backdrop-filter:blur(3px)}
+.lzlayer.hero .lzchar{width:230px;height:230px}
+.lzlayer.hero .lzbub{background:none;border:0;box-shadow:none;padding:0;max-width:none}
+.lzlayer.hero .lzbub .fb p{font-size:34px;line-height:1.25;font-weight:600;color:var(--indigo-dk);margin:0}
+.lzlayer.hero .lzbub .fb p+p{font-size:19px;font-weight:400;color:var(--ink);margin-top:14px}
+.lzlayer.hero .lzfoot{border-top:0;padding-top:22px;justify-content:flex-start}
+.lzlayer.hero .lzfoot>*{margin-left:0}
+.lzlayer.hero .lzcount{display:none}
+@media(prefers-reduced-motion:reduce){.lzlayer.hero::before{backdrop-filter:none}}
+.lzlayer[hidden]{display:none !important}
+
+.lzchar{position:absolute;left:0;top:0;width:var(--lzsize,124px);height:var(--lzsize,124px);
+  opacity:0;transition:transform .58s cubic-bezier(.22,1.1,.36,1),opacity .3s;will-change:transform}
+.lzchar.on{opacity:1}
+.lzchar svg{width:100%;height:100%;display:block;overflow:visible}
+
+.lzarrow{position:absolute;left:0;top:0;width:46px;height:52px;opacity:0;
+  transition:transform .5s cubic-bezier(.22,1.1,.36,1),opacity .25s}
+.lzarrow.on{opacity:1}
+.lzarrow .spin{width:100%;height:100%;transition:transform .35s ease}
+.lzarrow .bob{width:100%;height:100%;animation:lzpoint 1.15s cubic-bezier(.4,0,.3,1) infinite;
+  transform-origin:50% 0%}
+@keyframes lzpoint{
+  0%,100%{transform:translateY(0) scaleY(1) scaleX(1)}
+  38%{transform:translateY(11px) scaleY(1.12) scaleX(.92)}
+  52%{transform:translateY(13px) scaleY(.82) scaleX(1.14)}
+  70%{transform:translateY(4px) scaleY(1.04) scaleX(.98)}}
+.lzarrow svg{display:block;filter:drop-shadow(0 5px 12px rgba(6,104,136,.28))}
+@media(prefers-reduced-motion:reduce){.lzarrow .bob{animation:none}.lzarrow{transition:opacity .25s}}
+
+/*__LASHES_CSS__*/
+
+/* "still" is how she plays deadpan — a character who is always bobbing cannot be
+   unimpressed. Blink is kept: a face that never blinks reads as broken, not dry. */
+.lzchar.still .m-body,.lzchar.still .m-face{animation:none}
+/* There was a bare `.lzchar.still ` on the next line — a selector with no block,
+   left behind by an edit. CSS does not treat that as an error: it reads on to the
+   next `{`, so the parser built `.lzchar.still .lzchar.mv-dropin .m-body`, which
+   can never match, and her drop-in entrance computed animation-name:none. It has
+   been dead in every shipped build. Measured, not guessed — the rule now parses
+   as itself. A selector list that loses its comma fails silently and takes the
+   following rule with it. */
+.lzchar.mv-dropin .m-body{animation:mbob 3.6s ease-in-out infinite,mdropin .78s cubic-bezier(.3,1.4,.5,1)}
+@keyframes mdropin{0%{transform:translateY(-120px) scaleY(1.25) scaleX(.8)}
+  55%{transform:translateY(6px) scaleY(.78) scaleX(1.2)}80%{transform:translateY(-8px) scaleY(1.08) scaleX(.95)}
+  100%{transform:translateY(0) scale(1)}}
+.lzchar.mv-twirl .m-body{animation:mbob 3.6s ease-in-out infinite,mtwirl .95s cubic-bezier(.4,0,.3,1)}
+@keyframes mtwirl{0%{transform:translateY(0) rotate(0)}45%{transform:translateY(-16px) rotate(200deg)}
+  100%{transform:translateY(0) rotate(360deg)}}
+.lzchar.mv-hop .m-body{animation:mbob 3.6s ease-in-out infinite,mhop .46s ease-out}
+@keyframes mhop{0%,100%{transform:translateY(0) scale(1)}
+  30%{transform:translateY(-15px) scaleY(1.12) scaleX(.92)}70%{transform:translateY(2px) scaleY(.92) scaleX(1.08)}}
+.lzchar.mv-bounce .m-body{animation:mbob 3.6s ease-in-out infinite,mbounce .9s ease-out}
+@keyframes mbounce{0%,100%{transform:translateY(0) scale(1)}
+  15%{transform:translateY(-19px) scaleY(1.14) scaleX(.9)}32%{transform:translateY(0) scaleY(.86) scaleX(1.14)}
+  50%{transform:translateY(-11px) scaleY(1.08) scaleX(.95)}70%{transform:translateY(0) scaleY(.92) scaleX(1.06)}
+  86%{transform:translateY(-4px)}}
+.lzchar.mv-shrug .m-body{animation:mbob 3.6s ease-in-out infinite,mshrug .7s ease-in-out}
+@keyframes mshrug{0%,100%{transform:rotate(0)}25%{transform:rotate(-13deg) translateY(-3px)}
+  62%{transform:rotate(11deg) translateY(-3px)}}
+.lzchar.mv-sigh .m-body{animation:mbob 3.6s ease-in-out infinite,msigh 1.1s ease-in-out}
+@keyframes msigh{0%,100%{transform:scale(1)}30%{transform:scale(1.09) translateY(-5px)}
+  70%{transform:scale(.94) translateY(3px)}}
+.lzchar.mv-lean .m-body{animation:mbob 3.6s ease-in-out infinite,mlean 1.4s ease-in-out}
+@keyframes mlean{0%,100%{transform:rotate(0)}40%,60%{transform:rotate(-14deg) translateX(-4px)}}
+
+/* Bubbles: white, 17px radius, springy, and no tails — tails misalign, and the
+   pairing reads on its own. */
+.lzbub{position:absolute;left:0;top:0;box-sizing:border-box;
+  width:max-content;max-width:min(368px,74vw);min-width:200px;
+  background:#fff;color:#14222b;border-radius:17px;padding:13px 15px 13px 16px;
+  font-size:15.5px;line-height:1.6;
+  box-shadow:0 10px 30px rgba(6,104,136,.24),0 1px 4px rgba(6,104,136,.18);
+  transform:scale(.82);opacity:0;transform-origin:50% 60%;
+  transition:transform .34s cubic-bezier(.2,1.5,.4,1),opacity .18s;
+  /* laid out even when silent, so it can be measured — but it must never be a
+     click target while invisible, or it swallows taps on the row underneath */
+  visibility:hidden;pointer-events:none}
+.lzbub.on{transform:scale(1);opacity:1;visibility:visible;pointer-events:auto}
+.lzbub b{display:block;margin-bottom:5px;font-weight:700}
+.lzbub .lzteach{margin-top:9px;padding-top:9px;border-top:1px solid #dbe7ee;color:#3c5262}
+.lzbub .lzteach b{display:inline;margin:0}
+.lzbub code{background:#e0eff5;padding:1px 6px;border-radius:4px;font-size:14.5px}
+.lzbub .q{font-style:italic}
+/* .fb is styled for the dark window. Inside her bubble it has to be plain text on
+   white — it was rendering as near-black on the dark panel colour. */
+.lzbub .fb{margin:0;padding:0;background:none;border:0;border-radius:0;
+  font-size:15.5px;line-height:1.6;color:#14222b}
+.lzbub .fb.good b{color:#0f6b45}
+.lzbub .fb.bad b{color:#a3312a}
+.lzbub .fb.tip b{color:#8a5a00}
+/* A beat can carry an exchange rather than prose. Two bubbles, opposite sides,
+   because "Goes back to him. Where have you been staying?" is a conversation
+   written as a stage direction — showing it as one keeps every word and drops
+   the third person. */
+.lzbub .lzchat{margin-top:11px;display:flex;flex-direction:column;gap:7px}
+.lzbub .lzchat p{margin:0;padding:9px 14px;border-radius:16px;max-width:88%;
+  font-size:15px;line-height:1.5;opacity:0;animation:chatpop .4s cubic-bezier(.25,1.4,.4,1) forwards}
+.lzbub .lzchat .me{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
+.lzbub .lzchat .them{align-self:flex-start;background:#eaf2f6;color:#14222b;border-bottom-left-radius:5px;
+  animation-delay:.5s}
+@keyframes chatpop{0%{opacity:0;transform:translateY(6px) scale(.9)}100%{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.lzbub .lzchat p{animation:none;opacity:1}}
+
+.lzbub .lzfoot{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:10px;
+  border-top:1px solid #dbe7ee}
+.lzbub .lzcount{font-size:12.5px;color:#6f8b9a;letter-spacing:.03em;flex:1}
+.lzbub .lzstep,.lzbub .lzact{background:var(--teal);color:#fff;border-radius:9px;padding:7px 15px;
+  font-size:14px;font-weight:600}
+.lzbub .lzstep:hover,.lzbub .lzact:hover{background:var(--teal-dk)}
+/* Whatever she is here to say, the thing to do next belongs with it rather than
+   across the screen in the panel. */
+.lzbub .lzacts{display:flex;gap:7px;margin-left:auto}
+.lzbub .lzact.quiet{background:none;color:var(--teal);border:1px solid #bfd9e4}
+.lzbub .lzact.quiet:hover{background:var(--coach-2);color:var(--teal-dk)}
+.lzbub .lzwait{font-size:12.5px;color:#6f8b9a;font-style:italic;flex:1;text-align:right}
+
+/* The card takes the moment without taking the screen: no dim behind it, the
+   interface stays legible and live. */
+.lzcard{position:fixed;z-index:180;left:50%;top:50%;width:min(560px,86vw);
+  transform:translate(-50%,-46%) scale(.95);opacity:0;pointer-events:none;
+  background:#fff;color:#14222b;border-radius:20px;padding:24px 26px 20px;
+  box-shadow:0 26px 70px rgba(6,104,136,.3),0 0 0 1px rgba(6,104,136,.1);
+  transition:transform .38s cubic-bezier(.2,1.2,.4,1),opacity .26s}
+.lzcard.on{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+.lzcard h3{margin:0 0 11px;font-size:21px;font-weight:700}
+.lzcard p{margin:0 0 12px;font-size:16px;line-height:1.6}
+.lzcard .lzcardfoot{margin-top:6px;display:flex;justify-content:flex-end}
+.lzcard .lzgo{background:#066888;color:#fff;border-radius:9px;padding:10px 18px;font-weight:600;font-size:15px}
+.lzcard .lzgo:hover{background:#044e66}
+
+@media(prefers-reduced-motion:reduce){
+  .lzchar{transition:none} .lzbub,.lzcard{transition:opacity .2s}
+  .m-body,.m-face,.m-eyes{animation:none !important}
+  .lzchar[class*="mv-"] .m-body{animation:none !important}
+}
