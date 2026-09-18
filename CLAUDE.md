@@ -54,8 +54,8 @@ appear exactly once. **Lessons 1 and 3 both wear it.** Its own README is the ref
 The split, and it matters when you go to change something:
 
 - **`tools/lashes/face.{js,css}`** — her drawing and her expression library, and nothing
-  else. What a page wants when it needs a 40px avatar: the knowledge checks, the block
-  builder, Bobbi's transcript.
+  else. What a page wants when it needs a 40px avatar: the knowledge checks and the
+  block builder.
 - **`tools/coach/rig.{js,css,html}`** — her *rig*: the floating layer, the placement solver,
   the bubble, the pointing arrow, the movement classes, and `BEAT`. Carries the face tokens,
   so a page taking the rig gets the drawing with it.
@@ -969,9 +969,16 @@ the two disagree about a colour, the captures win and Lesson 1 is the one out of
 
 **Bobbi's conversation log is new and worth keeping.** Lessons 1–2 have Lashes saying one
 thing at a time beside an anchor and no transcript at all; a scrollable exchange is the right
-shape for a lesson about an interview. It is the panel's whole body there, and she is a voice
-in it rather than something standing next to the interface — which is why that page takes the
-window without the rig.
+shape for a lesson about an interview. It is the panel's whole body there.
+
+**Lashes is not in that page, and neither is any commentary on the exchange.** She used to
+interrupt after most beats to name what had just been demonstrated, and the transcript itself
+carried two asides — a dashed "alternate phrasing" note and a closing paragraph about nobody
+having been pressured. The owner's call: *it's just a conversation*. So it is two speakers and
+nothing else, and the page carries no drawing of her at all — no markup, no face tokens.
+Whatever the learner is meant to take from it, the lesson says around the block. `test.mjs`
+asserts both halves, because this is the kind of thing that creeps back one helpful line at a
+time.
 
 **Feedback is hers and arrives beside what caused it**, as in Lesson 1. There is no feedback
 box in the panel: a paragraph on the far side of the screen from the field it is about makes

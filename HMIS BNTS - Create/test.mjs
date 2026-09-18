@@ -35,6 +35,13 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 /* ---------------- the built files, before a browser is involved ------------ */
 head("what the build produced");
 const pages = ["sim-add-client", "sim-bobbi"];
+/* Lashes is in the practice sim and NOT in the walkthrough. The walkthrough is a
+   conversation between two people; she used to interrupt it after most beats to
+   name what had been demonstrated, and the owner's call was that it is a
+   conversation, so she is not in that page at any level — no drawing, no markup,
+   no face tokens. Listed rather than inferred, so dropping her from a page that
+   should have her fails here instead of passing quietly. */
+const withLashes = new Set(["sim-add-client"]);
 for (const p of pages) {
   ok(p + ".html exists", fs.existsSync(path.join(DIST, p + ".html")));
   ok(p + ".zip exists", fs.existsSync(path.join(DIST, p + ".zip")));
@@ -61,8 +68,14 @@ for (const p of pages) {
   /* Her drawing has one source. The lash strokes are the canary — the first cut of
      face.css was derived by matching rule shapes and silently dropped
      `.m-lash path`, on a character named after them. */
-  ok(p + ": carries the shared lash rule",
-     html.includes(".m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}"));
+  const lashRule = ".m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}";
+  if (withLashes.has(p)) {
+    ok(p + ": carries the shared lash rule", html.includes(lashRule));
+  } else {
+    /* Not merely "she does not render" — the page must not carry her at all. */
+    ok(p + ": does not carry her drawing", !html.includes(lashRule) &&
+       !/class="m-lash"/.test(html) && !/data-face/.test(html));
+  }
 
   /* The panel is the series' look, and it comes from tools/coach. */
   ok(p + ": wears the shared training window", html.includes('id="coachWin"') &&
@@ -199,10 +212,32 @@ for (const name of pages) {
              strokes: groups.length ? groups[0].querySelectorAll("path").length : 0,
              stroke: cs && cs.stroke, width: cs && cs.strokeWidth, fill: cs && cs.fill };
   });
-  ok("she is drawn", lash.drawings > 0, lash);
-  ok("...with her lashes, stroked and unfilled",
-     lash.strokes === 6 && lash.stroke === "rgb(20, 34, 43)" &&
-     lash.width === "2.2px" && lash.fill === "none", lash);
+  if (withLashes.has(name)) {
+    ok("she is drawn", lash.drawings > 0, lash);
+    ok("...with her lashes, stroked and unfilled",
+       lash.strokes === 6 && lash.stroke === "rgb(20, 34, 43)" &&
+       lash.width === "2.2px" && lash.fill === "none", lash);
+  } else {
+    ok("she is nowhere on screen, start to finish", lash.drawings === 0, lash);
+  }
+
+  /* The walkthrough is a conversation and nothing else. Two speakers, no third
+     voice and no commentary on the exchange: there were a dashed "alternate
+     phrasing" aside in the transcript and a closing paragraph about nobody having
+     been pressured, and both are gone. Checked after the play, so a coaching line
+     added to a later beat is caught. */
+  if (name === "sim-bobbi") {
+    const speakers = await fr.evaluate(() => {
+      const out = {};
+      for (const m of document.querySelectorAll(".msg")) {
+        const k = [...m.classList].filter(c => c !== "msg").join(".") || "(none)";
+        out[k] = (out[k] || 0) + 1;
+      }
+      return out;
+    });
+    ok("the transcript has two speakers and no third voice",
+       Object.keys(speakers).sort().join(",") === "bobbi,you", speakers);
+  }
 
   const types = msgs.map(m => m && m.type);
   ok("it says ready when it is embedded", types.includes("ready"), types);

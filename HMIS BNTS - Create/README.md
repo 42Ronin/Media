@@ -56,6 +56,23 @@ What each page kept is the part that was working:
   panel: the worker solid teal on the right, the participant light on the left,
   which is the treatment the Search lesson already uses for an exchange.
 
+### It is a conversation, and only that
+
+Lashes is **not in the walkthrough**, at any level: no drawing, no markup, no face
+tokens. She used to interrupt after most beats to name what had just been
+demonstrated — *"One name is not a full name. Say so on the record."* — and the
+transcript carried two asides of its own: a dashed alternate phrasing for the
+last-name question, and a closing paragraph about nobody having been pressured.
+All of it is gone. Two speakers, seventeen messages, nothing else.
+
+Save is reached by the conversation ending rather than by being told to save it,
+so the final beat is the consent exchange and the walkthrough is eight beats now.
+
+Whatever the learner is meant to take from watching it, the lesson says around the
+block. `test.mjs` checks the built page carries none of her, checks she is nowhere
+on screen start to finish, and counts the speakers after the play — this is the kind
+of thing that creeps back one helpful line at a time.
+
 What changed beyond the paint:
 
 - **Feedback is hers, and it arrives beside what caused it** rather than in a box

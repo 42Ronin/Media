@@ -40,10 +40,10 @@ def main(src, out, body):
     html = src.read_text(encoding="utf-8")
     read = lambda p: p.read_text(encoding="utf-8").rstrip("\n")
 
-    # Two groups, and the rig is OPTIONAL. A page can take the window without the
-    # floating character: the Bobbi walkthrough carries her inside its transcript,
-    # where she is one voice in a conversation rather than something standing next
-    # to the interface. All-or-nothing per group, so a typo'd token still fails.
+    # Three groups, and only the panel is required. A page can take the window
+    # without the floating character, and it can take it without HER — the Bobbi
+    # walkthrough is a conversation between two people and she is not in it at all.
+    # All-or-nothing per group, so a typo'd token still fails.
     panel = [("PANEL_HTML", "html", read(HERE / "panel.html")),
              ("PANEL_CSS",  "css",  read(HERE / "panel.css")),
              ("PANEL_JS",   "js",   read(HERE / "panel.js"))]
@@ -68,9 +68,19 @@ def main(src, out, body):
         html = stamp(html, "PANEL_BODY", "html", read(body), body.name)
 
     # Her drawing, last — into the slots rig.css and rig.js brought with them, or
-    # into the page's own if it took the panel without the rig.
-    html = stamp(html, "LASHES_CSS", "css", read(LASHES / "face.css"), src.name)
-    html = stamp(html, "LASHES_JS", "js", read(LASHES / "face.js"), src.name)
+    # into the page's own if it took the panel without the rig. Checked AFTER the
+    # rig has landed, because the rig is where those slots usually come from; a page
+    # with neither simply does not show her.
+    face = [("LASHES_CSS", "css", read(LASHES / "face.css")),
+            ("LASHES_JS",  "js",  read(LASHES / "face.js"))]
+    present = [n for n, k, _ in face if html.count(token(n, k))]
+    if present and len(present) != len(face):
+        raise SystemExit("%s: face group is half there — has %s, missing %s" % (
+            src.name, ", ".join(present),
+            ", ".join(n for n, _, _ in face if n not in present)))
+    for name, kind, text in face:
+        if html.count(token(name, kind)):
+            html = stamp(html, name, kind, text, src.name)
 
     out.write_text(html, encoding="utf-8")
 

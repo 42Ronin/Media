@@ -40,11 +40,14 @@ token named a second time stamped the payload into a comment.
 Order is fixed and nesting is why: `panel.html` carries the body slot, and
 `rig.css`/`rig.js` each carry a face token, so the outer stamp has to land first.
 
-**The rig is optional.** A page can take the window without the floating character
-and carry her inside its own content instead — the Bobbi walkthrough has her as a
-voice in its transcript, so it writes the four panel tokens and the two face tokens
-and no rig tokens at all. The check is **all-or-nothing per group**: a group half
-present is a typo, not a choice, and fails the build.
+**The rig is optional, and so is she.** Three groups — panel, rig, face — and only
+the panel is required. A page can take the window without the floating character and
+carry her inside its own content; it can also take the window without her at all,
+which is what the Bobbi walkthrough does, since that page is a conversation between
+two people and she is not one of them. The face group is checked **after** the rig has
+landed, because the rig is where those two slots usually come from. The check is
+**all-or-nothing per group**: a group half present is a typo, not a choice, and fails
+the build.
 
 ## `LZ_HOST` — what a lesson tells the rig about its own interface
 

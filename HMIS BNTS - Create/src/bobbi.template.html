@@ -33,22 +33,14 @@
     opacity:.7;margin-bottom:3px;font-weight:600}
   .msg.you{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
   .msg.bobbi{align-self:flex-start;background:#eaf2f6;color:var(--coach-ink);border-bottom-left-radius:5px}
-  /* Hers is not a bubble in the exchange — she is talking about it, so she gets the
-     full width and the teal edge she carries everywhere else in the series. */
-  .msg.lashes{align-self:stretch;max-width:100%;background:var(--coach-2);color:var(--coach-ink);
-    border:1px solid #d3e7ee;border-left:4px solid var(--teal);border-radius:13px;
-    display:flex;gap:12px;align-items:flex-start;padding:12px 14px}
-  .msg.lashes .who{color:var(--teal-dk)}
-  .msg.lashes .body{flex:1}
-  .msg.lashes .body p{margin:0 0 6px}
-  .msg.lashes .body p:last-child{margin:0}
-  .msg.note{align-self:stretch;max-width:100%;background:transparent;color:#5f7f8f;
-    font-style:italic;font-size:13.5px;padding:2px 4px}
-  .msg.alt{align-self:flex-end;background:transparent;border:1px dashed #bfd9e4;
-    color:#41606f;font-size:13.5px}
+  /* Two speakers and nothing else. Lashes is not in this page and neither is any
+     commentary on the exchange: she used to interrupt after most beats to name what
+     had just been demonstrated, and there were two asides in the transcript itself —
+     a dashed "alternate phrasing" note and a closing paragraph about nobody having
+     been pressured. The owner's call was that this is a conversation, so it is one.
+     Whatever the learner is meant to take from it, the lesson says around the block. */
   @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @media(prefers-reduced-motion:reduce){.msg{animation:none}}
-  .lashes-av{width:40px;height:40px;flex:0 0 40px}
 
   /* ---------- Clarity replica ---------- */
   /* .app is the coach's contract: fixed, ending at the reserved --dock column. */
@@ -113,7 +105,6 @@
   .pcard dt{font-size:11px;font-weight:600;color:var(--ink2)}
   .pcard dd{margin:0;font-size:13px}
   .pcard .demo{grid-column:1/-1;color:var(--indigo);font-size:12.5px;font-weight:600;margin-top:6px}
-/*__LASHES_CSS__*/
 </style>
 </head>
 <body>
@@ -189,7 +180,6 @@
 "use strict";
 /* The panel's own mechanics want a selector helper. */
 function $(sel){ return document.querySelector(sel); }
-/*__LASHES_JS__*/
 (() => {
   const log = document.getElementById('log');
   const next = document.getElementById('next');
@@ -205,48 +195,38 @@ function $(sel){ return document.querySelector(sel); }
   // Each beat: messages to add, then form changes to apply.
   const beats = [
     { msgs:[ {who:'Bobbi', cls:'bobbi', t:'My name is Bobbi.'} ],
-      form:[ ['first','Bobbi'], ['qname','Partial, street name, or code name reported'] ],
-      lashes:['One name is not a full name. Say so on the record.','You can change it in a minute if she gives you more.'] },
+      form:[ ['first','Bobbi'], ['qname','Partial, street name, or code name reported'] ] },
 
     { msgs:[ {who:'You', cls:'you', t:'May I ask for your last name?'},
-             {cls:'alt', t:'Alternate, if they are carrying documents: "Bobbi, would you have an ID that I can use to fill in your information?"'},
              {who:'Bobbi', cls:'bobbi', t:'Sure, it’s Barrone. B-A-R-R-O-N-E.'} ],
-      form:[ ['last','Barrone'], ['qname','Full name reported'] ],
-      lashes:['One more question. That is the entire difference between a partial name and a full one.','And notice she spelled it out without being asked twice. Ask everybody to spell it, and read it back to them so they can catch you.','Five seconds now. It saves somebody twenty minutes two years from now, and there is a decent chance that somebody is you.'] },
+      form:[ ['last','Barrone'], ['qname','Full name reported'] ] },
 
     { msgs:[ {who:'You', cls:'you', t:'Thank you, Bobbi. May I get your birthday?'},
              {who:'Bobbi', cls:'bobbi', t:'August 22nd. Do you need the year?'} ],
-      form:[ ['qdob','Approximate or partial DOB reported'] ],
-      lashes:['She has given you most of it. Record what you have, and the code that says it is not all of it.'] },
+      form:[ ['qdob','Approximate or partial DOB reported'] ] },
 
     { msgs:[ {who:'You', cls:'you', t:'If you don’t mind!'},
              {who:'Bobbi', cls:'bobbi', t:'1993. Anything else?'} ],
-      form:[ ['dob','08/22/1993'], ['qdob','Full DOB Reported'] ],
-      lashes:['Two questions, two upgrades. Notice she was never pushed. She was asked.'] },
+      form:[ ['dob','08/22/1993'], ['qdob','Full DOB Reported'] ] },
 
     { msgs:[ {who:'You', cls:'you', t:'We don’t have to go through everything today. Let me ask: may I record your Social Security Number?'},
              {who:'Bobbi', cls:'bobbi', t:'Do you really need that?'},
              {who:'You', cls:'you', t:'Not today. Anything you share with me is so that we can help you navigate services.'},
              {who:'Bobbi', cls:'bobbi', t:'Okay. Not today. I have to check if I still have that card.'} ],
-      form:[ ['ssn','XXX-XX-XXXX'], ['qssn','Client doesn’t know'] ],
-      lashes:['Read that again. She did not refuse. She said she is not sure she still has the card.','That is "Client doesn’t know," not "Client prefers not to answer." Different boxes, different meanings, and the difference matters to whoever sees her next.'] },
+      form:[ ['ssn','XXX-XX-XXXX'], ['qssn','Client doesn’t know'] ] },
 
     { msgs:[ {who:'You', cls:'you', t:'Sure thing, Bobbi. If needed, we can help you get another one.'} ],
-      form:[], lashes:[] },
+      form:[] },
 
     { msgs:[ {who:'You', cls:'you', t:'Two more things and I’ll stop asking. What would you say is your gender identity? And what would you say is your race or ethnicity?'},
              {who:'Bobbi', cls:'bobbi', t:'Woman. She, her. And Black.'} ],
-      form:[ ['gender','Woman (Girl, if child)'], ['pronouns','she/her'], ['race','Black, African American, or African'] ],
-      lashes:['You asked. That is the whole skill for this section. Not one of those fields is something you can see.'] },
+      form:[ ['gender','Woman (Girl, if child)'], ['pronouns','she/her'], ['race','Black, African American, or African'] ] },
 
     { msgs:[ {who:'You', cls:'you', t:'Last thing. The information I write down, other agencies that use this system can see it too. A shelter, an outreach team on another block. That is what lets them pick up where we left off instead of you starting over. Is that okay with you?'},
              {who:'Bobbi', cls:'bobbi', t:'Yeah, that’s fine. I don’t want to keep doing this.'},
              {who:'You', cls:'you', t:'I don’t have anything for you to sign out here. I’m going to record that you said yes, and next time we’re together with the form, I’ll get your signature.'} ],
       form:[ ['perm','Yes'], ['start', fmt(today)], ['end', fmt(end)], ['doc','Verbal Consent'] ],
-      lashes:['Verbal consent is real consent. It is also a promise you just made out loud. Follow up.'] },
-
-    { msgs:[ {cls:'note', t:'Nobody pressured her. A partial answer became a full one because you asked one more question. She was asked two different consent questions and got to answer each one. Nothing here was a failure. The record is honest.'} ],
-      form:[], lashes:['Now save it.'], enableSave:true },
+      enableSave:true },
   ];
 
   /* The window's own title. The shared shell ships #secTitle empty on purpose —
@@ -262,18 +242,9 @@ function $(sel){ return document.querySelector(sel); }
 
   function add(m){
     const el = document.createElement('div');
-    if (m.cls === 'note') { el.className='msg note'; el.textContent = m.t; }
-    else if (m.cls === 'alt') { el.className='msg alt'; el.textContent = m.t; }
-    else { el.className = 'msg ' + m.cls; el.innerHTML = `<span class="who">${m.who}</span>${m.t}`; }
+    el.className = 'msg ' + m.cls;
+    el.innerHTML = `<span class="who">${m.who}</span>${m.t}`;
     log.appendChild(el); log.scrollTop = log.scrollHeight;
-  }
-  function addLashes(lines){
-    if (!lines.length) return;
-    const el = document.createElement('div'); el.className='msg lashes';
-    el.innerHTML = `<span class="lashes-av" data-face></span><div class="body"><span class="who">Lashes</span>${lines.map(l=>`<p>${l}</p>`).join('')}</div>`;
-    log.appendChild(el);
-    paintFaces(el);                    // she is built into the message, so paint it now
-    log.scrollTop = log.scrollHeight;
   }
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
   async function applyForm(changes){
@@ -294,7 +265,6 @@ function $(sel){ return document.querySelector(sel); }
     const b = beats[i];
     for (const m of b.msgs){ add(m); await sleep(520); }
     await applyForm(b.form);
-    addLashes(b.lashes);
     i++; setProg();
     if (b.enableSave){ save.classList.add('on'); next.hidden = true; }
     else { next.textContent = i >= beats.length ? 'Finish' : 'Next'; next.disabled = false; }
@@ -304,7 +274,6 @@ function $(sel){ return document.querySelector(sel); }
   save.addEventListener('click', () => {
     if (!save.classList.contains('on')) return;
     panel.style.display='none'; profile.classList.add('show');
-    addLashes(['There it is. She has a record now.','That code at the top is her Unique Identifier. You used those last lesson to tell three Rosalind Vegas apart. This one is hers, and it did not exist four minutes ago.']);
     replay.hidden = false; next.hidden = true;
     /* The house contract: source-tagged, and never a score. */
     try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',

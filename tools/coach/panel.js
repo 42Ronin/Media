@@ -6,9 +6,10 @@
 
    The placement solver only matters in the popped-out mode. */
 (function(){
-  /* The rig is optional: a page may take the window and carry her inside its own
-     content instead — the Bobbi walkthrough has her as a voice in its transcript.
-     Nothing here needs her, so nothing here may assume she is loaded. */
+  /* The rig is optional, and so is she: a page may take the window and carry her
+     inside its own content, or not show her at all — the Bobbi walkthrough is a
+     conversation between two people and she is in none of it. Nothing here needs
+     her, so nothing here may assume she is loaded. */
   function relayout(){ if(typeof LZ!=="undefined" && LZ && LZ.relayout) LZ.relayout(); }
   var win=$("#coachWin"), bar=$("#cwBar"), root=document.documentElement, drag=null, moved=false;
   function floating(){ return root.classList.contains("dock-out"); }
