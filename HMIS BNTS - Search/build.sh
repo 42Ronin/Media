@@ -41,6 +41,14 @@ python3 script/kc_data.py > src/kc.json
 
 rm -rf "$OUT"; mkdir -p "$OUT"
 
+# The training window, the placement solver and Lashes herself are shared with
+# Lesson 3, so they live in tools/coach and are stamped in here. src/panel-body.html
+# is the part of the window that is this lesson's: the progress bar, the task copy
+# and the two buttons. Everything downstream builds from the assembled file.
+ASSEMBLED="$OUT/_lesson1.assembled.html"
+python3 ../tools/coach/assemble.py "$TEMPLATE" "$ASSEMBLED" "src/panel-body.html"
+TEMPLATE="$ASSEMBLED"
+
 # stamp(template, roster, out, section, step) — step is the JS literal, so "null"
 # for a section build and a quoted id like "11.3" for a step build.
 stamp() {
@@ -140,6 +148,8 @@ python3 tools/stamp_kc.py src/kc-dealer.template.html src/kc.json "$OUT/kc-deale
 # box, no right answer, no mark. It takes the first question here only so there is
 # something to look at — the lesson does not ship one, the maker authors them.
 python3 tools/stamp_kc.py src/kc-copperfield.template.html src/kc.json "$OUT/kc-copperfield-prototype.html"
+
+rm -f "$ASSEMBLED"
 
 [ "$WITH_SCORM" = "1" ] || echo "scorm packaging skipped (run with --scorm to produce the zips)"
 

@@ -13,6 +13,8 @@
    ============================================================ */
 /* ---------- the character, drawn exactly as the lesson draws her ---------- */
 .m-rim{fill:none;stroke:#066888;stroke-width:6}
+/* The bible has this at .85. Over a working interface that reads as see-through
+   rather than as glass, so it is solid here and the lens colour does the work. */
 .m-glass{fill:#e0eff5;opacity:1}
 .m-eye{fill:#14222b}
 .m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}

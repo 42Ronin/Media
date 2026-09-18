@@ -10,9 +10,14 @@
    change it in both" was a note in CLAUDE.md rather than something the build
    enforced.
 
-   svg(eyes, mouth) returns a 100x100 viewBox. The caller sizes it.
-   Expressions are fixed and are not a setting: open, droll, sparkle, wide,
-   arcs for the eyes; tip, plain, cheer, wry, hm for the mouth.
+   svg(eyes, mouth) returns her drawing cropped to her ink. The caller sizes it.
+   Expressions are fixed and are not a setting: open, glance, droll, sparkle,
+   wide, smug, arcs for the eyes; tip, plain, cheer, wry, hm for the mouth.
+
+   The list below is COPIED from the lesson's rig, not retyped from it. The first
+   version of this file was assembled by hand and quietly lost `glance` and
+   `smug` — the same failure as the `.m-lash path` rule the CSS lost, and for the
+   same reason. Copy the block.
    ============================================================ */
 var LASH={
   open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
@@ -31,22 +36,37 @@ function droll(cx){
          '<rect class="m-lidfill" x="'+(cx-4.6)+'" y="34" width="9.2" height="3.9" rx="1.6"/>'+
          '<path class="m-lidline" d="M'+(cx-4)+' 37.7 h8"/>';
 }
+/* Expression library, straight from the bible. No flat-mouth-with-shut-lids
+   combination is reachable from here: that reads as a glare and is wrong for her. */
 var EYES={
   open:   {e:'<circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>', l:"open"},
+  glance: {e:'<circle class="m-eye" cx="36.8" cy="39" r="4"/><circle class="m-eye" cx="54.8" cy="39" r="4"/>', l:"open"},
   droll:  {e:droll(35)+droll(53), l:"low"},
   sparkle:{e:spark(35,39)+spark(53,39), l:"high"},
   wide:   {e:'<circle class="m-eye" cx="35" cy="39" r="5.2"/><circle class="m-eye" cx="53" cy="39" r="5.2"/>', l:"high"},
+  smug:   {e:'<path class="m-arc" d="M30.5 38 q4.5 4.5 9 0"/><path class="m-arc" d="M48.5 38 q4.5 4.5 9 0"/>', l:"open"},
   arcs:   {e:'<path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/><path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>', l:"open"}
 };
-var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
-           wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
-function svg(eyes,mouth){
+var MOUTH={
+  tip:  "M36 51 q8 7 16 0",
+  plain:"M37 51 q7 4.5 14 0",
+  cheer:"M33 49 q11 10 22 0",
+  wry:  "M41.5 51.2 q4.2 2.8 8.4 .7",
+  hm:   "M40 51.8 q4 1.4 8 0"
+};
+/* Cropped to her ink, not the 100-square she was authored in. Measured with
+   getBBox: she occupies 61.2 x 61.2 at (13.4, 10.2), so a third of that box was
+   nothing and every caller sizing a 40px avatar got a 24px face. One unit of
+   margin all round. The teller's orb learned the same thing.
+
+   The lesson's rig is the one caller that wants the uncropped box back: it
+   positions her by FX/FY/FR, which are fractions OF THE 100-SQUARE, so cropping
+   under it would move her face out from under its own placement maths. It asks
+   for BOX_FULL. Nothing else should. */
+var BOX_INK="12.4 9.2 63.2 63.2", BOX_FULL="0 0 100 100";
+function svg(eyes,mouth,box){
   var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
-  /* Cropped to her ink, not the 100-square she was authored in. Measured with
-     getBBox: she occupies 61.2 x 61.2 at (13.4, 10.2), so a third of that box was
-     nothing and every caller sizing a 40px avatar got a 24px face. One unit of
-     margin all round. The teller's orb learned the same thing. */
-  return '<svg viewBox="12.4 9.2 63.2 63.2" aria-hidden="true">'+
+  return '<svg viewBox="'+(box||BOX_INK)+'" aria-hidden="true">'+
     '<g class="m-body">'+
       '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
       '<circle class="m-glass" cx="44" cy="42" r="25"/>'+

@@ -342,83 +342,156 @@ And neither of them is "Data not collected," which means the question was never 
 
 ### [Tutorial: Meeting Bobbi]
 
-*The Add Client form is open. A conversation panel sits beside it. The learner sets each code themselves as the conversation unfolds; Lashes prompts and reacts.*
+*The Add Client form is open with every field locked. A conversation panel sits
+beside it. Bobbi speaks; the learner types what she said and sets the data-quality
+code for it; the worker's next line lands only once that is done. Each step unlocks
+only its own fields — the rest of the form stays out of reach, which is how the
+learner knows where to look without being told.*
 
-You are going to make Bobbi's record with me. I will handle the conversation. You handle the form.
+*There is no coaching voice anywhere in this. A code the conversation called for is
+marked green, any other is marked red, and neither carries a sentence. Typed text is
+never evaluated — not the spelling of her name, not the date, not her pronouns. A
+field with anything in it is done.*
 
-*[User Clicks "Let's Go" to Continue]*
+You are going to make Bobbi's record with me. I will handle the conversation. You
+handle the form.
+
+*[User clicks "Let's go" to begin]*
 
 **Bobbi:** "My name is Bobbi."
 
-Type it in. Then set Quality of Name for what you have right now, which is one name.
-
-*[User types a first name and selects a Quality of Name. If Full name reported: "One name is not a full name. Say so on the record. You can change it in a minute if she gives you more." If Partial: "Right. Partial, until it is not."]*
+*[User types a first name and sets Quality of Name to* Partial, street name, or code
+name reported. *One name is not a full name, and the code is where that gets said.]*
 
 **You:** "May I ask for your last name?"
 
-*Alternate line, if they are carrying documents:* "Bobbi, would you have an ID that I can use to fill in your information?"
-
 **Bobbi:** "Sure, it's Barrone. B-A-R-R-O-N-E."
 
-Type it, and update the code.
-
-*[User types the last name and changes Quality of Name to Full name reported. If the code is not changed: "You have a full name now. The code still says partial. Codes track the conversation, and the conversation moved."]*
-
-One more question. That is the entire difference between a partial name and a full one.
-
-And notice she spelled it out without being asked twice. Ask everybody to spell it, and read it back to them so they can catch you. Five seconds now. It saves somebody twenty minutes two years from now, and there is a decent chance that somebody is you.
+*[User types the last name and changes Quality of Name to* Full name reported. *The
+code that was right a moment ago is wrong now: the conversation moved and the code
+moves with it. This is the whole subject of the lesson in one field.]*
 
 **You:** "Thank you, Bobbi. May I get your birthday?"
 
-**Bobbi:** "August 22nd. Do you need the year?"
+**Bobbi:** "August 22nd. I couldn't tell you the year, though."
 
-Set Quality of DOB for what you have.
+**You:** "That's all right. Do you know how old you are?"
 
-*[User selects Approximate or partial DOB reported. If Full: "You do not have the year yet. Partial is the honest code until you do."]*
+**Bobbi:** "Thirty-three."
 
-**You:** "If you don't mind!"
+*[User works the year out from her age, enters the date, and sets Quality of DOB to*
+Approximate or partial DOB reported. *The day is hers; the year is the worker's
+arithmetic, and the code is what says so. A year that does not follow from her age
+is marked, because a sum can be got wrong and leaving somebody staring at a step
+that will not move is worse than telling them.]*
 
-**Bobbi:** "1993. Anything else?"
+> **CHANGED — she no longer gives the year.** She used to say "1993", which meant
+> every code in this tutorial was the best case: Full name, Full DOB, and
+> doesn't-know for a number she does not have at all. The distinction the lesson
+> runs on — between having all of something and having some of it — was demonstrated
+> nowhere in it. Her own reference table already carried this version: *"August 22nd.
+> I couldn't tell you the year."* → Approximate or partial DOB reported.
+>
+> The build computes the year from her age against the current date rather than
+> storing it, so the sum stays correct as the calendar moves. It is 1993 today, which
+> is what she used to say, so nothing downstream shifts.
 
-Enter the date, and update the code.
-
-*[User enters 08/22/1993 and selects Full DOB Reported.]*
-
-Two questions, two upgrades. Notice she was never pushed. She was asked.
-
-**You:** "We don't have to go through everything today. Let me ask: may I record your Social Security Number?"
+**You:** "We don't have to go through everything today. Let me ask: may I record
+your Social Security Number?"
 
 **Bobbi:** "Do you really need that?"
 
-**You:** "Not today. Anything you share with me is so that we can help you navigate services."
+**You:** "Not today. Anything you share with me is so that we can help you navigate
+services."
 
 **Bobbi:** "Okay. Not today. I have to check if I still have that card."
 
-Read that again. She did not refuse. She said she is not sure she still has the card. Set Quality of SSN, and put X's in the number field for what you do not have.
-
-*[User enters XXX-XX-XXXX and selects Client doesn't know. If prefers not to answer: "She did not decline. She is not sure she still has it. Different boxes, different meanings, and the difference matters to whoever sees her next."]*
+*[User enters* XXX-XX-XXXX *and sets Quality of SSN to* Client doesn't know. *She did
+not decline. She is not sure she still has the card, and those are different boxes
+that mean different things to whoever sees her next.]*
 
 **You:** "Sure thing, Bobbi. If needed, we can help you get another one."
 
-**You:** "Two more things and I'll stop asking. What would you say is your gender identity? And what would you say is your race or ethnicity?"
+**You:** "Two more things and I'll stop asking. What would you say is your gender
+identity? And what would you say is your race or ethnicity?"
 
 **Bobbi:** "Woman. She, her. And Black."
 
-Fill in Demographics from what she told you.
+*[User selects Gender, types Pronouns, selects Race and Ethnicity. There is nothing
+to record until she has answered, because not one field in this section is something
+anybody can determine by looking. The question is the only way to get it, and the
+conversation is what demonstrates that.]*
 
-*[User selects Gender, types Pronouns, selects Race and Ethnicity.]*
+**You:** "Last thing. The information I write down, other agencies that use this
+system can see it too. A shelter, an outreach team on another block. That is what
+lets them pick up where we left off instead of you starting over. Is that okay with
+you?"
 
-You asked. That is the whole skill for this section. Not one of those fields is something you can see.
+**Bobbi:** "Yeah, that's fine. I don't want to keep doing this."
 
-We will come back for the consent question in a minute. For now, save her.
+**You:** "I have the form on my tablet. I'll read you the short version, and if
+you're happy with it you can sign on the screen."
 
-*[User clicks Save. The profile opens. The Unique Identifier is highlighted.]*
+**Bobbi:** "Okay."
 
-There it is. She has a record now.
+*[User sets Permission to* Yes *and Documentation to* Electronic Signature. *The
+consent form appears, as it does in the product. Permission starts unset: it is the
+one field recording what she agreed to, and it should not arrive pre-answered.]*
 
-That code at the top is her Unique Identifier. You used those last lesson to tell three Rosalind Vegas apart. This one is hers, and it did not exist four minutes ago.
+*[She signs first, on her own — the page does it, because the learner clicking a
+client's signature is the learner signing a consent form for somebody else.]*
 
-Your turn. Eleven people, eleven records. Nothing here is scored. If you pick something I would not have picked, I will tell you why, and then we carry on. And I am never going to check your spelling. Type it however it comes out. What I would ask is that you check it with the person in front of you, which is a completely different thing, and it is the one that matters.
+**Bobbi:** "There you go."
+
+**You:** "Thank you. I'll sign it too, and then it's done."
+
+*[The staff signature box comes live and the learner signs their own. Save turns on
+only once both signatures are down.]*
+
+*[User clicks Save. The profile opens, built from what the learner actually entered.
+The Unique Identifier is highlighted.]*
+
+**You:** "That's it. You're in the system now."
+
+**Bobbi:** "So I don't have to do all this again."
+
+**You:** "Not this part. If you find that card, bring it back and we'll add it.
+And from now on, just give your name the way you did today — that's enough for us to
+find you."
+
+**Bobbi:** "Okay. Thanks."
+
+*[The interface fades and one card is left: Activity complete. Nothing is scored.]*
+
+> **NEW COPY — needs approval.** Those three lines are not from the earlier draft.
+> The tutorial used to close in Lashes' voice — *"There it is. She has a record now.
+> That code at the top is her Unique Identifier…"* — and she is not in this page any
+> more. A conversation that stops at Save leaves her standing there with the last
+> word being "Okay", and leaves her own line, *"I don't want to keep doing this"*,
+> unanswered. That is the only thing the preceding twenty minutes buys her, so the
+> close says it. Reword freely; it is three lines.
+
+Your turn. Eleven people, eleven records. Nothing here is scored. If you pick
+something I would not have picked, I will tell you why, and then we carry on. And I
+am never going to check your spelling. Type it however it comes out. What I would
+ask is that you check it with the person in front of you, which is a completely
+different thing, and it is the one that matters.
+
+> **OPEN — this tutorial now ends on Electronic Signature, and mini-simulation 2
+> depends on it ending on Verbal Consent.** The owner asked for the walkthrough to
+> take the learner through the electronic signature. It does, and it works. But
+> "Bobbi Comes Back", mini-simulation 2, is written as *"Three days ago you told her
+> that next time you were together with the form, you would get her signature"* —
+> the whole point of that beat is closing the follow-up that Verbal Consent creates,
+> and there is no follow-up left to close.
+>
+> Two ways out, and it is the owner's call:
+> **(a)** keep the signature here and retire or repurpose mini-simulation 2 — the
+> SSN beat before it still works, and Verbal Consent is still taught and still
+> tested in Task 9 and knowledge-check question 6;
+> **(b)** put the tutorial back on Verbal Consent and let mini-simulation 2 be where
+> the learner meets the signature flow. In the build that is one step's expected
+> Documentation value and two lines of her dialogue.
 
 *[User Clicks Button "Start" to Begin Task 1]*
 

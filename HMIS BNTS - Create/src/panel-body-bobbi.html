@@ -1,0 +1,12 @@
+  <!-- No header at all. The label, the step count and the progress bar have all
+       gone: a conversation does not announce how many turns it has left, and
+       "Bobbi speaks, you fill the form" was an instruction, which is what this page
+       is built to do without. The fields it puts in play are what say where to look.
+       The window is title bar, transcript, button. -->
+  <!-- The transcript is what this page is, so it takes the window's whole body
+       rather than sitting in a box inside it. -->
+  <div class="cbody log" id="log" aria-live="polite"></div>
+  <div class="cfoot">
+    <button class="cbtn go" id="next">Click to Start Activity</button>
+    <button class="cbtn" id="replay" hidden>Replay</button>
+  </div>

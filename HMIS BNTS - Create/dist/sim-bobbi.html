@@ -13,87 +13,323 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:#fff;color:var(--ink);font:14px/1.5 var(--font)}
-  .stage{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:0;height:100vh;min-height:620px}
-  @media (max-width:820px){.stage{grid-template-columns:1fr;height:auto}.convo{height:auto;max-height:none}}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  [hidden]{display:none !important}
+  :focus-visible{outline:3px solid #0b6fd4;outline-offset:2px;border-radius:4px}
+  /* No narrow-viewport branch — see add-client. */
 
-  /* ---------- conversation panel ---------- */
-  .convo{background:var(--teal-l);border-right:1px solid #cfe1e7;display:flex;flex-direction:column;height:100vh;min-height:620px}
-  .convo header{padding:16px 20px 10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #cfe1e7}
-  .convo header h1{font-size:16px;margin:0;color:var(--teal-d);font-weight:700}
-  .convo header p{margin:0;font-size:12px;color:var(--ink3)}
-  .log{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
-  .msg{max-width:92%;padding:10px 14px;border-radius:14px;line-height:1.45;animation:pop .25s ease-out}
-  .msg .who{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px;font-weight:600}
-  .msg.you{align-self:flex-end;background:#fff;border:1px solid #cfe1e7;border-bottom-right-radius:4px}
-  .msg.bobbi{align-self:flex-start;background:#fff;border:1px solid #cfe1e7;border-bottom-left-radius:4px}
-  /* Light, not teal. Her rim IS teal, so on a teal bubble the drawing vanished into
-     its own background. This also matches how she is presented everywhere else. */
-  .msg.lashes{align-self:stretch;max-width:100%;background:#fff;color:var(--ink);
-    border:1px solid #cfe1e7;border-left:4px solid var(--teal);border-radius:10px;
-    display:flex;gap:12px;align-items:flex-start;padding:12px 14px}
-  .msg.lashes .who{color:var(--teal-d)}
-  .msg.lashes .body{flex:1}
-  .msg.lashes .body p{margin:0 0 6px}
-  .msg.lashes .body p:last-child{margin:0}
-  .msg.note{align-self:stretch;max-width:100%;background:transparent;color:var(--ink2);font-style:italic;font-size:13px;padding:2px 6px}
-  .msg.alt{align-self:flex-end;background:transparent;border:1px dashed #9cc0cb;color:var(--ink2);font-size:12.5px}
+/* ---------------- coach window ----------------
+   A movable window over the interface, not a drawer beside it. It carries the
+   standing brief and the controls; the live reaction is Lashes' job, and hers
+   goes wherever the thing she is reacting to happens to be. */
+/* The coach's own palette, so a lesson does not have to know these names to wear
+   it. A lesson that already defines them (Lesson 1 does) redefines them to the
+   same values; a lesson that does not — Lesson 3, which is built in Clarity's
+   indigo — gets them here. Deliberately NOT --ink or --line: those are the host
+   page's, and the tooltip should read in whatever the lesson's own body colour is. */
+:root{
+  --teal:#066888; --teal-dk:#044e66; --teal-glow:rgba(6,104,136,.16); --lens:#e0eff5;
+  --coach:#ffffff; --coach-2:#f1f8fb; --coach-ink:#14222b; --coach-line:#d9e8ef;
+  --ok:#0f6b45; --bad:#a3312a; --tip:#8a5a00;
+}
+
+/* The task window is docked to a reserved column on the right. The interface ends
+   at its edge — including the top bar, so the account chip and the icons line up
+   with the content beneath them rather than running under the dock. Lashes still
+   floats, because she has to be able to reach the thing she is talking about. */
+:root{--dock:428px}
+.app{position:fixed;top:0;left:0;right:var(--dock);bottom:0;display:flex;overflow:hidden;
+  transition:right .22s ease}
+
+html.step{--dock:0px}
+html.step .coach{display:none}
+/* An embed is a block in a Rise page: it gets the column's full width, the author
+   sets its height, and it holds the INTERFACE and nothing else. The Rise page above
+   it carries the slide's own instruction; repeating that inside the block says the
+   same thing twice, in a smaller font, in a box the learner has to look past to
+   reach the thing they were told to do. So the interface fills the frame edge to
+   edge — no side rail, no card across the top. */
+html.step .app{top:0;left:0;right:0;bottom:0}
+/* She is not furniture in an embed. She is absent while the learner works, and
+   arrives only where the script attached feedback to that task — says it, and that
+   is the whole of her part.
+
+   And she is PLACED, not solved. The placement solver is built for the lesson's own
+   stage — a tall window with a docked panel and keep-clear regions — and in a 600px
+   Rise block it parked her bubble off the right-hand edge whatever it was anchored
+   to. An embed is one small box of known shape, so she sits in a fixed corner of it
+   and the arrow, which has nothing to point at here, does not draw. */
+html.step .lzlayer{position:fixed !important;left:auto !important;right:14px !important;
+  top:auto !important;bottom:14px !important;transform:none !important;
+  width:auto !important;height:auto !important;
+  display:flex !important;align-items:flex-end;gap:10px;z-index:200;pointer-events:none}
+html.step .lzlayer .lzchar{position:static !important;transform:none !important;
+  flex:none;width:76px;height:76px}
+/* pointer-events only once she is actually speaking: a silent bubble still holds
+   its box in the flex row, and an invisible 560px panel over the bottom-right of
+   the results table would eat clicks on the rows under it */
+html.step .lzbub{position:static !important;transform:none !important;
+  width:min(560px,64vw) !important;max-width:none !important;min-width:0 !important;
+  margin:0 !important;pointer-events:none !important}
+html.step .lzbub.on{pointer-events:auto !important}
+html.step .lzarrow{display:none !important}
+html.step .lzlayer .lzfoot{display:none !important}
+/* Free play: no way into a record, so none of the row's controls either. The
+   expander and the row menu are taught later in the script — showing them here,
+   inert, teaches the wrong thing about what a control does. */
+html.play .cwrap{cursor:default}
+html.play [data-exp],html.play [data-rowmenu],html.play .hhicon{display:none}
+/* Inline in a Rise block there is no room for chrome that is not doing work. */
+html.step .topbar{height:44px}
+html.step .rail{width:56px}
+.coach{position:fixed;right:24px;top:24px;width:380px;background:var(--coach);color:var(--coach-ink);
+  display:flex;flex-direction:column;z-index:170;border-radius:17px;overflow:hidden;
+  max-height:calc(100vh - 48px);
+  box-shadow:0 14px 40px var(--teal-glow),0 2px 6px rgba(20,34,43,.10),0 0 0 1px rgba(6,104,136,.12)}
+html.dock-min .coach{width:auto}
+/* Popped out it is shorter, but it is draggable either way: the column stays
+   reserved whatever the panel does, so moving it costs the interface nothing. */
+html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
+.cwbar{cursor:grab}
+.cwbar.drag{cursor:grabbing}
+.coach.pulse{animation:cwpulse 1.1s ease-out}
+@keyframes cwpulse{0%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 0 rgba(63,160,192,.5)}
+  100%{box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12),0 0 0 16px rgba(63,160,192,0)}}
+.cwbar{display:flex;align-items:center;gap:2px;padding:7px 7px 7px 15px;background:var(--teal);
+  color:#fff;flex:none;user-select:none;touch-action:none}
+.cwbar .lz{font-size:12.5px;letter-spacing:.02em;color:#fff;font-weight:650;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 26px was a small thing to hit, and the icon inside it smaller still. */
+.cwbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:rgba(255,255,255,.86);flex:none}
+.cwbtn:hover{background:rgba(255,255,255,.18);color:#fff}
+/* The help marker and its tooltip. Hover or keyboard focus only — no click, no
+   state, nothing to undo. It hangs below the title bar and to the left, because
+   the panel is against the right edge and there is no room the other way. */
+.cwhelp{position:relative;cursor:default}
+.cwtip{position:absolute;top:calc(100% + 8px);right:-4px;width:250px;background:#fff;color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(40,30,90,.22);
+  padding:11px 13px;font-size:13.5px;line-height:1.5;text-align:left;font-weight:400;
+  opacity:0;visibility:hidden;transition:opacity .13s;z-index:200;pointer-events:none}
+.cwhelp:hover .cwtip,.cwhelp:focus-visible .cwtip{opacity:1;visibility:visible}
+.cwtip b{font-weight:600}
+@media(prefers-reduced-motion:reduce){.cwtip{transition:none}}
+.coach.min .cbody,.coach.min .cfoot,.coach.min .chead{display:none}
+.coach.min{max-height:none}
+.chead{padding:14px 18px 11px;border-bottom:1px solid var(--coach-line);flex:none}
+.chead h2{margin:0;font-size:16px;font-weight:600}
+.bar{height:6px;background:var(--lens);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--teal);width:0;transition:width .4s}
+.cmeta{display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;
+  letter-spacing:.01em;color:var(--teal)}
+.cbody{flex:1;overflow:auto;padding:20px 22px 22px}
+.tasktitle{font-size:20px;font-weight:800;margin:0 0 10px;line-height:1.3;letter-spacing:-.01em}
+.taskbrief{font-size:15.5px;line-height:1.65;color:#41606f;margin:0 0 16px}
+/* The line the participant actually says, picked out rather than just italic —
+   a soft highlight under the text reads faster than a font-style change alone.
+   box-decoration-break keeps the highlight consistent if the phrase wraps. */
+.taskbrief .q{color:var(--coach-ink);font-style:italic;font-weight:600;
+  background:linear-gradient(to bottom, transparent 60%, var(--lens) 60%);
+  padding:0 1px;border-radius:2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.taskbrief code{background:var(--lens);padding:2px 7px;border-radius:5px;font-size:14.5px}
+.taskask{display:flex;gap:11px;align-items:flex-start;background:var(--coach-2);
+  border:1px solid #d3e7ee;padding:14px 16px;border-radius:13px;font-size:15.5px;line-height:1.6;
+  box-shadow:0 3px 10px rgba(6,104,136,.07)}
+.taskask svg{flex:none;margin-top:2px;color:var(--teal)}
+.taskask b{color:var(--teal-dk)}
+.fb{margin-top:14px;padding:12px 14px;border-radius:9px;font-size:13px;border-left:3px solid;background:var(--coach-2)}
+.fb.tour{border-color:var(--teal)}
+.fb.good{border-color:var(--ok)} .fb.bad{border-color:var(--bad)} .fb.tip{border-color:var(--tip)}
+.fb b{display:block;margin-bottom:5px;font-size:13.5px}
+.fb .teach{margin-top:9px;padding-top:9px;border-top:1px solid #35455a;color:#c3d0de}
+.cfoot{padding:12px 18px 16px;border-top:1px solid var(--coach-line);display:flex;gap:8px;flex-wrap:wrap;flex:none}
+.cbtn{border:1px solid #bfd9e4;border-radius:9px;padding:10px 16px;font-size:14.5px;font-weight:600;color:var(--teal)}
+.cbtn:hover{background:var(--coach-2)}
+.cbtn.go{background:var(--teal);border-color:var(--teal);color:#fff}
+.cbtn.go:hover{background:var(--teal-dk)}
+
+  /* ---------- the transcript, inside the window's body ----------
+     The log is what this page IS, so it takes the panel's whole body. The bubbles
+     used to be white on a teal column; the window is white, so the tint moved onto
+     the bubbles — the same inversion the knowledge check made, and the same two-
+     sided treatment the lesson uses for an exchange: the worker solid teal on the
+     right, the participant light on the left. */
+  .log{display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+  .msg{max-width:88%;padding:9px 14px;border-radius:16px;line-height:1.5;font-size:15px;
+    animation:pop .3s cubic-bezier(.25,1.4,.4,1)}
+  .msg .who{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+    opacity:.7;margin-bottom:3px;font-weight:600}
+  .msg.you{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
+  /* Her lines carry her own avatar — the same BB the record shows, because it is the
+     same person and the transcript is the only place the learner meets her. The
+     bubble moves onto an inner element so the background stops at the words instead
+     of wrapping the portrait too. */
+  .msg.bobbi{align-self:flex-start;background:none;padding:0;max-width:94%;
+    display:flex;align-items:flex-end;gap:8px}
+  .msg.bobbi .av{width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;
+    display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 30px;
+    letter-spacing:.02em;margin-bottom:2px}
+  .msg.bobbi .bub{background:#eaf2f6;color:var(--coach-ink);border-radius:16px;
+    border-bottom-left-radius:5px;padding:9px 14px;min-width:0}
+  /* Two speakers and nothing else. Lashes is not in this page and neither is any
+     commentary on the exchange: she used to interrupt after most beats to name what
+     had just been demonstrated, and there were two asides in the transcript itself —
+     a dashed "alternate phrasing" note and a closing paragraph about nobody having
+     been pressured. The owner's call was that this is a conversation, so it is one.
+     Whatever the learner is meant to take from it, the lesson says around the block. */
   @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .controls{padding:12px 20px 16px;border-top:1px solid #cfe1e7;display:flex;gap:10px;align-items:center;background:var(--teal-l)}
-  .btn{appearance:none;border:0;border-radius:999px;padding:10px 20px;font:600 14px var(--font);cursor:pointer;transition:transform .08s ease,box-shadow .15s}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{background:var(--teal);color:#fff;box-shadow:0 2px 0 var(--teal-d)}
-  .btn.primary:hover{background:#07789c}
-  .btn.ghost{background:transparent;color:var(--teal-d);border:1.5px solid var(--teal)}
-  .btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
-  .progress{margin-left:auto;font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
+  @media(prefers-reduced-motion:reduce){.msg{animation:none}}
 
-  /* Lashes avatar: her own lens/lashes design, teal */
-  .lashes-av{width:40px;height:40px;flex:0 0 40px}
-
+/* The Clarity Add Client replica's own look: ONE copy, stamped into both pages at
+   the FORM_CSS token. Clarity's palette, from the owner's captures — indigo
+   #5055ad, surface #fcf8fd, Open Sans. Deliberately NOT the coach's teal: the two
+   worlds have to read as different things on one screen, and where this and Lesson
+   1 disagree about a colour the captures win. */
   /* ---------- Clarity replica ---------- */
-  .clarity{background:#f3f2f7;display:flex;flex-direction:column;height:100vh;min-height:620px;overflow:hidden}
-  @media (max-width:820px){.clarity{height:auto}}
-  .topbar{height:48px;background:#e9e7fb;display:flex;align-items:center;padding:0 16px;gap:14px;border-bottom:1px solid #d9d7ee}
+  /* .app is the coach's contract — fixed, ending at the reserved --dock column —
+     so this says only what the replica looks like inside it. Nothing the panel
+     does may reflow the interface, which is why --dock is reserved whether the
+     panel is docked, popped out or collapsed. */
+  .clarity{background:#f3f2f7;flex-direction:column;min-height:0}
+  .topbar{height:48px;background:#e9e7fb;display:flex;align-items:center;padding:0 16px;gap:14px;border-bottom:1px solid #d9d7ee;flex:0 0 48px}
   .topbar .logo{width:14px;height:20px;background:linear-gradient(135deg,#e53935,#b71c1c);clip-path:polygon(30% 0,100% 0,60% 100%,0 100%);border-radius:2px}
   .topbar .sp{flex:1}
-  .topbar .ic{width:18px;height:18px;border-radius:50%;border:2px solid var(--indigo);opacity:.55}
   .topbar .user{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
   .topbar .user b{display:block;color:var(--ink);font-size:12.5px}
   .topbar .av{width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
-  .panelwrap{flex:1;position:relative;overflow:hidden}
-  .panel{position:absolute;inset:0;background:#f7f5fb;display:flex;flex-direction:column}
-  .panel-hd{background:#e9e7fb;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;font-size:16px;color:var(--ink)}
+  .panel{flex:1;display:flex;flex-direction:column;min-height:0;background:#f7f5fb}
+  .panel-hd{background:#e9e7fb;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;font-size:16px}
   .panel-hd .x{width:26px;height:26px;border-radius:50%;background:#d9d7ee;display:grid;place-items:center;font-size:14px;color:var(--ink2)}
   .form{flex:1;overflow:auto;padding:16px}
-  .card{background:var(--surface);border-radius:14px;padding:18px 18px 8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .card{background:var(--surface);border-radius:14px;padding:18px 18px 10px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
   .card h2{font-size:17px;font-weight:600;color:var(--indigo);margin:0}
   .card .sub{font-size:12px;color:var(--ink2);margin:0 0 14px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
-  .grid .full{grid-column:1 / -1}
+  .full{grid-column:1/-1}
   .f{display:flex;flex-direction:column;gap:5px;min-width:0}
   .f label{font-size:11.5px;font-weight:600;color:var(--ink2)}
-  .f .in{height:40px;border:1px solid #c9c6d6;border-radius:6px;background:#fffbff;padding:0 12px;display:flex;align-items:center;gap:8px;color:var(--ink);font-size:13.5px;position:relative;transition:border-color .2s,box-shadow .2s,background .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .f .in.ph{color:#8a8894}
-  .f .in.sel::after{content:"";position:absolute;right:12px;top:50%;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--ink2);transform:translateY(-50%)}
-  .f .in.sel{padding-right:30px}
-  .f .hint{font-size:10.5px;color:var(--ink3);margin-top:-2px}
-  .f.flash .in{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(80,85,173,.25);background:#fff}
-  .f.changed .in{animation:glow 1.2s ease-out}
-  @keyframes glow{0%{background:#e1e0ff;border-color:var(--indigo)}100%{background:#fffbff}}
-  .f .req{color:var(--err);font-size:10.5px;display:none}
+  .f input,.f select{height:40px;border:1px solid var(--line);border-radius:6px;background:#fffbff;padding:0 12px;font:13.5px var(--font);color:var(--ink);width:100%;outline:none}
+  .f input:focus,.f select:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(80,85,173,.2)}
+  .f select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 17px) 17px,calc(100% - 12px) 17px;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+  .f .hint{font-size:10.5px;color:var(--ink3)}
+  .f.ro input{background:#f1f0f5;color:var(--ink3)}
   .sec{grid-column:1/-1;font-size:13px;font-weight:600;color:var(--indigo);margin:8px 0 -4px}
-  .toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);grid-column:1/-1;margin:4px 0}
-  .toggle .sw{width:38px;height:22px;border-radius:999px;background:#c9c6d6;position:relative}
-  .toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff}
-  .consent{grid-column:1/-1;background:#fff;border:1px solid #e0ddef;border-radius:8px;padding:12px 14px;font-size:12px;color:var(--ink2);display:none}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);grid-column:1/-1;margin:4px 0;cursor:pointer;user-select:none}
+  .toggle .sw{width:38px;height:22px;border-radius:999px;background:#c9c6d6;position:relative;transition:background .2s}
+  .toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+  .toggle.on .sw{background:var(--indigo)}.toggle.on .sw::after{left:19px}
+  .poc{grid-column:1/-1;border:1px dashed #d9d7ee;border-radius:8px;padding:10px 12px;color:var(--ink3);font-size:12px}
+  .poc b{color:var(--indigo);display:block;font-size:12.5px;margin-bottom:2px}
+  .consent{grid-column:1/-1;background:#fff;border:1px solid #e0ddef;border-radius:8px;padding:12px 14px;font-size:12px;color:var(--ink2);display:none;max-height:190px;overflow:auto}
   .consent.show{display:block}
-  .footer{background:var(--surface);border-top:1px solid #e0ddef;padding:10px;display:flex;justify-content:center;gap:16px;align-items:center}
-  .footer .cancel{color:var(--indigo);font-weight:600;font-size:13px}
-  .footer .save{border:1.5px solid #b9b7c9;border-radius:999px;padding:7px 22px;color:#9a98a8;font-size:13px;background:#fff;transition:all .2s}
-  .footer .save.on{border-color:var(--indigo);color:var(--indigo);background:#fff;box-shadow:0 0 0 3px rgba(80,85,173,.2);cursor:pointer}
+  .consent h5{margin:0 0 6px;font-size:12px;color:var(--ink)}
+  .consent .sig{display:flex;gap:12px;margin-top:10px}
+  .consent .pad{flex:1;border:1px solid #c9c6d6;border-radius:6px;height:56px;background:#fffbff;position:relative;cursor:pointer;font-size:11px;color:var(--ink3);display:grid;place-items:center}
+  .consent .pad.signed{color:var(--indigo);font-family:"Segoe Script","Brush Script MT",cursive;font-size:16px}
+  .file{grid-column:1/-1;border:1.5px dashed #b9b7c9;border-radius:8px;padding:16px;text-align:center;color:var(--ink3);font-size:12px;display:none}
+  .file.show{display:block}
+  .footer{background:var(--surface);border-top:1px solid #e0ddef;padding:10px;display:flex;justify-content:center;gap:16px;align-items:center;flex:0 0 auto}
+  .footer .cancel{color:var(--indigo);font-weight:600;font-size:13px;cursor:pointer;background:none;border:0;font-family:inherit}
+  .footer .save{border:1.5px solid var(--indigo);border-radius:999px;padding:7px 22px;color:var(--indigo);font:600 13px var(--font);background:#fff;cursor:pointer}
+  .footer .save:hover{background:var(--lav)}
+  .toast{position:absolute;left:50%;top:60px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:opacity .3s;pointer-events:none}
+  .toast.show{opacity:1}
+
+  /* ---------- what this page adds to the replica ----------
+     The learner fills this form in, so it needs states the practice sim has no use
+     for: which fields are in play right now, and whether a data-quality code is the
+     one the conversation called for. */
+
+  /* Everything not in play is out of reach. Without it the learner is looking at
+     twenty fields with no way to tell which two the conversation just asked for,
+     and the alternative — a line of instruction above the form — is the coaching
+     this page exists without. */
+  .f input:disabled,.f select:disabled,.f input[readonly]{background-color:#f4f3f7;color:#a6a4b0;
+    border-color:#e0ddef;cursor:not-allowed}
+  /* ...but a field they have filled keeps its value in ink. Locked is not empty,
+     and the whole record reading as placeholder text is a lie about what is in it. */
+  .f.filled input:disabled,.f.filled select:disabled,.f.filled input[readonly]{color:var(--ink)}
+  .f.live label{color:var(--indigo)}
+  .f.live input:not(:disabled),.f.live select:not(:disabled){border-color:var(--indigo);
+    box-shadow:0 0 0 3px rgba(80,85,173,.16);background-color:#fff}
+
+  /* A caret the learner can actually see, on every select. `background` above was
+     wiping it out; this also makes it bigger and puts it in the product's own
+     indigo, because the data-quality dropdowns are the controls the lesson is about
+     and they must not read as text boxes. */
+  .f select{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%235055ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    background-repeat:no-repeat !important;background-position:right 12px center !important;
+    background-size:12px 8px !important;padding-right:34px}
+  .f select:disabled{opacity:1}
+
+  /* Green for the code the conversation called for, red for any other. No words:
+     a data-quality code is right or it is not, and a paragraph explaining which
+     turns a form into a lecture. */
+  .f.ok label{color:var(--ok)} .f.no label{color:var(--err)}
+  .f.ok select,.f.ok input{border-color:var(--ok) !important;box-shadow:0 0 0 3px rgba(31,122,77,.18) !important;background-color:var(--ok-l) !important;color:var(--ink) !important}
+  .f.no select,.f.no input{border-color:var(--err) !important;box-shadow:0 0 0 3px rgba(186,26,26,.16) !important;background-color:#fdecea !important;color:var(--ink) !important}
+
+  /* Save is dead until the record is finished, as the product's would be. */
+  /* ---------- the end of the activity ----------
+     Everything fades and one card is left. No score on it: there is nothing to score
+     here, and Rise could not receive one if there were. */
+  body.over .app,body.over #coachWin{opacity:0;transition:opacity .55s ease;pointer-events:none}
+  .finis{position:fixed;inset:0;display:grid;place-items:center;z-index:400;
+    opacity:0;visibility:hidden;transition:opacity .45s ease}
+  .finis.on{opacity:1;visibility:visible}
+  .finis .card2{background:#fff;border-radius:18px;padding:30px 34px;text-align:center;
+    box-shadow:0 18px 50px rgba(6,104,136,.20),0 0 0 1px rgba(6,104,136,.10);max-width:400px}
+  .finis .tick{width:54px;height:54px;border-radius:50%;background:var(--ok-l);margin:0 auto 14px;
+    display:grid;place-items:center}
+  .finis h2{margin:0 0 6px;font-size:20px;font-weight:700;color:var(--coach-ink)}
+  .finis p{margin:0 0 18px;font-size:14.5px;line-height:1.6;color:#41606f}
+  .finis button{border:1px solid #bfd9e4;border-radius:9px;padding:9px 18px;font:600 14px var(--font);
+    color:var(--teal);background:#fff;cursor:pointer}
+  .finis button:hover{background:var(--coach-2)}
+  @media(prefers-reduced-motion:reduce){
+    body.over .app,body.over #coachWin,.finis{transition:none}
+  }
+
+  /* ---------- device preview ----------
+     The work happens on a phone or a tablet, standing up. This is the learner
+     seeing the shape of what they will actually be holding.
+
+     It narrows the REPLICA, and below tablet width the form drops to one column,
+     which is the only reflow claimed here. Everything else — where Clarity puts a
+     control on a small screen, what it hides, what it stacks — is NOT captured and
+     is NOT invented: the fields keep their order and their labels, and the page
+     stays honest about being the desktop form at a narrower width. */
+  .clarity{align-items:stretch}
+  .clarity.dev{--w:100%}
+  .clarity.dev .topbar,.clarity.dev .panel{width:var(--w);margin:0 auto}
+  .clarity.tablet{--w:834px}
+  .clarity.phone{--w:390px}
+  .clarity.tablet,.clarity.phone{background:#dedbe6}
+  .clarity.phone .grid{grid-template-columns:1fr}
+  .clarity.phone .f,.clarity.phone .full{grid-column:1/-1}
+  .clarity.phone .form{padding:10px}
+  .clarity.phone .card{padding:14px 14px 8px}
+  .clarity.phone .consent .sig{flex-direction:column}
+  .clarity.tablet .form,.clarity.phone .form{box-shadow:0 0 0 1px #cfccd8}
+
+  /* Sits where the account chip was, in the product's own bar — the owner's call.
+     Styled as ours rather than as Clarity's, so it does not read as a real control
+     of the product. */
+  .devsel{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--teal-dk)}
+  .devsel select{height:30px;border:1.5px solid var(--teal);border-radius:8px;background:#fff;
+    color:var(--teal-dk);font:600 12px var(--font);padding:0 26px 0 10px;cursor:pointer;
+    appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--teal) 50%),linear-gradient(135deg,var(--teal) 50%,transparent 50%);
+    background-position:calc(100% - 15px) 13px,calc(100% - 10px) 13px;background-size:5px 5px;background-repeat:no-repeat}
+
+  /* The pads are the last thing in play, so they are marked as in play. */
+  .consent .pad.live{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(80,85,173,.16);background:#fff;color:var(--indigo)}
+  .consent .pad.signed{border-color:var(--ok);background:var(--ok-l)}
+  .footer .save:disabled{border-color:#b9b7c9;color:#9a98a8;background:#fff;cursor:not-allowed;box-shadow:none}
+  .footer .save:not(:disabled){box-shadow:0 0 0 3px rgba(80,85,173,.2)}
 
   /* profile result */
-  .profile{position:absolute;inset:0;background:#f3f2f7;display:none;flex-direction:column}
+  /* Over the form, under the top bar — the bar is Clarity's chrome and stays. */
+  .profile{position:absolute;left:0;right:0;top:48px;bottom:0;background:#f3f2f7;display:none;flex-direction:column;z-index:2}
   .profile.show{display:flex}
   .crumbs{padding:10px 16px;font-size:12px;color:var(--indigo);background:#e9e7fb;border-bottom:1px solid #d9d7ee}
   .phead{display:flex;align-items:center;gap:12px;padding:12px 18px;background:#faf8fe;border-bottom:1px solid #e0ddef}
@@ -113,317 +349,846 @@
   .pcard dt{font-size:11px;font-weight:600;color:var(--ink2)}
   .pcard dd{margin:0;font-size:13px}
   .pcard .demo{grid-column:1/-1;color:var(--indigo);font-size:12.5px;font-weight:600;margin-top:6px}
-/* ============================================================
-   LASHES — her drawing, and the only copy of it
-
-   Taken VERBATIM from the block it lives in. An earlier version of this file was
-   assembled by matching rule shapes, which quietly dropped `.m-lash path` — a
-   descendant selector, where the pattern expected `{` straight after the class.
-   Her lash strokes then rendered with a default fill and no stroke, which is to
-   say not at all, on a character named after them. Copy the block; do not
-   re-derive it.
-
-   Inlined into every page that shows her, at the LASHES_CSS token, because each
-   page has to stand alone with no network.
-   ============================================================ */
-/* ---------- the character, drawn exactly as the lesson draws her ---------- */
-.m-rim{fill:none;stroke:#066888;stroke-width:6}
-.m-glass{fill:#e0eff5;opacity:1}
-.m-eye{fill:#14222b}
-.m-arc{fill:none;stroke:#14222b;stroke-width:3.4;stroke-linecap:round}
-.m-lidfill{fill:#e0eff5}
-.m-lidline{fill:none;stroke:#14222b;stroke-width:2.4;stroke-linecap:round}
-.m-spark{fill:#14222b}
-.m-lash path{fill:none;stroke:#14222b;stroke-width:2.2;stroke-linecap:round}
-.m-mouth{fill:none;stroke:#14222b;stroke-width:3;stroke-linecap:round}
-.m-shine{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;opacity:.85}
-.m-body{animation:mbob 3.6s ease-in-out infinite;transform-origin:44px 42px}
-@keyframes mbob{0%,100%{transform:translateY(0) rotate(0)}
-  25%{transform:translateY(-5px) rotate(-5deg)}75%{transform:translateY(-2px) rotate(4deg)}}
-.m-eyes{animation:mblink 5.4s infinite;transform-origin:44px 39px}
-@keyframes mblink{0%,95%,100%{transform:scaleY(1)}97%{transform:scaleY(.12)}}
-.m-face{animation:mscan 6.5s ease-in-out infinite}
-@keyframes mscan{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
-
-@media(prefers-reduced-motion:reduce){
-  .m-body,.m-face,.m-eyes{animation:none !important}
-}
-
-/* The host a page puts her in. It sizes her; the drawing fills it. */
-.lashes-av{display:inline-block;width:40px;height:40px;flex:0 0 40px}
-.lashes-av svg{width:100%;height:100%;display:block;overflow:visible}
-
 </style>
 </head>
 <body>
-<div class="stage">
-
-  <!-- ================= CONVERSATION ================= -->
-  <section class="convo" aria-label="Conversation">
-    <header>
-      <span class="lashes-av" data-face></span>
-      <div><h1>Meeting Bobbi</h1><p>Watch one, then it's your turn.</p></div>
-    </header>
-    <div class="log" id="log" aria-live="polite"></div>
-    <div class="controls">
-      <button class="btn primary" id="next">Start</button>
-      <button class="btn ghost" id="replay" hidden>Replay</button>
-      <span class="progress" id="prog"></span>
-    </div>
-  </section>
+<aside class="coach" id="coachWin" aria-label="Training panel">
+  <div class="cwbar" id="cwBar">
+    <span class="lz" id="secTitle"></span>
+    <!-- A reminder, not a button. It used to replay the whole orientation, which is
+         a lot to sit through when all you wanted was to remember what the two icons
+         beside it do. Hovering or focusing says that, and nothing else happens. -->
+    <span class="cwbtn cwhelp" id="cwHelp" tabindex="0" role="note" aria-describedby="cwTip">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 015 .9c0 1.7-2.5 2.1-2.5 3.6M12 17.2h.01"/></svg>
+      <span class="cwtip" id="cwTip" role="tooltip">
+        This panel is mine, not Clarity's. Drag it by the title bar to move it anywhere.
+        <b>Pop out</b> lifts it off the edge; <b>collapse</b> rolls it up to the title bar.
+        Neither moves the interface, and neither loses your place.
+      </span>
+    </span>
+    <button class="cwbtn" id="cwPop" title="Pop out" aria-pressed="false" aria-label="Pop the training panel out of its column">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 19V8a1.5 1.5 0 011.5-1.5H10"/></svg></button>
+    <button class="cwbtn" id="cwMin" title="Collapse" aria-label="Collapse training panel" aria-expanded="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg></button>
+  </div>
+    <!-- No header at all. The label, the step count and the progress bar have all
+       gone: a conversation does not announce how many turns it has left, and
+       "Bobbi speaks, you fill the form" was an instruction, which is what this page
+       is built to do without. The fields it puts in play are what say where to look.
+       The window is title bar, transcript, button. -->
+  <!-- The transcript is what this page is, so it takes the window's whole body
+       rather than sitting in a box inside it. -->
+  <div class="cbody log" id="log" aria-live="polite"></div>
+  <div class="cfoot">
+    <button class="cbtn go" id="next">Click to Start Activity</button>
+    <button class="cbtn" id="replay" hidden>Replay</button>
+  </div>
+</aside>
 
   <!-- ================= CLARITY REPLICA ================= -->
-  <section class="clarity" aria-label="Practice Clarity">
-    <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="ic"></div><div class="ic"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
-    <div class="panelwrap">
-      <div class="panel" id="panel">
-        <div class="panel-hd"><span>Add Client</span><span class="x">×</span></div>
-        <div class="form" id="form">
-          <div class="card">
-            <h2>Add Client</h2><p class="sub">Complete this form to create a new client</p>
-            <div class="grid">
-              <div class="f" data-k="ssn"><label>Social Security Number *</label><div class="in ph">XXX-XX-XXXX</div></div>
-              <div class="f" data-k="qssn"><label>Quality of SSN *</label><div class="in sel ph">Select</div></div>
-              <div class="f" data-k="first"><label>First name *</label><div class="in ph">&nbsp;</div></div>
-              <div class="f" data-k="last"><label>Last name *</label><div class="in ph">&nbsp;</div></div>
-              <div class="f" data-k="middle"><label>Middle name</label><div class="in ph">&nbsp;</div></div>
-              <div class="f" data-k="suffix"><label>Suffix</label><div class="in sel">None</div></div>
-              <div class="f" data-k="qname"><label>Quality of Name *</label><div class="in sel ph">Select</div></div>
-              <div class="f" data-k="qdob"><label>Quality of DOB *</label><div class="in sel ph">Select</div></div>
-              <div class="f" data-k="dob"><label>Date of Birth *</label><div class="in ph">__/__/____</div><div class="hint">MM/DD/YYYY</div></div>
-              <div class="f"></div>
-              <div class="toggle"><div class="sw"></div>Consent Refused</div>
-              <div class="f full" data-k="alias"><label>Alias</label><div class="in ph">&nbsp;</div></div>
-              <div class="sec">Demographics</div>
-              <div class="f full" data-k="gender"><label>Gender *</label><div class="in sel ph">Select</div></div>
-              <div class="f full" data-k="pronouns"><label>Pronoun(s)</label><div class="in ph">&nbsp;</div></div>
-              <div class="f full" data-k="race"><label>Race and Ethnicity *</label><div class="in sel ph">Select</div></div>
-              <div class="sec">Enter the release of information details</div>
-              <div class="f full" data-k="perm"><label>Permission *</label><div class="in sel">Yes</div></div>
-              <div class="f" data-k="start"><label>Start Date *</label><div class="in ph">__/__/____</div></div>
-              <div class="f" data-k="end"><label>End Date *</label><div class="in ph">__/__/____</div></div>
-              <div class="f full" data-k="doc"><label>Documentation *</label><div class="in sel ph">Select</div></div>
-            </div>
-          </div>
-        </div>
-        <div class="footer"><span class="cancel">Cancel</span><span class="save" id="save">Save</span></div>
-      </div>
+<section class="app clarity" aria-label="Practice Clarity">
+  <!-- The Clarity Add Client replica: ONE copy, stamped into both pages at the FORM
+     token. It was two — the practice sim had this working version, and the
+     walkthrough had a display-only mock of divs that could not take input, which
+     is exactly the drift that makes a replica stop matching the product. The
+     walkthrough needs real controls now that the learner fills it in, so it takes
+     this one.
 
-      <div class="profile" id="profile">
-        <div class="crumbs">Client Search &nbsp;›&nbsp; Bobbi Barrone &nbsp;›&nbsp; Profile</div>
-        <div class="phead"><div class="big">BB</div><div><h3>Bobbi Barrone</h3><p>You are currently viewing the Client Record pages for Bobbi Barrone (<b id="uid">3F8A2C1D9</b>).</p></div></div>
-        <div class="pbody">
-          <div class="rail"><div class="on">Profile</div><div>Privacy</div><div>Household</div><div>History</div><div>Programs</div><div>Services</div><div>Assessments</div><div>Care Team</div><div>Notes</div><div>Alerts</div><div>Files</div><div>Forms</div><div>Contacts</div><div>Location</div><div>Referrals</div></div>
-          <div class="pcard">
-            <h4>Bobbi Barrone</h4><p class="sub">Client profile information</p>
-            <dl>
-              <dt>Social Security Number</dt><dd>XXX-XX-XXXX</dd>
-              <dt>Quality of SSN</dt><dd>Client doesn't know</dd>
-              <dt>First name</dt><dd>Bobbi</dd>
-              <dt>Last name</dt><dd>Barrone</dd>
-              <dt>Quality of Name</dt><dd>Full name reported</dd>
-              <dt>Quality of DOB</dt><dd>Full DOB Reported</dd>
-              <dt>Date of Birth</dt><dd>08/22/1993</dd>
-              <dt>Age</dt><dd>33</dd>
-              <dt>Consent Refused</dt><dd>No</dd>
-              <dt>Alias</dt><dd>No value</dd>
-              <div class="demo">Demographics</div>
-              <dt>Gender</dt><dd>Woman (Girl, if child)</dd>
-              <dt>Pronoun(s)</dt><dd>she/her</dd>
-              <dt>Race and Ethnicity</dt><dd>Black, African American, or African</dd>
-            </dl>
+     Built from the owner's captures of the live form. Where this and Lesson 1
+     disagree about a colour, the captures win. -->
+    <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
+    <div class="toast" id="toast">Saved</div>
+    <div class="panel">
+      <div class="panel-hd"><span>Add Client</span><span class="x">×</span></div>
+      <div class="form" id="form">
+        <div class="card">
+          <h2>Add Client</h2><p class="sub">Complete this form to create a new client</p>
+          <div class="grid">
+            <div class="f"><label>Social Security Number *</label><input id="ssn" placeholder="XXX-XX-XXXX" maxlength="11"></div>
+            <div class="f"><label>Quality of SSN *</label><select id="qssn"></select></div>
+            <div class="f"><label>First name *</label><input id="first"></div>
+            <div class="f"><label>Last name *</label><input id="last"></div>
+            <div class="f"><label>Middle name</label><input id="middle"></div>
+            <div class="f"><label>Suffix</label><select id="suffix"><option>None</option><option>Jr.</option><option>Sr.</option><option>II</option><option>III</option><option>Client prefers not to answer</option></select></div>
+            <div class="f"><label>Quality of Name *</label><select id="qname"></select></div>
+            <div class="f"><label>Quality of DOB *</label><select id="qdob"></select></div>
+            <div class="f"><label>Date of Birth *</label><input id="dob" placeholder="__/__/____" maxlength="10"><div class="hint">MM/DD/YYYY</div></div>
+            <div class="f"></div>
+            <div class="toggle" id="cr"><div class="sw"></div>Consent Refused</div>
+            <div class="f"><label>Maiden Name</label><input id="maiden"></div>
+            <div class="f"><label>Alias</label><input id="alias"></div>
+
+            <div class="sec">Demographics</div>
+            <div class="f full"><label>Gender *</label><select id="gender"></select></div>
+            <div class="f full"><label>Pronoun(s)</label><input id="pronouns"></div>
+            <div class="f full"><label>Race and Ethnicity *</label><select id="race"></select></div>
+            <div class="f full"><label>Primary Language</label><select id="lang"><option>Select</option><option>English</option><option>Spanish</option><option>Armenian</option><option>Korean</option><option>Tagalog</option><option>Chinese</option><option>Other</option><option>Client doesn't know</option><option>Client prefers not to answer</option></select></div>
+
+            <div class="poc"><b>First Point of Contact</b>Not used by providers. Skip this section. (Collapsed in practice.)</div>
+
+            <div class="sec">Enter the release of information details</div>
+            <div class="f full"><label>Permission *</label><select id="perm"><option>Yes</option><option>No</option></select></div>
+            <div class="f ro"><label>Start Date *</label><input id="roiStart" readonly></div>
+            <div class="f ro"><label>End Date *</label><input id="end" readonly></div>
+            <div class="f full"><label>Documentation *</label><select id="doc"></select></div>
+            <div class="consent" id="consent">
+              <h5>Greater Los Angeles Homeless Management Information System (LA HMIS)</h5>
+              <h5>CONSENT TO SHARE PROTECTED PERSONAL INFORMATION</h5>
+              <p>The LA HMIS is a local electronic database that securely records information about clients accessing housing and homeless services within Greater Los Angeles. This organization participates in the HMIS database and shares information with other organizations that use this database…</p>
+              <p><b>By signing below, you understand and agree that:</b> you have the right to receive services even if you do not sign; this consent is valid for seven (7) years; you may revoke your consent at any time…</p>
+              <p><label><input type="checkbox" id="photo"> I consent to sharing my photograph. (Check here)</label></p>
+              <div class="sig"><div class="pad" id="sig1" data-name="">Client Signature</div><div class="pad" id="sig2">Organization Staff Signature</div></div>
+            </div>
+            <div class="file" id="file">⬆ Drag and drop a file here, or Choose A File<br><small>Accepted: JPEG, JPG, GIF, PNG, TIFF, TXT, DOC, DOCX, PDF, XLSX · Max 25 MB</small></div>
+            <div class="f full" id="locwrap" style="display:none"><label>Location *</label><input id="loc" placeholder="Where the paper copy is kept"></div>
           </div>
         </div>
+      </div>
+      <div class="footer"><button class="cancel" id="cancel">Cancel</button><button class="save" id="save">Save</button></div>
+  </div>
+
+  <!-- The record as the learner built it: every value below is read off the form at
+       Save, because it is their record and a hard-coded one would be a picture of
+       somebody else's. The identifier is UID# + four digits + five letters, never
+       the nine hex characters the live product uses. -->
+  <div class="profile" id="profile">
+    <div class="crumbs">Client Search &nbsp;›&nbsp; <span id="pcrumb">Bobbi Barrone</span> &nbsp;›&nbsp; Profile</div>
+    <div class="phead"><div class="big" id="pinit">BB</div><div><h3 id="pname">Bobbi Barrone</h3><p>You are currently viewing the Client Record pages for <span id="pname2">Bobbi Barrone</span> (<b id="uid">UID#7632JEWHR</b>).</p></div></div>
+    <div class="pbody">
+      <div class="rail"><div class="on">Profile</div><div>Privacy</div><div>Household</div><div>History</div><div>Programs</div><div>Services</div><div>Assessments</div><div>Care Team</div><div>Notes</div><div>Alerts</div><div>Files</div><div>Forms</div><div>Contacts</div><div>Location</div><div>Referrals</div></div>
+      <div class="pcard">
+        <h4 id="pname3">Bobbi Barrone</h4><p class="sub">Client profile information</p>
+        <dl>
+          <dt>Social Security Number</dt><dd id="p-ssn"></dd>
+          <dt>Quality of SSN</dt><dd id="p-qssn"></dd>
+          <dt>First name</dt><dd id="p-first"></dd>
+          <dt>Last name</dt><dd id="p-last"></dd>
+          <dt>Quality of Name</dt><dd id="p-qname"></dd>
+          <dt>Quality of DOB</dt><dd id="p-qdob"></dd>
+          <dt>Date of Birth</dt><dd id="p-dob"></dd>
+          <dt>Age</dt><dd id="p-age"></dd>
+          <dt>Consent Refused</dt><dd>No</dd>
+          <dt>Alias</dt><dd>No value</dd>
+          <div class="demo">Demographics</div>
+          <dt>Gender</dt><dd id="p-gender"></dd>
+          <dt>Pronoun(s)</dt><dd id="p-pronouns"></dd>
+          <dt>Race and Ethnicity</dt><dd id="p-race"></dd>
+          <div class="demo">Release of Information</div>
+          <dt>Permission</dt><dd id="p-perm"></dd>
+          <dt>Documentation</dt><dd id="p-doc"></dd>
+        </dl>
       </div>
     </div>
-  </section>
+  </div>
+</section>
+
+<div class="finis" id="finis" role="status">
+  <div class="card2">
+    <div class="tick"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0f6b45"
+      stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
+    <h2>Activity complete</h2>
+    <p>Bobbi has a record, and it says what she actually told you.</p>
+    <button id="again">Do it again</button>
+  </div>
 </div>
 
 <script>
-/* ============================================================
-   LASHES — the drawing, and the only copy of it
+"use strict";
+/* The panel's own mechanics want a selector helper. */
+function $(sel){ return document.querySelector(sel); }
+/* The Clarity Add Client form's OWN behaviour — the part that belongs to the
+   product rather than to either lesson. ONE copy, stamped into both pages at the
+   FORM_JS token.
 
-   Her geometry and her expression library. Inlined into every page that shows
-   her, at the LASHES tokens, because each page has to stand alone with no
-   network — but inlined FROM HERE, so there is one face to change.
+   The option lists especially: a learner has to pick "Client doesn't know" and not
+   "Client prefers not to answer", so the exact wording of every code is the thing
+   being taught. Two copies of that list is two chances for it to drift from the
+   captures.
 
-   Before this file she was copied by hand into the lesson, three
-   knowledge-check stagings and the block builder, and "if her face changes,
-   change it in both" was a note in CLAUDE.md rather than something the build
-   enforced.
-
-   svg(eyes, mouth) returns a 100x100 viewBox. The caller sizes it.
-   Expressions are fixed and are not a setting: open, droll, sparkle, wide,
-   arcs for the eyes; tip, plain, cheer, wry, hm for the mouth.
+   It is its own IIFE because each lesson's own code has a local `$` that takes an
+   id, and this file must not depend on which. What a lesson needs, it gets from
+   the returned object.
    ============================================================ */
-var LASH={
-  open:'<g class="m-lash"><path d="M30.5 34.5 l-3 -2.5"/><path d="M34.5 33.2 l-1 -3"/><path d="M38.5 34 l1.5 -2.8"/>'+
-       '<path d="M48.5 34 l-1.5 -2.8"/><path d="M52.5 33.2 l1 -3"/><path d="M56.5 34.5 l3 -2.5"/></g>',
-  high:'<g class="m-lash"><path d="M30 33.5 l-3.4 -3"/><path d="M34.3 32 l-1.2 -3.4"/><path d="M38.4 32.8 l1.7 -3.2"/>'+
-       '<path d="M48.6 32.8 l-1.7 -3.2"/><path d="M52.7 32 l1.2 -3.4"/><path d="M57 33.5 l3.4 -3"/></g>',
-  low: '<g class="m-lash"><path d="M30.8 38 l-3 -1"/><path d="M34.9 36.8 l-.7 -2.2"/><path d="M38.9 37.6 l1.4 -1.9"/>'+
-       '<path d="M49.1 37.6 l-1.4 -1.9"/><path d="M53.1 36.8 l.7 -2.2"/><path d="M57.2 38 l3 -1"/></g>'
-};
-function spark(cx,cy){
-  return '<path class="m-spark" d="M'+cx+' '+(cy-4.6)+' q1 3.4 4.6 4.6 q-3.6 1.2 -4.6 4.6 '+
-         'q-1 -3.4 -4.6 -4.6 q3.6 -1.2 4.6 -4.6 z"/>';
-}
-function droll(cx){
-  return '<circle class="m-eye" cx="'+cx+'" cy="39.5" r="4"/>'+
-         '<rect class="m-lidfill" x="'+(cx-4.6)+'" y="34" width="9.2" height="3.9" rx="1.6"/>'+
-         '<path class="m-lidline" d="M'+(cx-4)+' 37.7 h8"/>';
-}
-var EYES={
-  open:   {e:'<circle class="m-eye" cx="35" cy="39" r="4"/><circle class="m-eye" cx="53" cy="39" r="4"/>', l:"open"},
-  droll:  {e:droll(35)+droll(53), l:"low"},
-  sparkle:{e:spark(35,39)+spark(53,39), l:"high"},
-  wide:   {e:'<circle class="m-eye" cx="35" cy="39" r="5.2"/><circle class="m-eye" cx="53" cy="39" r="5.2"/>', l:"high"},
-  arcs:   {e:'<path class="m-arc" d="M30.5 41 q4.5 -6 9 0"/><path class="m-arc" d="M48.5 41 q4.5 -6 9 0"/>', l:"open"}
-};
-var MOUTH={tip:"M36 51 q8 7 16 0", plain:"M37 51 q7 4.5 14 0", cheer:"M33 49 q11 10 22 0",
-           wry:"M41.5 51.2 q4.2 2.8 8.4 .7", hm:"M40 51.8 q4 1.4 8 0"};
-function svg(eyes,mouth){
-  var ex=EYES[eyes]||EYES.open, m=MOUTH[mouth]||MOUTH.tip;
-  /* Cropped to her ink, not the 100-square she was authored in. Measured with
-     getBBox: she occupies 61.2 x 61.2 at (13.4, 10.2), so a third of that box was
-     nothing and every caller sizing a 40px avatar got a 24px face. One unit of
-     margin all round. The teller's orb learned the same thing. */
-  return '<svg viewBox="12.4 9.2 63.2 63.2" aria-hidden="true">'+
-    '<g class="m-body">'+
-      '<circle class="m-rim" cx="44" cy="42" r="30"/>'+
-      '<circle class="m-glass" cx="44" cy="42" r="25"/>'+
-      '<g class="m-face"><g class="m-eyes">'+ex.e+'</g>'+LASH[ex.l]+
-        '<path class="m-mouth" d="'+m+'"/></g>'+
-      '<path class="m-shine" d="M27 30 q7-9 17-10"/>'+
-    '</g></svg>';
-}
-
-/* Every [data-face] host gets her drawing. `data-face` may name an expression
-   pair, "eyes mouth"; empty means open/tip. Call it again after adding hosts,
-   which is what a page building her into a message has to do. */
-function paintFaces(root){
-  var hosts=(root||document).querySelectorAll("[data-face]");
-  for(var i=0;i<hosts.length;i++){
-    var h=hosts[i];
-    if(h.getAttribute("data-painted")) continue;
-    var pair=(h.getAttribute("data-face")||"").split(/\s+/);
-    h.innerHTML=svg(pair[0]||"open", pair[1]||"tip");
-    h.setAttribute("data-painted","1");
-  }
-}
-
-(() => {
-  const log = document.getElementById('log');
-  const next = document.getElementById('next');
-  const replay = document.getElementById('replay');
-  const prog = document.getElementById('prog');
-  const save = document.getElementById('save');
-  const panel = document.getElementById('panel');
-  const profile = document.getElementById('profile');
-  const today = new Date();
+var FORM=(function(){
+  // ---------- option lists (production Clarity, LA HMIS) ----------
+  const Q = {
+    qssn: ['Select','Full SSN Reported','Approximate or partial SSN reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    qname:['Select','Full name reported','Partial, street name, or code name reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    qdob: ['Select','Full DOB Reported','Approximate or partial DOB reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    gender:['Select','Woman (Girl, if child)','Man (Boy, if child)','Culturally Specific Identity (e.g., Two-Spirit)','Transgender','Non-Binary','Questioning','Different Identity',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    race:['Select','American Indian, Alaska Native, or Indigenous','Asian or Asian American','Black, African American, or African','Hispanic/Latina/e/o','Middle Eastern or North African','Native Hawaiian or Pacific Islander','White',"Client doesn't know",'Client prefers not to answer','Data not collected'],
+    doc:['Select','Electronic Signature','Attached PDF','Signed Paper Document','Verbal Consent','Household'],
+  };
+  const $ = id => document.getElementById(id);
+  for (const k in Q){ const s=$(k); Q[k].forEach(o=>{const op=document.createElement('option');op.textContent=o;s.appendChild(op);}); }
+  /* Deliberately NOT 'roiStart' or 'end': the consent dates are computed once and
+     are read-only, so a reset must not blank them. */
+  const F = ['ssn','qssn','first','last','middle','suffix','qname','qdob','dob','maiden','alias','gender','pronouns','race','lang','perm','doc','loc'];
+  const val = id => $(id).value.trim();
   const fmt = d => `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
-  const end = new Date(today); end.setFullYear(end.getFullYear()+7);
+  const today=new Date(), end=new Date(today); end.setFullYear(end.getFullYear()+7);
+  $('roiStart').value=fmt(today); $('end').value=fmt(end);
 
-  // Each beat: messages to add, then form changes to apply.
-  const beats = [
-    { msgs:[ {who:'Bobbi', cls:'bobbi', t:'My name is Bobbi.'} ],
-      form:[ ['first','Bobbi'], ['qname','Partial, street name, or code name reported'] ],
-      lashes:['One name is not a full name. Say so on the record.','You can change it in a minute if she gives you more.'] },
+  // ---------- form behaviors ----------
+  let crOn=false;
+  $('cr').addEventListener('click', () => {
+    crOn=!crOn; $('cr').classList.toggle('on',crOn);
+    if (crOn){ $('ssn').value='000-00-0000'; $('qssn').value='Client prefers not to answer'; $('first').value='Generated'; $('last').value='Refused';
+      $('qname').value='Client prefers not to answer'; $('suffix').value='Client prefers not to answer'; $('dob').value='01/01/____'; $('qdob').value='Approximate or partial DOB reported'; }
+  });
+  $('doc').addEventListener('change', () => {
+    const v=val('doc'); $('consent').classList.toggle('show', v==='Electronic Signature'); $('file').classList.toggle('show', v==='Attached PDF'); $('locwrap').style.display = v==='Signed Paper Document' ? '' : 'none';
+  });
+  const sign = (id,txt) => { const p=$(id); p.addEventListener('click',()=>{ p.classList.toggle('signed'); p.textContent = p.classList.contains('signed') ? txt : (id==='sig1'?'Client Signature':'Organization Staff Signature'); }); };
+  sign('sig1','~ signed ~'); sign('sig2','O. Worker');
+  const signed = () => $('sig1').classList.contains('signed');
+  function resetForm(){
+    F.forEach(id => { const e=$(id); if (e.tagName==='SELECT'){ e.selectedIndex=0; if(id==='perm')e.value='Yes'; } else e.value=''; });
+    crOn=false; $('cr').classList.remove('on'); $('consent').classList.remove('show'); $('file').classList.remove('show'); $('locwrap').style.display='none';
+    ['sig1','sig2'].forEach(id=>{$(id).classList.remove('signed'); $(id).textContent = id==='sig1'?'Client Signature':'Organization Staff Signature';});
+    $('photo').checked=false; $('form').scrollTop=0;
+  }
 
-    { msgs:[ {who:'You', cls:'you', t:'May I ask for your last name?'},
-             {cls:'alt', t:'Alternate, if they are carrying documents: "Bobbi, would you have an ID that I can use to fill in your information?"'},
-             {who:'Bobbi', cls:'bobbi', t:'Sure, it’s Barrone. B-A-R-R-O-N-E.'} ],
-      form:[ ['last','Barrone'], ['qname','Full name reported'] ],
-      lashes:['One more question. That is the entire difference between a partial name and a full one.','And notice she spelled it out without being asked twice. Ask everybody to spell it, and read it back to them so they can catch you.','Five seconds now. It saves somebody twenty minutes two years from now, and there is a decent chance that somebody is you.'] },
+  return {
+    byId:$, val:val, reset:resetForm, signed:signed,
+    refused:function(){ return crOn; },
+    /* Documentation drives what the consent section shows, so a page that sets it
+       in code rather than by a click still has to fire the product's own handler. */
+    sync:function(){ $('doc').dispatchEvent(new Event('change')); }
+  };
+})();
+(() => {
+  /* ============================================================
+     Meeting Bobbi — the learner builds the record, the conversation follows
 
-    { msgs:[ {who:'You', cls:'you', t:'Thank you, Bobbi. May I get your birthday?'},
-             {who:'Bobbi', cls:'bobbi', t:'August 22nd. Do you need the year?'} ],
-      form:[ ['qdob','Approximate or partial DOB reported'] ],
-      lashes:['She has given you most of it. Record what you have, and the code that says it is not all of it.'] },
+     It used to play itself: Next, a few messages, the form filled in on its own.
+     Watching somebody else do it is not the skill. Now Bobbi speaks, the learner
+     types what she said and sets the data-quality code for it, and the worker's
+     next line only lands once that is done. The conversation is the reward for
+     finishing the step, which is also why there is no Next button after the first
+     click — the form is the control.
 
-    { msgs:[ {who:'You', cls:'you', t:'If you don’t mind!'},
-             {who:'Bobbi', cls:'bobbi', t:'1993. Anything else?'} ],
-      form:[ ['dob','08/22/1993'], ['qdob','Full DOB Reported'] ],
-      lashes:['Two questions, two upgrades. Notice she was never pushed. She was asked.'] },
+     Two rules govern what is judged:
 
-    { msgs:[ {who:'You', cls:'you', t:'We don’t have to go through everything today. Let me ask: may I record your Social Security Number?'},
-             {who:'Bobbi', cls:'bobbi', t:'Do you really need that?'},
-             {who:'You', cls:'you', t:'Not today. Anything you share with me is so that we can help you navigate services.'},
-             {who:'Bobbi', cls:'bobbi', t:'Okay. Not today. I have to check if I still have that card.'} ],
-      form:[ ['ssn','XXX-XX-XXXX'], ['qssn','Client doesn’t know'] ],
-      lashes:['Read that again. She did not refuse. She said she is not sure she still has the card.','That is "Client doesn’t know," not "Client prefers not to answer." Different boxes, different meanings, and the difference matters to whoever sees her next.'] },
+       TYPED TEXT IS NEVER EVALUATED. Not the spelling of her name, not the date,
+       not her pronouns. The lesson says so out loud in the practice sim and it has
+       to be true here: "I am never going to check your spelling." A field with
+       anything in it is done.
 
-    { msgs:[ {who:'You', cls:'you', t:'Sure thing, Bobbi. If needed, we can help you get another one.'} ],
-      form:[], lashes:[] },
+       THE CODE IS. Quality of Name, Quality of DOB, Quality of SSN, and the two
+       demographics she answered are right or they are not, and that is the whole
+       subject — capture the data, then mark how good it is. Green or red, no
+       sentence. A paragraph explaining the difference turns a form into a lecture,
+       and the difference is visible in the dropdown the learner is already reading.
 
-    { msgs:[ {who:'You', cls:'you', t:'Two more things and I’ll stop asking. What would you say is your gender identity? And what would you say is your race or ethnicity?'},
-             {who:'Bobbi', cls:'bobbi', t:'Woman. She, her. And Black.'} ],
-      form:[ ['gender','Woman (Girl, if child)'], ['pronouns','she/her'], ['race','Black, African American, or African'] ],
-      lashes:['You asked. That is the whole skill for this section. Not one of those fields is something you can see.'] },
+     Nothing is scored. A wrong code can be changed as many times as it takes; the
+     conversation waits, which is the only pressure there is.
+     ============================================================ */
+  const $id = FORM.byId;
+  const log = $id('log'), next = $id('next'), replay = $id('replay');
+  const save = $id('save'), profile = $id('profile');
+  const field = id => $id(id).closest('.f');
 
-    { msgs:[ {who:'You', cls:'you', t:'Last thing. The information I write down, other agencies that use this system can see it too. A shelter, an outreach team on another block. That is what lets them pick up where we left off instead of you starting over. Is that okay with you?'},
-             {who:'Bobbi', cls:'bobbi', t:'Yeah, that’s fine. I don’t want to keep doing this.'},
-             {who:'You', cls:'you', t:'I don’t have anything for you to sign out here. I’m going to record that you said yes, and next time we’re together with the form, I’ll get your signature.'} ],
-      form:[ ['perm','Yes'], ['start', fmt(today)], ['end', fmt(end)], ['doc','Verbal Consent'] ],
-      lashes:['Verbal consent is real consent. It is also a promise you just made out loud. Follow up.'] },
+  /* She knows the day and she knows her age. She does not know the year, so the
+     year is arithmetic — and it is done against TODAY rather than written down,
+     because a birth year baked into the page is wrong the moment the calendar turns
+     over and the sim would be teaching a sum that no longer adds up. */
+  const AGE = 33, BMONTH = 8, BDAY = 22;
+  const _now = new Date();
+  const _passed = (_now.getMonth() + 1 > BMONTH) ||
+                  (_now.getMonth() + 1 === BMONTH && _now.getDate() >= BDAY);
+  const BIRTH = String(BMONTH).padStart(2,'0') + '/' + String(BDAY).padStart(2,'0') + '/' +
+                (_now.getFullYear() - AGE - (_passed ? 0 : 1));
 
-    { msgs:[ {cls:'note', t:'Nobody pressured her. A partial answer became a full one because you asked one more question. She was asked two different consent questions and got to answer each one. Nothing here was a failure. The record is honest.'} ],
-      form:[], lashes:['Now save it.'], enableSave:true },
+  /* Each step: what is said, then what the learner has to do before the next thing
+     is said. `fill` is typed and only has to be non-empty; `need` is typed and has
+     to be exact; `code` has to match. */
+  const STEPS = [
+    /* The code comes after the fields it describes, not alongside the first of them.
+       Quality of Name waits for first AND last; Quality of DOB waits for the date;
+       Quality of SSN waits for the number. Capture, then mark how good it is. */
+    { say:[ {who:'Bobbi', cls:'bobbi', t:'My name is Bobbi.'} ],
+      need:{ first:'Bobbi' } },
+
+    { say:[ {who:'You', cls:'you', t:'May I ask for your last name?'},
+            {who:'Bobbi', cls:'bobbi', t:'Sure, it’s Barrone. B-A-R-R-O-N-E.'} ],
+      need:{ last:'Barrone' },
+      code:{ qname:'Full name reported' } },
+
+    /* She gave a day and no year, so the day goes in and the code says the rest is
+       missing. Entering the value BEFORE coding it is the order the whole lesson
+       runs on — capture it, then mark how good it is — and it is why Quality of DOB
+       sits under Date of Birth on this form rather than above it. */
+    /* One beat, not two: the whole exchange happens and then the date is entered and
+       coded once. Asking again is part of the conversation, not a second task — the
+       code says what you ended up with, so it is set after you have stopped asking.
+
+       And what they end up with here is a date they worked out rather than one she
+       gave them, which is why the code is Approximate and not Full. The day is hers;
+       the year is the worker's arithmetic, and a record should say so. */
+    { say:[ {who:'You', cls:'you', t:'Thank you, Bobbi. May I get your birthday?'},
+            {who:'Bobbi', cls:'bobbi', t:'August 22nd. I couldn’t tell you the year, though.'},
+            {who:'You', cls:'you', t:'That’s all right. Do you know how old you are?'},
+            {who:'Bobbi', cls:'bobbi', t:'Thirty-three.'} ],
+      need:{ dob: BIRTH },
+      code:{ qdob:'Approximate or partial DOB reported' } },
+
+    { say:[ {who:'You', cls:'you', t:'We don’t have to go through everything today. Let me ask: may I record your Social Security Number?'},
+            {who:'Bobbi', cls:'bobbi', t:'Do you really need that?'},
+            {who:'You', cls:'you', t:'Not today. Anything you share with me is so that we can help you navigate services.'},
+            {who:'Bobbi', cls:'bobbi', t:'Okay. Not today. I have to check if I still have that card.'} ],
+      /* `need`, not `fill`: the placeholder has to be written out in full before the
+         conversation moves on. A half-typed XXX is not the convention — the whole
+         point of XXX-XX-XXXX is that it is unmistakably a placeholder to whoever
+         reads the record next, and a field holding "XX" says nothing to anybody.
+         It is still not a judgement: incomplete is not wrong, so it is not marked
+         red, it simply does not advance. */
+      need:{ ssn:'XXX-XX-XXXX' },
+      code:{ qssn:"Client doesn't know" } },
+
+    /* She answers because she was asked. Not one field in this section is something
+       anybody can determine by looking, which is why the worker's line is a question
+       and why the learner has nothing to record until she has replied. */
+    { say:[ {who:'You', cls:'you', t:'Sure thing, Bobbi. If needed, we can help you get another one.'},
+            {who:'You', cls:'you', t:'Two more things and I’ll stop asking. What would you say is your gender identity? And what would you say is your race or ethnicity?'},
+            {who:'Bobbi', cls:'bobbi', t:'Woman. She, her. And Black.'} ],
+      /* Pronouns is the ONE field that takes whatever they type. She said "she,
+         her"; a worker might write "she/her", "She/Her", "she, her" or "she/her/hers"
+         and every one of those is the right answer. It is also the field least likely
+         to be transcribed the same way twice, and the least harmful when it is not. */
+      fill:['pronouns'],
+      code:{ gender:'Woman (Girl, if child)', race:'Black, African American, or African' } },
+
+    { say:[ {who:'You', cls:'you', t:'Last thing. The information I write down, other agencies that use this system can see it too. A shelter, an outreach team on another block. That is what lets them pick up where we left off instead of you starting over. Is that okay with you?'},
+            {who:'Bobbi', cls:'bobbi', t:'Yeah, that’s fine. I don’t want to keep doing this.'},
+            {who:'You', cls:'you', t:'I have the form on my tablet. I’ll read you the short version, and if you’re happy with it you can sign on the screen.'},
+            {who:'Bobbi', cls:'bobbi', t:'Okay.'} ],
+      code:{ perm:'Yes', doc:'Electronic Signature' },
+      sign:true },
   ];
 
-  paintFaces();                        // the one in the header
-  let i = 0, busy = false;
-  const setProg = () => prog.textContent = i === 0 ? '' : `${Math.min(i,beats.length)} / ${beats.length}`;
+  /* Every control the learner may ever touch. Everything starts dead and a step
+     wakes only its own; the consent pads are woken by the step that needs them. */
+  const ALL = ['ssn','qssn','first','last','middle','suffix','qname','qdob','dob',
+               'maiden','alias','gender','pronouns','race','lang','perm','doc','loc','cr','photo'];
+  const PADS = ['sig1','sig2'];
+
+  /* "Filled" is what keeps a locked field's value in ink. Select's empty state is
+     the word Select, not an empty string, so both are asked the same question. */
+  function restyle(){
+    ALL.forEach(id => { const e=$id(id); if(!e||!e.closest) return;
+      const f=e.closest('.f'); if(!f) return;
+      const v=(e.value||'').trim();
+      f.classList.toggle('filled', !!v && v!=='Select');
+    });
+  }
+  function freeze(){
+    clearTimeout(advTimer); clearTimeout(settleTimer);
+    restyle();
+    ALL.forEach(id => { const e=$id(id); if(!e) return;
+      if (e.tagName==='INPUT'||e.tagName==='SELECT') e.disabled=true; else e.style.pointerEvents='none';
+      const f=e.closest('.f'); if(f) f.classList.remove('live'); });
+    PADS.forEach(id => $id(id).style.pointerEvents='none');
+    save.disabled = true;
+  }
+  function wake(ids){
+    ids.forEach(id => { const e=$id(id); if(!e) return;
+      e.disabled=false; const f=e.closest('.f'); if(f) f.classList.add('live'); });
+  }
+
+  let i = -1, busy = false, step = null, touched = null, shownConsent = false;
 
   function add(m){
     const el = document.createElement('div');
-    if (m.cls === 'note') { el.className='msg note'; el.textContent = m.t; }
-    else if (m.cls === 'alt') { el.className='msg alt'; el.textContent = m.t; }
-    else { el.className = 'msg ' + m.cls; el.innerHTML = `<span class="who">${m.who}</span>${m.t}`; }
+    el.className = 'msg ' + m.cls;
+    /* Her avatar already says who is speaking, so the name above the words was the
+       same thing twice in a smaller font. The worker keeps theirs: that side has no
+       avatar, so the label is the only thing naming them. */
+    el.innerHTML = m.cls === 'bobbi'
+      ? `<span class="av">BB</span><div class="bub">${m.t}</div>`
+      : `<span class="who">${m.who}</span>${m.t}`;
     log.appendChild(el); log.scrollTop = log.scrollHeight;
-  }
-  function addLashes(lines){
-    if (!lines.length) return;
-    const el = document.createElement('div'); el.className='msg lashes';
-    el.innerHTML = `<span class="lashes-av" data-face></span><div class="body"><span class="who">Lashes</span>${lines.map(l=>`<p>${l}</p>`).join('')}</div>`;
-    log.appendChild(el);
-    paintFaces(el);                    // she is built into the message, so paint it now
-    log.scrollTop = log.scrollHeight;
+    return el;
   }
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
-  async function applyForm(changes){
-    for (const [k,v] of changes){
-      const f = document.querySelector(`.f[data-k="${k}"]`);
-      if (!f) continue;
-      const inEl = f.querySelector('.in');
-      f.scrollIntoView({block:'center',behavior:'smooth'});
-      f.classList.add('flash'); await sleep(350);
-      inEl.textContent = v; inEl.classList.remove('ph');
-      f.classList.remove('flash'); f.classList.add('changed');
-      setTimeout(()=>f.classList.remove('changed'),1200);
-      await sleep(420);
+
+  /* ---------------- judging ---------------- */
+  function mark(id, ok){
+    const f = field(id);
+    f.classList.toggle('ok', ok);
+    f.classList.toggle('no', !ok);
+  }
+  function judge(){
+    if (!step || busy) return;
+    let done = true;
+    /* Touched in THIS step, not merely non-empty. Date of Birth already holds the
+       day and month by the time she gives the year, so a step that only asked for
+       "not empty" would let the learner set the code to Full without adding the
+       year — the tool accepting a claim the record does not support, which is the
+       one thing this lesson is about. */
+    for (const id of (step.fill||[])) if (!FORM.val(id) || !touched.has(id)) done = false;
+    /* A value that has to match what she actually said. Compared case-insensitively:
+       a worker who types "bobbi" has heard her correctly, and failing them on a
+       capital is the kind of pedantry that teaches people to distrust the tool.
+
+       Marked, unlike `fill` — she spelled her surname out loud, so whether it went
+       down right is the thing being taught, and a year worked out from an age can be
+       worked out wrong. Leaving somebody staring at a step that will not move is
+       worse than telling them. But not while they are still typing: red arrives only
+       once the field has been still for a beat, on the same timer as the advance. */
+    for (const id in (step.need||{})) {
+      const want = step.need[id].toUpperCase(), got = FORM.val(id).toUpperCase();
+      if (got === want) { mark(id, true); continue; }
+      done = false;
+    }
+    for (const id in (step.code||{})) {
+      const picked = FORM.val(id);
+      /* Already right counts, touched or not. Permission resets to Yes, which is the
+         answer this conversation needs — so there is nothing for the learner to
+         change, no change event ever fires, and requiring a touch meant the last
+         step could never complete. Nothing happened, and nothing was going to. */
+      if (picked === step.code[id]) { mark(id, true); continue; }
+      /* Wrong is only wrong once they have set it in this step: a code left over
+         from an earlier answer is the next thing to do, not an error they made. */
+      if (!touched.has(id) || !picked || picked === 'Select') {
+        field(id).classList.remove('ok','no'); done = false; continue;
+      }
+      mark(id, false);
+      done = false;
+    }
+    /* TWO SIGNATURES, IN ORDER, AND ONLY ONE OF THEM IS THE LEARNER'S.
+       The client signature is HERS. The learner handed her the tablet, so the page
+       signs that one — clicking it on her behalf would be the learner signing a
+       consent form for somebody else, which is the opposite of what this teaches.
+       Then the staff box goes live and the learner signs their own. */
+    if (done && step.sign) {
+      /* Scroll the PAD, not the consent box. The box is 190px with its own overflow
+         and the pads are at the bottom of it, so bringing the box into view left the
+         only thing left to do hidden inside it. */
+      if (!shownConsent) {
+        shownConsent = true;
+        setTimeout(() => $id('sig1').scrollIntoView({block:'center', behavior:'smooth'}), 140);
+        setTimeout(bobbiSigns, 900);
+      }
+      if (!FORM.signed() || !$id('sig2').classList.contains('signed')) done = false;
+    }
+    if (!done) {
+      clearTimeout(advTimer);
+      /* Say so once they have stopped, not while they are mid-word. */
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(settle, 900);
+      save.disabled = true;
+      return;
+    }
+    if (step.sign) { save.disabled = false; return; }   // the last step ends at Save
+    scheduleAdvance();
+  }
+  /* Documentation only reveals the consent block through the product's own change
+     handler, and a select set with the keyboard fires `change` on blur. Listening to
+     `input` as well is what makes the block appear the moment the option is chosen. */
+  ['input','change'].forEach(ev => document.addEventListener(ev, e => {
+    const t = e.target;
+    if (!t || !t.closest || !t.closest('.form')) return;
+    if (touched && t.id) touched.add(t.id);
+    restyle();
+    setTimeout(judge, 0);
+  }, true));
+  PADS.forEach(id => $id(id).addEventListener('click', () => setTimeout(judge, 0)));
+
+  /* She signs, then it is the learner's turn. The staff pad stays dead until hers
+     is down, so the order on screen is the order it happens in. */
+  async function bobbiSigns(){
+    const pad = $id('sig1');
+    pad.classList.add('live');
+    await sleep(500);
+    pad.click();                       // the product's own handler writes the mark
+    pad.classList.remove('live');
+    add({who:'Bobbi', cls:'bobbi', t:'There you go.'});
+    await sleep(700);
+    add({who:'You', cls:'you', t:'Thank you. I’ll sign it too, and then it’s done.'});
+    const mine = $id('sig2');
+    mine.style.pointerEvents = '';
+    mine.classList.add('live');
+    mine.scrollIntoView({block:'center', behavior:'smooth'});
+  }
+
+  /* ---------------- the conversation ---------------- */
+  async function play(n){
+    busy = true; freeze();
+    step = null;
+    const b = STEPS[n];
+    for (const m of b.say){ add(m); await sleep(560); }
+    touched = new Set();
+    Object.keys(b.code||{}).forEach(id => field(id).classList.remove('ok','no'));
+    step = b; i = n;
+    busy = false;
+    wake((b.fill||[]).concat(Object.keys(b.need||{}), Object.keys(b.code||{})));
+    /* Bring the first field in play into view — the form is taller than the pane and
+       the release-of-information section is well below the fold. */
+    const first = (b.fill||[]).concat(Object.keys(b.need||{}), Object.keys(b.code||{}))[0];
+    if (first) field(first).scrollIntoView({block:'center', behavior:'smooth'});
+    judge();
+  }
+  /* WAIT FOR THEM TO STOP TYPING.
+     A typed field is done the moment it is not empty, and judge() runs on every
+     keystroke — so the step completed on the first letter of her name, froze the
+     field, and the rest went nowhere. The record read "Bob Barrone". Every learner
+     would have hit that; it only stayed hidden because a test that sets .value in
+     one go never types a second character.
+
+     So the advance is debounced: any further input pushes it back, and it lands
+     only once the field has been still for a beat. Not-done clears it outright. */
+  /* What a wrong answer looks like when the typing stops. Only for `need` fields —
+     `fill` is never judged, so it is never marked. */
+  let settleTimer = null;
+  function settle(){
+    if (!step) return;
+    for (const id in (step.need||{})) {
+      const want = step.need[id].toUpperCase(), got = FORM.val(id).toUpperCase();
+      if (got && got !== want && touched.has(id)) mark(id, false);
     }
   }
-  async function step(){
-    if (busy) return; busy = true; next.disabled = true;
-    const b = beats[i];
-    for (const m of b.msgs){ add(m); await sleep(520); }
-    await applyForm(b.form);
-    addLashes(b.lashes);
-    i++; setProg();
-    if (b.enableSave){ save.classList.add('on'); next.hidden = true; }
-    else { next.textContent = i >= beats.length ? 'Finish' : 'Next'; next.disabled = false; }
-    busy = false;
+  let advTimer = null;
+  function scheduleAdvance(){
+    clearTimeout(advTimer);
+    advTimer = setTimeout(() => {
+      const n = i + 1;
+      if (n >= STEPS.length) return;
+      /* Synchronously, before play(): judge() fires on every input event, and between
+         this firing and play() starting there is room for another to schedule it
+         again. It did — the last step's four lines arrived three times over. */
+      step = null;
+      freeze();
+      play(n);
+    }, 900);
   }
-  next.addEventListener('click', step);
+
+  next.addEventListener('click', () => {
+    next.hidden = true;
+    play(0);
+  });
+
+  /* The record is saved; the conversation is not finished. She is still standing
+     there, and the last thing said was "Okay." Her line earlier was "I don't want to
+     keep doing this" — this is what answers it, and it is the only reason any of the
+     preceding twenty minutes was worth her time.
+
+     NEW COPY, not yet in script.md. Flagged there: the script closes this tutorial in
+     Lashes' voice, and she is not in this page. */
+  /* It ended on "Not this part, no.", which is an answer to a question rather than
+     the end of a conversation — the two of them simply stopped talking. It closes on
+     HER now, because she is the one who came over, and on what the record is for. */
+  const CLOSE = [
+    {who:'You', cls:'you', t:'That’s it. You’re in the system now.'},
+    {who:'Bobbi', cls:'bobbi', t:'So I don’t have to do all this again.'},
+    {who:'You', cls:'you', t:'Not this part. If you find that card, bring it back and we’ll add it. And from now on, just give your name the way you did today — that’s enough for us to find you.'},
+    {who:'Bobbi', cls:'bobbi', t:'Okay. Thanks.'},
+  ];
+  async function closeOut(){
+    for (const m of CLOSE){ add(m); await sleep(750); }
+    log.scrollTop = log.scrollHeight;
+    await sleep(1200);
+    finish();
+  }
+
+  /* The activity is over, so the interface goes with it. Leaving a dead form and a
+     finished transcript on screen asks the learner to work out whether there is
+     anything left to do; fading them and saying so answers it. */
+  function finish(){
+    document.body.classList.add('over');
+    setTimeout(() => $id('finis').classList.add('on'), 420);
+  }
+
   save.addEventListener('click', () => {
-    if (!save.classList.contains('on')) return;
-    panel.style.display='none'; profile.classList.add('show');
-    addLashes(['There it is. She has a record now.','That code at the top is her Unique Identifier. You used those last lesson to tell three Rosalind Vegas apart. This one is hers, and it did not exist four minutes ago.']);
-    replay.hidden = false; next.hidden = true;
-    try { window.parent.postMessage({type:'complete'}, '*'); } catch(e){}
+    if (save.disabled) return;
+    const t = $id('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1200);
+    fillProfile();
+    profile.classList.add('show');
+    freeze();
+    closeOut();
+    /* The house contract: source-tagged, and never a score. */
+    try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
+      section:'bobbi',type:'complete'}, '*'); } catch(e){}
   });
   replay.addEventListener('click', () => location.reload());
+  $id('again').addEventListener('click', () => location.reload());
+
+  /* The record is theirs, so the profile is read off the form rather than written
+     here. Spelling included — whatever they typed is what the record says, which is
+     the honest consequence of not checking it. */
+  function fillProfile(){
+    const v = id => FORM.val(id) || 'No value';
+    ['ssn','qssn','first','last','qname','qdob','dob','gender','pronouns','race','perm','doc']
+      .forEach(id => { const e = $id('p-' + id); if (e) e.textContent = v(id); });
+    const name = [FORM.val('first'), FORM.val('last')].filter(Boolean).join(' ') || 'No value';
+    ['pname','pname2','pname3','pcrumb'].forEach(k => $id(k).textContent = name);
+    $id('pinit').textContent = name.split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase() || '—';
+    /* Age from the date they entered, when it is a date. */
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(FORM.val('dob'));
+    let age = 'No value';
+    if (m) {
+      const d = new Date(+m[3], +m[1]-1, +m[2]), now = new Date();
+      age = now.getFullYear() - d.getFullYear() - ((now.getMonth(), new Date(now.getFullYear(), d.getMonth(), d.getDate()) > now) ? 1 : 0);
+    }
+    $id('p-age').textContent = age;
+  }
+
+  /* ---------- the separators, as you type ----------
+     A Social Security Number field puts its own dashes in and a date field puts its
+     own slashes in. Making the learner type them is friction that teaches nothing,
+     and it is not what the real field does.
+
+     It accepts the LESSON'S PLACEHOLDERS as well as digits, which an ordinary
+     numeric mask would eat: X for a segment nobody has — XXX-XX-XXXX — and _ for
+     a part of a date that never arrived, 08/22/____. Those are the conventions this
+     lesson teaches, so the field that teaches them has to take them.
+
+     Caret handling is deliberate: typing into the middle of a formatted value and
+     having the cursor jump to the end is the classic mask defect, so the caret is
+     put back by counting the content characters before it rather than by offset. */
+  function mask(el, keep, cuts, sep, max, pad){
+    const fmt = raw => {
+      /* A separator the learner typed themselves ends that segment: "8/" is August,
+         not the start of "82". Without this, 8/22/93 came out as 82/29/3 — the field
+         scrambling what they typed, which is worse than making them type digits. */
+      if (pad && raw.indexOf(sep) > -1){
+        const seg = raw.split(sep), w = [cuts[0], cuts[1] - cuts[0]];
+        raw = seg.map((t, i) => (i < 2 && t && t.length < w[i]) ? t.padStart(w[i], '0') : t).join('');
+      }
+      const v = raw.toUpperCase().split('').filter(c => keep.test(c)).slice(0, max);
+      let out = '';
+      for (let i = 0; i < v.length; i++){
+        if (cuts.indexOf(i) > -1 && i) out += sep;
+        out += v[i];
+      }
+      return out;
+    };
+    el.addEventListener('input', () => {
+      const wasAtEnd = el.selectionStart === el.value.length;
+      const before = el.value.slice(0, el.selectionStart).split(sep).join('').length;
+      el.value = fmt(el.value);
+      /* Typing at the end is nearly all of it, and there the caret simply belongs at
+         the end. The counting below is for an edit in the MIDDLE, where the caret has
+         to land after the same character it was after — and it cannot be used when a
+         typed separator has padded a segment, because that inserts a character before
+         the caret and the count no longer holds. 8/22/93 came out 02/09/3208. */
+      let at = el.value.length;
+      if (!wasAtEnd){
+        let seen = 0;
+        at = 0;
+        for (let i = 0; i < el.value.length; i++){
+          if (el.value[i] !== sep) seen++;
+          if (seen === before){ at = i + 1; break; }
+        }
+      }
+      try { el.setSelectionRange(at, at); } catch (e) {}
+    });
+  }
+  /* cuts are where a separator goes, max is how many CONTENT characters there are —
+     nine for a Social Security Number, eight for a date. Conflating the two is what
+     made the first cut of this truncate every date to "08/22". */
+  mask($id('ssn'), /[0-9X]/, [3,5], '-', 9);    // XXX-XX-XXXX
+  mask($id('dob'), /[0-9_]/, [2,4], '/', 8, true);   // MM/DD/YYYY
+
+  /* Permission shipped defaulted to Yes, which meant the one field in this exchange
+     that records what she actually agreed to was already filled in before she was
+     asked. It starts unset here, so answering it is something the learner does.
+
+     2. And the panel's `?` goes: it explains pop-out and collapse, which is chrome
+     this page does not need explained in the middle of an interview. */
+  (function(){
+    const perm = $id('perm');
+    if (perm && !perm.querySelector('option[value="Select"]')){
+      const o = document.createElement('option');
+      o.textContent = 'Select'; o.value = 'Select';
+      perm.insertBefore(o, perm.firstChild);
+      perm.value = 'Select';
+    }
+    const help = document.querySelector('#cwHelp');
+    if (help) help.remove();
+  })();
+
+  /* The device preview goes at the LEFT of Clarity's top bar, beside the logo. The
+     account chip on the right is the product's own and stays where it is. Done here
+     rather than in the shared form markup so the practice sim is untouched. */
+  (function(){
+    const bar = document.querySelector('.topbar'), sp = bar && bar.querySelector('.sp');
+    if (!sp) return;
+    sp.insertAdjacentHTML('beforebegin',
+      '<label class="devsel">View as' +
+      '<select id="device" aria-label="Preview the interface at another device size">' +
+      '<option value="">Computer</option><option value="tablet">Tablet</option>' +
+      '<option value="phone">Phone</option></select></label>');
+    const app = document.querySelector('.clarity');
+    document.getElementById('device').addEventListener('change', e => {
+      app.classList.remove('tablet','phone');
+      app.classList.toggle('dev', !!e.target.value);
+      if (e.target.value) app.classList.add(e.target.value);
+    });
+  })();
+
+  /* The window's own title. The shared shell ships #secTitle empty on purpose —
+     one lesson's section name baked into it is a string waiting to be wrong in the
+     lesson that forgets to set it. */
+  $('#secTitle').textContent = 'Adding a Client in the Field';
+  freeze();
+  try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
+    section:'bobbi',type:'ready'}, '*'); } catch(e){}
+})();
+
+/* ---------------- the coach window ----------------
+   Two modes. Docked is the default: it owns a reserved column, the interface is
+   laid out against --dock, and the two can never overlap. Popped out, it floats
+   over the interface and the column is given back — which is worth having when
+   the learner wants the results at full width, and is the same window either way.
+
+   The placement solver only matters in the popped-out mode. */
+(function(){
+  /* The rig is optional, and so is she: a page may take the window and carry her
+     inside its own content, or not show her at all — the Bobbi walkthrough is a
+     conversation between two people and she is in none of it. Nothing here needs
+     her, so nothing here may assume she is loaded. */
+  function relayout(){ if(typeof LZ!=="undefined" && LZ && LZ.relayout) LZ.relayout(); }
+  var win=$("#coachWin"), bar=$("#cwBar"), root=document.documentElement, drag=null, moved=false;
+  function floating(){ return root.classList.contains("dock-out"); }
+
+  /* Controls the window must not sit on. Scored as the fraction of each control
+     covered, not by area — covering half of a 34px icon button has to outweigh
+     clipping the corner of a table that fills the screen. */
+  var AVOID=[".rail","#pill","#colBtn","#filterBtn","#addBtn","#prevBtn","#nextBtn2",
+             "#recNav",".recacts"];
+  function overlapArea(a,b){
+    var w=Math.min(a.right,b.right)-Math.max(a.left,b.left);
+    var h=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top);
+    return (w>0&&h>0)?w*h:0;
+  }
+  function liveRect(sel){
+    var n=document.querySelector(sel);
+    return (n && n.getClientRects().length) ? n.getBoundingClientRect() : null;
+  }
+  /* Not the whole table — most of a results table is harmless to overlap, and
+     scoring it by area let a huge, mostly-empty rectangle outvote a 34px button.
+     What matters is the left part of each row: the chevron, the name, and the
+     identifiers under it. That is where a learner reads and clicks. */
+  function rowLane(){
+    var t=liveRect("#tbl");
+    if(!t) return null;
+    return {left:t.left, right:t.left+t.width*0.62, top:t.top, bottom:t.bottom};
+  }
+  /* Auto-placed until the learner drags it. After that the position is theirs and
+     nothing moves it again — a window that keeps relocating itself is worse than
+     one that is occasionally in the way. */
+  function autoPlace(){
+    if(moved || !floating()) return;
+    var r=win.getBoundingClientRect(), w=r.width, h=r.height, pad=18, top=36;
+    var W=window.innerWidth, H=window.innerHeight;
+    var xs=[], ys=[], i, j;
+    for(i=0;i<=4;i++){
+      xs.push(Math.round(pad+(W-w-2*pad)*i/4));
+      ys.push(Math.round(top+(H-h-pad-top)*i/4));
+    }
+    var rects=AVOID.map(liveRect).filter(Boolean);
+    var lane=rowLane();
+    var best=null, bestScore=Infinity;
+    for(i=0;i<xs.length;i++) for(j=0;j<ys.length;j++){
+      var box={left:xs[i], top:ys[j], right:xs[i]+w, bottom:ys[j]+h};
+      if(box.top<top||box.bottom>H-8||box.left<0||box.right>W) continue;
+      var s=0, k, a;
+      for(k=0;k<rects.length;k++){
+        a=rects[k].width*rects[k].height;
+        if(a>0) s+=overlapArea(box,rects[k])/a;
+      }
+      if(lane){
+        a=(lane.right-lane.left)*(lane.bottom-lane.top);
+        if(a>0) s+=overlapArea(box,lane)/a;
+      }
+      s+=(4-i)*0.004+(4-j)*0.002;                       /* ties break toward bottom right */
+      if(s<bestScore){ bestScore=s; best=box; }
+    }
+    if(!best) return;
+    win.style.left=best.left+"px"; win.style.top=best.top+"px";
+    win.style.right="auto"; win.style.bottom="auto";
+  }
+  window.placeCoachWin=autoPlace;
+  function clamp(){
+    if(!floating() && !moved) return;
+    var r=win.getBoundingClientRect(), pad=8;
+    /* A window the learner dragged may hang off the edge — that is their choice,
+       and 90px of it stays reachable. One nobody has touched must be wholly on
+       screen: inside the launcher the frame is briefly a different height while
+       the stage is revealed, and an auto-placed window kept the stale position. */
+    var keep=moved?90:r.height;
+    var x=Math.max(pad,Math.min(r.left, window.innerWidth-r.width-pad));
+    var y=Math.max(32, Math.min(r.top,  window.innerHeight-Math.min(r.height,keep)-pad));
+    win.style.left=x+"px"; win.style.top=y+"px"; win.style.bottom="auto"; win.style.right="auto";
+  }
+  function start(e){
+    if(e.target.closest("button")||e.target.closest("#cwHelp")) return;
+    moved=true;
+    var r=win.getBoundingClientRect();
+    drag={dx:(e.clientX!=null?e.clientX:e.touches[0].clientX)-r.left,
+          dy:(e.clientY!=null?e.clientY:e.touches[0].clientY)-r.top};
+    win.style.left=r.left+"px"; win.style.top=r.top+"px"; win.style.bottom="auto";
+    bar.classList.add("drag");
+    if(e.pointerId!=null && bar.setPointerCapture) bar.setPointerCapture(e.pointerId);
+  }
+  function moveIt(e){
+    if(!drag) return;
+    e.preventDefault();
+    var cx=(e.clientX!=null?e.clientX:e.touches[0].clientX);
+    var cy=(e.clientY!=null?e.clientY:e.touches[0].clientY);
+    win.style.left=(cx-drag.dx)+"px"; win.style.top=(cy-drag.dy)+"px";
+  }
+  function end(){ if(!drag) return; drag=null; bar.classList.remove("drag"); clamp(); relayout(); }
+  bar.addEventListener("pointerdown",start);
+  window.addEventListener("pointermove",moveIt);
+  window.addEventListener("pointerup",end);
+  window.addEventListener("pointercancel",end);
+  /* Pop out / dock. Popping out surrenders the reserved column, so the interface
+     reflows to full width and the window has to find somewhere to be. */
+  $("#cwPop").addEventListener("click",function(){
+    var out=root.classList.toggle("dock-out");
+    this.setAttribute("aria-pressed",String(out));
+    this.title=out?"Dock to the right":"Pop out";
+    if(out){
+      moved=false;
+      win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
+      requestAnimationFrame(function(){ autoPlace(); clamp(); relayout(); });
+    }else{
+      win.style.left=""; win.style.top=""; win.style.right=""; win.style.bottom="";
+      setTimeout(function(){ relayout(); },240);
+    }
+  });
+  function setMin(min){
+    win.classList.toggle("min",min);
+    var btn=$("#cwMin");
+    btn.setAttribute("aria-expanded",String(!min));
+    btn.title=min?"Expand":"Collapse";
+    btn.innerHTML=min
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg>';
+    root.classList.toggle("dock-min", min && !floating());
+    setTimeout(function(){ autoPlace(); clamp(); relayout(); },240);
+  }
+  /* The orientation folds the panel away while it works, so the interface it is
+     talking about is not sharing the screen with a task nobody has read yet. */
+  window.setPanelMin=setMin;
+  /* One code path. The handler used to repeat setMin's body, and the two drifted:
+     the tour restored the window while the html class that reserves the dock column
+     stayed set, so the results table kept the full width and its last rows sat under
+     the panel where nothing could click them. */
+  $("#cwMin").addEventListener("click",function(){
+    setMin(!win.classList.contains("min"));
+  });
+  function reflow(){ autoPlace(); clamp(); relayout(); }
+  window.addEventListener("resize",reflow);
+  /* The launcher mounts this frame while it is display:none, so it boots at 0x0
+     and everything is placed against rectangles that do not exist yet. resize
+     covers the reveal, but not reliably enough to be the only thing watching. */
+  if(window.ResizeObserver){
+    try{ new ResizeObserver(reflow).observe(document.documentElement); }catch(e){}
+  }
+  autoPlace();
 })();
 </script>
 </body>
