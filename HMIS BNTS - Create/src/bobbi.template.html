@@ -96,21 +96,21 @@
      The URL is never printed. There is nothing to read off a screen and retype,
      and a Vercel hostname on a training slide is noise — the code resolves it and
      the button puts it on the clipboard. */
-  .qrbox{position:fixed;right:24px;bottom:24px;width:380px;z-index:160;
-    background:var(--coach);border-radius:17px;padding:14px 16px;display:flex;gap:14px;
-    align-items:center;
+  .qrbox{position:fixed;right:24px;bottom:24px;z-index:160;
+    background:var(--coach);border-radius:14px;padding:12px;display:flex;gap:12px;
+    align-items:center;transition:opacity .4s ease;
     box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12)}
-  .qrbox .qr{width:86px;height:86px;flex:0 0 86px;background:#fff;border-radius:8px;padding:4px}
+  .qrbox .qr{width:78px;height:78px;flex:0 0 78px}
   .qrbox .qr svg{display:block;width:100%;height:100%}
-  .qrbox .qt{flex:1;min-width:0}
-  .qrbox h4{margin:0 0 3px;font-size:14px;font-weight:700;color:var(--coach-ink)}
-  .qrbox p{margin:0 0 9px;font-size:12.5px;line-height:1.45;color:#5f7f8f}
   .qrbox button{border:1px solid #bfd9e4;border-radius:8px;padding:7px 13px;
-    font:600 13px var(--font);color:var(--teal);background:#fff;cursor:pointer}
+    font:600 13px var(--font);color:var(--teal);background:#fff;cursor:pointer;white-space:nowrap}
   .qrbox button:hover{background:var(--coach-2)}
   .qrbox button.done{border-color:var(--ok);color:var(--ok);background:var(--ok-l)}
-  body.over .qrbox{opacity:0;transition:opacity .55s ease;pointer-events:none}
-  @media(prefers-reduced-motion:reduce){body.over .qrbox{transition:none}}
+  /* It is for getting the thing onto a phone BEFORE you start. Once the activity is
+     running it is one more object on a screen that already has a form and a
+     conversation on it, so it goes. */
+  body.started .qrbox,body.over .qrbox{opacity:0;pointer-events:none}
+  @media(prefers-reduced-motion:reduce){.qrbox{transition:none}}
 
   /* ---------- the end of the activity ----------
      Everything fades and one card is left. No score on it: there is nothing to score
@@ -236,13 +236,9 @@
   </div>
 </section>
 
-<aside class="qrbox">
+<aside class="qrbox" aria-label="Open this on a phone">
   <div class="qr"><!--__QR__--></div>
-  <div class="qt">
-    <h4>Open it on your phone</h4>
-    <p>Scan the code, or copy the link and send it to yourself.</p>
-    <button id="copy">Copy link</button>
-  </div>
+  <button id="copy">Copy link</button>
 </aside>
 
 <div class="finis" id="finis" role="status">
@@ -568,6 +564,7 @@ function $(sel){ return document.querySelector(sel); }
 
   next.addEventListener('click', () => {
     next.hidden = true;
+    document.body.classList.add('started');
     play(0);
   });
 
