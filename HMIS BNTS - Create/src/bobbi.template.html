@@ -217,7 +217,7 @@ function $(sel){ return document.querySelector(sel); }
      ============================================================ */
   const $id = FORM.byId;
   const log = $id('log'), next = $id('next'), replay = $id('replay');
-  const save = $id('save'), profile = $id('profile'), bar = $id('barFill');
+  const save = $id('save'), profile = $id('profile');
   const field = id => $id(id).closest('.f');
 
   /* Each step: what is said, then what the learner has to do before the next thing
@@ -294,6 +294,7 @@ function $(sel){ return document.querySelector(sel); }
     });
   }
   function freeze(){
+    clearTimeout(advTimer);
     restyle();
     ALL.forEach(id => { const e=$id(id); if(!e) return;
       if (e.tagName==='INPUT'||e.tagName==='SELECT') e.disabled=true; else e.style.pointerEvents='none';
@@ -307,7 +308,6 @@ function $(sel){ return document.querySelector(sel); }
   }
 
   let i = -1, busy = false, step = null, touched = null, shownConsent = false;
-  const setProg = () => { bar.style.width = (Math.max(i,0)/STEPS.length*100) + '%'; };
 
   function add(m){
     const el = document.createElement('div');
@@ -368,9 +368,9 @@ function $(sel){ return document.querySelector(sel); }
         setTimeout(() => $id('sig1').scrollIntoView({block:'center', behavior:'smooth'}), 140); }
       if (!FORM.signed()) done = false;
     }
-    if (!done) { save.disabled = true; return; }
+    if (!done) { clearTimeout(advTimer); save.disabled = true; return; }
     if (step.sign) { save.disabled = false; return; }   // the last step ends at Save
-    advance();
+    scheduleAdvance();
   }
   /* Documentation only reveals the consent block through the product's own change
      handler, and a select set with the keyboard fires `change` on blur. Listening to
@@ -393,7 +393,6 @@ function $(sel){ return document.querySelector(sel); }
     touched = new Set();
     Object.keys(b.code||{}).forEach(id => field(id).classList.remove('ok','no'));
     step = b; i = n;
-    setProg();
     busy = false;
     wake((b.fill||[]).concat(Object.keys(b.need||{}), Object.keys(b.code||{})));
     /* Bring the first field in play into view — the form is taller than the pane and
@@ -402,16 +401,28 @@ function $(sel){ return document.querySelector(sel); }
     if (first) field(first).scrollIntoView({block:'center', behavior:'smooth'});
     judge();
   }
-  function advance(){
-    const n = i + 1;
-    if (n >= STEPS.length) return;
-    /* Synchronously, before the timer: judge() fires on every input event, and
-       between scheduling this and play() starting there is time for another event
-       to schedule it again. It did — the last step's four lines arrived three
-       times over. Closing the step is what makes judge() a no-op in that window. */
-    step = null;
-    freeze();
-    setTimeout(() => play(n), 420);
+  /* WAIT FOR THEM TO STOP TYPING.
+     A typed field is done the moment it is not empty, and judge() runs on every
+     keystroke — so the step completed on the first letter of her name, froze the
+     field, and the rest went nowhere. The record read "Bob Barrone". Every learner
+     would have hit that; it only stayed hidden because a test that sets .value in
+     one go never types a second character.
+
+     So the advance is debounced: any further input pushes it back, and it lands
+     only once the field has been still for a beat. Not-done clears it outright. */
+  let advTimer = null;
+  function scheduleAdvance(){
+    clearTimeout(advTimer);
+    advTimer = setTimeout(() => {
+      const n = i + 1;
+      if (n >= STEPS.length) return;
+      /* Synchronously, before play(): judge() fires on every input event, and between
+         this firing and play() starting there is room for another to schedule it
+         again. It did — the last step's four lines arrived three times over. */
+      step = null;
+      freeze();
+      play(n);
+    }, 900);
   }
 
   next.addEventListener('click', () => {
@@ -446,7 +457,6 @@ function $(sel){ return document.querySelector(sel); }
     fillProfile();
     profile.classList.add('show');
     freeze();
-    bar.style.width = '100%';
     closeOut();
     /* The house contract: source-tagged, and never a score. */
     try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
@@ -555,7 +565,6 @@ function $(sel){ return document.querySelector(sel); }
      lesson that forgets to set it. */
   $('#secTitle').textContent = 'Meeting Bobbi';
   freeze();
-  setProg();
   try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
     section:'bobbi',type:'ready'}, '*'); } catch(e){}
 })();
