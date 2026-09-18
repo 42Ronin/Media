@@ -23,55 +23,7 @@
 /*__PANEL_CSS__*/
 /*__RIG_CSS__*/
 
-  /* ---------- Clarity replica ---------- */
-  /* .app is the coach's contract — fixed, ending at the reserved --dock column —
-     so this says only what the replica looks like inside it. Nothing the panel
-     does may reflow the interface, which is why --dock is reserved whether the
-     panel is docked, popped out or collapsed. */
-  .clarity{background:#f3f2f7;flex-direction:column;min-height:0}
-  .topbar{height:48px;background:#e9e7fb;display:flex;align-items:center;padding:0 16px;gap:14px;border-bottom:1px solid #d9d7ee;flex:0 0 48px}
-  .topbar .logo{width:14px;height:20px;background:linear-gradient(135deg,#e53935,#b71c1c);clip-path:polygon(30% 0,100% 0,60% 100%,0 100%);border-radius:2px}
-  .topbar .sp{flex:1}
-  .topbar .user{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2)}
-  .topbar .user b{display:block;color:var(--ink);font-size:12.5px}
-  .topbar .av{width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
-  .panel{flex:1;display:flex;flex-direction:column;min-height:0;background:#f7f5fb}
-  .panel-hd{background:#e9e7fb;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;font-size:16px}
-  .panel-hd .x{width:26px;height:26px;border-radius:50%;background:#d9d7ee;display:grid;place-items:center;font-size:14px;color:var(--ink2)}
-  .form{flex:1;overflow:auto;padding:16px}
-  .card{background:var(--surface);border-radius:14px;padding:18px 18px 10px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
-  .card h2{font-size:17px;font-weight:600;color:var(--indigo);margin:0}
-  .card .sub{font-size:12px;color:var(--ink2);margin:0 0 14px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
-  .full{grid-column:1/-1}
-  .f{display:flex;flex-direction:column;gap:5px;min-width:0}
-  .f label{font-size:11.5px;font-weight:600;color:var(--ink2)}
-  .f input,.f select{height:40px;border:1px solid var(--line);border-radius:6px;background:#fffbff;padding:0 12px;font:13.5px var(--font);color:var(--ink);width:100%;outline:none}
-  .f input:focus,.f select:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(80,85,173,.2)}
-  .f select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 17px) 17px,calc(100% - 12px) 17px;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
-  .f .hint{font-size:10.5px;color:var(--ink3)}
-  .f.ro input{background:#f1f0f5;color:var(--ink3)}
-  .sec{grid-column:1/-1;font-size:13px;font-weight:600;color:var(--indigo);margin:8px 0 -4px}
-  .toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);grid-column:1/-1;margin:4px 0;cursor:pointer;user-select:none}
-  .toggle .sw{width:38px;height:22px;border-radius:999px;background:#c9c6d6;position:relative;transition:background .2s}
-  .toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
-  .toggle.on .sw{background:var(--indigo)}.toggle.on .sw::after{left:19px}
-  .poc{grid-column:1/-1;border:1px dashed #d9d7ee;border-radius:8px;padding:10px 12px;color:var(--ink3);font-size:12px}
-  .poc b{color:var(--indigo);display:block;font-size:12.5px;margin-bottom:2px}
-  .consent{grid-column:1/-1;background:#fff;border:1px solid #e0ddef;border-radius:8px;padding:12px 14px;font-size:12px;color:var(--ink2);display:none;max-height:190px;overflow:auto}
-  .consent.show{display:block}
-  .consent h5{margin:0 0 6px;font-size:12px;color:var(--ink)}
-  .consent .sig{display:flex;gap:12px;margin-top:10px}
-  .consent .pad{flex:1;border:1px solid #c9c6d6;border-radius:6px;height:56px;background:#fffbff;position:relative;cursor:pointer;font-size:11px;color:var(--ink3);display:grid;place-items:center}
-  .consent .pad.signed{color:var(--indigo);font-family:"Segoe Script","Brush Script MT",cursive;font-size:16px}
-  .file{grid-column:1/-1;border:1.5px dashed #b9b7c9;border-radius:8px;padding:16px;text-align:center;color:var(--ink3);font-size:12px;display:none}
-  .file.show{display:block}
-  .footer{background:var(--surface);border-top:1px solid #e0ddef;padding:10px;display:flex;justify-content:center;gap:16px;align-items:center;flex:0 0 auto}
-  .footer .cancel{color:var(--indigo);font-weight:600;font-size:13px;cursor:pointer;background:none;border:0;font-family:inherit}
-  .footer .save{border:1.5px solid var(--indigo);border-radius:999px;padding:7px 22px;color:var(--indigo);font:600 13px var(--font);background:#fff;cursor:pointer}
-  .footer .save:hover{background:var(--lav)}
-  .toast{position:absolute;left:50%;top:60px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:opacity .3s;pointer-events:none}
-  .toast.show{opacity:1}
+/*__FORM_CSS__*/
 </style>
 </head>
 <body>
@@ -79,56 +31,7 @@
 
   <!-- ================= CLARITY ================= -->
 <section class="app clarity" aria-label="Practice Clarity">
-    <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
-    <div class="toast" id="toast">Saved</div>
-    <div class="panel">
-      <div class="panel-hd"><span>Add Client</span><span class="x">×</span></div>
-      <div class="form" id="form">
-        <div class="card">
-          <h2>Add Client</h2><p class="sub">Complete this form to create a new client</p>
-          <div class="grid">
-            <div class="f"><label>Social Security Number *</label><input id="ssn" placeholder="XXX-XX-XXXX" maxlength="11"></div>
-            <div class="f"><label>Quality of SSN *</label><select id="qssn"></select></div>
-            <div class="f"><label>First name *</label><input id="first"></div>
-            <div class="f"><label>Last name *</label><input id="last"></div>
-            <div class="f"><label>Middle name</label><input id="middle"></div>
-            <div class="f"><label>Suffix</label><select id="suffix"><option>None</option><option>Jr.</option><option>Sr.</option><option>II</option><option>III</option><option>Client prefers not to answer</option></select></div>
-            <div class="f"><label>Quality of Name *</label><select id="qname"></select></div>
-            <div class="f"><label>Quality of DOB *</label><select id="qdob"></select></div>
-            <div class="f"><label>Date of Birth *</label><input id="dob" placeholder="__/__/____" maxlength="10"><div class="hint">MM/DD/YYYY</div></div>
-            <div class="f"></div>
-            <div class="toggle" id="cr"><div class="sw"></div>Consent Refused</div>
-            <div class="f"><label>Maiden Name</label><input id="maiden"></div>
-            <div class="f"><label>Alias</label><input id="alias"></div>
-
-            <div class="sec">Demographics</div>
-            <div class="f full"><label>Gender *</label><select id="gender"></select></div>
-            <div class="f full"><label>Pronoun(s)</label><input id="pronouns"></div>
-            <div class="f full"><label>Race and Ethnicity *</label><select id="race"></select></div>
-            <div class="f full"><label>Primary Language</label><select id="lang"><option>Select</option><option>English</option><option>Spanish</option><option>Armenian</option><option>Korean</option><option>Tagalog</option><option>Chinese</option><option>Other</option><option>Client doesn't know</option><option>Client prefers not to answer</option></select></div>
-
-            <div class="poc"><b>First Point of Contact</b>Not used by providers. Skip this section. (Collapsed in practice.)</div>
-
-            <div class="sec">Enter the release of information details</div>
-            <div class="f full"><label>Permission *</label><select id="perm"><option>Yes</option><option>No</option></select></div>
-            <div class="f ro"><label>Start Date *</label><input id="roiStart" readonly></div>
-            <div class="f ro"><label>End Date *</label><input id="end" readonly></div>
-            <div class="f full"><label>Documentation *</label><select id="doc"></select></div>
-            <div class="consent" id="consent">
-              <h5>Greater Los Angeles Homeless Management Information System (LA HMIS)</h5>
-              <h5>CONSENT TO SHARE PROTECTED PERSONAL INFORMATION</h5>
-              <p>The LA HMIS is a local electronic database that securely records information about clients accessing housing and homeless services within Greater Los Angeles. This organization participates in the HMIS database and shares information with other organizations that use this database…</p>
-              <p><b>By signing below, you understand and agree that:</b> you have the right to receive services even if you do not sign; this consent is valid for seven (7) years; you may revoke your consent at any time…</p>
-              <p><label><input type="checkbox" id="photo"> I consent to sharing my photograph. (Check here)</label></p>
-              <div class="sig"><div class="pad" id="sig1" data-name="">Client Signature</div><div class="pad" id="sig2">Organization Staff Signature</div></div>
-            </div>
-            <div class="file" id="file">⬆ Drag and drop a file here, or Choose A File<br><small>Accepted: JPEG, JPG, GIF, PNG, TIFF, TXT, DOC, DOCX, PDF, XLSX · Max 25 MB</small></div>
-            <div class="f full" id="locwrap" style="display:none"><label>Location *</label><input id="loc" placeholder="Where the paper copy is kept"></div>
-          </div>
-        </div>
-      </div>
-      <div class="footer"><button class="cancel" id="cancel">Cancel</button><button class="save" id="save">Save</button></div>
-  </div>
+  <!--__FORM__-->
 </section>
 
 <!--__RIG_HTML__-->
@@ -157,46 +60,12 @@ var LZ_HOST={
   keepClear:function(){ return [{sel:".footer", w:12}]; }
 };
 /*__RIG_JS__*/
+/*__FORM_JS__*/
 (() => {
-  // ---------- option lists (production Clarity, LA HMIS) ----------
-  const Q = {
-    qssn: ['Select','Full SSN Reported','Approximate or partial SSN reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
-    qname:['Select','Full name reported','Partial, street name, or code name reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
-    qdob: ['Select','Full DOB Reported','Approximate or partial DOB reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
-    gender:['Select','Woman (Girl, if child)','Man (Boy, if child)','Culturally Specific Identity (e.g., Two-Spirit)','Transgender','Non-Binary','Questioning','Different Identity',"Client doesn't know",'Client prefers not to answer','Data not collected'],
-    race:['Select','American Indian, Alaska Native, or Indigenous','Asian or Asian American','Black, African American, or African','Hispanic/Latina/e/o','Middle Eastern or North African','Native Hawaiian or Pacific Islander','White',"Client doesn't know",'Client prefers not to answer','Data not collected'],
-    doc:['Select','Electronic Signature','Attached PDF','Signed Paper Document','Verbal Consent','Household'],
-  };
-  const $ = id => document.getElementById(id);
-  for (const k in Q){ const s=$(k); Q[k].forEach(o=>{const op=document.createElement('option');op.textContent=o;s.appendChild(op);}); }
-  /* Deliberately NOT 'roiStart' or 'end': the consent dates are computed once and
-     are read-only, so a reset must not blank them. */
-  const F = ['ssn','qssn','first','last','middle','suffix','qname','qdob','dob','maiden','alias','gender','pronouns','race','lang','perm','doc','loc'];
-  const val = id => $(id).value.trim();
-  const fmt = d => `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`;
-  const today=new Date(), end=new Date(today); end.setFullYear(end.getFullYear()+7);
-  $('roiStart').value=fmt(today); $('end').value=fmt(end);
-
-  // ---------- form behaviors ----------
-  let crOn=false;
-  $('cr').addEventListener('click', () => {
-    crOn=!crOn; $('cr').classList.toggle('on',crOn);
-    if (crOn){ $('ssn').value='000-00-0000'; $('qssn').value='Client prefers not to answer'; $('first').value='Generated'; $('last').value='Refused';
-      $('qname').value='Client prefers not to answer'; $('suffix').value='Client prefers not to answer'; $('dob').value='01/01/____'; $('qdob').value='Approximate or partial DOB reported'; }
-  });
-  $('doc').addEventListener('change', () => {
-    const v=val('doc'); $('consent').classList.toggle('show', v==='Electronic Signature'); $('file').classList.toggle('show', v==='Attached PDF'); $('locwrap').style.display = v==='Signed Paper Document' ? '' : 'none';
-  });
-  const sign = (id,txt) => { const p=$(id); p.addEventListener('click',()=>{ p.classList.toggle('signed'); p.textContent = p.classList.contains('signed') ? txt : (id==='sig1'?'Client Signature':'Organization Staff Signature'); }); };
-  sign('sig1','~ signed ~'); sign('sig2','O. Worker');
-  const signed = () => $('sig1').classList.contains('signed');
-  function resetForm(){
-    F.forEach(id => { const e=$(id); if (e.tagName==='SELECT'){ e.selectedIndex=0; if(id==='perm')e.value='Yes'; } else e.value=''; });
-    crOn=false; $('cr').classList.remove('on'); $('consent').classList.remove('show'); $('file').classList.remove('show'); $('locwrap').style.display='none';
-    ['sig1','sig2'].forEach(id=>{$(id).classList.remove('signed'); $(id).textContent = id==='sig1'?'Client Signature':'Organization Staff Signature';});
-    $('photo').checked=false; $('form').scrollTop=0;
-  }
-
+  /* The form's own behaviour lives in add-client-form.js, shared with the
+     walkthrough. What is left in here is this sim's: nine situations and how they
+     are judged. `$` takes an id, as the prototype's did. */
+  const $ = FORM.byId, val = FORM.val, resetForm = FORM.reset, signed = FORM.signed;
   // ---------- tasks (copy from the Lesson 3 script) ----------
   const T = [
     { scen:'A man at a drop-in center gives you his full name and spells it for you. Anthony Reyes-Marchetti. He gives his date of birth as 03/09/1979 and reads his Social Security Number off a card in his wallet. He signs the consent on your tablet.',
@@ -258,7 +127,7 @@ var LZ_HOST={
 
     { scen:'A man has given you his name, date of birth, and the last four of his Social Security Number. Then he stops. He says he has thought about it, and he does not want any of his personal information in the system. Not his name, not his birthday, none of it. He still wants help.',
       instr:'Record his decision and create the profile.', hint:'He is not asking who can see his information. He is asking that it not be there.', skip:true,
-      eval(){ if (crOn) return {ok:true, fb:'Consent Refused. The form replaced his name with Generated Refused, his Social Security Number with zeros, and his date of birth with January 1, and it set the quality codes to match. The record exists. He can be enrolled and served. What is not in there is anything that identifies him, which is exactly what he asked for. This is the only situation that toggle is for. Everything else is a Permission answer.'};
+      eval(){ if (FORM.refused()) return {ok:true, fb:'Consent Refused. The form replaced his name with Generated Refused, his Social Security Number with zeros, and his date of birth with January 1, and it set the quality codes to match. The record exists. He can be enrolled and served. What is not in there is anything that identifies him, which is exactly what he asked for. This is the only situation that toggle is for. Everything else is a Permission answer.'};
         if (val('perm')==='No') return {ok:false, tag:'Incorrect — set Permission to No and left his details in place', fb:'Permission No controls which agencies can see his information. His name and date of birth are still sitting on the record. He asked for none of it to be there. That is a different request, and there is a different control for it.'};
         return {ok:false, fb:'He asked that none of his identifying information be in the system at all. That is the Consent Refused toggle, in the identity section. It replaces his details with placeholders and still lets you create the record and serve him.'}; },
       skipFb:{tag:'Incorrect — did not create a profile', fb:'He still wants help, and anyone who receives services needs a profile. Refusing to have his identifying information in HMIS does not mean he cannot be served. It means the record has to be built differently.'} },

@@ -183,13 +183,109 @@ for (const name of pages) {
 
   /* Play it to the end. */
   if (name === "sim-bobbi") {
-    for (let i = 0; i < 14; i++) {
-      if (await fr.evaluate(() => document.querySelector("#save").classList.contains("on"))) break;
-      if (!await until(fr, "#next")) break;
-      await tap(fr, "#next");
+    /* The learner drives this one, so the driver has to behave like one: it may only
+       touch a control the page has put in play, and it sets values the way a person
+       does rather than writing to .value, which would walk straight through the
+       gating this page is built on. */
+    const liveNow = () => fr.evaluate(() => [...document.querySelectorAll(".f.live")]
+      .map(f => (f.querySelector("input,select") || {}).id));
+    const untilLive = async (id, ms = 20000) => {
+      const t = Date.now();
+      while (Date.now() - t < ms) { if ((await liveNow()).includes(id)) return true; await wait(150); }
+      return false;
+    };
+    const set = async (id, v) => {
+      const el = fr.locator("#" + id);
+      if (await el.evaluate(e => e.tagName) === "SELECT") await el.selectOption(v);
+      else await el.fill(v);
+    };
+
+    ok("every control is out of reach before it starts", await fr.evaluate(() =>
+      ["first","qname","qdob","ssn","gender","perm","doc","save"]
+        .every(i => document.getElementById(i).disabled)));
+
+    await tap(fr, "#next");
+    ok("...and the first step puts exactly its own two fields in play",
+       await untilLive("first") && JSON.stringify((await liveNow()).sort()) === '["first","qname"]',
+       await liveNow());
+    ok("...while a field the step did not ask for stays disabled",
+       await fr.evaluate(() => document.getElementById("ssn").disabled));
+
+    /* A wrong code is red, and it is the ONLY thing that is wrong — the typed name
+       beside it is never judged, however it is spelled. */
+    await set("first", "bobbie");
+    await set("qname", "Full name reported");
+    await wait(400);
+    ok("a wrong data-quality code goes red", await fr.evaluate(() =>
+      document.getElementById("qname").closest(".f").classList.contains("no")));
+    ok("...and the name typed beside it is not judged at all", await fr.evaluate(() =>
+      !document.getElementById("first").closest(".f").classList.contains("no") &&
+      !document.getElementById("first").closest(".f").classList.contains("ok")));
+    ok("...and the conversation waits", await fr.evaluate(() =>
+      document.querySelectorAll(".msg").length === 1));
+
+    const STEPS = [
+      [["qname", "Partial, street name, or code name reported"]],
+      [["last", "Barrone"], ["qname", "Full name reported"]],
+      [["qdob", "Approximate or partial DOB reported"]],
+      [["dob", "08/22/1993"], ["qdob", "Full DOB Reported"]],
+      [["ssn", "XXX-XX-XXXX"], ["qssn", "Client doesn't know"]],
+      [["pronouns", "she/her"], ["gender", "Woman (Girl, if child)"],
+       ["race", "Black, African American, or African"]],
+      [["perm", "Yes"], ["doc", "Electronic Signature"]],
+    ];
+    let stalled = null;
+    for (const group of STEPS) {
+      if (!await untilLive(group[0][0])) { stalled = group[0][0]; break; }
+      for (const [id, v] of group) { await set(id, v); await wait(120); }
+      await wait(260);
     }
-    await until(fr, "#save");
-    await tap(fr, "#save");
+    ok("correcting it lets the conversation carry on, step by step, to the last",
+       stalled === null, stalled);
+
+    await wait(1200);
+    /* It fires on every input event, so a step could schedule its own arrival twice
+       and say its four lines three times over. It did. */
+    ok("no line is said twice", await fr.evaluate(() => {
+      const seen = {};
+      for (const m of document.querySelectorAll(".msg")) {
+        const k = m.textContent.trim();
+        if (seen[k]) return false;
+        seen[k] = 1;
+      }
+      return true;
+    }));
+    /* Electronic Signature is what reveals the consent form, and the pads are at the
+       bottom of its own 190px scroller — bringing the block into view left the only
+       thing left to do hidden inside it. */
+    ok("choosing Electronic Signature reveals the consent form", await fr.evaluate(() =>
+      document.getElementById("consent").classList.contains("show")));
+    ok("...and scrolls the signature itself into view", await fr.evaluate(() => {
+      const r = document.getElementById("sig1").getBoundingClientRect();
+      return r.top > 0 && r.bottom < window.innerHeight;
+    }));
+    ok("...with Save still dead until it is signed",
+       await fr.evaluate(() => document.getElementById("save").disabled));
+    await fr.locator("#sig1").click();
+    await wait(400);
+    ok("...and live once it is", await fr.evaluate(() => !document.getElementById("save").disabled));
+
+    /* A field that is filled and then locked must not read as empty: the disabled
+       colour greyed the value, so a finished record looked like placeholder text. */
+    ok("a filled field keeps its value in ink once it is locked", await fr.evaluate(() =>
+      getComputedStyle(document.getElementById("pronouns")).color === "rgb(27, 27, 31)" &&
+      getComputedStyle(document.getElementById("lang")).color !== "rgb(27, 27, 31)"));
+
+    await fr.locator("#save").click();
+    await wait(700);
+    /* The record is theirs, spelling included — a hard-coded profile would be a
+       picture of somebody else's. */
+    ok("the profile is read off the form the learner filled in", await fr.evaluate(() =>
+      document.getElementById("p-first").textContent === "bobbie" &&
+      document.getElementById("p-last").textContent === "Barrone" &&
+      document.getElementById("p-doc").textContent === "Electronic Signature" &&
+      document.getElementById("p-qssn").textContent === "Client doesn't know"),
+      await fr.evaluate(() => document.getElementById("p-first").textContent));
   } else {
     await tap(fr, "#start"); await wait(250);
     for (let i = 0; i < 9; i++) {

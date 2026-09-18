@@ -25,9 +25,14 @@ PAGES=(add-client bobbi)
 
 rm -rf "$OUT"; mkdir -p "$OUT"
 
+# Two stamping passes. tools/stage_form.py puts the shared Clarity replica in;
+# tools/coach/assemble.py puts the shared training panel in. Both check every token
+# appears exactly once.
 for NAME in "${PAGES[@]}"; do
-  python3 ../tools/coach/assemble.py "src/$NAME.template.html" "$OUT/sim-$NAME.html" \
+  python3 tools/stage_form.py "src/$NAME.template.html" "$OUT/_$NAME.staged.html"
+  python3 ../tools/coach/assemble.py "$OUT/_$NAME.staged.html" "$OUT/sim-$NAME.html" \
     "src/panel-body-$NAME.html"
+  rm -f "$OUT/_$NAME.staged.html"
   mkdir -p "$OUT/_pkg"
   cp "$OUT/sim-$NAME.html" "$OUT/_pkg/index.html"
   ( cd "$OUT/_pkg" && zip -q -r "../sim-$NAME.zip" index.html )

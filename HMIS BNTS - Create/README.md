@@ -56,39 +56,85 @@ What each page kept is the part that was working:
   panel: the worker solid teal on the right, the participant light on the left,
   which is the treatment the Search lesson already uses for an exchange.
 
-### It is a conversation, and only that
+### The learner builds the record; the conversation follows
 
-Lashes is **not in the walkthrough**, at any level: no drawing, no markup, no face
-tokens. She used to interrupt after most beats to name what had just been
-demonstrated — *"One name is not a full name. Say so on the record."* — and the
-transcript carried two asides of its own: a dashed alternate phrasing for the
-last-name question, and a closing paragraph about nobody having been pressured.
-All of it is gone. Two speakers, seventeen messages, nothing else.
+It used to play itself: Next, a few messages, the form filled in on its own.
+Watching somebody else do it is not the skill. Now **Bobbi speaks, the learner types
+what she said and sets the data-quality code for it, and the worker's next line only
+lands once that is done.** There is no Next button after the first click — the form
+is the control, and the conversation is the reward for finishing the step.
 
-Save is reached by the conversation ending rather than by being told to save it,
-so the final beat is the consent exchange and the walkthrough is eight beats now.
+Two rules decide what is judged, and they are not the same rule:
 
-Whatever the learner is meant to take from watching it, the lesson says around the
-block. `test.mjs` checks the built page carries none of her, checks she is nowhere
-on screen start to finish, and counts the speakers after the play — this is the kind
-of thing that creeps back one helpful line at a time.
+| | |
+|---|---|
+| **Typed text is never evaluated** | Not the spelling of her name, not the date, not her pronouns. The lesson promises this out loud in the practice sim — *"I am never going to check your spelling"* — so it has to be true here. A field with anything in it is done, and the profile at the end shows whatever they typed. |
+| **The code is** | Quality of Name, Quality of DOB, Quality of SSN, and the two demographics she answered. Green if it is the one the conversation called for, red if it is not. **No sentence either way** — the difference is visible in the dropdown they are already reading, and a paragraph explaining it turns a form into a lecture. |
 
-What changed beyond the paint:
+Nothing is scored. A wrong code can be changed as many times as it takes; the
+conversation waits, which is the only pressure there is.
 
-- **Feedback is hers, and it arrives beside what caused it** rather than in a box
-  in the panel. A paragraph that appears on the far side of the screen from the
-  field it is about makes the learner look away from the thing they got wrong.
-  A task may name the field its feedback is about; otherwise she goes to Save,
-  which is the control they just pressed.
-- **The panel body is the lesson's, the shell is shared.** `src/panel-body-*.html`
-  is what each page puts inside the window.
-- **The `postMessage` contract is the house one** — `{source:"hmis-sim",
-  lesson:"hmis-bnts-create", section, type}`, `ready` and `complete`, never a
-  score.
-- **A nine-hex Unique Identifier shipped in the Bobbi profile** (`3F8A2C1D9`),
-  which is the shape the real product uses and the one thing the house rule
-  forbids. It is `UID#7632JEWHR` now — four digits, five letters, no `I` or `O` —
-  and `test.mjs` asserts the shape and asserts no nine-hex string survives.
+**Each step unlocks only its own fields.** Everything else is disabled. Without that
+the learner faces twenty fields with no way to tell which two the conversation just
+asked for — and the alternative, a line of instruction above the form, is exactly the
+coaching this page exists without.
+
+**A code carried over from the last step is neutral until they touch it.** Quality of
+Name is *Partial* until the surname arrives and then it is not, so the code that was
+right a moment ago is wrong now. That is the lesson in one field — but marking it red
+before they have touched it reads as an error they made rather than as the next thing
+to do.
+
+**The gender beat is where asking is the only way.** Not one field in that section is
+something anybody can determine by looking, so there is nothing to record until she
+has answered, and the worker's line is a question. The gate that tests it is Task 11
+in the practice sim, where selecting without asking is the wrong answer.
+
+**It ends at the electronic signature.** Permission *Yes*, Documentation *Electronic
+Signature*, the consent form appears as it does in the product, she signs, and only
+then does Save come alive. The profile that opens is read off the form — it is their
+record, and a hard-coded one would be a picture of somebody else's.
+
+### Lashes is not in it, and neither is any commentary
+
+She used to interrupt after most beats to name what had just been demonstrated, and
+the transcript carried two asides of its own — a dashed alternate phrasing for the
+last-name question, and a closing paragraph about nobody having been pressured. All
+of it is gone: no drawing, no markup, no face tokens. Two speakers, eighteen
+messages, nothing else.
+
+Whatever the learner is meant to take from it, the lesson says around the block.
+`test.mjs` checks the built page carries none of her, checks she is nowhere on screen
+start to finish, and counts the speakers after the play — this is the kind of thing
+that creeps back one helpful line at a time.
+
+### One replica, not two
+
+The practice sim had a working Add Client form; the walkthrough had a display-only
+mock built of divs that could not take input at all. That stopped being tenable the
+moment the walkthrough asked the learner to fill it in, and it was drift waiting to
+happen anyway. There is one now — `src/add-client-form.{html,css,js}` — stamped into
+both pages by `tools/stage_form.py`, which checks every token appears exactly once.
+
+The option lists especially: a learner has to pick *Client doesn't know* and not
+*Client prefers not to answer*, so the exact wording of every code is the thing being
+taught, and two copies of that list is two chances for it to drift from the captures.
+
+### Open: the ending conflicts with "Bobbi Comes Back"
+
+**This tutorial now ends on Electronic Signature, and mini-simulation 2 is written
+on the assumption that it ends on Verbal Consent.** That beat reads *"Three days ago
+you told her that next time you were together with the form, you would get her
+signature"* — its whole purpose is closing the follow-up that Verbal Consent creates,
+and there is no follow-up left to close. Flagged in `script/script.md` at the end of
+the tutorial. Two ways out, and it is the owner's call:
+
+1. Keep the signature here and retire or repurpose mini-simulation 2. The SSN beat
+   before it still works, and Verbal Consent is still taught and still tested in Task
+   9 and knowledge-check question 6.
+2. Put the tutorial back on Verbal Consent and let mini-simulation 2 be where the
+   learner meets the signature flow. In the build that is one step's expected
+   Documentation value and two lines of her dialogue.
 
 ## Lashes comes from one place
 

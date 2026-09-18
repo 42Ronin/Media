@@ -346,6 +346,11 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
 /* #lzLive announces her lines to a screen reader without drawing them. */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
+/* The Clarity Add Client replica's own look: ONE copy, stamped into both pages at
+   the FORM_CSS token. Clarity's palette, from the owner's captures — indigo
+   #5055ad, surface #fcf8fd, Open Sans. Deliberately NOT the coach's teal: the two
+   worlds have to read as different things on one screen, and where this and Lesson
+   1 disagree about a colour the captures win. */
   /* ---------- Clarity replica ---------- */
   /* .app is the coach's contract — fixed, ending at the reserved --dock column —
      so this says only what the replica looks like inside it. Nothing the panel
@@ -445,6 +450,15 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
 
   <!-- ================= CLARITY ================= -->
 <section class="app clarity" aria-label="Practice Clarity">
+  <!-- The Clarity Add Client replica: ONE copy, stamped into both pages at the FORM
+     token. It was two — the practice sim had this working version, and the
+     walkthrough had a display-only mock of divs that could not take input, which
+     is exactly the drift that makes a replica stop matching the product. The
+     walkthrough needs real controls now that the learner fills it in, so it takes
+     this one.
+
+     Built from the owner's captures of the live form. Where this and Lesson 1
+     disagree about a colour, the captures win. -->
     <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
     <div class="toast" id="toast">Saved</div>
     <div class="panel">
@@ -1123,7 +1137,20 @@ var BEAT=(function(){
     pos:function(){ return list ? {i:i, n:list.length} : null; }
   };
 })();
-(() => {
+/* The Clarity Add Client form's OWN behaviour — the part that belongs to the
+   product rather than to either lesson. ONE copy, stamped into both pages at the
+   FORM_JS token.
+
+   The option lists especially: a learner has to pick "Client doesn't know" and not
+   "Client prefers not to answer", so the exact wording of every code is the thing
+   being taught. Two copies of that list is two chances for it to drift from the
+   captures.
+
+   It is its own IIFE because each lesson's own code has a local `$` that takes an
+   id, and this file must not depend on which. What a lesson needs, it gets from
+   the returned object.
+   ============================================================ */
+var FORM=(function(){
   // ---------- option lists (production Clarity, LA HMIS) ----------
   const Q = {
     qssn: ['Select','Full SSN Reported','Approximate or partial SSN reported',"Client doesn't know",'Client prefers not to answer','Data not collected'],
@@ -1163,6 +1190,19 @@ var BEAT=(function(){
     $('photo').checked=false; $('form').scrollTop=0;
   }
 
+  return {
+    byId:$, val:val, reset:resetForm, signed:signed,
+    refused:function(){ return crOn; },
+    /* Documentation drives what the consent section shows, so a page that sets it
+       in code rather than by a click still has to fire the product's own handler. */
+    sync:function(){ $('doc').dispatchEvent(new Event('change')); }
+  };
+})();
+(() => {
+  /* The form's own behaviour lives in add-client-form.js, shared with the
+     walkthrough. What is left in here is this sim's: nine situations and how they
+     are judged. `$` takes an id, as the prototype's did. */
+  const $ = FORM.byId, val = FORM.val, resetForm = FORM.reset, signed = FORM.signed;
   // ---------- tasks (copy from the Lesson 3 script) ----------
   const T = [
     { scen:'A man at a drop-in center gives you his full name and spells it for you. Anthony Reyes-Marchetti. He gives his date of birth as 03/09/1979 and reads his Social Security Number off a card in his wallet. He signs the consent on your tablet.',
@@ -1224,7 +1264,7 @@ var BEAT=(function(){
 
     { scen:'A man has given you his name, date of birth, and the last four of his Social Security Number. Then he stops. He says he has thought about it, and he does not want any of his personal information in the system. Not his name, not his birthday, none of it. He still wants help.',
       instr:'Record his decision and create the profile.', hint:'He is not asking who can see his information. He is asking that it not be there.', skip:true,
-      eval(){ if (crOn) return {ok:true, fb:'Consent Refused. The form replaced his name with Generated Refused, his Social Security Number with zeros, and his date of birth with January 1, and it set the quality codes to match. The record exists. He can be enrolled and served. What is not in there is anything that identifies him, which is exactly what he asked for. This is the only situation that toggle is for. Everything else is a Permission answer.'};
+      eval(){ if (FORM.refused()) return {ok:true, fb:'Consent Refused. The form replaced his name with Generated Refused, his Social Security Number with zeros, and his date of birth with January 1, and it set the quality codes to match. The record exists. He can be enrolled and served. What is not in there is anything that identifies him, which is exactly what he asked for. This is the only situation that toggle is for. Everything else is a Permission answer.'};
         if (val('perm')==='No') return {ok:false, tag:'Incorrect — set Permission to No and left his details in place', fb:'Permission No controls which agencies can see his information. His name and date of birth are still sitting on the record. He asked for none of it to be there. That is a different request, and there is a different control for it.'};
         return {ok:false, fb:'He asked that none of his identifying information be in the system at all. That is the Consent Refused toggle, in the identity section. It replaces his details with placeholders and still lets you create the record and serve him.'}; },
       skipFb:{tag:'Incorrect — did not create a profile', fb:'He still wants help, and anyone who receives services needs a profile. Refusing to have his identifying information in HMIS does not mean he cannot be served. It means the record has to be built differently.'} },
@@ -1327,9 +1367,10 @@ var BEAT=(function(){
 
    The placement solver only matters in the popped-out mode. */
 (function(){
-  /* The rig is optional: a page may take the window and carry her inside its own
-     content instead — the Bobbi walkthrough has her as a voice in its transcript.
-     Nothing here needs her, so nothing here may assume she is loaded. */
+  /* The rig is optional, and so is she: a page may take the window and carry her
+     inside its own content, or not show her at all — the Bobbi walkthrough is a
+     conversation between two people and she is in none of it. Nothing here needs
+     her, so nothing here may assume she is loaded. */
   function relayout(){ if(typeof LZ!=="undefined" && LZ && LZ.relayout) LZ.relayout(); }
   var win=$("#coachWin"), bar=$("#cwBar"), root=document.documentElement, drag=null, moved=false;
   function floating(){ return root.classList.contains("dock-out"); }
