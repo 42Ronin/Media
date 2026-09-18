@@ -1,0 +1,61 @@
+<!-- The Clarity Add Client replica AS THE WALKTHROUGH NEEDS IT TO READ.
+
+     Same form as src/add-client-form.html with three fields reordered: Quality of
+     Name sits after the name fields, and Quality of DOB after Date of Birth rather
+     than above it. Every value is followed by the code that marks it, which is the
+     order the walkthrough teaches in — capture it, then say how good it is — and
+     a form that asks for the code first teaches the opposite.
+
+     A separate file rather than a change to the shared one, because the practice
+     sim was not in scope for this. IF THE OWNER WANTS THE ORDER FIXED THERE TOO,
+     the two files collapse back into one and this comment goes with them. -->
+    <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
+    <div class="toast" id="toast">Saved</div>
+    <div class="panel">
+      <div class="panel-hd"><span>Add Client</span><span class="x">×</span></div>
+      <div class="form" id="form">
+        <div class="card">
+          <h2>Add Client</h2><p class="sub">Complete this form to create a new client</p>
+          <div class="grid">
+            <div class="f"><label>Social Security Number *</label><input id="ssn" placeholder="XXX-XX-XXXX" maxlength="11"></div>
+            <div class="f"><label>Quality of SSN *</label><select id="qssn"></select></div>
+            <div class="f"><label>First name *</label><input id="first"></div>
+            <div class="f"><label>Last name *</label><input id="last"></div>
+            <div class="f"><label>Middle name</label><input id="middle"></div>
+            <div class="f"><label>Suffix</label><select id="suffix"><option>None</option><option>Jr.</option><option>Sr.</option><option>II</option><option>III</option><option>Client prefers not to answer</option></select></div>
+            <div class="f"><label>Quality of Name *</label><select id="qname"></select></div>
+            <div class="f"></div>
+            <div class="f"><label>Date of Birth *</label><input id="dob" placeholder="__/__/____" maxlength="10"><div class="hint">MM/DD/YYYY</div></div>
+            <div class="f"><label>Quality of DOB *</label><select id="qdob"></select></div>
+            <div class="toggle" id="cr"><div class="sw"></div>Consent Refused</div>
+            <div class="f"><label>Maiden Name</label><input id="maiden"></div>
+            <div class="f"><label>Alias</label><input id="alias"></div>
+
+            <div class="sec">Demographics</div>
+            <div class="f full"><label>Gender *</label><select id="gender"></select></div>
+            <div class="f full"><label>Pronoun(s)</label><input id="pronouns"></div>
+            <div class="f full"><label>Race and Ethnicity *</label><select id="race"></select></div>
+            <div class="f full"><label>Primary Language</label><select id="lang"><option>Select</option><option>English</option><option>Spanish</option><option>Armenian</option><option>Korean</option><option>Tagalog</option><option>Chinese</option><option>Other</option><option>Client doesn't know</option><option>Client prefers not to answer</option></select></div>
+
+            <div class="poc"><b>First Point of Contact</b>Not used by providers. Skip this section. (Collapsed in practice.)</div>
+
+            <div class="sec">Enter the release of information details</div>
+            <div class="f full"><label>Permission *</label><select id="perm"><option>Yes</option><option>No</option></select></div>
+            <div class="f ro"><label>Start Date *</label><input id="roiStart" readonly></div>
+            <div class="f ro"><label>End Date *</label><input id="end" readonly></div>
+            <div class="f full"><label>Documentation *</label><select id="doc"></select></div>
+            <div class="consent" id="consent">
+              <h5>Greater Los Angeles Homeless Management Information System (LA HMIS)</h5>
+              <h5>CONSENT TO SHARE PROTECTED PERSONAL INFORMATION</h5>
+              <p>The LA HMIS is a local electronic database that securely records information about clients accessing housing and homeless services within Greater Los Angeles. This organization participates in the HMIS database and shares information with other organizations that use this database…</p>
+              <p><b>By signing below, you understand and agree that:</b> you have the right to receive services even if you do not sign; this consent is valid for seven (7) years; you may revoke your consent at any time…</p>
+              <p><label><input type="checkbox" id="photo"> I consent to sharing my photograph. (Check here)</label></p>
+              <div class="sig"><div class="pad" id="sig1" data-name="">Client Signature</div><div class="pad" id="sig2">Organization Staff Signature</div></div>
+            </div>
+            <div class="file" id="file">⬆ Drag and drop a file here, or Choose A File<br><small>Accepted: JPEG, JPG, GIF, PNG, TIFF, TXT, DOC, DOCX, PDF, XLSX · Max 25 MB</small></div>
+            <div class="f full" id="locwrap" style="display:none"><label>Location *</label><input id="loc" placeholder="Where the paper copy is kept"></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer"><button class="cancel" id="cancel">Cancel</button><button class="save" id="save">Save</button></div>
+  </div>

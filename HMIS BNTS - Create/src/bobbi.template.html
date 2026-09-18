@@ -191,8 +191,13 @@ function $(sel){ return document.querySelector(sel); }
       fill:['last'],
       code:{ qname:'Full name reported' } },
 
+    /* She gave a day and no year, so the day goes in and the code says the rest is
+       missing. Entering the value BEFORE coding it is the order the whole lesson
+       runs on — capture it, then mark how good it is — and it is why Quality of DOB
+       sits under Date of Birth on this form rather than above it. */
     { say:[ {who:'You', cls:'you', t:'Thank you, Bobbi. May I get your birthday?'},
             {who:'Bobbi', cls:'bobbi', t:'August 22nd. Do you need the year?'} ],
+      fill:['dob'],
       code:{ qdob:'Approximate or partial DOB reported' } },
 
     { say:[ {who:'You', cls:'you', t:'If you don’t mind!'},
@@ -275,7 +280,12 @@ function $(sel){ return document.querySelector(sel); }
   function judge(){
     if (!step || busy) return;
     let done = true;
-    for (const id of (step.fill||[])) if (!FORM.val(id)) done = false;
+    /* Touched in THIS step, not merely non-empty. Date of Birth already holds the
+       day and month by the time she gives the year, so a step that only asked for
+       "not empty" would let the learner set the code to Full without adding the
+       year — the tool accepting a claim the record does not support, which is the
+       one thing this lesson is about. */
+    for (const id of (step.fill||[])) if (!FORM.val(id) || !touched.has(id)) done = false;
     for (const id in (step.code||{})) {
       const picked = FORM.val(id);
       /* Not marked until they have set it in THIS step. Quality of Name is partial
@@ -355,6 +365,27 @@ function $(sel){ return document.querySelector(sel); }
     play(0);
   });
 
+  /* The record is saved; the conversation is not finished. She is still standing
+     there, and the last thing said was "Okay." Her line earlier was "I don't want to
+     keep doing this" — this is what answers it, and it is the only reason any of the
+     preceding twenty minutes was worth her time.
+
+     NEW COPY, not yet in script.md. Flagged there: the script closes this tutorial in
+     Lashes' voice, and she is not in this page. */
+  const CLOSE = [
+    {who:'You', cls:'you', t:'That’s you in the system. Next time anyone on a team like ours pulls you up, all of that is already there.'},
+    {who:'Bobbi', cls:'bobbi', t:'So I don’t have to do this again.'},
+    {who:'You', cls:'you', t:'Not this part, no.'},
+  ];
+  async function closeOut(){
+    for (const m of CLOSE){ add(m); await sleep(700); }
+    replay.hidden = false;
+    /* After, not before: revealing Replay grows the footer, which takes a slice off
+       the bottom of the log that add()'s own scroll has already been past. The last
+       line of the conversation was clipped by exactly the height of that button. */
+    log.scrollTop = log.scrollHeight;
+  }
+
   save.addEventListener('click', () => {
     if (save.disabled) return;
     const t = $id('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1200);
@@ -363,7 +394,7 @@ function $(sel){ return document.querySelector(sel); }
     freeze();
     bar.style.width = '100%';
     prog.textContent = `${STEPS.length} / ${STEPS.length}`;
-    replay.hidden = false;
+    closeOut();
     /* The house contract: source-tagged, and never a score. */
     try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
       section:'bobbi',type:'complete'}, '*'); } catch(e){}

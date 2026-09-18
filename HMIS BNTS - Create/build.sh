@@ -29,7 +29,8 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 # tools/coach/assemble.py puts the shared training panel in. Both check every token
 # appears exactly once.
 for NAME in "${PAGES[@]}"; do
-  python3 tools/stage_form.py "src/$NAME.template.html" "$OUT/_$NAME.staged.html"
+  python3 tools/stage_form.py "src/$NAME.template.html" "$OUT/_$NAME.staged.html" \
+    "src/$NAME-form.html"
   python3 ../tools/coach/assemble.py "$OUT/_$NAME.staged.html" "$OUT/sim-$NAME.html" \
     "src/panel-body-$NAME.html"
   rm -f "$OUT/_$NAME.staged.html"

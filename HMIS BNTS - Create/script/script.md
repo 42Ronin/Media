@@ -375,14 +375,20 @@ moves with it. This is the whole subject of the lesson in one field.]*
 
 **Bobbi:** "August 22nd. Do you need the year?"
 
-*[User sets Quality of DOB to* Approximate or partial DOB reported.*]*
+*[User enters the day and month with the year left open and then sets Quality of DOB
+to* Approximate or partial DOB reported. *The value goes in first and the code
+follows it — which is why Quality of DOB sits under Date of Birth on this form
+rather than above it, and Quality of Name under the name fields. A form that asks
+for the code first teaches the opposite of what the lesson is for.]*
 
 **You:** "If you don't mind!"
 
 **Bobbi:** "1993. Anything else?"
 
-*[User enters the date and changes Quality of DOB to* Full DOB Reported. *Two
-questions, two upgrades, and she was never pushed. She was asked.]*
+*[User completes the date and changes Quality of DOB to* Full DOB Reported. *Both
+are required: setting the code to Full without adding the year would be the tool
+accepting a claim the record does not support. Two questions, two upgrades, and she
+was never pushed. She was asked.]*
 
 **You:** "We don't have to go through everything today. Let me ask: may I record
 your Social Security Number?"
@@ -429,10 +435,20 @@ only once it is signed.]*
 *[User clicks Save. The profile opens, built from what the learner actually entered.
 The Unique Identifier is highlighted.]*
 
-There it is. She has a record now.
+**You:** "That's you in the system. Next time anyone on a team like ours pulls you
+up, all of that is already there."
 
-That code at the top is her Unique Identifier. You used those last lesson to tell
-three Rosalind Vegas apart. This one is hers, and it did not exist four minutes ago.
+**Bobbi:** "So I don't have to do this again."
+
+**You:** "Not this part, no."
+
+> **NEW COPY — needs approval.** Those three lines are not from the earlier draft.
+> The tutorial used to close in Lashes' voice — *"There it is. She has a record now.
+> That code at the top is her Unique Identifier…"* — and she is not in this page any
+> more. A conversation that stops at Save leaves her standing there with the last
+> word being "Okay", and leaves her own line, *"I don't want to keep doing this"*,
+> unanswered. That is the only thing the preceding twenty minutes buys her, so the
+> close says it. Reword freely; it is three lines.
 
 Your turn. Eleven people, eleven records. Nothing here is scored. If you pick
 something I would not have picked, I will tell you why, and then we carry on. And I

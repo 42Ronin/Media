@@ -315,15 +315,17 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
 
   <!-- ================= CLARITY REPLICA ================= -->
 <section class="app clarity" aria-label="Practice Clarity">
-  <!-- The Clarity Add Client replica: ONE copy, stamped into both pages at the FORM
-     token. It was two — the practice sim had this working version, and the
-     walkthrough had a display-only mock of divs that could not take input, which
-     is exactly the drift that makes a replica stop matching the product. The
-     walkthrough needs real controls now that the learner fills it in, so it takes
-     this one.
+  <!-- The Clarity Add Client replica AS THE WALKTHROUGH NEEDS IT TO READ.
 
-     Built from the owner's captures of the live form. Where this and Lesson 1
-     disagree about a colour, the captures win. -->
+     Same form as src/add-client-form.html with three fields reordered: Quality of
+     Name sits after the name fields, and Quality of DOB after Date of Birth rather
+     than above it. Every value is followed by the code that marks it, which is the
+     order the walkthrough teaches in — capture it, then say how good it is — and
+     a form that asks for the code first teaches the opposite.
+
+     A separate file rather than a change to the shared one, because the practice
+     sim was not in scope for this. IF THE OWNER WANTS THE ORDER FIXED THERE TOO,
+     the two files collapse back into one and this comment goes with them. -->
     <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
     <div class="toast" id="toast">Saved</div>
     <div class="panel">
@@ -339,9 +341,9 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
             <div class="f"><label>Middle name</label><input id="middle"></div>
             <div class="f"><label>Suffix</label><select id="suffix"><option>None</option><option>Jr.</option><option>Sr.</option><option>II</option><option>III</option><option>Client prefers not to answer</option></select></div>
             <div class="f"><label>Quality of Name *</label><select id="qname"></select></div>
-            <div class="f"><label>Quality of DOB *</label><select id="qdob"></select></div>
-            <div class="f"><label>Date of Birth *</label><input id="dob" placeholder="__/__/____" maxlength="10"><div class="hint">MM/DD/YYYY</div></div>
             <div class="f"></div>
+            <div class="f"><label>Date of Birth *</label><input id="dob" placeholder="__/__/____" maxlength="10"><div class="hint">MM/DD/YYYY</div></div>
+            <div class="f"><label>Quality of DOB *</label><select id="qdob"></select></div>
             <div class="toggle" id="cr"><div class="sw"></div>Consent Refused</div>
             <div class="f"><label>Maiden Name</label><input id="maiden"></div>
             <div class="f"><label>Alias</label><input id="alias"></div>
@@ -519,8 +521,13 @@ var FORM=(function(){
       fill:['last'],
       code:{ qname:'Full name reported' } },
 
+    /* She gave a day and no year, so the day goes in and the code says the rest is
+       missing. Entering the value BEFORE coding it is the order the whole lesson
+       runs on — capture it, then mark how good it is — and it is why Quality of DOB
+       sits under Date of Birth on this form rather than above it. */
     { say:[ {who:'You', cls:'you', t:'Thank you, Bobbi. May I get your birthday?'},
             {who:'Bobbi', cls:'bobbi', t:'August 22nd. Do you need the year?'} ],
+      fill:['dob'],
       code:{ qdob:'Approximate or partial DOB reported' } },
 
     { say:[ {who:'You', cls:'you', t:'If you don’t mind!'},
@@ -603,7 +610,12 @@ var FORM=(function(){
   function judge(){
     if (!step || busy) return;
     let done = true;
-    for (const id of (step.fill||[])) if (!FORM.val(id)) done = false;
+    /* Touched in THIS step, not merely non-empty. Date of Birth already holds the
+       day and month by the time she gives the year, so a step that only asked for
+       "not empty" would let the learner set the code to Full without adding the
+       year — the tool accepting a claim the record does not support, which is the
+       one thing this lesson is about. */
+    for (const id of (step.fill||[])) if (!FORM.val(id) || !touched.has(id)) done = false;
     for (const id in (step.code||{})) {
       const picked = FORM.val(id);
       /* Not marked until they have set it in THIS step. Quality of Name is partial
@@ -683,6 +695,27 @@ var FORM=(function(){
     play(0);
   });
 
+  /* The record is saved; the conversation is not finished. She is still standing
+     there, and the last thing said was "Okay." Her line earlier was "I don't want to
+     keep doing this" — this is what answers it, and it is the only reason any of the
+     preceding twenty minutes was worth her time.
+
+     NEW COPY, not yet in script.md. Flagged there: the script closes this tutorial in
+     Lashes' voice, and she is not in this page. */
+  const CLOSE = [
+    {who:'You', cls:'you', t:'That’s you in the system. Next time anyone on a team like ours pulls you up, all of that is already there.'},
+    {who:'Bobbi', cls:'bobbi', t:'So I don’t have to do this again.'},
+    {who:'You', cls:'you', t:'Not this part, no.'},
+  ];
+  async function closeOut(){
+    for (const m of CLOSE){ add(m); await sleep(700); }
+    replay.hidden = false;
+    /* After, not before: revealing Replay grows the footer, which takes a slice off
+       the bottom of the log that add()'s own scroll has already been past. The last
+       line of the conversation was clipped by exactly the height of that button. */
+    log.scrollTop = log.scrollHeight;
+  }
+
   save.addEventListener('click', () => {
     if (save.disabled) return;
     const t = $id('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1200);
@@ -691,7 +724,7 @@ var FORM=(function(){
     freeze();
     bar.style.width = '100%';
     prog.textContent = `${STEPS.length} / ${STEPS.length}`;
-    replay.hidden = false;
+    closeOut();
     /* The house contract: source-tagged, and never a score. */
     try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
       section:'bobbi',type:'complete'}, '*'); } catch(e){}
