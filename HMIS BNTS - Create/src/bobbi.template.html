@@ -229,12 +229,12 @@ function $(sel){ return document.querySelector(sel); }
        missing. Entering the value BEFORE coding it is the order the whole lesson
        runs on — capture it, then mark how good it is — and it is why Quality of DOB
        sits under Date of Birth on this form rather than above it. */
+    /* One beat, not two: the whole exchange happens and then the date is entered and
+       coded once. Asking again is part of the conversation, not a second task — the
+       code says what you ended up with, so it is set after you have stopped asking. */
     { say:[ {who:'You', cls:'you', t:'Thank you, Bobbi. May I get your birthday?'},
-            {who:'Bobbi', cls:'bobbi', t:'August 22nd. Do you need the year?'} ],
-      fill:['dob'],
-      code:{ qdob:'Approximate or partial DOB reported' } },
-
-    { say:[ {who:'You', cls:'you', t:'If you don’t mind!'},
+            {who:'Bobbi', cls:'bobbi', t:'August 22nd. Do you need the year?'},
+            {who:'You', cls:'you', t:'If you don’t mind!'},
             {who:'Bobbi', cls:'bobbi', t:'1993. Anything else?'} ],
       fill:['dob'],
       code:{ qdob:'Full DOB Reported' } },
