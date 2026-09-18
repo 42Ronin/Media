@@ -451,12 +451,13 @@ only once both signatures are down.]*
 *[User clicks Save. The profile opens, built from what the learner actually entered.
 The Unique Identifier is highlighted.]*
 
-**You:** "That's it. You're in the system now — next time anyone on a team like ours
-looks you up, all of that is already there."
+**You:** "That's it. You're in the system now."
 
 **Bobbi:** "So I don't have to do all this again."
 
-**You:** "Not this part. Next time we can get straight to what you actually need."
+**You:** "Not this part. If you find that card, bring it back and we'll add it.
+And from now on, just give your name the way you did today — that's enough for us to
+find you."
 
 **Bobbi:** "Okay. Thanks."
 
