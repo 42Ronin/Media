@@ -373,22 +373,28 @@ moves with it. This is the whole subject of the lesson in one field.]*
 
 **You:** "Thank you, Bobbi. May I get your birthday?"
 
-**Bobbi:** "August 22nd. Do you need the year?"
+**Bobbi:** "August 22nd. I couldn't tell you the year, though."
 
-*[User enters the day and month with the year left open and then sets Quality of DOB
-to* Approximate or partial DOB reported. *The value goes in first and the code
-follows it — which is why Quality of DOB sits under Date of Birth on this form
-rather than above it, and Quality of Name under the name fields. A form that asks
-for the code first teaches the opposite of what the lesson is for.]*
+**You:** "That's all right. Do you know how old you are?"
 
-**You:** "If you don't mind!"
+**Bobbi:** "Thirty-three."
 
-**Bobbi:** "1993. Anything else?"
+*[User works the year out from her age, enters the date, and sets Quality of DOB to*
+Approximate or partial DOB reported. *The day is hers; the year is the worker's
+arithmetic, and the code is what says so. A year that does not follow from her age
+is marked, because a sum can be got wrong and leaving somebody staring at a step
+that will not move is worse than telling them.]*
 
-*[User completes the date and changes Quality of DOB to* Full DOB Reported. *Both
-are required: setting the code to Full without adding the year would be the tool
-accepting a claim the record does not support. Two questions, two upgrades, and she
-was never pushed. She was asked.]*
+> **CHANGED — she no longer gives the year.** She used to say "1993", which meant
+> every code in this tutorial was the best case: Full name, Full DOB, and
+> doesn't-know for a number she does not have at all. The distinction the lesson
+> runs on — between having all of something and having some of it — was demonstrated
+> nowhere in it. Her own reference table already carried this version: *"August 22nd.
+> I couldn't tell you the year."* → Approximate or partial DOB reported.
+>
+> The build computes the year from her age against the current date rather than
+> storing it, so the sum stays correct as the calendar moves. It is 1993 today, which
+> is what she used to say, so nothing downstream shifts.
 
 **You:** "We don't have to go through everything today. Let me ask: may I record
 your Social Security Number?"

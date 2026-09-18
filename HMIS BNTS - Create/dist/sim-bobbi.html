@@ -549,8 +549,20 @@ var FORM=(function(){
   const save = $id('save'), profile = $id('profile');
   const field = id => $id(id).closest('.f');
 
+  /* She knows the day and she knows her age. She does not know the year, so the
+     year is arithmetic — and it is done against TODAY rather than written down,
+     because a birth year baked into the page is wrong the moment the calendar turns
+     over and the sim would be teaching a sum that no longer adds up. */
+  const AGE = 33, BMONTH = 8, BDAY = 22;
+  const _now = new Date();
+  const _passed = (_now.getMonth() + 1 > BMONTH) ||
+                  (_now.getMonth() + 1 === BMONTH && _now.getDate() >= BDAY);
+  const BIRTH = String(BMONTH).padStart(2,'0') + '/' + String(BDAY).padStart(2,'0') + '/' +
+                (_now.getFullYear() - AGE - (_passed ? 0 : 1));
+
   /* Each step: what is said, then what the learner has to do before the next thing
-     is said. `fill` is typed and only has to be non-empty; `code` has to match. */
+     is said. `fill` is typed and only has to be non-empty; `need` is typed and has
+     to be exact; `code` has to match. */
   const STEPS = [
     /* The code comes after the fields it describes, not alongside the first of them.
        Quality of Name waits for first AND last; Quality of DOB waits for the date;
@@ -569,13 +581,17 @@ var FORM=(function(){
        sits under Date of Birth on this form rather than above it. */
     /* One beat, not two: the whole exchange happens and then the date is entered and
        coded once. Asking again is part of the conversation, not a second task — the
-       code says what you ended up with, so it is set after you have stopped asking. */
+       code says what you ended up with, so it is set after you have stopped asking.
+
+       And what they end up with here is a date they worked out rather than one she
+       gave them, which is why the code is Approximate and not Full. The day is hers;
+       the year is the worker's arithmetic, and a record should say so. */
     { say:[ {who:'You', cls:'you', t:'Thank you, Bobbi. May I get your birthday?'},
-            {who:'Bobbi', cls:'bobbi', t:'August 22nd. Do you need the year?'},
-            {who:'You', cls:'you', t:'If you don’t mind!'},
-            {who:'Bobbi', cls:'bobbi', t:'1993. Anything else?'} ],
-      fill:['dob'],
-      code:{ qdob:'Full DOB Reported' } },
+            {who:'Bobbi', cls:'bobbi', t:'August 22nd. I couldn’t tell you the year, though.'},
+            {who:'You', cls:'you', t:'That’s all right. Do you know how old you are?'},
+            {who:'Bobbi', cls:'bobbi', t:'Thirty-three.'} ],
+      need:{ dob: BIRTH },
+      code:{ qdob:'Approximate or partial DOB reported' } },
 
     { say:[ {who:'You', cls:'you', t:'We don’t have to go through everything today. Let me ask: may I record your Social Security Number?'},
             {who:'Bobbi', cls:'bobbi', t:'Do you really need that?'},
@@ -661,11 +677,20 @@ var FORM=(function(){
        year — the tool accepting a claim the record does not support, which is the
        one thing this lesson is about. */
     for (const id of (step.fill||[])) if (!FORM.val(id) || !touched.has(id)) done = false;
-    /* A value that has to be written out in full. Compared case-insensitively — the
-       field upper-cases as it goes, and the learner should not fail on a lower-case
-       x they never see. */
-    for (const id in (step.need||{}))
-      if (FORM.val(id).toUpperCase() !== step.need[id].toUpperCase()) done = false;
+    /* A value that has to be exact. Compared case-insensitively — the field
+       upper-cases as it goes and nobody should fail on an x they never see.
+
+       Marked, unlike `fill`: a year worked out from an age can be worked out wrong,
+       and leaving the learner to stare at a step that will not move is worse than
+       telling them. But only once the field is FULL — going red halfway through
+       typing is scolding somebody mid-word. */
+    for (const id in (step.need||{})) {
+      const want = step.need[id].toUpperCase(), got = FORM.val(id).toUpperCase();
+      if (got === want) { mark(id, true); continue; }
+      if (got.length >= want.length && touched.has(id)) mark(id, false);
+      else field(id).classList.remove('ok','no');
+      done = false;
+    }
     for (const id in (step.code||{})) {
       const picked = FORM.val(id);
       /* Already right counts, touched or not. Permission resets to Yes, which is the
