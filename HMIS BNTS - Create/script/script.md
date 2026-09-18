@@ -435,18 +435,32 @@ you're happy with it you can sign on the screen."
 **Bobbi:** "Okay."
 
 *[User sets Permission to* Yes *and Documentation to* Electronic Signature. *The
-consent form appears, as it does in the product, and she signs it. Save turns on
-only once it is signed.]*
+consent form appears, as it does in the product. Permission starts unset: it is the
+one field recording what she agreed to, and it should not arrive pre-answered.]*
+
+*[She signs first, on her own — the page does it, because the learner clicking a
+client's signature is the learner signing a consent form for somebody else.]*
+
+**Bobbi:** "There you go."
+
+**You:** "Thank you. I'll sign it too, and then it's done."
+
+*[The staff signature box comes live and the learner signs their own. Save turns on
+only once both signatures are down.]*
 
 *[User clicks Save. The profile opens, built from what the learner actually entered.
 The Unique Identifier is highlighted.]*
 
-**You:** "That's you in the system. Next time anyone on a team like ours pulls you
-up, all of that is already there."
+**You:** "That's it. You're in the system now — next time anyone on a team like ours
+looks you up, all of that is already there."
 
-**Bobbi:** "So I don't have to do this again."
+**Bobbi:** "So I don't have to do all this again."
 
-**You:** "Not this part, no."
+**You:** "Not this part. Next time we can get straight to what you actually need."
+
+**Bobbi:** "Okay. Thanks."
+
+*[The interface fades and one card is left: Activity complete. Nothing is scored.]*
 
 > **NEW COPY — needs approval.** Those three lines are not from the earlier draft.
 > The tutorial used to close in Lashes' voice — *"There it is. She has a record now.

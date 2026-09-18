@@ -159,7 +159,17 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
   .msg .who{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;
     opacity:.7;margin-bottom:3px;font-weight:600}
   .msg.you{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:5px}
-  .msg.bobbi{align-self:flex-start;background:#eaf2f6;color:var(--coach-ink);border-bottom-left-radius:5px}
+  /* Her lines carry her own avatar — the same BB the record shows, because it is the
+     same person and the transcript is the only place the learner meets her. The
+     bubble moves onto an inner element so the background stops at the words instead
+     of wrapping the portrait too. */
+  .msg.bobbi{align-self:flex-start;background:none;padding:0;max-width:94%;
+    display:flex;align-items:flex-end;gap:8px}
+  .msg.bobbi .av{width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;
+    display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 30px;
+    letter-spacing:.02em;margin-bottom:2px}
+  .msg.bobbi .bub{background:#eaf2f6;color:var(--coach-ink);border-radius:16px;
+    border-bottom-left-radius:5px;padding:9px 14px;min-width:0}
   /* Two speakers and nothing else. Lashes is not in this page and neither is any
      commentary on the exchange: she used to interrupt after most beats to name what
      had just been demonstrated, and there were two asides in the transcript itself —
@@ -259,6 +269,26 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
   .f.no select,.f.no input{border-color:var(--err) !important;box-shadow:0 0 0 3px rgba(186,26,26,.16) !important;background-color:#fdecea !important;color:var(--ink) !important}
 
   /* Save is dead until the record is finished, as the product's would be. */
+  /* ---------- the end of the activity ----------
+     Everything fades and one card is left. No score on it: there is nothing to score
+     here, and Rise could not receive one if there were. */
+  body.over .app,body.over #coachWin{opacity:0;transition:opacity .55s ease;pointer-events:none}
+  .finis{position:fixed;inset:0;display:grid;place-items:center;z-index:400;
+    opacity:0;visibility:hidden;transition:opacity .45s ease}
+  .finis.on{opacity:1;visibility:visible}
+  .finis .card2{background:#fff;border-radius:18px;padding:30px 34px;text-align:center;
+    box-shadow:0 18px 50px rgba(6,104,136,.20),0 0 0 1px rgba(6,104,136,.10);max-width:400px}
+  .finis .tick{width:54px;height:54px;border-radius:50%;background:var(--ok-l);margin:0 auto 14px;
+    display:grid;place-items:center}
+  .finis h2{margin:0 0 6px;font-size:20px;font-weight:700;color:var(--coach-ink)}
+  .finis p{margin:0 0 18px;font-size:14.5px;line-height:1.6;color:#41606f}
+  .finis button{border:1px solid #bfd9e4;border-radius:9px;padding:9px 18px;font:600 14px var(--font);
+    color:var(--teal);background:#fff;cursor:pointer}
+  .finis button:hover{background:var(--coach-2)}
+  @media(prefers-reduced-motion:reduce){
+    body.over .app,body.over #coachWin,.finis{transition:none}
+  }
+
   /* ---------- device preview ----------
      The work happens on a phone or a tablet, standing up. This is the learner
      seeing the shape of what they will actually be holding.
@@ -350,7 +380,7 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
        rather than sitting in a box inside it. -->
   <div class="cbody log" id="log" aria-live="polite"></div>
   <div class="cfoot">
-    <button class="cbtn go" id="next">Let’s go</button>
+    <button class="cbtn go" id="next">Click to Start Activity</button>
     <button class="cbtn" id="replay" hidden>Replay</button>
   </div>
 </aside>
@@ -451,6 +481,16 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
     </div>
   </div>
 </section>
+
+<div class="finis" id="finis" role="status">
+  <div class="card2">
+    <div class="tick"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0f6b45"
+      stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
+    <h2>Activity complete</h2>
+    <p>Bobbi has a record, and it says what she actually told you.</p>
+    <button id="again">Do it again</button>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -661,8 +701,11 @@ var FORM=(function(){
   function add(m){
     const el = document.createElement('div');
     el.className = 'msg ' + m.cls;
-    el.innerHTML = `<span class="who">${m.who}</span>${m.t}`;
+    const said = `<span class="who">${m.who}</span>${m.t}`;
+    el.innerHTML = m.cls === 'bobbi'
+      ? `<span class="av">BB</span><div class="bub">${said}</div>` : said;
     log.appendChild(el); log.scrollTop = log.scrollHeight;
+    return el;
   }
   const sleep = ms => new Promise(r=>setTimeout(r,ms));
 
@@ -710,21 +753,21 @@ var FORM=(function(){
       mark(id, false);
       done = false;
     }
+    /* TWO SIGNATURES, IN ORDER, AND ONLY ONE OF THEM IS THE LEARNER'S.
+       The client signature is HERS. The learner handed her the tablet, so the page
+       signs that one — clicking it on her behalf would be the learner signing a
+       consent form for somebody else, which is the opposite of what this teaches.
+       Then the staff box goes live and the learner signs their own. */
     if (done && step.sign) {
-      /* Documentation is Electronic Signature, so the product has already shown the
-         consent block. She signs it; the staff signature is the worker's own. */
-      PADS.forEach(id => $id(id).style.pointerEvents='');
-      /* It renders below Documentation, which is already at the bottom of a form
-         taller than the pane — so the thing to do next was off screen with nothing
-         to say it was there. Once. */
-      PADS.forEach(id => $id(id).classList.add('live'));
       /* Scroll the PAD, not the consent box. The box is 190px with its own overflow
          and the pads are at the bottom of it, so bringing the box into view left the
-         only thing left to do hidden inside it — scrollIntoView on the pad moves both
-         the box's scroller and the form's. */
-      if (!shownConsent) { shownConsent = true;
-        setTimeout(() => $id('sig1').scrollIntoView({block:'center', behavior:'smooth'}), 140); }
-      if (!FORM.signed()) done = false;
+         only thing left to do hidden inside it. */
+      if (!shownConsent) {
+        shownConsent = true;
+        setTimeout(() => $id('sig1').scrollIntoView({block:'center', behavior:'smooth'}), 140);
+        setTimeout(bobbiSigns, 900);
+      }
+      if (!FORM.signed() || !$id('sig2').classList.contains('signed')) done = false;
     }
     if (!done) {
       clearTimeout(advTimer);
@@ -748,6 +791,23 @@ var FORM=(function(){
     setTimeout(judge, 0);
   }, true));
   PADS.forEach(id => $id(id).addEventListener('click', () => setTimeout(judge, 0)));
+
+  /* She signs, then it is the learner's turn. The staff pad stays dead until hers
+     is down, so the order on screen is the order it happens in. */
+  async function bobbiSigns(){
+    const pad = $id('sig1');
+    pad.classList.add('live');
+    await sleep(500);
+    pad.click();                       // the product's own handler writes the mark
+    pad.classList.remove('live');
+    add({who:'Bobbi', cls:'bobbi', t:'There you go.'});
+    await sleep(700);
+    add({who:'You', cls:'you', t:'Thank you. I’ll sign it too, and then it’s done.'});
+    const mine = $id('sig2');
+    mine.style.pointerEvents = '';
+    mine.classList.add('live');
+    mine.scrollIntoView({block:'center', behavior:'smooth'});
+  }
 
   /* ---------------- the conversation ---------------- */
   async function play(n){
@@ -812,18 +872,28 @@ var FORM=(function(){
 
      NEW COPY, not yet in script.md. Flagged there: the script closes this tutorial in
      Lashes' voice, and she is not in this page. */
+  /* It ended on "Not this part, no.", which is an answer to a question rather than
+     the end of a conversation — the two of them simply stopped talking. It closes on
+     HER now, because she is the one who came over, and on what the record is for. */
   const CLOSE = [
-    {who:'You', cls:'you', t:'That’s you in the system. Next time anyone on a team like ours pulls you up, all of that is already there.'},
-    {who:'Bobbi', cls:'bobbi', t:'So I don’t have to do this again.'},
-    {who:'You', cls:'you', t:'Not this part, no.'},
+    {who:'You', cls:'you', t:'That’s it. You’re in the system now — next time anyone on a team like ours looks you up, all of that is already there.'},
+    {who:'Bobbi', cls:'bobbi', t:'So I don’t have to do all this again.'},
+    {who:'You', cls:'you', t:'Not this part. Next time we can get straight to what you actually need.'},
+    {who:'Bobbi', cls:'bobbi', t:'Okay. Thanks.'},
   ];
   async function closeOut(){
-    for (const m of CLOSE){ add(m); await sleep(700); }
-    replay.hidden = false;
-    /* After, not before: revealing Replay grows the footer, which takes a slice off
-       the bottom of the log that add()'s own scroll has already been past. The last
-       line of the conversation was clipped by exactly the height of that button. */
+    for (const m of CLOSE){ add(m); await sleep(750); }
     log.scrollTop = log.scrollHeight;
+    await sleep(1200);
+    finish();
+  }
+
+  /* The activity is over, so the interface goes with it. Leaving a dead form and a
+     finished transcript on screen asks the learner to work out whether there is
+     anything left to do; fading them and saying so answers it. */
+  function finish(){
+    document.body.classList.add('over');
+    setTimeout(() => $id('finis').classList.add('on'), 420);
   }
 
   save.addEventListener('click', () => {
@@ -838,6 +908,7 @@ var FORM=(function(){
       section:'bobbi',type:'complete'}, '*'); } catch(e){}
   });
   replay.addEventListener('click', () => location.reload());
+  $id('again').addEventListener('click', () => location.reload());
 
   /* The record is theirs, so the profile is read off the form rather than written
      here. Spelling included — whatever they typed is what the record says, which is
@@ -915,6 +986,24 @@ var FORM=(function(){
      made the first cut of this truncate every date to "08/22". */
   mask($id('ssn'), /[0-9X]/, [3,5], '-', 9);    // XXX-XX-XXXX
   mask($id('dob'), /[0-9_]/, [2,4], '/', 8, true);   // MM/DD/YYYY
+
+  /* Permission shipped defaulted to Yes, which meant the one field in this exchange
+     that records what she actually agreed to was already filled in before she was
+     asked. It starts unset here, so answering it is something the learner does.
+
+     2. And the panel's `?` goes: it explains pop-out and collapse, which is chrome
+     this page does not need explained in the middle of an interview. */
+  (function(){
+    const perm = $id('perm');
+    if (perm && !perm.querySelector('option[value="Select"]')){
+      const o = document.createElement('option');
+      o.textContent = 'Select'; o.value = 'Select';
+      perm.insertBefore(o, perm.firstChild);
+      perm.value = 'Select';
+    }
+    const help = document.querySelector('#cwHelp');
+    if (help) help.remove();
+  })();
 
   /* The device preview goes at the LEFT of Clarity's top bar, beside the logo. The
      account chip on the right is the product's own and stays where it is. Done here
