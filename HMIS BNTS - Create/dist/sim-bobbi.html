@@ -568,11 +568,11 @@ var FORM=(function(){
        Quality of Name waits for first AND last; Quality of DOB waits for the date;
        Quality of SSN waits for the number. Capture, then mark how good it is. */
     { say:[ {who:'Bobbi', cls:'bobbi', t:'My name is Bobbi.'} ],
-      fill:['first'] },
+      need:{ first:'Bobbi' } },
 
     { say:[ {who:'You', cls:'you', t:'May I ask for your last name?'},
             {who:'Bobbi', cls:'bobbi', t:'Sure, it’s Barrone. B-A-R-R-O-N-E.'} ],
-      fill:['last'],
+      need:{ last:'Barrone' },
       code:{ qname:'Full name reported' } },
 
     /* She gave a day and no year, so the day goes in and the code says the rest is
@@ -612,6 +612,10 @@ var FORM=(function(){
     { say:[ {who:'You', cls:'you', t:'Sure thing, Bobbi. If needed, we can help you get another one.'},
             {who:'You', cls:'you', t:'Two more things and I’ll stop asking. What would you say is your gender identity? And what would you say is your race or ethnicity?'},
             {who:'Bobbi', cls:'bobbi', t:'Woman. She, her. And Black.'} ],
+      /* Pronouns is the ONE field that takes whatever they type. She said "she,
+         her"; a worker might write "she/her", "She/Her", "she, her" or "she/her/hers"
+         and every one of those is the right answer. It is also the field least likely
+         to be transcribed the same way twice, and the least harmful when it is not. */
       fill:['pronouns'],
       code:{ gender:'Woman (Girl, if child)', race:'Black, African American, or African' } },
 
@@ -639,7 +643,7 @@ var FORM=(function(){
     });
   }
   function freeze(){
-    clearTimeout(advTimer);
+    clearTimeout(advTimer); clearTimeout(settleTimer);
     restyle();
     ALL.forEach(id => { const e=$id(id); if(!e) return;
       if (e.tagName==='INPUT'||e.tagName==='SELECT') e.disabled=true; else e.style.pointerEvents='none';
@@ -677,18 +681,18 @@ var FORM=(function(){
        year — the tool accepting a claim the record does not support, which is the
        one thing this lesson is about. */
     for (const id of (step.fill||[])) if (!FORM.val(id) || !touched.has(id)) done = false;
-    /* A value that has to be exact. Compared case-insensitively — the field
-       upper-cases as it goes and nobody should fail on an x they never see.
+    /* A value that has to match what she actually said. Compared case-insensitively:
+       a worker who types "bobbi" has heard her correctly, and failing them on a
+       capital is the kind of pedantry that teaches people to distrust the tool.
 
-       Marked, unlike `fill`: a year worked out from an age can be worked out wrong,
-       and leaving the learner to stare at a step that will not move is worse than
-       telling them. But only once the field is FULL — going red halfway through
-       typing is scolding somebody mid-word. */
+       Marked, unlike `fill` — she spelled her surname out loud, so whether it went
+       down right is the thing being taught, and a year worked out from an age can be
+       worked out wrong. Leaving somebody staring at a step that will not move is
+       worse than telling them. But not while they are still typing: red arrives only
+       once the field has been still for a beat, on the same timer as the advance. */
     for (const id in (step.need||{})) {
       const want = step.need[id].toUpperCase(), got = FORM.val(id).toUpperCase();
       if (got === want) { mark(id, true); continue; }
-      if (got.length >= want.length && touched.has(id)) mark(id, false);
-      else field(id).classList.remove('ok','no');
       done = false;
     }
     for (const id in (step.code||{})) {
@@ -722,7 +726,14 @@ var FORM=(function(){
         setTimeout(() => $id('sig1').scrollIntoView({block:'center', behavior:'smooth'}), 140); }
       if (!FORM.signed()) done = false;
     }
-    if (!done) { clearTimeout(advTimer); save.disabled = true; return; }
+    if (!done) {
+      clearTimeout(advTimer);
+      /* Say so once they have stopped, not while they are mid-word. */
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(settle, 900);
+      save.disabled = true;
+      return;
+    }
     if (step.sign) { save.disabled = false; return; }   // the last step ends at Save
     scheduleAdvance();
   }
@@ -764,6 +775,16 @@ var FORM=(function(){
 
      So the advance is debounced: any further input pushes it back, and it lands
      only once the field has been still for a beat. Not-done clears it outright. */
+  /* What a wrong answer looks like when the typing stops. Only for `need` fields —
+     `fill` is never judged, so it is never marked. */
+  let settleTimer = null;
+  function settle(){
+    if (!step) return;
+    for (const id in (step.need||{})) {
+      const want = step.need[id].toUpperCase(), got = FORM.val(id).toUpperCase();
+      if (got && got !== want && touched.has(id)) mark(id, false);
+    }
+  }
   let advTimer = null;
   function scheduleAdvance(){
     clearTimeout(advTimer);
