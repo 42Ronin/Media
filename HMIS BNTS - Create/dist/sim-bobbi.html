@@ -233,21 +233,30 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
      twenty fields with no way to tell which two the conversation just asked for,
      and the alternative — a line of instruction above the form — is the coaching
      this page exists without. */
-  .f input:disabled,.f select:disabled,.f input[readonly]{background:#f4f3f7;color:#a6a4b0;
+  .f input:disabled,.f select:disabled,.f input[readonly]{background-color:#f4f3f7;color:#a6a4b0;
     border-color:#e0ddef;cursor:not-allowed}
   /* ...but a field they have filled keeps its value in ink. Locked is not empty,
      and the whole record reading as placeholder text is a lie about what is in it. */
   .f.filled input:disabled,.f.filled select:disabled,.f.filled input[readonly]{color:var(--ink)}
   .f.live label{color:var(--indigo)}
   .f.live input:not(:disabled),.f.live select:not(:disabled){border-color:var(--indigo);
-    box-shadow:0 0 0 3px rgba(80,85,173,.16);background:#fff}
+    box-shadow:0 0 0 3px rgba(80,85,173,.16);background-color:#fff}
+
+  /* A caret the learner can actually see, on every select. `background` above was
+     wiping it out; this also makes it bigger and puts it in the product's own
+     indigo, because the data-quality dropdowns are the controls the lesson is about
+     and they must not read as text boxes. */
+  .f select{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%235055ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    background-repeat:no-repeat !important;background-position:right 12px center !important;
+    background-size:12px 8px !important;padding-right:34px}
+  .f select:disabled{opacity:1}
 
   /* Green for the code the conversation called for, red for any other. No words:
      a data-quality code is right or it is not, and a paragraph explaining which
      turns a form into a lecture. */
   .f.ok label{color:var(--ok)} .f.no label{color:var(--err)}
-  .f.ok select,.f.ok input{border-color:var(--ok) !important;box-shadow:0 0 0 3px rgba(31,122,77,.18) !important;background:var(--ok-l) !important;color:var(--ink) !important}
-  .f.no select,.f.no input{border-color:var(--err) !important;box-shadow:0 0 0 3px rgba(186,26,26,.16) !important;background:#fdecea !important;color:var(--ink) !important}
+  .f.ok select,.f.ok input{border-color:var(--ok) !important;box-shadow:0 0 0 3px rgba(31,122,77,.18) !important;background-color:var(--ok-l) !important;color:var(--ink) !important}
+  .f.no select,.f.no input{border-color:var(--err) !important;box-shadow:0 0 0 3px rgba(186,26,26,.16) !important;background-color:#fdecea !important;color:var(--ink) !important}
 
   /* Save is dead until the record is finished, as the product's would be. */
   /* ---------- device preview ----------
@@ -783,15 +792,74 @@ var FORM=(function(){
     $id('p-age').textContent = age;
   }
 
-  /* The device preview replaces the account chip in Clarity's own top bar. Done
-     here rather than in the shared form markup so the practice sim is untouched. */
+  /* ---------- the separators, as you type ----------
+     A Social Security Number field puts its own dashes in and a date field puts its
+     own slashes in. Making the learner type them is friction that teaches nothing,
+     and it is not what the real field does.
+
+     It accepts the LESSON'S PLACEHOLDERS as well as digits, which an ordinary
+     numeric mask would eat: X for a segment nobody has — XXX-XX-XXXX — and _ for
+     a part of a date that never arrived, 08/22/____. Those are the conventions this
+     lesson teaches, so the field that teaches them has to take them.
+
+     Caret handling is deliberate: typing into the middle of a formatted value and
+     having the cursor jump to the end is the classic mask defect, so the caret is
+     put back by counting the content characters before it rather than by offset. */
+  function mask(el, keep, cuts, sep, max, pad){
+    const fmt = raw => {
+      /* A separator the learner typed themselves ends that segment: "8/" is August,
+         not the start of "82". Without this, 8/22/93 came out as 82/29/3 — the field
+         scrambling what they typed, which is worse than making them type digits. */
+      if (pad && raw.indexOf(sep) > -1){
+        const seg = raw.split(sep), w = [cuts[0], cuts[1] - cuts[0]];
+        raw = seg.map((t, i) => (i < 2 && t && t.length < w[i]) ? t.padStart(w[i], '0') : t).join('');
+      }
+      const v = raw.toUpperCase().split('').filter(c => keep.test(c)).slice(0, max);
+      let out = '';
+      for (let i = 0; i < v.length; i++){
+        if (cuts.indexOf(i) > -1 && i) out += sep;
+        out += v[i];
+      }
+      return out;
+    };
+    el.addEventListener('input', () => {
+      const wasAtEnd = el.selectionStart === el.value.length;
+      const before = el.value.slice(0, el.selectionStart).split(sep).join('').length;
+      el.value = fmt(el.value);
+      /* Typing at the end is nearly all of it, and there the caret simply belongs at
+         the end. The counting below is for an edit in the MIDDLE, where the caret has
+         to land after the same character it was after — and it cannot be used when a
+         typed separator has padded a segment, because that inserts a character before
+         the caret and the count no longer holds. 8/22/93 came out 02/09/3208. */
+      let at = el.value.length;
+      if (!wasAtEnd){
+        let seen = 0;
+        at = 0;
+        for (let i = 0; i < el.value.length; i++){
+          if (el.value[i] !== sep) seen++;
+          if (seen === before){ at = i + 1; break; }
+        }
+      }
+      try { el.setSelectionRange(at, at); } catch (e) {}
+    });
+  }
+  /* cuts are where a separator goes, max is how many CONTENT characters there are —
+     nine for a Social Security Number, eight for a date. Conflating the two is what
+     made the first cut of this truncate every date to "08/22". */
+  mask($id('ssn'), /[0-9X]/, [3,5], '-', 9);    // XXX-XX-XXXX
+  mask($id('dob'), /[0-9_]/, [2,4], '/', 8, true);   // MM/DD/YYYY
+
+  /* The device preview goes at the LEFT of Clarity's top bar, beside the logo. The
+     account chip on the right is the product's own and stays where it is. Done here
+     rather than in the shared form markup so the practice sim is untouched. */
   (function(){
-    const chip = document.querySelector('.topbar .user');
-    if (!chip) return;
-    chip.outerHTML = '<label class="devsel">View as' +
+    const bar = document.querySelector('.topbar'), sp = bar && bar.querySelector('.sp');
+    if (!sp) return;
+    sp.insertAdjacentHTML('beforebegin',
+      '<label class="devsel">View as' +
       '<select id="device" aria-label="Preview the interface at another device size">' +
       '<option value="">Computer</option><option value="tablet">Tablet</option>' +
-      '<option value="phone">Phone</option></select></label>';
+      '<option value="phone">Phone</option></select></label>');
     const app = document.querySelector('.clarity');
     document.getElementById('device').addEventListener('change', e => {
       app.classList.remove('tablet','phone');
