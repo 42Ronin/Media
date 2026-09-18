@@ -252,7 +252,13 @@ function $(sel){ return document.querySelector(sel); }
             {who:'Bobbi', cls:'bobbi', t:'Do you really need that?'},
             {who:'You', cls:'you', t:'Not today. Anything you share with me is so that we can help you navigate services.'},
             {who:'Bobbi', cls:'bobbi', t:'Okay. Not today. I have to check if I still have that card.'} ],
-      fill:['ssn'],
+      /* `need`, not `fill`: the placeholder has to be written out in full before the
+         conversation moves on. A half-typed XXX is not the convention — the whole
+         point of XXX-XX-XXXX is that it is unmistakably a placeholder to whoever
+         reads the record next, and a field holding "XX" says nothing to anybody.
+         It is still not a judgement: incomplete is not wrong, so it is not marked
+         red, it simply does not advance. */
+      need:{ ssn:'XXX-XX-XXXX' },
       code:{ qssn:"Client doesn't know" } },
 
     /* She answers because she was asked. Not one field in this section is something
@@ -329,17 +335,25 @@ function $(sel){ return document.querySelector(sel); }
        year — the tool accepting a claim the record does not support, which is the
        one thing this lesson is about. */
     for (const id of (step.fill||[])) if (!FORM.val(id) || !touched.has(id)) done = false;
+    /* A value that has to be written out in full. Compared case-insensitively — the
+       field upper-cases as it goes, and the learner should not fail on a lower-case
+       x they never see. */
+    for (const id in (step.need||{}))
+      if (FORM.val(id).toUpperCase() !== step.need[id].toUpperCase()) done = false;
     for (const id in (step.code||{})) {
       const picked = FORM.val(id);
-      /* Not marked until they have set it in THIS step. Quality of Name is partial
-         until the surname arrives and then it is not, so the code that was right a
-         moment ago is wrong now — showing that as red before they have touched it
-         reads as an error they made rather than as the next thing to do. */
-      if (!touched.has(id)) { field(id).classList.remove('ok','no'); done = false; continue; }
-      if (!picked || picked === 'Select') { field(id).classList.remove('ok','no'); done = false; continue; }
-      const ok = picked === step.code[id];
-      mark(id, ok);
-      if (!ok) done = false;
+      /* Already right counts, touched or not. Permission resets to Yes, which is the
+         answer this conversation needs — so there is nothing for the learner to
+         change, no change event ever fires, and requiring a touch meant the last
+         step could never complete. Nothing happened, and nothing was going to. */
+      if (picked === step.code[id]) { mark(id, true); continue; }
+      /* Wrong is only wrong once they have set it in this step: a code left over
+         from an earlier answer is the next thing to do, not an error they made. */
+      if (!touched.has(id) || !picked || picked === 'Select') {
+        field(id).classList.remove('ok','no'); done = false; continue;
+      }
+      mark(id, false);
+      done = false;
     }
     if (done && step.sign) {
       /* Documentation is Electronic Signature, so the product has already shown the
@@ -384,10 +398,10 @@ function $(sel){ return document.querySelector(sel); }
     step = b; i = n;
     setProg();
     busy = false;
-    wake((b.fill||[]).concat(Object.keys(b.code||{})));
+    wake((b.fill||[]).concat(Object.keys(b.need||{}), Object.keys(b.code||{})));
     /* Bring the first field in play into view — the form is taller than the pane and
        the release-of-information section is well below the fold. */
-    const first = (b.fill||[]).concat(Object.keys(b.code||{}))[0];
+    const first = (b.fill||[]).concat(Object.keys(b.need||{}), Object.keys(b.code||{}))[0];
     if (first) field(first).scrollIntoView({block:'center', behavior:'smooth'});
     judge();
   }
