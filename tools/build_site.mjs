@@ -126,10 +126,10 @@ const MANIFEST = [
            'The v2 script is bigger than these two — see the lesson README for what is left.',
     items: [
       { src: `${C}/dist/sim-bobbi.html`, slug: 'lesson-3-create/meeting-bobbi',
-        name: 'Guided walkthrough — Meeting Bobbi',
-        what: 'The conversation in the training panel, the form filling in beside it, then ' +
-              'Save and the Unique Identifier. Watch-only for now; the script wants it ' +
-              'interactive.',
+        name: 'Adding a Client in the Field',
+        what: 'Bobbi speaks, the learner fills the form and sets each data-quality code, ' +
+              'and the next thing she says only arrives once it matches. Ends at the ' +
+              'electronic signature: she signs, then you do.',
         zip: `${C}/dist/sim-bobbi.zip`, how: `cd '${C}' && ./build.sh` },
       { src: `${C}/dist/sim-add-client.html`, slug: 'lesson-3-create/add-client-practice',
         name: 'Add Client practice',
