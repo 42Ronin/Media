@@ -609,7 +609,7 @@ function $(sel){ return document.querySelector(sel); }
   /* The window's own title. The shared shell ships #secTitle empty on purpose —
      one lesson's section name baked into it is a string waiting to be wrong in the
      lesson that forgets to set it. */
-  $('#secTitle').textContent = 'Meeting Bobbi';
+  $('#secTitle').textContent = 'Adding a Client in the Field';
   freeze();
   try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
     section:'bobbi',type:'ready'}, '*'); } catch(e){}
