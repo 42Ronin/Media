@@ -701,9 +701,12 @@ var FORM=(function(){
   function add(m){
     const el = document.createElement('div');
     el.className = 'msg ' + m.cls;
-    const said = `<span class="who">${m.who}</span>${m.t}`;
+    /* Her avatar already says who is speaking, so the name above the words was the
+       same thing twice in a smaller font. The worker keeps theirs: that side has no
+       avatar, so the label is the only thing naming them. */
     el.innerHTML = m.cls === 'bobbi'
-      ? `<span class="av">BB</span><div class="bub">${said}</div>` : said;
+      ? `<span class="av">BB</span><div class="bub">${m.t}</div>`
+      : `<span class="who">${m.who}</span>${m.t}`;
     log.appendChild(el); log.scrollTop = log.scrollHeight;
     return el;
   }
