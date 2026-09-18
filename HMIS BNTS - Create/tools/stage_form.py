@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stamp the shared Clarity Add Client replica into a Lesson 3 template.
 
-    stage_form.py <in.html> <out.html> <form.html>
+    stage_form.py <in.html> <out.html>
 
 The replica is one thing in three files — its markup, its own look, and the
 product behaviour that belongs to neither lesson — and both pages take all three.
@@ -18,12 +18,8 @@ empty.
 """
 import pathlib, sys
 
-# The markup is PER PAGE; the look and the behaviour are shared. The walkthrough
-# needs Quality of Name after the name fields and Quality of DOB after Date of Birth,
-# because it teaches the order — capture the value, then mark how good it is — and
-# the practice sim was not in scope for that change. src/<page>-form.html is the
-# markup; if the two ever agree again they collapse back into one file.
-PARTS = (("FORM_CSS", "css",  "src/add-client-form.css"),
+PARTS = (("FORM",     "html", "src/add-client-form.html"),
+         ("FORM_CSS", "css",  "src/add-client-form.css"),
          ("FORM_JS",  "js",   "src/add-client-form.js"))
 
 
@@ -32,11 +28,11 @@ def token(name, kind):
     return ("<!--" + "__%s__" + "-->") % name if kind == "html" else ("/*" + "__%s__" + "*/") % name
 
 
-def main(src, out, form):
+def main(src, out):
     here = pathlib.Path(__file__).resolve().parent.parent
     src, out = pathlib.Path(src), pathlib.Path(out)
     html = src.read_text(encoding="utf-8")
-    for name, kind, rel in (("FORM", "html", form),) + PARTS:
+    for name, kind, rel in PARTS:
         t = token(name, kind)
         hits = html.count(t)
         if hits != 1:
@@ -47,6 +43,6 @@ def main(src, out, form):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 3:
         raise SystemExit(__doc__)
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:3])

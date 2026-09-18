@@ -250,6 +250,38 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
   .f.no select,.f.no input{border-color:var(--err) !important;box-shadow:0 0 0 3px rgba(186,26,26,.16) !important;background:#fdecea !important;color:var(--ink) !important}
 
   /* Save is dead until the record is finished, as the product's would be. */
+  /* ---------- device preview ----------
+     The work happens on a phone or a tablet, standing up. This is the learner
+     seeing the shape of what they will actually be holding.
+
+     It narrows the REPLICA, and below tablet width the form drops to one column,
+     which is the only reflow claimed here. Everything else — where Clarity puts a
+     control on a small screen, what it hides, what it stacks — is NOT captured and
+     is NOT invented: the fields keep their order and their labels, and the page
+     stays honest about being the desktop form at a narrower width. */
+  .clarity{align-items:stretch}
+  .clarity.dev{--w:100%}
+  .clarity.dev .topbar,.clarity.dev .panel{width:var(--w);margin:0 auto}
+  .clarity.tablet{--w:834px}
+  .clarity.phone{--w:390px}
+  .clarity.tablet,.clarity.phone{background:#dedbe6}
+  .clarity.phone .grid{grid-template-columns:1fr}
+  .clarity.phone .f,.clarity.phone .full{grid-column:1/-1}
+  .clarity.phone .form{padding:10px}
+  .clarity.phone .card{padding:14px 14px 8px}
+  .clarity.phone .consent .sig{flex-direction:column}
+  .clarity.tablet .form,.clarity.phone .form{box-shadow:0 0 0 1px #cfccd8}
+
+  /* Sits where the account chip was, in the product's own bar — the owner's call.
+     Styled as ours rather than as Clarity's, so it does not read as a real control
+     of the product. */
+  .devsel{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--teal-dk)}
+  .devsel select{height:30px;border:1.5px solid var(--teal);border-radius:8px;background:#fff;
+    color:var(--teal-dk);font:600 12px var(--font);padding:0 26px 0 10px;cursor:pointer;
+    appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--teal) 50%),linear-gradient(135deg,var(--teal) 50%,transparent 50%);
+    background-position:calc(100% - 15px) 13px,calc(100% - 10px) 13px;background-size:5px 5px;background-repeat:no-repeat}
+
   /* The pads are the last thing in play, so they are marked as in play. */
   .consent .pad.live{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(80,85,173,.16);background:#fff;color:var(--indigo)}
   .consent .pad.signed{border-color:var(--ok);background:var(--ok-l)}
@@ -315,17 +347,15 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
 
   <!-- ================= CLARITY REPLICA ================= -->
 <section class="app clarity" aria-label="Practice Clarity">
-  <!-- The Clarity Add Client replica AS THE WALKTHROUGH NEEDS IT TO READ.
+  <!-- The Clarity Add Client replica: ONE copy, stamped into both pages at the FORM
+     token. It was two — the practice sim had this working version, and the
+     walkthrough had a display-only mock of divs that could not take input, which
+     is exactly the drift that makes a replica stop matching the product. The
+     walkthrough needs real controls now that the learner fills it in, so it takes
+     this one.
 
-     Same form as src/add-client-form.html with three fields reordered: Quality of
-     Name sits after the name fields, and Quality of DOB after Date of Birth rather
-     than above it. Every value is followed by the code that marks it, which is the
-     order the walkthrough teaches in — capture it, then say how good it is — and
-     a form that asks for the code first teaches the opposite.
-
-     A separate file rather than a change to the shared one, because the practice
-     sim was not in scope for this. IF THE OWNER WANTS THE ORDER FIXED THERE TOO,
-     the two files collapse back into one and this comment goes with them. -->
+     Built from the owner's captures of the live form. Where this and Lesson 1
+     disagree about a colour, the captures win. -->
     <div class="topbar"><div class="logo"></div><div class="sp"></div><div class="user"><div class="av">OW</div><div><b>Outreach Worker</b>Training</div></div></div>
     <div class="toast" id="toast">Saved</div>
     <div class="panel">
@@ -341,9 +371,9 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
             <div class="f"><label>Middle name</label><input id="middle"></div>
             <div class="f"><label>Suffix</label><select id="suffix"><option>None</option><option>Jr.</option><option>Sr.</option><option>II</option><option>III</option><option>Client prefers not to answer</option></select></div>
             <div class="f"><label>Quality of Name *</label><select id="qname"></select></div>
-            <div class="f"></div>
-            <div class="f"><label>Date of Birth *</label><input id="dob" placeholder="__/__/____" maxlength="10"><div class="hint">MM/DD/YYYY</div></div>
             <div class="f"><label>Quality of DOB *</label><select id="qdob"></select></div>
+            <div class="f"><label>Date of Birth *</label><input id="dob" placeholder="__/__/____" maxlength="10"><div class="hint">MM/DD/YYYY</div></div>
+            <div class="f"></div>
             <div class="toggle" id="cr"><div class="sw"></div>Consent Refused</div>
             <div class="f"><label>Maiden Name</label><input id="maiden"></div>
             <div class="f"><label>Alias</label><input id="alias"></div>
@@ -512,9 +542,11 @@ var FORM=(function(){
   /* Each step: what is said, then what the learner has to do before the next thing
      is said. `fill` is typed and only has to be non-empty; `code` has to match. */
   const STEPS = [
+    /* The code comes after the fields it describes, not alongside the first of them.
+       Quality of Name waits for first AND last; Quality of DOB waits for the date;
+       Quality of SSN waits for the number. Capture, then mark how good it is. */
     { say:[ {who:'Bobbi', cls:'bobbi', t:'My name is Bobbi.'} ],
-      fill:['first'],
-      code:{ qname:'Partial, street name, or code name reported' } },
+      fill:['first'] },
 
     { say:[ {who:'You', cls:'you', t:'May I ask for your last name?'},
             {who:'Bobbi', cls:'bobbi', t:'Sure, it’s Barrone. B-A-R-R-O-N-E.'} ],
@@ -750,6 +782,23 @@ var FORM=(function(){
     }
     $id('p-age').textContent = age;
   }
+
+  /* The device preview replaces the account chip in Clarity's own top bar. Done
+     here rather than in the shared form markup so the practice sim is untouched. */
+  (function(){
+    const chip = document.querySelector('.topbar .user');
+    if (!chip) return;
+    chip.outerHTML = '<label class="devsel">View as' +
+      '<select id="device" aria-label="Preview the interface at another device size">' +
+      '<option value="">Computer</option><option value="tablet">Tablet</option>' +
+      '<option value="phone">Phone</option></select></label>';
+    const app = document.querySelector('.clarity');
+    document.getElementById('device').addEventListener('change', e => {
+      app.classList.remove('tablet','phone');
+      app.classList.toggle('dev', !!e.target.value);
+      if (e.target.value) app.classList.add(e.target.value);
+    });
+  })();
 
   /* The window's own title. The shared shell ships #secTitle empty on purpose —
      one lesson's section name baked into it is a string waiting to be wrong in the
