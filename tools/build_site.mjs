@@ -125,7 +125,7 @@ const MANIFEST = [
     blurb: 'In build. The Add Client replica and the guided walkthrough, on the real Lashes. ' +
            'The v2 script is bigger than these two — see the lesson README for what is left.',
     items: [
-      { src: `${C}/dist/sim-bobbi.html`, slug: 'lesson-3-create/meeting-bobbi',
+      { src: `${C}/dist/sim-bobbi.html`, slug: 'bobbi',   // short on purpose: it is what the QR code resolves to
         name: 'Adding a Client in the Field',
         what: 'Bobbi speaks, the learner fills the form and sets each data-quality code, ' +
               'and the next thing she says only arrives once it matches. Ends at the ' +

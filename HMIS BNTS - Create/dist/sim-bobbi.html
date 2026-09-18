@@ -269,6 +269,29 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
   .f.no select,.f.no input{border-color:var(--err) !important;box-shadow:0 0 0 3px rgba(186,26,26,.16) !important;background-color:#fdecea !important;color:var(--ink) !important}
 
   /* Save is dead until the record is finished, as the product's would be. */
+  /* ---------- open it on the thing you will actually use ----------
+     The work happens on a phone or a tablet, standing up. This is how a learner
+     gets it onto one: scan, or copy the link and send it to yourself.
+
+     The URL is never printed. There is nothing to read off a screen and retype,
+     and a Vercel hostname on a training slide is noise — the code resolves it and
+     the button puts it on the clipboard. */
+  .qrbox{position:fixed;right:24px;bottom:24px;width:380px;z-index:160;
+    background:var(--coach);border-radius:17px;padding:14px 16px;display:flex;gap:14px;
+    align-items:center;
+    box-shadow:0 14px 40px var(--teal-glow),0 0 0 1px rgba(6,104,136,.12)}
+  .qrbox .qr{width:86px;height:86px;flex:0 0 86px;background:#fff;border-radius:8px;padding:4px}
+  .qrbox .qr svg{display:block;width:100%;height:100%}
+  .qrbox .qt{flex:1;min-width:0}
+  .qrbox h4{margin:0 0 3px;font-size:14px;font-weight:700;color:var(--coach-ink)}
+  .qrbox p{margin:0 0 9px;font-size:12.5px;line-height:1.45;color:#5f7f8f}
+  .qrbox button{border:1px solid #bfd9e4;border-radius:8px;padding:7px 13px;
+    font:600 13px var(--font);color:var(--teal);background:#fff;cursor:pointer}
+  .qrbox button:hover{background:var(--coach-2)}
+  .qrbox button.done{border-color:var(--ok);color:var(--ok);background:var(--ok-l)}
+  body.over .qrbox{opacity:0;transition:opacity .55s ease;pointer-events:none}
+  @media(prefers-reduced-motion:reduce){body.over .qrbox{transition:none}}
+
   /* ---------- the end of the activity ----------
      Everything fades and one card is left. No score on it: there is nothing to score
      here, and Rise could not receive one if there were. */
@@ -481,6 +504,15 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
     </div>
   </div>
 </section>
+
+<aside class="qrbox">
+  <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h29v29H0z"/><path stroke="#000000" d="M0 0.5h7m1 0h1m2 0h3m3 0h4m1 0h7M0 1.5h1m5 0h1m1 0h1m4 0h1m4 0h1m3 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m3 0h5m1 0h1m3 0h1m1 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m1 0h2m1 0h7m1 0h1m2 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h3m2 0h1m2 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m4 0h1m4 0h1m2 0h1m2 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M8 7.5h1m1 0h1m3 0h1m2 0h4M0 8.5h1m1 0h2m1 0h3m1 0h1m1 0h1m2 0h1m2 0h4m1 0h1m2 0h1m1 0h2M7 9.5h1m1 0h5m2 0h7m1 0h1m3 0h1M0 10.5h4m1 0h3m5 0h1m2 0h1m1 0h1m1 0h3m1 0h1m1 0h2M0 11.5h1m3 0h2m4 0h2m1 0h2m1 0h1m4 0h2m5 0h1M1 12.5h1m3 0h2m2 0h3m1 0h3m1 0h2m1 0h1m2 0h1m1 0h2M0 13.5h3m4 0h1m1 0h3m2 0h3m2 0h2m1 0h1m3 0h3M2 14.5h2m2 0h1m4 0h2m3 0h4m2 0h2m2 0h3M2 15.5h1m1 0h1m2 0h1m1 0h4m3 0h1m1 0h1m1 0h3m4 0h1M0 16.5h1m1 0h3m1 0h4m1 0h3m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1M4 17.5h2m2 0h3m1 0h2m1 0h2m1 0h1m4 0h1m1 0h3M0 18.5h1m1 0h1m1 0h6m3 0h1m1 0h1m1 0h1m2 0h1m1 0h3m1 0h1M3 19.5h1m1 0h1m1 0h3m4 0h1m1 0h2m4 0h1m1 0h1m1 0h1M1 20.5h1m1 0h1m1 0h2m1 0h2m2 0h1m1 0h5m1 0h7M8 21.5h3m2 0h1m2 0h1m1 0h1m1 0h1m3 0h5M0 22.5h7m1 0h2m2 0h1m1 0h1m1 0h5m1 0h1m1 0h2m1 0h1M0 23.5h1m5 0h1m1 0h2m1 0h1m1 0h2m3 0h3m3 0h2M0 24.5h1m1 0h3m1 0h1m2 0h1m5 0h1m1 0h1m2 0h5m1 0h3M0 25.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h6m1 0h1m1 0h3m2 0h1M0 26.5h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1M0 27.5h1m5 0h1m2 0h1m8 0h3m3 0h2m1 0h1M0 28.5h7m1 0h1m3 0h1m1 0h1m3 0h3m2 0h2m2 0h1"/></svg></div>
+  <div class="qt">
+    <h4>Open it on your phone</h4>
+    <p>Scan the code, or copy the link and send it to yourself.</p>
+    <button id="copy">Copy link</button>
+  </div>
+</aside>
 
 <div class="finis" id="finis" role="status">
   <div class="card2">
@@ -912,6 +944,25 @@ var FORM=(function(){
   });
   replay.addEventListener('click', () => location.reload());
   $id('again').addEventListener('click', () => location.reload());
+
+  /* Copy, with a fallback: the clipboard API needs a secure context, and this page
+     also runs from a file:// path and from inside a Rise block. */
+  const LINK = 'https://hmis-bnts-42ronin.vercel.app/bobbi';
+  $id('copy').addEventListener('click', async () => {
+    const btn = $id('copy');
+    let ok = false;
+    try { await navigator.clipboard.writeText(LINK); ok = true; }
+    catch (e) {
+      const t = document.createElement('textarea');
+      t.value = LINK; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      try { ok = document.execCommand('copy'); } catch (e2) {}
+      t.remove();
+    }
+    btn.textContent = ok ? 'Copied' : LINK;
+    btn.classList.toggle('done', ok);
+    if (ok) setTimeout(() => { btn.textContent = 'Copy link'; btn.classList.remove('done'); }, 1800);
+  });
 
   /* The record is theirs, so the profile is read off the form rather than written
      here. Spelling included — whatever they typed is what the record says, which is

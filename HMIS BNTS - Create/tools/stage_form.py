@@ -22,6 +22,18 @@ PARTS = (("FORM",     "html", "src/add-client-form.html"),
          ("FORM_CSS", "css",  "src/add-client-form.css"),
          ("FORM_JS",  "js",   "src/add-client-form.js"))
 
+# Where this page lives once it is published, and its QR code. Both are stamped at
+# build time rather than read from location.href, because the page also runs from a
+# file:// path and from inside a Rise block, where its own address says nothing about
+# where a learner can reach it.
+#
+# src/qr-bobbi.svg was generated with `npx qrcode` at error-correction level M. If
+# SITE or the slug changes, regenerate it — the code is not computed here, so nothing
+# would otherwise notice it had gone stale.
+SITE = "https://hmis-bnts-42ronin.vercel.app"
+LINKS = {"bobbi": SITE + "/bobbi"}
+OPTIONAL = (("QR",   "html", "src/qr-%s.svg"),)
+
 
 def token(name, kind):
     # Assembled, so this file never contains the literals it searches for.
@@ -39,6 +51,19 @@ def main(src, out):
             raise SystemExit("%s: expected exactly one %s token, found %d"
                              % (src.name, name, hits))
         html = html.replace(t, (here / rel).read_text(encoding="utf-8").rstrip("\n"))
+
+    page = src.name.split(".")[0].replace("_", "-")
+    for name, kind, pat in OPTIONAL:
+        t = token(name, kind)
+        if not html.count(t):
+            continue
+        if html.count(t) != 1:
+            raise SystemExit("%s: expected exactly one %s token" % (src.name, name))
+        html = html.replace(t, (here / (pat % page)).read_text(encoding="utf-8").rstrip("\n"))
+    if token("LINK", "js") in html:
+        if page not in LINKS:
+            raise SystemExit("%s: a LINK token but no published address for it" % src.name)
+        html = html.replace(token("LINK", "js"), LINKS[page])
     out.write_text(html, encoding="utf-8")
 
 
