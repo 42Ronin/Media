@@ -216,7 +216,7 @@ function $(sel){ return document.querySelector(sel); }
      conversation waits, which is the only pressure there is.
      ============================================================ */
   const $id = FORM.byId;
-  const log = $id('log'), next = $id('next'), replay = $id('replay'), prog = $id('prog');
+  const log = $id('log'), next = $id('next'), replay = $id('replay');
   const save = $id('save'), profile = $id('profile'), bar = $id('barFill');
   const field = id => $id(id).closest('.f');
 
@@ -307,10 +307,7 @@ function $(sel){ return document.querySelector(sel); }
   }
 
   let i = -1, busy = false, step = null, touched = null, shownConsent = false;
-  const setProg = () => {
-    prog.textContent = i < 0 ? '' : `${Math.min(i+1,STEPS.length)} / ${STEPS.length}`;
-    bar.style.width = (Math.max(i,0)/STEPS.length*100) + '%';
-  };
+  const setProg = () => { bar.style.width = (Math.max(i,0)/STEPS.length*100) + '%'; };
 
   function add(m){
     const el = document.createElement('div');
@@ -450,7 +447,6 @@ function $(sel){ return document.querySelector(sel); }
     profile.classList.add('show');
     freeze();
     bar.style.width = '100%';
-    prog.textContent = `${STEPS.length} / ${STEPS.length}`;
     closeOut();
     /* The house contract: source-tagged, and never a score. */
     try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',

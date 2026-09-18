@@ -341,9 +341,12 @@ html.dock-out .coach{max-height:min(48vh,404px);top:auto;bottom:18px}
     <button class="cwbtn" id="cwMin" title="Collapse" aria-label="Collapse training panel" aria-expanded="true">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 13h14"/></svg></button>
   </div>
-    <div class="chead">
+    <!-- The bar and nothing else. The label and the step count were both taken out:
+       a conversation does not announce how many turns it has left, and "Bobbi
+       speaks, you fill the form" is an instruction, which is what this page is
+       built to do without. -->
+  <div class="chead">
     <div class="bar"><i id="barFill"></i></div>
-    <div class="cmeta"><span id="taskNo">Bobbi speaks. You fill the form.</span><span id="prog"></span></div>
   </div>
   <!-- The transcript is what this page is, so it takes the window's whole body
        rather than sitting in a box inside it. -->
@@ -544,7 +547,7 @@ var FORM=(function(){
      conversation waits, which is the only pressure there is.
      ============================================================ */
   const $id = FORM.byId;
-  const log = $id('log'), next = $id('next'), replay = $id('replay'), prog = $id('prog');
+  const log = $id('log'), next = $id('next'), replay = $id('replay');
   const save = $id('save'), profile = $id('profile'), bar = $id('barFill');
   const field = id => $id(id).closest('.f');
 
@@ -635,10 +638,7 @@ var FORM=(function(){
   }
 
   let i = -1, busy = false, step = null, touched = null, shownConsent = false;
-  const setProg = () => {
-    prog.textContent = i < 0 ? '' : `${Math.min(i+1,STEPS.length)} / ${STEPS.length}`;
-    bar.style.width = (Math.max(i,0)/STEPS.length*100) + '%';
-  };
+  const setProg = () => { bar.style.width = (Math.max(i,0)/STEPS.length*100) + '%'; };
 
   function add(m){
     const el = document.createElement('div');
@@ -778,7 +778,6 @@ var FORM=(function(){
     profile.classList.add('show');
     freeze();
     bar.style.width = '100%';
-    prog.textContent = `${STEPS.length} / ${STEPS.length}`;
     closeOut();
     /* The house contract: source-tagged, and never a score. */
     try { window.parent.postMessage({source:'hmis-sim',lesson:'hmis-bnts-create',
